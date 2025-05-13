@@ -1,0 +1,30 @@
+{
+  "name": "pg-sink-accesscount-lastdata",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+    "tasks.max": "1",
+    "topics": "accesscount_access_lastdata",
+    "connection.url": "jdbc:postgresql://iot-postgis:5432/DBCLIENT",
+    "connection.user": "USER",
+    "connection.password": "PASSWORD",
+    "insert.mode": "upsert",
+    "pk.mode": "record_value",
+    "pk.fields": "entityid",
+    "timestamp.column.name": "recvtime",
+    "table.name.format": "DBCLIENT.${topic}",
+    "auto.create": false,
+    "auto.evolve": false,
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": true,
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "transforms": "timestampConvert, recvtimeConvert",
+    "transforms.timestampConvert.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
+    "transforms.timestampConvert.field": "timeinstant",
+    "transforms.timestampConvert.format": "yyyy-MM-dd'T'HH:mm:ss.SS'Z'",
+    "transforms.timestampConvert.target.type": "Timestamp",
+    "transforms.recvtimeConvert.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
+    "transforms.recvtimeConvert.field": "recvtime",
+    "transforms.recvtimeConvert.format": "yyyy-MM-dd'T'HH:mm:ss.SS'Z'",
+    "transforms.recvtimeConvert.target.type": "Timestamp"
+  }
+}
