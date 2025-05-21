@@ -33,7 +33,7 @@ The relevant commit from [PR #1048](https://github.com/confluentinc/kafka-connec
 
 ```bash
 git fetch origin pull/1048/head:pr-1048
-git cherry-pick c306deae244a2f5d7a1ef0e96ff204d134f2914c
+git cherry-pick 0d024f500bee9dffbeb46887d29dd29fb0e5269d
 ```
 
 > 💡 If there are conflicts, resolve them and then run `git cherry-pick --continue`.
