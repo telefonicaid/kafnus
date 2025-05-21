@@ -2,9 +2,6 @@
 
 This guide explains how to compile the Kafka Connect JDBC Sink connector with geometry (PostGIS) support, based on the version `v10.7.0` of *Confluent JDBC Connector* and applying [PR #1048](https://github.com/confluentinc/kafka-connect-jdbc/pull/1048).
 
-The code provided in this folder has already been updated and built.
-However, this guide explains how to reproduce the entire process from scratch.
-
 ---
 
 ## 🛠️ Step 1: Clone the repo and apply the PR
@@ -116,7 +113,6 @@ If you see this error:
 error: release version 8 not supported
 ```
 
-
 It means your Java compiler doesn’t support the `--release 8` flag.
 
 ### ✅ Recommended: Use Java 8
@@ -155,6 +151,8 @@ Then:
 javac -version
 mvn -version
 ```
+
+> **Note**: It has been successfully built the project using OpenJDK 17.0.15 (2025-04-15). While Java 8 remains the officially recommended version for compatibility, newer versions like Java 17 may work depending on your environment.
 
 ---
 
