@@ -36,7 +36,15 @@ git fetch origin pull/1048/head:pr-1048
 git cherry-pick 0d024f500bee9dffbeb46887d29dd29fb0e5269d
 ```
 
-> 💡 If there are conflicts, resolve them and then run `git cherry-pick --continue`.
+> ⚠️ **Conflict Resolution Recommendation**
+>
+> When resolving merge conflicts (e.g., during `git cherry-pick`), it's strongly recommended to use an IDE like **VSCode** or **IntelliJ IDEA**.
+>
+> Simply:
+> - Accept **all incoming changes**
+> - Remove any **duplicate import statements**
+> - Use the IDE’s **Organize Imports** feature to clean up
+
 
 ---
 
