@@ -27,78 +27,26 @@ git checkout v10.7.0
 git checkout -b geometry-support-based-on-10.7.0
 ```
 
-### 🍒 1.4 Cherry-pick PR #1048 commit
+### 📦 1.4 Apply the custom patch from this repo
 
-The relevant commit from [PR #1048](https://github.com/confluentinc/kafka-connect-jdbc/pull/1048) is:
+This repo includes a pre-generated [patch file](/own-jdbc-connector/postgis-support.patch) containing the PostGIS geometry support. Apply it like this:
 
 ```bash
-git fetch origin pull/1048/head:pr-1048
-git cherry-pick 0d024f500bee9dffbeb46887d29dd29fb0e5269d
+ git apply postgis-support.patch
 ```
 
-> ⚠️ **Conflict Resolution Recommendation**
->
-> When resolving merge conflicts (e.g., during `git cherry-pick`), it's strongly recommended to use an IDE like **VSCode** or **IntelliJ IDEA**.
->
-> Simply:
-> - Accept **all incoming changes**
-> - Remove any **duplicate import statements**
-> - Use the IDE’s **Organize Imports** feature to clean up
+> 💡 Make sure you're applying it from within the kafka-connect-jdbc directory, and that the patch file is there (or adjust the path accordingly if it’s in a different location).
 
+### 1.5 Commit the changes
 
----
-
-## 🚧 Step 2: Fix HTTP repository errors
-
-By default, the Confluent Maven repository uses `http`, which may cause dependency resolution failures. Here's how to fix it.
-
-### 🔧 2.1 Patch `pom.xml` to use HTTPS
-
-Edit the root file `kafka-connect-jdbc/pom.xml` and replace all occurrences of the Confluent repository with HTTPS:
-
-Find:
-
-```xml
-<repository>
-  <id>confluent</id>
-  <url>http://packages.confluent.io/maven/</url>
-</repository>
-```
-
-Replace with:
-
-```xml
-<repository>
-  <id>confluent</id>
-  <url>https://packages.confluent.io/maven/</url>
-</repository>
-```
-
-Do this in any `<repositories>` block where it appears.
-
-### 🔐 2.2 Override HTTP repo globally (recommended)
-
-To fix inherited HTTP repositories (like `io.confluent:common:pom:6.0.0`), add a mirror override in your `~/.m2/settings.xml`:
-
-Create or edit this file:
-
-```xml
-<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
-  <mirrors>
-    <mirror>
-      <id>confluent-https</id>
-      <mirrorOf>confluent</mirrorOf>
-      <url>https://packages.confluent.io/maven/</url>
-    </mirror>
-  </mirrors>
-</settings>
+```bash
+git add .
+git commit -m "Add PostGIS geometry support from custom patch"
 ```
 
 ---
 
-## 🔧 Step 3: Build the connector JAR
+## 🔧 Step 2: Build the connector JAR
 
 Skip checkstyle and tests (they're not needed):
 
@@ -114,7 +62,7 @@ target/kafka-connect-jdbc-10.7.0.jar
 
 ---
 
-## ⚠️ Step 4: Java version compatibility
+## ⚠️ Java version compatibility
 
 If you see this error:
 ```
@@ -164,7 +112,7 @@ mvn -version
 
 ---
 
-## ✅ Step 5: Deploy and verify the connector
+## ✅ Step 3: Deploy and verify the connector
 
 Copy the compiled JAR into the Kafka Connect classpath.
 
@@ -240,6 +188,64 @@ def wkt_to_wkb_base64(wkt_str):
 
 print(wkt_to_wkb_base64("POINT(-3.7038 40.4168)"))
 ```
+
+---
+# 🔍 Explanation of the Changes
+
+This custom build integrates support for **geospatial geometry data** in Kafka Connect JDBC Sink, based on the changes proposed in [PR #1048](https://github.com/confluentinc/kafka-connect-jdbc/pull/1048). Below is a breakdown of what this patch does and why it was necessary.
+
+---
+
+## 📐 Geometry Support (from PR #1048)
+
+The primary goal of the patch is to allow the JDBC Sink connector to recognize and handle geometry objects encoded in the **Debezium-style format**, specifically:
+
+``` bash
+{
+  "name": "io.debezium.data.geometry.Geometry",
+  "type": "struct",
+  "fields": [
+    {"field": "wkb", "type": "bytes"},
+    {"field": "srid", "type": "int32"}
+  ]
+}
+```
+
+### ✅ What's added:
+
+- A new `GeometryType` mapping in the JDBC dialect logic.
+- The connector now recognizes fields with schema name `io.debezium.data.geometry.Geometry`.
+- The sink converts this into a `java.sql.PreparedStatement` using PostGIS-compatible WKB input.
+
+This enables **transparent writing of geospatial data** (e.g., `POINT`, `LINESTRING`, `POLYGON`) to PostgreSQL with PostGIS extensions.
+
+> Without this change, the connector would ignore or fail to serialize geometry types coming from sources like Debezium.
+
+---
+
+## 🔧 `pom.xml` Fix: HTTPS for Confluent Maven Repositories
+
+The patch also includes a fix in the `pom.xml` file to **switch Maven repository URLs from `http` to `https`** for the Confluent repositories. This solves build failures due to modern security restrictions that block HTTP-based Maven resolutions.
+
+### Modified block:
+
+``` bash
+<repository>
+  <id>confluent</id>
+  <url>https://packages.confluent.io/maven/</url>
+</repository>
+```
+
+This change eliminates the need for users to manually edit the POM to fix dependency resolution errors. It also adds `<debezium.version>1.5.0.Final</debezium.version>` in dependencies.
+
+---
+
+## 🧵 Summary of the Patch
+
+The patch (`postgis-support.patch`) includes:
+
+- ✅ Code changes from [PR #1048](https://github.com/confluentinc/kafka-connect-jdbc/pull/1048) to support geometry types.
+- ✅ A `pom.xml` update to enforce HTTPS for Confluent Maven repos.
 
 ---
 
