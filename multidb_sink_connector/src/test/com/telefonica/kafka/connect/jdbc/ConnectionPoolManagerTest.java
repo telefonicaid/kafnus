@@ -56,8 +56,8 @@ class ConnectionPoolManagerTest {
         realPoolManager.getConnection("db2");
         realPoolManager.getConnection("db1");
         
-        // Debería haber creado solo 2 pools (uno para db1 y otro para db2)
-        // Verificación implícita - no hay excepción
+        // Shoould create on 2 pools ( db1 and db2)
+        // No exception
     }
 
     @Test

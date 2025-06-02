@@ -74,7 +74,7 @@ class MultiDbJdbcSinkTaskIntegrationTest {
         
         task.put(Collections.singletonList(record));
 
-        // Verificar que el registro se insertó
+        // Check inserted record
         try (Connection conn = DriverManager.getConnection(
                 postgres.getJdbcUrl(), 
                 postgres.getUsername(), 
