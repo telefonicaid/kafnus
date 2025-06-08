@@ -121,15 +121,9 @@ services:
       CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
     volumes:
       - ./target:/usr/share/java/postgres-sink-kafka-connector
-
     healthcheck:
       interval: 5s
       retries: 10
       test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:8083
     networks:  # Add to network
       - orion-network
-
-volumes:
-  postgresdata:
-    external: true
-    name: postgresdata
