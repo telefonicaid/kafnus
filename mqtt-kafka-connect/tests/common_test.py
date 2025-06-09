@@ -378,7 +378,61 @@ class OrionAdapter:
 
 class ServiceOperations:
     """Service operations"""
+    multi_service_container: MultiServiceContainer
+    topic_name : str
+    consumer : KafkaConsumer
 
 
-    def __init__(self):
-        pass
+    def __init__(self, multi_service_container):
+        self.multi_service_container = multi_service_container
+        self.topic_name = "raw_historic"
+        self.consumer = self.multi_service_container.consumer
+
+
+    def orion_set_up(self):
+        """orion set up"""
+        host_orion = self.multi_service_container.orionHost
+        port_orion = self.multi_service_container.orionPort
+
+        generated_data = OrionRequestGenerator().generate()
+        orion_adapter = OrionAdapter(host_orion, port_orion, generated_data)
+        orion_adapter.create_subscriptions()
+        orion_adapter.create_entities()
+        orion_adapter.update_entities()
+
+    def subscribe_to_kafka_topics(self):
+        """subscribe to kafka topics"""
+        self.consumer.subscribe([self.topic_name])
+        self.consumer.poll(timeout_ms=1000)  # Poll inicial para asignar particiones
+        self.consumer.seek_to_beginning(*self.consumer.assignment())
+
+    def check_messages_on_kafka(self):
+        """check messages on kafka"""
+        # Leer mensajes
+        messages = []
+        completed = False
+        while not completed:  # Esperar hasta 10 segundos
+            records = self.consumer.poll(timeout_ms=100000, max_records=8, update_offsets=False)
+            if records:
+                for tp, msgs in records.items():
+                    for message in msgs:
+                        # Procesar headers
+                        headers_str = ""
+                        if message.headers:
+                            headers_str = " | ".join(
+                                [f"{k}:{v.decode('utf-8') if isinstance(v, bytes) else v}" for k, v in message.headers])
+
+                        # Decodificar el valor del mensaje si es bytes
+                        try:
+                            message_value = message.value.decode('utf-8') if isinstance(message.value, bytes) else str(
+                                message.value)
+                            message_with_header = f"{headers_str} | {message_value}" if headers_str else message_value
+                            messages.append(message_with_header)
+                        except Exception as e:
+                            print(f"Error processing message: {e}")
+                            continue
+            else:
+                completed = True
+
+        print(f"Mensajes recibidos: {messages}")
+        assert len(messages) > 0, f"No se recibieron mensajes en el tópico {self.topic_name}"
