@@ -1,10 +1,22 @@
 package com.telefonica.kafka.connect.jdbc;
 
+// import io.confluent.connect.jdbc.util.ConfigUtils;
+// import io.confluent.connect.jdbc.util.DatabaseDialectRecommender;
+// import io.confluent.connect.jdbc.util.DeleteEnabledRecommender;
+// import io.confluent.connect.jdbc.util.EnumRecommender;
+// import io.confluent.connect.jdbc.util.PrimaryKeyModeRecommender;
+// import io.confluent.connect.jdbc.util.QuoteMethod;
+// import io.confluent.connect.jdbc.util.StringUtils;
+// import io.confluent.connect.jdbc.util.TableType;
+// import io.confluent.connect.jdbc.util.TimeZoneValidator;
+import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigException;
+import org.apache.kafka.common.config.types.Password;
+
 import java.util.Map;
 
-public class MultiDbJdbcSinkConfig {
+public class MultiDbJdbcSinkConfig extends AbstractConfig {
     public static final String CONNECTION_URL_TEMPLATE = "connection.url.template";
     public static final String CONNECTION_USER = "connection.user";
     public static final String CONNECTION_PASSWORD = "connection.password";
@@ -60,4 +72,13 @@ public class MultiDbJdbcSinkConfig {
     public int getMaxPoolSize() { return maxPoolSize; }
     public String getTopicDbSeparator() { return topicDbSeparator; }
     public boolean getAutoCreateTables() { return autoCreateTables; }
+
+  private String getPasswordValue(String key) {
+    Password password = getPassword(key);
+    if (password != null) {
+      return password.value();
+    }
+    return null;
+  }
+    
 }
