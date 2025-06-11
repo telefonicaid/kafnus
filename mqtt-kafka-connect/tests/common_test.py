@@ -7,7 +7,7 @@ import requests
 import time
 from requests.exceptions import RequestException
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict
 
 headers_mqtt_to_kafka_connector = {
         "content-type": "application/json",
@@ -142,166 +142,168 @@ def wait_for_mqtt_to_kafka_connect(host: str = "connect", port: int = 8083):
 @dataclass
 class OrionRequestData:
     """Orion request data"""
+    name:str
     service: str
     subservice: str
     entities: list
-    subscriptions: list
+    subscriptions: dict
     updateEntities: list
 
-class OrionRequestGenerator:
-    service: str
-    subservice: str
-    entities: list
-    subscriptions: list
-    updateEntities: list
-
-    """Orion request generator"""
-
-    def generate(self):
-        service = "alcobendas"
-        subservice = "/test"
-        entities = [
-            {
-                "id": "hola",
-                "type": "Room",
-                "temperature": {
-                    "value": 23,
-                    "type": "Number"
-                },
-                "pressure": {
-                    "value": 720,
-                    "type": "Number"
-                }
-            },
-            {
-                "id": "hola1",
-                "type": "Room",
-                "temperature": {
-                    "value": 23,
-                    "type": "Number"
-                },
-                "pressure": {
-                    "value": 720,
-                    "type": "Number"
-                }
-            },
-            {
-                "id": "hola",
-                "type": "Room1",
-                "temperature": {
-                    "value": 23,
-                    "type": "Number"
-                },
-                "pressure": {
-                    "value": 720,
-                    "type": "Number"
-                }
-            }
-        ]
-        subscriptions = [
-            {
-                "description": "A subscription to get info about Room1 with filtering expresi",
-                "subject": {
-                    "entities": [
-                        {
-                            "idPattern": ".*",
-                            "type": "Room"
-                        }
-                    ],
-                    "condition": {
-                        "attrs": [
-                            "temperature"
-                        ]
-                    },
-                    "expression": {
-                        "q": "pressure:700..800"
-                    }
-                },
-                "notification": {
-                    "mqttCustom": {
-                        "url": "mqtt://mosquitto:1883",
-                        "topic": "kafnus/${service}${servicePath}/raw_historic"
-                    },
-                    "attrs": [
-                        "*",
-                        "servicePath"
-                    ]
-                },
-                "expires": "2040-01-01T14:00:00.00Z"
-            },
-            {
-                "description": "A subscription to get info about Room1 with filtering",
-                "subject": {
-                    "entities": [
-                        {
-                            "idPattern": ".*",
-                            "type": "Room1"
-                        }
-                    ],
-                    "condition": {
-                        "attrs": [
-                            "temperature"
-                        ]
-                    },
-                    "expression": {
-                        "q": "pressure:700..800"
-                    }
-                },
-                "notification": {
-                    "mqttCustom": {
-                        "url": "mqtt://mosquitto:1883",
-                        "topic": "kafnus/${service}${servicePath}/raw_historic"
-                    },
-                    "attrs": [
-                        "*",
-                        "servicePath"
-                    ]
-                },
-                "expires": "2040-01-01T14:00:00.00Z"}
-
-        ]
-        update_entities = [
-            {
-                "id": "hola",
-                "type": "Room",
-                "temperature": {
-                    "value": 27,
-                    "type": "Number"
-                }
-            },
-            {
-                "id": "hola1",
-                "type": "Room",
-                "temperature": {
-                    "value": 50,
-                    "type": "Number"
-                }
-            },
-            {
-                "id": "hola",
-                "type": "Room1",
-                "temperature": {
-                    "value": 27,
-                    "type": "Number"
-                }
-            },
-            {
-                "id": "hola",
-                "type": "Room1",
-                "temperature": {
-                    "value": 5,
-                    "type": "Number"
-                }
-            }
-        ]
-        generador = OrionRequestData(
-            service=service,
-            subservice=subservice,
-            entities=entities,
-            subscriptions=subscriptions,
-            updateEntities=update_entities
-            )
-        return generador
+# class OrionRequestGenerator:
+#     type: str
+#     service: str
+#     subservice: str
+#     entities: list
+#     subscriptions: dict
+#     updateEntities: list
+#
+#     """Orion request generator"""
+#
+#     def generate(self):
+#         service = "alcobendas"
+#         subservice = "/test"
+#         entities = [
+#             {
+#                 "id": "hola",
+#                 "type": "Room",
+#                 "temperature": {
+#                     "value": 23,
+#                     "type": "Number"
+#                 },
+#                 "pressure": {
+#                     "value": 720,
+#                     "type": "Number"
+#                 }
+#             },
+#             {
+#                 "id": "hola1",
+#                 "type": "Room",
+#                 "temperature": {
+#                     "value": 23,
+#                     "type": "Number"
+#                 },
+#                 "pressure": {
+#                     "value": 720,
+#                     "type": "Number"
+#                 }
+#             },
+#             {
+#                 "id": "hola",
+#                 "type": "Room1",
+#                 "temperature": {
+#                     "value": 23,
+#                     "type": "Number"
+#                 },
+#                 "pressure": {
+#                     "value": 720,
+#                     "type": "Number"
+#                 }
+#             }
+#         ]
+#         subscriptions = [
+#             {
+#                 "description": "A subscription to get info about Room1 with filtering expresi",
+#                 "subject": {
+#                     "entities": [
+#                         {
+#                             "idPattern": ".*",
+#                             "type": "Room"
+#                         }
+#                     ],
+#                     "condition": {
+#                         "attrs": [
+#                             "temperature"
+#                         ]
+#                     },
+#                     "expression": {
+#                         "q": "pressure:700..800"
+#                     }
+#                 },
+#                 "notification": {
+#                     "mqttCustom": {
+#                         "url": "mqtt://mosquitto:1883",
+#                         "topic": "kafnus/${service}${servicePath}/raw_historic"
+#                     },
+#                     "attrs": [
+#                         "*",
+#                         "servicePath"
+#                     ]
+#                 },
+#                 "expires": "2040-01-01T14:00:00.00Z"
+#             },
+#             {
+#                 "description": "A subscription to get info about Room1 with filtering",
+#                 "subject": {
+#                     "entities": [
+#                         {
+#                             "idPattern": ".*",
+#                             "type": "Room1"
+#                         }
+#                     ],
+#                     "condition": {
+#                         "attrs": [
+#                             "temperature"
+#                         ]
+#                     },
+#                     "expression": {
+#                         "q": "pressure:700..800"
+#                     }
+#                 },
+#                 "notification": {
+#                     "mqttCustom": {
+#                         "url": "mqtt://mosquitto:1883",
+#                         "topic": "kafnus/${service}${servicePath}/raw_historic"
+#                     },
+#                     "attrs": [
+#                         "*",
+#                         "servicePath"
+#                     ]
+#                 },
+#                 "expires": "2040-01-01T14:00:00.00Z"}
+#
+#         ]
+#         update_entities = [
+#             {
+#                 "id": "hola",
+#                 "type": "Room",
+#                 "temperature": {
+#                     "value": 27,
+#                     "type": "Number"
+#                 }
+#             },
+#             {
+#                 "id": "hola1",
+#                 "type": "Room",
+#                 "temperature": {
+#                     "value": 50,
+#                     "type": "Number"
+#                 }
+#             },
+#             {
+#                 "id": "hola",
+#                 "type": "Room1",
+#                 "temperature": {
+#                     "value": 27,
+#                     "type": "Number"
+#                 }
+#             },
+#             {
+#                 "id": "hola",
+#                 "type": "Room1",
+#                 "temperature": {
+#                     "value": 5,
+#                     "type": "Number"
+#                 }
+#             }
+#         ]
+#         generador = OrionRequestData(
+#             service=service,
+#             subservice=subservice,
+#             entities=entities,
+#             subscriptions=subscriptions,
+#             updateEntities=update_entities
+#             )
+#         return generador
 
 class OrionAdapter:
     """Orion adapter"""
@@ -309,95 +311,89 @@ class OrionAdapter:
     orionPort:str
     baseUrl: str
     headers: dict
-    generator: OrionRequestData
+    generators: List[OrionRequestData]
 
-    def __init__(self, orionHost:str, orionPort:str, generator:OrionRequestData):
+    def __init__(self, orionHost:str, orionPort:str, generators:List[OrionRequestData]):
         self.orionHost = orionHost
         self.orionPort = orionPort
         self.baseUrl = f"http://{orionHost}:{orionPort}/v2"
-        self.generator = generator
-        self.headers = {
-        "content-type": "application/json",
-        "Fiware-Service": self.generator.service,
-        "Fiware-ServicePath": self.generator.subservice,
-        "Accept": "application/json"
+        self.generators = generators
+        self.headers = {}
+        for generator in self.generators:
+            self.headers[f"""{generator.name}"""] = {
+                "content-type": "application/json",
+                "Fiware-Service": generator.service,
+                "Fiware-ServicePath": generator.subservice,
+                "Accept": "application/json"
         }
+
     def create_subscriptions(self):
         """create subscriptions"""
-        headers = {
-        "content-type": "application/json",
-        "Fiware-Service": self.generator.service,
-        "Fiware-ServicePath": self.generator.subservice,
-        "Accept": "application/json"
-        }
-        for s in self.generator.subscriptions:
-            response = requests.post(f"{self.baseUrl}/subscriptions", data=json.dumps(s), headers=headers)
-            assert response.status_code in [201, 204]
+        for generator in self.generators:
+            headers_: dict= self.headers[f"""{generator.name}"""]
+            for key, subscription in generator.subscriptions.items():
+                response = requests.post(f"{self.baseUrl}/subscriptions", headers=headers_, data=json.dumps(subscription))
+                assert response.status_code in [201, 204]
 
-    def create_entities(self):
-        """Create entities"""
-        for entity in self.generator.entities:
-            response = requests.post(f"{self.baseUrl}/entities", data=json.dumps(entity), headers=self.headers)
-            print(response.content)
-            assert response.status_code in [201, 204]
-
-    def get_entities(self):
-        """get entities"""
-        headers_get_entity = {
-            "Fiware-Service": self.generator.service,
-            "Fiware-ServicePath": self.generator.subservice,
-            "Accept": "application/json"
-        }
-
-        #consult each entity
-        entity_names = List(map(lambda entity: entity["id"],self.generator.entities))
-        for entity in entity_names:
-            response = requests.get(f"{self.baseUrl}/entities/{entity}", headers=headers_get_entity)
-            assert response.status_code in [200, 201, 204]
-            response_data = response.json()
-            assert response_data["id"] == "hola"
+    # def get_entities(self):
+    #     """get entities"""
+    #     headers_get_entity = {
+    #         "Fiware-Service": self.generator.service,
+    #         "Fiware-ServicePath": self.generator.subservice,
+    #         "Accept": "application/json"
+    #     }
+    #
+    #     #consult each entity
+    #     entity_names = List(map(lambda entity: entity["id"],self.generator.entities))
+    #     for entity in entity_names:
+    #         response = requests.get(f"{self.baseUrl}/entities/{entity}", headers=headers_get_entity)
+    #         assert response.status_code in [200, 201, 204]
+    #         response_data = response.json()
+    #         assert response_data["id"] == "hola"
 
     def update_entities(self):
         """update entities"""
-        update_entity = {
-            "value": 27,
-            "type": "Number"
-        }
-
-        for entity in self.generator.updateEntities:
-            enity_id = entity["id"]
-            entity_type = entity["type"]
-            enity_copy = entity.copy()
-            enity_copy.pop("id")
-            enity_copy.pop("type")
-            params = {
-                "type": entity_type
+        params = {
+                 "options": "flowControl"
             }
-            response = requests.patch(f"{self.baseUrl}/entities/{enity_id}/attrs", headers=self.headers, params=params, json=enity_copy)
+
+        for generator in self.generators:
+            data = {
+                "actionType": "append",
+                "entities": generator.updateEntities
+            }
+            response = requests.post(f"{self.baseUrl}/op/update", data=json.dumps(data), params = params, headers=self.headers[f"""{generator.name}"""])
+            print(response.content)
             assert response.status_code in [201, 204]
+
+@dataclass
+class KafkaMenssage:
+    """Kafka message"""
+    headers: dict
+    menssage: dict
+
 
 class ServiceOperations:
     """Service operations"""
     multi_service_container: MultiServiceContainer
     topic_name : str
     consumer : KafkaConsumer
+    generators: List[OrionRequestData]
 
 
-    def __init__(self, multi_service_container):
+    def __init__(self, multi_service_container, generated_data):
         self.multi_service_container = multi_service_container
         self.topic_name = "raw_historic"
         self.consumer = self.multi_service_container.consumer
-
+        self.generators = generated_data
 
     def orion_set_up(self):
         """orion set up"""
         host_orion = self.multi_service_container.orionHost
         port_orion = self.multi_service_container.orionPort
 
-        generated_data = OrionRequestGenerator().generate()
-        orion_adapter = OrionAdapter(host_orion, port_orion, generated_data)
+        orion_adapter = OrionAdapter(host_orion, port_orion, self.generators)
         orion_adapter.create_subscriptions()
-        orion_adapter.create_entities()
         orion_adapter.update_entities()
 
     def subscribe_to_kafka_topics(self):
@@ -412,27 +408,24 @@ class ServiceOperations:
         messages = []
         completed = False
         while not completed:  # Esperar hasta 10 segundos
-            records = self.consumer.poll(timeout_ms=100000, max_records=8, update_offsets=False)
+            records = self.consumer.poll(timeout_ms=6000, max_records=10, update_offsets=False)
             if records:
                 for tp, msgs in records.items():
                     for message in msgs:
                         # Procesar headers
-                        headers_str = ""
+                        headers_dict = {}
                         if message.headers:
-                            headers_str = " | ".join(
-                                [f"{k}:{v.decode('utf-8') if isinstance(v, bytes) else v}" for k, v in message.headers])
-
+                            headers_dict = dict(map(lambda header: (header[0],header[1].decode('utf-8') if isinstance(header[1], bytes) else header[1]), message.headers))
                         # Decodificar el valor del mensaje si es bytes
                         try:
-                            message_value = message.value.decode('utf-8') if isinstance(message.value, bytes) else str(
-                                message.value)
-                            message_with_header = f"{headers_str} | {message_value}" if headers_str else message_value
-                            messages.append(message_with_header)
+                            message_value = message.value
+                            data = json.loads(message_value)
+                            data.pop('subscriptionId', None)
+                            kafka_menssage = KafkaMenssage(headers=headers_dict, menssage=data)
+                            messages.append(kafka_menssage)
                         except Exception as e:
                             print(f"Error processing message: {e}")
                             continue
             else:
                 completed = True
-
-        print(f"Mensajes recibidos: {messages}")
-        assert len(messages) > 0, f"No se recibieron mensajes en el tópico {self.topic_name}"
+        return messages

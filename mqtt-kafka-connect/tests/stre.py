@@ -1,0 +1,3319 @@
+Streetlight = {
+    "entities": [
+        {
+            "id": "ENT-LUM-001", "type": "Streetlight",
+            "TimeInstant": {"value": "2025-01-01T05:15:00.000Z", "type": "DateTime"},
+            "location": {"value": {"type": "Point", "coordinates": [-0.350063, 40.054448]}, "type": "geo:json"},
+            "polygon":{"value":  {"type":"Polygon", "coordinates":[[[-6.007389128,37.410871002],[-6.008284986,37.411015874],[-6.008400321,37.410894437],[-6.008620262,37.41003372],[-6.008488834,37.409669404],[-6.007759273,37.40953092],[-6.007389128,37.410871002]]]}, "type": "geo:json"},
+            "route": {"value": {"type": "LineString","coordinates": [[-3.70256, 40.4165],[-3.70300, 40.4178],[-3.70412, 40.4190]]}, "type": "geo:json"},
+            "stations": {"value": {"type": "MultiPoint","coordinates": [[-0.350063, 40.054448], [-0.351200, 40.055600],[-0.349000, 40.053000]]},"type": "geo:json"},
+            "metroLines": {"value": {"type": "MultiLineString","coordinates": [[[-3.698, 40.410], [-3.695, 40.412], [-3.692, 40.414]], [[-3.700, 40.415], [-3.702, 40.418], [-3.705, 40.420]]]}, "type": "geo:json"},
+            "districts": {"value": {"type": "MultiPolygon", "coordinates": [[[[ -3.70, 40.42 ], [ -3.71, 40.43 ], [ -3.69, 40.44 ], [ -3.70, 40.42 ]]],[[[ -3.72, 40.40 ], [ -3.73, 40.41 ], [ -3.71, 40.39 ], [ -3.72, 40.40 ]]]]},"type": "geo:json"},
+            "mixedFeatures": {"value": {"type": "GeometryCollection", "geometries": [{"type": "Point", "coordinates": [-0.351, 40.055]},{"type": "LineString", "coordinates": [[-0.352,40.056], [-0.353,40.057]]}]}, "type": "geo:json"},
+            "address": {"value": "Calle Honorato Ros, 9. 12230 Argelita, Castellón", "type": "Text"},
+            "illuminanceLevel": {"value": 0.5, "type": "Number"},
+            "enableHistoricCommand": {"value": True, "type": "Boolean"},
+            "variables": {"value": {"duration": "20 days"}, "type":"jsonb"},
+            "fixtureConfiguration": {"value": { "modes": ["high-efficiency", "dynamic-color"], "sensors": {"motion": True, "ambient_light": False}, "zigbee_channel": 25},"type": "json"},
+            "maintainerEmail": {"value": "@telefonica.com", "type": "TextUnrestricted"},
+            "lumensAdjustment": {"value": 15, "type": "Number"},
+            "fixtureModelId": {"value": 2147483647, "type": "Number"},
+            "ledCount": {"value": 922337203685, "type": "Number"},
+            "wattageConsumption": {"value": 1.989e30, "type": "Number"},
+            "colorTempKelvin": {"value": 4000.1234, "type": "Number"},
+            "beamAngle": {"value": 30.75, "type": "Number"},
+            "luminousEfficacy": {"value": 6.5e39, "type": "Number"},
+            "installationId": {"value": 10001, "type": "Number"},
+            "compatibleFixtures": {"value": ["STL-Gamma", "STL-Omega", "STL-Nova"], "type": "json"},
+            "dimmingLevels": {"value": [10, 25, 50, 75, 100], "type": "json"},
+            "temperatureRangeK": {"value": [2700, 3000, 4000, 5000, 6500], "type": "json"}
+        }
+    ],
+    "subscriptions": {
+        "historic": {
+            "description": "Streetlight:HISTORIC:lighting:historic",
+            "status": "active",
+            "subject": {
+                "entities": [
+                    {
+                        "idPattern": ".*",
+                        "type": "Streetlight"
+                    }
+                ],
+                "condition": {
+                    "attrs": [
+                        "TimeInstant"
+                    ]
+                }
+            },
+            "notification": {
+                "mqttCustom": {
+                    "url": "mqtt://mosquitto:1883",
+                    "topic": "kafnus/${service}${servicePath}/raw_historic"
+                },
+                "attrs": [
+                    "TimeInstant",
+                    "location",
+                    "polygon",
+                    "route",
+                    "stations",
+                    "metroLines",
+                    "districts",
+                    "mixedFeatures",
+                    "address",
+                    "illuminanceLevel",
+                    "enableHistoricCommand",
+                    "variables",
+                    "fixtureConfiguration",
+                    "maintainerEmail",
+                    "lumensAdjustment",
+                    "fixtureModelId",
+                    "ledCount",
+                    "wattageConsumption",
+                    "colorTempKelvin",
+                    "beamAngle",
+                    "luminousEfficacy",
+                    "installationId",
+                    "compatibleFixtures",
+                    "dimmingLevels",
+                    "temperatureRangeK"
+                ]
+            }
+        },
+        "lastdata": {
+            "description": "Streetlight:LASTDATA:lighting:lastdata",
+            "status": "active",
+            "subject": {
+                "entities": [
+                    {
+                        "idPattern": ".*",
+                        "type": "Streetlight"
+                    }
+                ],
+                "condition": {
+                    "attrs": [
+                        "TimeInstant",
+                        "location",
+                        "polygon",
+                        "route",
+                        "stations",
+                        "metroLines",
+                        "districts",
+                        "mixedFeatures",
+                        "address",
+                        "illuminanceLevel",
+                        "enableHistoricCommand",
+                        "variables",
+                        "fixtureConfiguration",
+                        "maintainerEmail",
+                        "lumensAdjustment",
+                        "fixtureModelId",
+                        "ledCount",
+                        "wattageConsumption",
+                        "colorTempKelvin",
+                        "beamAngle",
+                        "luminousEfficacy",
+                        "installationId",
+                        "compatibleFixtures",
+                        "dimmingLevels",
+                        "temperatureRangeK"
+                    ],
+                    "alterationTypes": [
+                        "entityUpdate",
+                        "entityCreate",
+                        "entityDelete"
+                    ]
+                }
+            },
+            "notification": {
+                "mqttCustom": {
+                    "url": "mqtt://mosquitto:1883",
+                    "topic": "kafnus/${service}${servicePath}/raw_lastdata"
+                },
+                "attrs": [
+                    "TimeInstant",
+                    "location",
+                    "polygon"
+                    "route",
+                    "stations",
+                    "metroLines",
+                    "districts",
+                    "mixedFeatures",
+                    "address",
+                    "illuminanceLevel",
+                    "enableHistoricCommand",
+                    "variables",
+                    "fixtureConfiguration",
+                    "maintainerEmail",
+                    "lumensAdjustment",
+                    "fixtureModelId",
+                    "ledCount",
+                    "wattageConsumption"
+                    "colorTempKelvin",
+                    "beamAngle",
+                    "luminousEfficacy",
+                    "installationId",
+                    "compatibleFixtures",
+                    "dimmingLevels",
+                    "temperatureRangeK""TimeInstant",
+                    "location",
+                    "polygon"
+                    "route",
+                    "stations",
+                    "metroLines",
+                    "districts",
+                    "mixedFeatures",
+                    "address",
+                    "illuminanceLevel",
+                    "enableHistoricCommand",
+                    "variables",
+                    "fixtureConfiguration",
+                    "maintainerEmail",
+                    "lumensAdjustment",
+                    "fixtureModelId",
+                    "ledCount",
+                    "wattageConsumption"
+                    "colorTempKelvin",
+                    "beamAngle",
+                    "luminousEfficacy",
+                    "installationId",
+                    "compatibleFixtures",
+                    "dimmingLevels",
+                    "temperatureRangeK"
+                ]
+            }
+        },
+        "mutable": {
+            "description": "Streetlight:HISTORIC_MUTABLE:devices:historic_mutable",
+            "status": "active",
+            "subject": {
+                "entities": [
+                    {
+                        "idPattern": ".*",
+                        "type": "Streetlight"
+                    }
+                ],
+                "condition": {
+                    "attrs": [
+                        "TimeInstant",
+                        "location",
+                        "polygon",
+                        "route",
+                        "stations",
+                        "metroLines",
+                        "districts",
+                        "mixedFeatures",
+                        "address",
+                        "illuminanceLevel",
+                        "enableHistoricCommand",
+                        "variables",
+                        "fixtureConfiguration",
+                        "maintainerEmail",
+                        "lumensAdjustment",
+                        "fixtureModelId",
+                        "ledCount",
+                        "wattageConsumption",
+                        "colorTempKelvin",
+                        "beamAngle",
+                        "luminousEfficacy",
+                        "installationId",
+                        "compatibleFixtures",
+                        "dimmingLevels",
+                        "temperatureRangeK"
+                    ],
+                    "alterationTypes": [
+                        "entityUpdate",
+                        "entityCreate",
+                        "entityDelete"
+                    ]
+                }
+            },
+            "notification": {
+                "mqttCustom": {
+                    "url": "mqtt://mosquitto:1883",
+                    "topic": "kafnus/${service}${servicePath}/raw_mutable"
+                },
+                "attrs": [
+                    "TimeInstant",
+                    "location",
+                    "polygon",
+                    "route",
+                    "stations",
+                    "metroLines",
+                    "districts",
+                    "mixedFeatures",
+                    "address",
+                    "illuminanceLevel",
+                    "enableHistoricCommand",
+                    "variables",
+                    "fixtureConfiguration",
+                    "maintainerEmail",
+                    "lumensAdjustment",
+                    "fixtureModelId",
+                    "ledCount",
+                    "wattageConsumption"
+                    "colorTempKelvin",
+                    "beamAngle",
+                    "luminousEfficacy",
+                    "installationId",
+                    "compatibleFixtures",
+                    "dimmingLevels",
+                    "temperatureRangeK""TimeInstant",
+                    "location",
+                    "polygon"
+                    "route",
+                    "stations",
+                    "metroLines",
+                    "districts",
+                    "mixedFeatures",
+                    "address",
+                    "illuminanceLevel",
+                    "enableHistoricCommand",
+                    "variables",
+                    "fixtureConfiguration",
+                    "maintainerEmail",
+                    "lumensAdjustment",
+                    "fixtureModelId",
+                    "ledCount",
+                    "wattageConsumption",
+                    "colorTempKelvin",
+                    "beamAngle",
+                    "luminousEfficacy",
+                    "installationId",
+                    "compatibleFixtures",
+                    "dimmingLevels",
+                    "temperatureRangeK"
+                ]
+            }
+        },
+    },
+    "updateEntities": [
+        {
+            "id": "ENT-LUM-001",
+            "type": "Streetlight",
+            "TimeInstant": {
+                "value": "2025-01-01T05:15:00.000Z",
+                "type": "DateTime"
+            },
+            "location": {
+                "value": {
+                    "type": "Point",
+                    "coordinates": [
+                        -0.350063,
+                        40.054448
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "polygon": {
+                "value": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [
+                                -6.007389128,
+                                37.410871002
+                            ],
+                            [
+                                -6.008284986,
+                                37.411015874
+                            ],
+                            [
+                                -6.008400321,
+                                37.410894437
+                            ],
+                            [
+                                -6.008620262,
+                                37.41003372
+                            ],
+                            [
+                                -6.008488834,
+                                37.409669404
+                            ],
+                            [
+                                -6.007759273,
+                                37.40953092
+                            ],
+                            [
+                                -6.007389128,
+                                37.410871002
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "route": {
+                "value": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -3.70256,
+                            40.4165
+                        ],
+                        [
+                            -3.70300,
+                            40.4178
+                        ],
+                        [
+                            -3.70412,
+                            40.4190
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "stations": {
+                "value": {
+                    "type": "MultiPoint",
+                    "coordinates": [
+                        [
+                            -0.350063,
+                            40.054448
+                        ],
+                        [
+                            -0.351200,
+                            40.055600
+                        ],
+                        [
+                            -0.349000,
+                            40.053000
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "metroLines": {
+                "value": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [
+                                -3.698,
+                                40.410
+                            ],
+                            [
+                                -3.695,
+                                40.412
+                            ],
+                            [
+                                -3.692,
+                                40.414
+                            ]
+                        ],
+                        [
+                            [
+                                -3.700,
+                                40.415
+                            ],
+                            [
+                                -3.702,
+                                40.418
+                            ],
+                            [
+                                -3.705,
+                                40.420
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "districts": {
+                "value": {
+                    "type": "MultiPolygon",
+                    "coordinates": [
+                        [
+                            [
+                                [
+                                    -3.70,
+                                    40.42
+                                ],
+                                [
+                                    -3.71,
+                                    40.43
+                                ],
+                                [
+                                    -3.69,
+                                    40.44
+                                ],
+                                [
+                                    -3.70,
+                                    40.42
+                                ]
+                            ]
+                        ],
+                        [
+                            [
+                                [
+                                    -3.72,
+                                    40.40
+                                ],
+                                [
+                                    -3.73,
+                                    40.41
+                                ],
+                                [
+                                    -3.71,
+                                    40.39
+                                ],
+                                [
+                                    -3.72,
+                                    40.40
+                                ]
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "mixedFeatures": {
+                "value": {
+                    "type": "GeometryCollection",
+                    "geometries": [
+                        {
+                            "type": "Point",
+                            "coordinates": [
+                                -0.351,
+                                40.055
+                            ]
+                        },
+                        {
+                            "type": "LineString",
+                            "coordinates": [
+                                [
+                                    -0.352,
+                                    40.056
+                                ],
+                                [
+                                    -0.353,
+                                    40.057
+                                ]
+                            ]
+                        }
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "address": {
+                "value": "Calle Honorato Ros, 9. 12230 Argelita, Castell�n",
+                "type": "Text"
+            },
+            "illuminanceLevel": {
+                "value": 0.5,
+                "type": "Number"
+            },
+            "enableHistoricCommand": {
+                "value": True,
+                "type": "Boolean"
+            },
+            "variables": {
+                "value": {
+                    "duration": "20 days"
+                },
+                "type": "jsonb"
+            },
+            "fixtureConfiguration": {
+                "value": {
+                    "modes": [
+                        "high-efficiency",
+                        "dynamic-color"
+                    ],
+                    "sensors": {
+                        "motion": True,
+                        "ambient_light": False
+                    },
+                    "zigbee_channel": 25
+                },
+                "type": "json"
+            },
+            "maintainerEmail": {
+                "value": "@telefonica.com",
+                "type": "TextUnrestricted"
+            },
+            "lumensAdjustment": {
+                "value": 15,
+                "type": "Number"
+            },
+            "fixtureModelId": {
+                "value": 2147483647,
+                "type": "Number"
+            },
+            "ledCount": {
+                "value": 922337203685,
+                "type": "Number"
+            },
+            "wattageConsumption": {
+                "value": 1.989e30,
+                "type": "Number"
+            },
+            "colorTempKelvin": {
+                "value": 4000.1234,
+                "type": "Number"
+            },
+            "beamAngle": {
+                "value": 30.75,
+                "type": "Number"
+            },
+            "luminousEfficacy": {
+                "value": 6.5e39,
+                "type": "Number"
+            },
+            "installationId": {
+                "value": 10001,
+                "type": "Number"
+            },
+            "compatibleFixtures": {
+                "value": [
+                    "STL-Gamma",
+                    "STL-Omega",
+                    "STL-Nova"
+                ],
+                "type": "json"
+            },
+            "dimmingLevels": {
+                "value": [
+                    10,
+                    25,
+                    50,
+                    75,
+                    100
+                ],
+                "type": "json"
+            },
+            "temperatureRangeK": {
+                "value": [
+                    2700,
+                    3000,
+                    4000,
+                    5000,
+                    6500
+                ],
+                "type": "json"
+            }
+        },
+        {
+            "id": "ENT-LUM-001",
+            "type": "Streetlight",
+            "TimeInstant": {
+                "value": "2025-01-01T05:20:00.000Z",
+                "type": "DateTime"
+            },
+            "location": {
+                "value": {
+                    "type": "Point",
+                    "coordinates": [
+                        -0.350163,
+                        40.054548
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "polygon": {
+                "value": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [
+                                -6.007489128,
+                                37.410971002
+                            ],
+                            [
+                                -6.008384986,
+                                37.411115874
+                            ],
+                            [
+                                -6.008500321,
+                                37.410994437
+                            ],
+                            [
+                                -6.008720262,
+                                37.41013372
+                            ],
+                            [
+                                -6.008588834,
+                                37.409769404
+                            ],
+                            [
+                                -6.007859273,
+                                37.40963092
+                            ],
+                            [
+                                -6.007489128,
+                                37.410971002
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "route": {
+                "value": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -3.70266,
+                            40.4166
+                        ],
+                        [
+                            -3.70310,
+                            40.4179
+                        ],
+                        [
+                            -3.70422,
+                            40.4191
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "stations": {
+                "value": {
+                    "type": "MultiPoint",
+                    "coordinates": [
+                        [
+                            -0.350163,
+                            40.054548
+                        ],
+                        [
+                            -0.351300,
+                            40.055700
+                        ],
+                        [
+                            -0.349100,
+                            40.053100
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "metroLines": {
+                "value": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [
+                                -3.6981,
+                                40.4101
+                            ],
+                            [
+                                -3.6951,
+                                40.4121
+                            ],
+                            [
+                                -3.6921,
+                                40.4141
+                            ]
+                        ],
+                        [
+                            [
+                                -3.7001,
+                                40.4151
+                            ],
+                            [
+                                -3.7021,
+                                40.4181
+                            ],
+                            [
+                                -3.7051,
+                                40.4201
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "districts": {
+                "value": {
+                    "type": "MultiPolygon",
+                    "coordinates": [
+                        [
+                            [
+                                [
+                                    -3.701,
+                                    40.421
+                                ],
+                                [
+                                    -3.711,
+                                    40.431
+                                ],
+                                [
+                                    -3.691,
+                                    40.441
+                                ],
+                                [
+                                    -3.701,
+                                    40.421
+                                ]
+                            ]
+                        ],
+                        [
+                            [
+                                [
+                                    -3.721,
+                                    40.401
+                                ],
+                                [
+                                    -3.731,
+                                    40.411
+                                ],
+                                [
+                                    -3.711,
+                                    40.391
+                                ],
+                                [
+                                    -3.721,
+                                    40.401
+                                ]
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "mixedFeatures": {
+                "value": {
+                    "type": "GeometryCollection",
+                    "geometries": [
+                        {
+                            "type": "Point",
+                            "coordinates": [
+                                -0.3511,
+                                40.0551
+                            ]
+                        },
+                        {
+                            "type": "LineString",
+                            "coordinates": [
+                                [
+                                    -0.3521,
+                                    40.0561
+                                ],
+                                [
+                                    -0.3531,
+                                    40.0571
+                                ]
+                            ]
+                        }
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "address": {
+                "value": "Calle Honorato Ros, 10. 12230 Argelita, Castell�n",
+                "type": "Text"
+            },
+            "illuminanceLevel": {
+                "value": 0.6,
+                "type": "Number"
+            },
+            "enableHistoricCommand": {
+                "value": False,
+                "type": "Boolean"
+            },
+            "variables": {
+                "value": {
+                    "duration": "21 days"
+                },
+                "type": "jsonb"
+            },
+            "fixtureConfiguration": {
+                "value": {
+                    "modes": [
+                        "high-efficiency",
+                        "dynamic-color",
+                        "eco-mode"
+                    ],
+                    "sensors": {
+                        "motion": False,
+                        "ambient_light": True
+                    },
+                    "zigbee_channel": 26
+                },
+                "type": "json"
+            },
+            "maintainerEmail": {
+                "value": "soporte_tecnico@telefonica.com",
+                "type": "TextUnrestricted"
+            },
+            "lumensAdjustment": {
+                "value": 16,
+                "type": "Number"
+            },
+            "fixtureModelId": {
+                "value": 2147483648,
+                "type": "Number"
+            },
+            "ledCount": {
+                "value": 922337203686,
+                "type": "Number"
+            },
+            "wattageConsumption": {
+                "value": 1.990e30,
+                "type": "Number"
+            },
+            "colorTempKelvin": {
+                "value": 4100.1234,
+                "type": "Number"
+            },
+            "beamAngle": {
+                "value": 31.75,
+                "type": "Number"
+            },
+            "luminousEfficacy": {
+                "value": 6.6e39,
+                "type": "Number"
+            },
+            "installationId": {
+                "value": 10002,
+                "type": "Number"
+            },
+            "compatibleFixtures": {
+                "value": [
+                    "STL-Gamma",
+                    "STL-Omega",
+                    "STL-Nova",
+                    "STL-Quantum"
+                ],
+                "type": "json"
+            },
+            "dimmingLevels": {
+                "value": [
+                    15,
+                    30,
+                    55,
+                    80,
+                    100
+                ],
+                "type": "json"
+            },
+            "temperatureRangeK": {
+                "value": [
+                    2750,
+                    3100,
+                    4100,
+                    5100,
+                    6600
+                ],
+                "type": "json"
+            }
+        },
+        {
+            "id": "ENT-LUM-001",
+            "type": "Streetlight",
+            "TimeInstant": {
+                "value": "2025-01-01T05:25:00.000Z",
+                "type": "DateTime"
+            },
+            "location": {
+                "value": {
+                    "type": "Point",
+                    "coordinates": [
+                        -0.350263,
+                        40.054648
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "polygon": {
+                "value": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [
+                                -6.007589128,
+                                37.411071002
+                            ],
+                            [
+                                -6.008484986,
+                                37.411215874
+                            ],
+                            [
+                                -6.008600321,
+                                37.411094437
+                            ],
+                            [
+                                -6.008820262,
+                                37.41023372
+                            ],
+                            [
+                                -6.008688834,
+                                37.409869404
+                            ],
+                            [
+                                -6.007959273,
+                                37.40973092
+                            ],
+                            [
+                                -6.007589128,
+                                37.411071002
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "route": {
+                "value": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -3.70276,
+                            40.4167
+                        ],
+                        [
+                            -3.70320,
+                            40.4180
+                        ],
+                        [
+                            -3.70432,
+                            40.4192
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "stations": {
+                "value": {
+                    "type": "MultiPoint",
+                    "coordinates": [
+                        [
+                            -0.350263,
+                            40.054648
+                        ],
+                        [
+                            -0.351400,
+                            40.055800
+                        ],
+                        [
+                            -0.349200,
+                            40.053200
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "metroLines": {
+                "value": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [
+                                -3.6982,
+                                40.4102
+                            ],
+                            [
+                                -3.6952,
+                                40.4122
+                            ],
+                            [
+                                -3.6922,
+                                40.4142
+                            ]
+                        ],
+                        [
+                            [
+                                -3.7002,
+                                40.4152
+                            ],
+                            [
+                                -3.7022,
+                                40.4182
+                            ],
+                            [
+                                -3.7052,
+                                40.4202
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "districts": {
+                "value": {
+                    "type": "MultiPolygon",
+                    "coordinates": [
+                        [
+                            [
+                                [
+                                    -3.702,
+                                    40.422
+                                ],
+                                [
+                                    -3.712,
+                                    40.432
+                                ],
+                                [
+                                    -3.692,
+                                    40.442
+                                ],
+                                [
+                                    -3.702,
+                                    40.422
+                                ]
+                            ]
+                        ],
+                        [
+                            [
+                                [
+                                    -3.722,
+                                    40.402
+                                ],
+                                [
+                                    -3.732,
+                                    40.412
+                                ],
+                                [
+                                    -3.712,
+                                    40.392
+                                ],
+                                [
+                                    -3.722,
+                                    40.402
+                                ]
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "mixedFeatures": {
+                "value": {
+                    "type": "GeometryCollection",
+                    "geometries": [
+                        {
+                            "type": "Point",
+                            "coordinates": [
+                                -0.3512,
+                                40.0552
+                            ]
+                        },
+                        {
+                            "type": "LineString",
+                            "coordinates": [
+                                [
+                                    -0.3522,
+                                    40.0562
+                                ],
+                                [
+                                    -0.3532,
+                                    40.0572
+                                ]
+                            ]
+                        }
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "address": {
+                "value": "Calle Honorato Ros, 11. 12230 Argelita, Castell�n",
+                "type": "Text"
+            },
+            "illuminanceLevel": {
+                "value": 0.7,
+                "type": "Number"
+            },
+            "enableHistoricCommand": {
+                "value": True,
+                "type": "Boolean"
+            },
+            "variables": {
+                "value": {
+                    "duration": "22 days"
+                },
+                "type": "jsonb"
+            },
+            "fixtureConfiguration": {
+                "value": {
+                    "modes": [
+                        "high-efficiency"
+                    ],
+                    "sensors": {
+                        "motion": True,
+                        "ambient_light": False
+                    },
+                    "zigbee_channel": 27
+                },
+                "type": "json"
+            },
+            "maintainerEmail": {
+                "value": "asistencia@telefonica.com",
+                "type": "TextUnrestricted"
+            },
+            "lumensAdjustment": {
+                "value": 17,
+                "type": "Number"
+            },
+            "fixtureModelId": {
+                "value": 2147483649,
+                "type": "Number"
+            },
+            "ledCount": {
+                "value": 922337203687,
+                "type": "Number"
+            },
+            "wattageConsumption": {
+                "value": 1.991e30,
+                "type": "Number"
+            },
+            "colorTempKelvin": {
+                "value": 4200.1234,
+                "type": "Number"
+            },
+            "beamAngle": {
+                "value": 32.75,
+                "type": "Number"
+            },
+            "luminousEfficacy": {
+                "value": 6.7e39,
+                "type": "Number"
+            },
+            "installationId": {
+                "value": 10003,
+                "type": "Number"
+            },
+            "compatibleFixtures": {
+                "value": [
+                    "STL-Gamma",
+                    "STL-Omega"
+                ],
+                "type": "json"
+            },
+            "dimmingLevels": {
+                "value": [
+                    20,
+                    35,
+                    60,
+                    85,
+                    100
+                ],
+                "type": "json"
+            },
+            "temperatureRangeK": {
+                "value": [
+                    2800,
+                    3200,
+                    4200,
+                    5200,
+                    6700
+                ],
+                "type": "json"
+            }
+        },
+        {
+            "id": "ENT-LUM-001",
+            "type": "Streetlight",
+            "TimeInstant": {
+                "value": "2025-01-01T05:30:00.000Z",
+                "type": "DateTime"
+            },
+            "location": {
+                "value": {
+                    "type": "Point",
+                    "coordinates": [
+                        -0.350363,
+                        40.054748
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "polygon": {
+                "value": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [
+                                -6.007689128,
+                                37.411171002
+                            ],
+                            [
+                                -6.008584986,
+                                37.411315874
+                            ],
+                            [
+                                -6.008700321,
+                                37.411194437
+                            ],
+                            [
+                                -6.008920262,
+                                37.41033372
+                            ],
+                            [
+                                -6.008788834,
+                                37.409969404
+                            ],
+                            [
+                                -6.008059273,
+                                37.40983092
+                            ],
+                            [
+                                -6.007689128,
+                                37.411171002
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "route": {
+                "value": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -3.70286,
+                            40.4168
+                        ],
+                        [
+                            -3.70330,
+                            40.4181
+                        ],
+                        [
+                            -3.70442,
+                            40.4193
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "stations": {
+                "value": {
+                    "type": "MultiPoint",
+                    "coordinates": [
+                        [
+                            -0.350363,
+                            40.054748
+                        ],
+                        [
+                            -0.351500,
+                            40.055900
+                        ],
+                        [
+                            -0.349300,
+                            40.053300
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "metroLines": {
+                "value": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [
+                                -3.6983,
+                                40.4103
+                            ],
+                            [
+                                -3.6953,
+                                40.4123
+                            ],
+                            [
+                                -3.6923,
+                                40.4143
+                            ]
+                        ],
+                        [
+                            [
+                                -3.7003,
+                                40.4153
+                            ],
+                            [
+                                -3.7023,
+                                40.4183
+                            ],
+                            [
+                                -3.7053,
+                                40.4203
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "districts": {
+                "value": {
+                    "type": "MultiPolygon",
+                    "coordinates": [
+                        [
+                            [
+                                [
+                                    -3.703,
+                                    40.423
+                                ],
+                                [
+                                    -3.713,
+                                    40.433
+                                ],
+                                [
+                                    -3.693,
+                                    40.443
+                                ],
+                                [
+                                    -3.703,
+                                    40.423
+                                ]
+                            ]
+                        ],
+                        [
+                            [
+                                [
+                                    -3.723,
+                                    40.403
+                                ],
+                                [
+                                    -3.733,
+                                    40.413
+                                ],
+                                [
+                                    -3.713,
+                                    40.393
+                                ],
+                                [
+                                    -3.723,
+                                    40.403
+                                ]
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "mixedFeatures": {
+                "value": {
+                    "type": "GeometryCollection",
+                    "geometries": [
+                        {
+                            "type": "Point",
+                            "coordinates": [
+                                -0.3513,
+                                40.0553
+                            ]
+                        },
+                        {
+                            "type": "LineString",
+                            "coordinates": [
+                                [
+                                    -0.3523,
+                                    40.0563
+                                ],
+                                [
+                                    -0.3533,
+                                    40.0573
+                                ]
+                            ]
+                        }
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "address": {
+                "value": "Calle Honorato Ros, 12. 12230 Argelita, Castell�n",
+                "type": "Text"
+            },
+            "illuminanceLevel": {
+                "value": 0.8,
+                "type": "Number"
+            },
+            "enableHistoricCommand": {
+                "value": False,
+                "type": "Boolean"
+            },
+            "variables": {
+                "value": {
+                    "duration": "23 days"
+                },
+                "type": "jsonb"
+            },
+            "fixtureConfiguration": {
+                "value": {
+                    "modes": [
+                        "dynamic-color"
+                    ],
+                    "sensors": {
+                        "motion": False,
+                        "ambient_light": True
+                    },
+                    "zigbee_channel": 28
+                },
+                "type": "json"
+            },
+            "maintainerEmail": {
+                "value": "soporte@telefonica.com",
+                "type": "TextUnrestricted"
+            },
+            "lumensAdjustment": {
+                "value": 18,
+                "type": "Number"
+            },
+            "fixtureModelId": {
+                "value": 2147483650,
+                "type": "Number"
+            },
+            "ledCount": {
+                "value": 922337203688,
+                "type": "Number"
+            },
+            "wattageConsumption": {
+                "value": 1.992e30,
+                "type": "Number"
+            },
+            "colorTempKelvin": {
+                "value": 4300.1234,
+                "type": "Number"
+            },
+            "beamAngle": {
+                "value": 33.75,
+                "type": "Number"
+            },
+            "luminousEfficacy": {
+                "value": 6.8e39,
+                "type": "Number"
+            },
+            "installationId": {
+                "value": 10004,
+                "type": "Number"
+            },
+            "compatibleFixtures": {
+                "value": [
+                    "STL-Nova",
+                    "STL-Quantum"
+                ],
+                "type": "json"
+            },
+            "dimmingLevels": {
+                "value": [
+                    25,
+                    40,
+                    65,
+                    90,
+                    100
+                ],
+                "type": "json"
+            },
+            "temperatureRangeK": {
+                "value": [
+                    2850,
+                    3300,
+                    4300,
+                    5300,
+                    6800
+                ],
+                "type": "json"
+            }
+        },
+        {
+            "id": "ENT-LUM-001",
+            "type": "Streetlight",
+            "TimeInstant": {
+                "value": "2025-01-01T05:35:00.000Z",
+                "type": "DateTime"
+            },
+            "location": {
+                "value": {
+                    "type": "Point",
+                    "coordinates": [
+                        -0.350463,
+                        40.054848
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "polygon": {
+                "value": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [
+                                -6.007789128,
+                                37.411271002
+                            ],
+                            [
+                                -6.008684986,
+                                37.411415874
+                            ],
+                            [
+                                -6.008800321,
+                                37.411294437
+                            ],
+                            [
+                                -6.009020262,
+                                37.41043372
+                            ],
+                            [
+                                -6.008888834,
+                                37.410069404
+                            ],
+                            [
+                                -6.008159273,
+                                37.40993092
+                            ],
+                            [
+                                -6.007789128,
+                                37.411271002
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "route": {
+                "value": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -3.70296,
+                            40.4169
+                        ],
+                        [
+                            -3.70340,
+                            40.4182
+                        ],
+                        [
+                            -3.70452,
+                            40.4194
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "stations": {
+                "value": {
+                    "type": "MultiPoint",
+                    "coordinates": [
+                        [
+                            -0.350463,
+                            40.054848
+                        ],
+                        [
+                            -0.351600,
+                            40.056000
+                        ],
+                        [
+                            -0.349400,
+                            40.053400
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "metroLines": {
+                "value": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [
+                                -3.6984,
+                                40.4104
+                            ],
+                            [
+                                -3.6954,
+                                40.4124
+                            ],
+                            [
+                                -3.6924,
+                                40.4144
+                            ]
+                        ],
+                        [
+                            [
+                                -3.7004,
+                                40.4154
+                            ],
+                            [
+                                -3.7024,
+                                40.4184
+                            ],
+                            [
+                                -3.7054,
+                                40.4204
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "districts": {
+                "value": {
+                    "type": "MultiPolygon",
+                    "coordinates": [
+                        [
+                            [
+                                [
+                                    -3.704,
+                                    40.424
+                                ],
+                                [
+                                    -3.714,
+                                    40.434
+                                ],
+                                [
+                                    -3.694,
+                                    40.444
+                                ],
+                                [
+                                    -3.704,
+                                    40.424
+                                ]
+                            ]
+                        ],
+                        [
+                            [
+                                [
+                                    -3.724,
+                                    40.404
+                                ],
+                                [
+                                    -3.734,
+                                    40.414
+                                ],
+                                [
+                                    -3.714,
+                                    40.394
+                                ],
+                                [
+                                    -3.724,
+                                    40.404
+                                ]
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "mixedFeatures": {
+                "value": {
+                    "type": "GeometryCollection",
+                    "geometries": [
+                        {
+                            "type": "Point",
+                            "coordinates": [
+                                -0.3514,
+                                40.0554
+                            ]
+                        },
+                        {
+                            "type": "LineString",
+                            "coordinates": [
+                                [
+                                    -0.3524,
+                                    40.0564
+                                ],
+                                [
+                                    -0.3534,
+                                    40.0574
+                                ]
+                            ]
+                        }
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "address": {
+                "value": "Calle Honorato Ros, 13. 12230 Argelita, Castell�n",
+                "type": "Text"
+            },
+            "illuminanceLevel": {
+                "value": 0.9,
+                "type": "Number"
+            },
+            "enableHistoricCommand": {
+                "value": True,
+                "type": "Boolean"
+            },
+            "variables": {
+                "value": {
+                    "duration": "24 days"
+                },
+                "type": "jsonb"
+            },
+            "fixtureConfiguration": {
+                "value": {
+                    "modes": [
+                        "high-efficiency",
+                        "eco-mode"
+                    ],
+                    "sensors": {
+                        "motion": True,
+                        "ambient_light": True
+                    },
+                    "zigbee_channel": 29
+                },
+                "type": "json"
+            },
+            "maintainerEmail": {
+                "value": "tecnico@telefonica.com",
+                "type": "TextUnrestricted"
+            },
+            "lumensAdjustment": {
+                "value": 19,
+                "type": "Number"
+            },
+            "fixtureModelId": {
+                "value": 2147483651,
+                "type": "Number"
+            },
+            "ledCount": {
+                "value": 922337203689,
+                "type": "Number"
+            },
+            "wattageConsumption": {
+                "value": 1.993e30,
+                "type": "Number"
+            },
+            "colorTempKelvin": {
+                "value": 4400.1234,
+                "type": "Number"
+            },
+            "beamAngle": {
+                "value": 34.75,
+                "type": "Number"
+            },
+            "luminousEfficacy": {
+                "value": 6.9e39,
+                "type": "Number"
+            },
+            "installationId": {
+                "value": 10005,
+                "type": "Number"
+            },
+            "compatibleFixtures": {
+                "value": [
+                    "STL-Omega",
+                    "STL-Nova"
+                ],
+                "type": "json"
+            },
+            "dimmingLevels": {
+                "value": [
+                    30,
+                    45,
+                    70,
+                    95,
+                    100
+                ],
+                "type": "json"
+            },
+            "temperatureRangeK": {
+                "value": [
+                    2900,
+                    3400,
+                    4400,
+                    5400,
+                    6900
+                ],
+                "type": "json"
+            }
+        },
+        {
+            "id": "ENT-LUM-001",
+            "type": "Streetlight",
+            "TimeInstant": {
+                "value": "2025-01-01T05:40:00.000Z",
+                "type": "DateTime"
+            },
+            "location": {
+                "value": {
+                    "type": "Point",
+                    "coordinates": [
+                        -0.350563,
+                        40.054948
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "polygon": {
+                "value": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [
+                                -6.007889128,
+                                37.411371002
+                            ],
+                            [
+                                -6.008784986,
+                                37.411515874
+                            ],
+                            [
+                                -6.008900321,
+                                37.411394437
+                            ],
+                            [
+                                -6.009120262,
+                                37.41053372
+                            ],
+                            [
+                                -6.008988834,
+                                37.410169404
+                            ],
+                            [
+                                -6.008259273,
+                                37.41003092
+                            ],
+                            [
+                                -6.007889128,
+                                37.411371002
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "route": {
+                "value": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -3.70306,
+                            40.4170
+                        ],
+                        [
+                            -3.70350,
+                            40.4183
+                        ],
+                        [
+                            -3.70462,
+                            40.4195
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "stations": {
+                "value": {
+                    "type": "MultiPoint",
+                    "coordinates": [
+                        [
+                            -0.350563,
+                            40.054948
+                        ],
+                        [
+                            -0.351700,
+                            40.056100
+                        ],
+                        [
+                            -0.349500,
+                            40.053500
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "metroLines": {
+                "value": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [
+                                -3.6985,
+                                40.4105
+                            ],
+                            [
+                                -3.6955,
+                                40.4125
+                            ],
+                            [
+                                -3.6925,
+                                40.4145
+                            ]
+                        ],
+                        [
+                            [
+                                -3.7005,
+                                40.4155
+                            ],
+                            [
+                                -3.7025,
+                                40.4185
+                            ],
+                            [
+                                -3.7055,
+                                40.4205
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "districts": {
+                "value": {
+                    "type": "MultiPolygon",
+                    "coordinates": [
+                        [
+                            [
+                                [
+                                    -3.705,
+                                    40.425
+                                ],
+                                [
+                                    -3.715,
+                                    40.435
+                                ],
+                                [
+                                    -3.695,
+                                    40.445
+                                ],
+                                [
+                                    -3.705,
+                                    40.425
+                                ]
+                            ]
+                        ],
+                        [
+                            [
+                                [
+                                    -3.725,
+                                    40.405
+                                ],
+                                [
+                                    -3.735,
+                                    40.415
+                                ],
+                                [
+                                    -3.715,
+                                    40.395
+                                ],
+                                [
+                                    -3.725,
+                                    40.405
+                                ]
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "mixedFeatures": {
+                "value": {
+                    "type": "GeometryCollection",
+                    "geometries": [
+                        {
+                            "type": "Point",
+                            "coordinates": [
+                                -0.3515,
+                                40.0555
+                            ]
+                        },
+                        {
+                            "type": "LineString",
+                            "coordinates": [
+                                [
+                                    -0.3525,
+                                    40.0565
+                                ],
+                                [
+                                    -0.3535,
+                                    40.0575
+                                ]
+                            ]
+                        }
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "address": {
+                "value": "Calle Honorato Ros, 14. 12230 Argelita, Castell�n",
+                "type": "Text"
+            },
+            "illuminanceLevel": {
+                "value": 1.0,
+                "type": "Number"
+            },
+            "enableHistoricCommand": {
+                "value": False,
+                "type": "Boolean"
+            },
+            "variables": {
+                "value": {
+                    "duration": "25 days"
+                },
+                "type": "jsonb"
+            },
+            "fixtureConfiguration": {
+                "value": {
+                    "modes": [
+                        "dynamic-color",
+                        "eco-mode"
+                    ],
+                    "sensors": {
+                        "motion": False,
+                        "ambient_light": False
+                    },
+                    "zigbee_channel": 30
+                },
+                "type": "json"
+            },
+            "maintainerEmail": {
+                "value": "asistencia_tecnica@telefonica.com",
+                "type": "TextUnrestricted"
+            },
+            "lumensAdjustment": {
+                "value": 20,
+                "type": "Number"
+            },
+            "fixtureModelId": {
+                "value": 2147483652,
+                "type": "Number"
+            },
+            "ledCount": {
+                "value": 922337203690,
+                "type": "Number"
+            },
+            "wattageConsumption": {
+                "value": 1.994e30,
+                "type": "Number"
+            },
+            "colorTempKelvin": {
+                "value": 4500.1234,
+                "type": "Number"
+            },
+            "beamAngle": {
+                "value": 35.75,
+                "type": "Number"
+            },
+            "luminousEfficacy": {
+                "value": 7.0e39,
+                "type": "Number"
+            },
+            "installationId": {
+                "value": 10006,
+                "type": "Number"
+            },
+            "compatibleFixtures": {
+                "value": [
+                    "STL-Gamma",
+                    "STL-Quantum"
+                ],
+                "type": "json"
+            },
+            "dimmingLevels": {
+                "value": [
+                    35,
+                    50,
+                    75,
+                    100
+                ],
+                "type": "json"
+            },
+            "temperatureRangeK": {
+                "value": [
+                    2950,
+                    3500,
+                    4500,
+                    5500,
+                    7000
+                ],
+                "type": "json"
+            }
+        },
+        {
+            "id": "ENT-LUM-001",
+            "type": "Streetlight",
+            "TimeInstant": {
+                "value": "2025-01-01T05:45:00.000Z",
+                "type": "DateTime"
+            },
+            "location": {
+                "value": {
+                    "type": "Point",
+                    "coordinates": [
+                        -0.350663,
+                        40.055048
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "polygon": {
+                "value": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [
+                                -6.007989128,
+                                37.411471002
+                            ],
+                            [
+                                -6.008884986,
+                                37.411615874
+                            ],
+                            [
+                                -6.009000321,
+                                37.411494437
+                            ],
+                            [
+                                -6.009220262,
+                                37.41063372
+                            ],
+                            [
+                                -6.009088834,
+                                37.410269404
+                            ],
+                            [
+                                -6.008359273,
+                                37.41013092
+                            ],
+                            [
+                                -6.007989128,
+                                37.411471002
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "route": {
+                "value": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -3.70316,
+                            40.4171
+                        ],
+                        [
+                            -3.70360,
+                            40.4184
+                        ],
+                        [
+                            -3.70472,
+                            40.4196
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "stations": {
+                "value": {
+                    "type": "MultiPoint",
+                    "coordinates": [
+                        [
+                            -0.350663,
+                            40.055048
+                        ],
+                        [
+                            -0.351800,
+                            40.056200
+                        ],
+                        [
+                            -0.349600,
+                            40.053600
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "metroLines": {
+                "value": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [
+                                -3.6986,
+                                40.4106
+                            ],
+                            [
+                                -3.6956,
+                                40.4126
+                            ],
+                            [
+                                -3.6926,
+                                40.4146
+                            ]
+                        ],
+                        [
+                            [
+                                -3.7006,
+                                40.4156
+                            ],
+                            [
+                                -3.7026,
+                                40.4186
+                            ],
+                            [
+                                -3.7056,
+                                40.4206
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "districts": {
+                "value": {
+                    "type": "MultiPolygon",
+                    "coordinates": [
+                        [
+                            [
+                                [
+                                    -3.706,
+                                    40.426
+                                ],
+                                [
+                                    -3.716,
+                                    40.436
+                                ],
+                                [
+                                    -3.696,
+                                    40.446
+                                ],
+                                [
+                                    -3.706,
+                                    40.426
+                                ]
+                            ]
+                        ],
+                        [
+                            [
+                                [
+                                    -3.726,
+                                    40.406
+                                ],
+                                [
+                                    -3.736,
+                                    40.416
+                                ],
+                                [
+                                    -3.716,
+                                    40.396
+                                ],
+                                [
+                                    -3.726,
+                                    40.406
+                                ]
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "mixedFeatures": {
+                "value": {
+                    "type": "GeometryCollection",
+                    "geometries": [
+                        {
+                            "type": "Point",
+                            "coordinates": [
+                                -0.3516,
+                                40.0556
+                            ]
+                        },
+                        {
+                            "type": "LineString",
+                            "coordinates": [
+                                [
+                                    -0.3526,
+                                    40.0566
+                                ],
+                                [
+                                    -0.3536,
+                                    40.0576
+                                ]
+                            ]
+                        }
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "address": {
+                "value": "Calle Honorato Ros, 15. 12230 Argelita, Castell�n",
+                "type": "Text"
+            },
+            "illuminanceLevel": {
+                "value": 0.4,
+                "type": "Number"
+            },
+            "enableHistoricCommand": {
+                "value": True,
+                "type": "Boolean"
+            },
+            "variables": {
+                "value": {
+                    "duration": "26 days"
+                },
+                "type": "jsonb"
+            },
+            "fixtureConfiguration": {
+                "value": {
+                    "modes": [
+                        "high-efficiency"
+                    ],
+                    "sensors": {
+                        "motion": True,
+                        "ambient_light": True
+                    },
+                    "zigbee_channel": 31
+                },
+                "type": "json"
+            },
+            "maintainerEmail": {
+                "value": "soporte_luminica@telefonica.com",
+                "type": "TextUnrestricted"
+            },
+            "lumensAdjustment": {
+                "value": 21,
+                "type": "Number"
+            },
+            "fixtureModelId": {
+                "value": 2147483653,
+                "type": "Number"
+            },
+            "ledCount": {
+                "value": 922337203691,
+                "type": "Number"
+            },
+            "wattageConsumption": {
+                "value": 1.995e30,
+                "type": "Number"
+            },
+            "colorTempKelvin": {
+                "value": 4600.1234,
+                "type": "Number"
+            },
+            "beamAngle": {
+                "value": 36.75,
+                "type": "Number"
+            },
+            "luminousEfficacy": {
+                "value": 7.1e39,
+                "type": "Number"
+            },
+            "installationId": {
+                "value": 10007,
+                "type": "Number"
+            },
+            "compatibleFixtures": {
+                "value": [
+                    "STL-Omega",
+                    "STL-Quantum"
+                ],
+                "type": "json"
+            },
+            "dimmingLevels": {
+                "value": [
+                    40,
+                    55,
+                    80,
+                    100
+                ],
+                "type": "json"
+            },
+            "temperatureRangeK": {
+                "value": [
+                    3000,
+                    3600,
+                    4600,
+                    5600,
+                    7100
+                ],
+                "type": "json"
+            }
+        },
+        {
+            "id": "ENT-LUM-001",
+            "type": "Streetlight",
+            "TimeInstant": {
+                "value": "2025-01-01T05:50:00.000Z",
+                "type": "DateTime"
+            },
+            "location": {
+                "value": {
+                    "type": "Point",
+                    "coordinates": [
+                        -0.350763,
+                        40.055148
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "polygon": {
+                "value": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [
+                                -6.008089128,
+                                37.411571002
+                            ],
+                            [
+                                -6.008984986,
+                                37.411715874
+                            ],
+                            [
+                                -6.009100321,
+                                37.411594437
+                            ],
+                            [
+                                -6.009320262,
+                                37.41073372
+                            ],
+                            [
+                                -6.009188834,
+                                37.410369404
+                            ],
+                            [
+                                -6.008459273,
+                                37.41023092
+                            ],
+                            [
+                                -6.008089128,
+                                37.411571002
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "route": {
+                "value": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -3.70326,
+                            40.4172
+                        ],
+                        [
+                            -3.70370,
+                            40.4185
+                        ],
+                        [
+                            -3.70482,
+                            40.4197
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "stations": {
+                "value": {
+                    "type": "MultiPoint",
+                    "coordinates": [
+                        [
+                            -0.350763,
+                            40.055148
+                        ],
+                        [
+                            -0.351900,
+                            40.056300
+                        ],
+                        [
+                            -0.349700,
+                            40.053700
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "metroLines": {
+                "value": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [
+                                -3.6987,
+                                40.4107
+                            ],
+                            [
+                                -3.6957,
+                                40.4127
+                            ],
+                            [
+                                -3.6927,
+                                40.4147
+                            ]
+                        ],
+                        [
+                            [
+                                -3.7007,
+                                40.4157
+                            ],
+                            [
+                                -3.7027,
+                                40.4187
+                            ],
+                            [
+                                -3.7057,
+                                40.4207
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "districts": {
+                "value": {
+                    "type": "MultiPolygon",
+                    "coordinates": [
+                        [
+                            [
+                                [
+                                    -3.707,
+                                    40.427
+                                ],
+                                [
+                                    -3.717,
+                                    40.437
+                                ],
+                                [
+                                    -3.697,
+                                    40.447
+                                ],
+                                [
+                                    -3.707,
+                                    40.427
+                                ]
+                            ]
+                        ],
+                        [
+                            [
+                                [
+                                    -3.727,
+                                    40.407
+                                ],
+                                [
+                                    -3.737,
+                                    40.417
+                                ],
+                                [
+                                    -3.717,
+                                    40.397
+                                ],
+                                [
+                                    -3.727,
+                                    40.407
+                                ]
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "mixedFeatures": {
+                "value": {
+                    "type": "GeometryCollection",
+                    "geometries": [
+                        {
+                            "type": "Point",
+                            "coordinates": [
+                                -0.3517,
+                                40.0557
+                            ]
+                        },
+                        {
+                            "type": "LineString",
+                            "coordinates": [
+                                [
+                                    -0.3527,
+                                    40.0567
+                                ],
+                                [
+                                    -0.3537,
+                                    40.0577
+                                ]
+                            ]
+                        }
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "address": {
+                "value": "Calle Honorato Ros, 16. 12230 Argelita, Castell�n",
+                "type": "Text"
+            },
+            "illuminanceLevel": {
+                "value": 0.3,
+                "type": "Number"
+            },
+            "enableHistoricCommand": {
+                "value": False,
+                "type": "Boolean"
+            },
+            "variables": {
+                "value": {
+                    "duration": "27 days"
+                },
+                "type": "jsonb"
+            },
+            "fixtureConfiguration": {
+                "value": {
+                    "modes": [
+                        "dynamic-color"
+                    ],
+                    "sensors": {
+                        "motion": False,
+                        "ambient_light": False
+                    },
+                    "zigbee_channel": 32
+                },
+                "type": "json"
+            },
+            "maintainerEmail": {
+                "value": "mantenimiento@telefonica.com",
+                "type": "TextUnrestricted"
+            },
+            "lumensAdjustment": {
+                "value": 22,
+                "type": "Number"
+            },
+            "fixtureModelId": {
+                "value": 2147483654,
+                "type": "Number"
+            },
+            "ledCount": {
+                "value": 922337203692,
+                "type": "Number"
+            },
+            "wattageConsumption": {
+                "value": 1.996e30,
+                "type": "Number"
+            },
+            "colorTempKelvin": {
+                "value": 4700.1234,
+                "type": "Number"
+            },
+            "beamAngle": {
+                "value": 37.75,
+                "type": "Number"
+            },
+            "luminousEfficacy": {
+                "value": 7.2e39,
+                "type": "Number"
+            },
+            "installationId": {
+                "value": 10008,
+                "type": "Number"
+            },
+            "compatibleFixtures": {
+                "value": [
+                    "STL-Nova"
+                ],
+                "type": "json"
+            },
+            "dimmingLevels": {
+                "value": [
+                    45,
+                    60,
+                    85,
+                    100
+                ],
+                "type": "json"
+            },
+            "temperatureRangeK": {
+                "value": [
+                    3050,
+                    3700,
+                    4700,
+                    5700,
+                    7200
+                ],
+                "type": "json"
+            }
+        },
+        {
+            "id": "ENT-LUM-001",
+            "type": "Streetlight",
+            "TimeInstant": {
+                "value": "2025-01-01T05:55:00.000Z",
+                "type": "DateTime"
+            },
+            "location": {
+                "value": {
+                    "type": "Point",
+                    "coordinates": [
+                        -0.350863,
+                        40.055248
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "polygon": {
+                "value": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [
+                                -6.008189128,
+                                37.411671002
+                            ],
+                            [
+                                -6.009084986,
+                                37.411815874
+                            ],
+                            [
+                                -6.009200321,
+                                37.411694437
+                            ],
+                            [
+                                -6.009420262,
+                                37.41083372
+                            ],
+                            [
+                                -6.009288834,
+                                37.410469404
+                            ],
+                            [
+                                -6.008559273,
+                                37.41033092
+                            ],
+                            [
+                                -6.008189128,
+                                37.411671002
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "route": {
+                "value": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -3.70336,
+                            40.4173
+                        ],
+                        [
+                            -3.70380,
+                            40.4186
+                        ],
+                        [
+                            -3.70492,
+                            40.4198
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "stations": {
+                "value": {
+                    "type": "MultiPoint",
+                    "coordinates": [
+                        [
+                            -0.350863,
+                            40.055248
+                        ],
+                        [
+                            -0.352000,
+                            40.056400
+                        ],
+                        [
+                            -0.349800,
+                            40.053800
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "metroLines": {
+                "value": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [
+                                -3.6988,
+                                40.4108
+                            ],
+                            [
+                                -3.6958,
+                                40.4128
+                            ],
+                            [
+                                -3.6928,
+                                40.4148
+                            ]
+                        ],
+                        [
+                            [
+                                -3.7008,
+                                40.4158
+                            ],
+                            [
+                                -3.7028,
+                                40.4188
+                            ],
+                            [
+                                -3.7058,
+                                40.4208
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "districts": {
+                "value": {
+                    "type": "MultiPolygon",
+                    "coordinates": [
+                        [
+                            [
+                                [
+                                    -3.708,
+                                    40.428
+                                ],
+                                [
+                                    -3.718,
+                                    40.438
+                                ],
+                                [
+                                    -3.698,
+                                    40.448
+                                ],
+                                [
+                                    -3.708,
+                                    40.428
+                                ]
+                            ]
+                        ],
+                        [
+                            [
+                                [
+                                    -3.728,
+                                    40.408
+                                ],
+                                [
+                                    -3.738,
+                                    40.418
+                                ],
+                                [
+                                    -3.718,
+                                    40.398
+                                ],
+                                [
+                                    -3.728,
+                                    40.408
+                                ]
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "mixedFeatures": {
+                "value": {
+                    "type": "GeometryCollection",
+                    "geometries": [
+                        {
+                            "type": "Point",
+                            "coordinates": [
+                                -0.3518,
+                                40.0558
+                            ]
+                        },
+                        {
+                            "type": "LineString",
+                            "coordinates": [
+                                [
+                                    -0.3528,
+                                    40.0568
+                                ],
+                                [
+                                    -0.3538,
+                                    40.0578
+                                ]
+                            ]
+                        }
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "address": {
+                "value": "Calle Honorato Ros, 17. 12230 Argelita, Castell�n",
+                "type": "Text"
+            },
+            "illuminanceLevel": {
+                "value": 0.2,
+                "type": "Number"
+            },
+            "enableHistoricCommand": {
+                "value": True,
+                "type": "Boolean"
+            },
+            "variables": {
+                "value": {
+                    "duration": "28 days"
+                },
+                "type": "jsonb"
+            },
+            "fixtureConfiguration": {
+                "value": {
+                    "modes": [
+                        "eco-mode"
+                    ],
+                    "sensors": {
+                        "motion": True,
+                        "ambient_light": False
+                    },
+                    "zigbee_channel": 33
+                },
+                "type": "json"
+            },
+            "maintainerEmail": {
+                "value": "soporte_iluminacion@telefonica.com",
+                "type": "TextUnrestricted"
+            },
+            "lumensAdjustment": {
+                "value": 23,
+                "type": "Number"
+            },
+            "fixtureModelId": {
+                "value": 2147483655,
+                "type": "Number"
+            },
+            "ledCount": {
+                "value": 922337203693,
+                "type": "Number"
+            },
+            "wattageConsumption": {
+                "value": 1.997e30,
+                "type": "Number"
+            },
+            "colorTempKelvin": {
+                "value": 4800.1234,
+                "type": "Number"
+            },
+            "beamAngle": {
+                "value": 38.75,
+                "type": "Number"
+            },
+            "luminousEfficacy": {
+                "value": 7.3e39,
+                "type": "Number"
+            },
+            "installationId": {
+                "value": 10009,
+                "type": "Number"
+            },
+            "compatibleFixtures": {
+                "value": [
+                    "STL-Gamma",
+                    "STL-Omega",
+                    "STL-Nova",
+                    "STL-Quantum",
+                    "STL-Alpha"
+                ],
+                "type": "json"
+            },
+            "dimmingLevels": {
+                "value": [
+                    50,
+                    65,
+                    90,
+                    100
+                ],
+                "type": "json"
+            },
+            "temperatureRangeK": {
+                "value": [
+                    3100,
+                    3800,
+                    4800,
+                    5800,
+                    7300
+                ],
+                "type": "json"
+            }
+        },
+        {
+            "id": "ENT-LUM-001",
+            "type": "Streetlight",
+            "TimeInstant": {
+                "value": "2025-01-01T06:00:00.000Z",
+                "type": "DateTime"
+            },
+            "location": {
+                "value": {
+                    "type": "Point",
+                    "coordinates": [
+                        -0.350963,
+                        40.055348
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "polygon": {
+                "value": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [
+                                -6.008289128,
+                                37.411771002
+                            ],
+                            [
+                                -6.009184986,
+                                37.411915874
+                            ],
+                            [
+                                -6.009300321,
+                                37.411794437
+                            ],
+                            [
+                                -6.009520262,
+                                37.41093372
+                            ],
+                            [
+                                -6.009388834,
+                                37.410569404
+                            ],
+                            [
+                                -6.008659273,
+                                37.41043092
+                            ],
+                            [
+                                -6.008289128,
+                                37.411771002
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "route": {
+                "value": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -3.70346,
+                            40.4174
+                        ],
+                        [
+                            -3.70390,
+                            40.4187
+                        ],
+                        [
+                            -3.70502,
+                            40.4199
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "stations": {
+                "value": {
+                    "type": "MultiPoint",
+                    "coordinates": [
+                        [
+                            -0.350963,
+                            40.055348
+                        ],
+                        [
+                            -0.352100,
+                            40.056500
+                        ],
+                        [
+                            -0.349900,
+                            40.053900
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "metroLines": {
+                "value": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [
+                                -3.6989,
+                                40.4109
+                            ],
+                            [
+                                -3.6959,
+                                40.4129
+                            ],
+                            [
+                                -3.6929,
+                                40.4149
+                            ]
+                        ],
+                        [
+                            [
+                                -3.7009,
+                                40.4159
+                            ],
+                            [
+                                -3.7029,
+                                40.4189
+                            ],
+                            [
+                                -3.7059,
+                                40.4209
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "districts": {
+                "value": {
+                    "type": "MultiPolygon",
+                    "coordinates": [
+                        [
+                            [
+                                [
+                                    -3.709,
+                                    40.429
+                                ],
+                                [
+                                    -3.719,
+                                    40.439
+                                ],
+                                [
+                                    -3.699,
+                                    40.449
+                                ],
+                                [
+                                    -3.709,
+                                    40.429
+                                ]
+                            ]
+                        ],
+                        [
+                            [
+                                [
+                                    -3.729,
+                                    40.409
+                                ],
+                                [
+                                    -3.739,
+                                    40.419
+                                ],
+                                [
+                                    -3.719,
+                                    40.399
+                                ],
+                                [
+                                    -3.729,
+                                    40.409
+                                ]
+                            ]
+                        ]
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "mixedFeatures": {
+                "value": {
+                    "type": "GeometryCollection",
+                    "geometries": [
+                        {
+                            "type": "Point",
+                            "coordinates": [
+                                -0.3519,
+                                40.0559
+                            ]
+                        },
+                        {
+                            "type": "LineString",
+                            "coordinates": [
+                                [
+                                    -0.3529,
+                                    40.0569
+                                ],
+                                [
+                                    -0.3539,
+                                    40.0579
+                                ]
+                            ]
+                        }
+                    ]
+                },
+                "type": "geo:json"
+            },
+            "address": {
+                "value": "Calle Honorato Ros, 18. 12230 Argelita, Castell�n",
+                "type": "Text"
+            },
+            "illuminanceLevel": {
+                "value": 0.1,
+                "type": "Number"
+            },
+            "enableHistoricCommand": {
+                "value": False,
+                "type": "Boolean"
+            },
+            "variables": {
+                "value": {
+                    "duration": "29 days"
+                },
+                "type": "jsonb"
+            },
+            "fixtureConfiguration": {
+                "value": {
+                    "modes": [
+                        "high-efficiency",
+                        "dynamic-color",
+                        "eco-mode"
+                    ],
+                    "sensors": {
+                        "motion": False,
+                        "ambient_light": True
+                    },
+                    "zigbee_channel": 34
+                },
+                "type": "json"
+            },
+            "maintainerEmail": {
+                "value": "ayuda@telefonica.com",
+                "type": "TextUnrestricted"
+            },
+            "lumensAdjustment": {
+                "value": 24,
+                "type": "Number"
+            },
+            "fixtureModelId": {
+                "value": 2147483656,
+                "type": "Number"
+            },
+            "ledCount": {
+                "value": 922337203694,
+                "type": "Number"
+            },
+            "wattageConsumption": {
+                "value": 1.998e30,
+                "type": "Number"
+            },
+            "colorTempKelvin": {
+                "value": 4900.1234,
+                "type": "Number"
+            },
+            "beamAngle": {
+                "value": 39.75,
+                "type": "Number"
+            },
+            "luminousEfficacy": {
+                "value": 7.4e39,
+                "type": "Number"
+            },
+            "installationId": {
+                "value": 10010,
+                "type": "Number"
+            },
+            "compatibleFixtures": {
+                "value": [
+                    "STL-Quantum"
+                ],
+                "type": "json"
+            },
+            "dimmingLevels": {
+                "value": [
+                    55,
+                    70,
+                    95,
+                    100
+                ],
+                "type": "json"
+            },
+            "temperatureRangeK": {
+                "value": [
+                    3150,
+                    3900,
+                    4900,
+                    5900,
+                    7400
+                ],
+                "type": "json"
+            }
+        }
+    ],
+    "resultKafka":[]
+}
