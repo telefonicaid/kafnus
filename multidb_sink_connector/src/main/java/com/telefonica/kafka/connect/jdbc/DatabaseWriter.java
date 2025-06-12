@@ -59,7 +59,13 @@ public class DatabaseWriter {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             int i = 1;
             for (org.apache.kafka.connect.data.Field field : value.schema().fields()) {
-                ps.setObject(i++, value.get(field));
+                Object fieldValue = value.get(field);
+                if (fieldValue instanceof java.util.Date) {
+                    ps.setObject(i++, fieldValue, Types.TIMESTAMP);
+                } else {
+                    ps.setObject(i++, fieldValue);
+                }
+                //ps.setObject(i++, value.get(field));
             }
             ps.executeUpdate();
         }
