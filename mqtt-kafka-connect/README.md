@@ -1,21 +1,15 @@
-# kafnus
-# csv-source-custom-postgres-sink-kafka-connect
-
-Demo of how to stream CSV file to Kafka and use a custom sink Postgres connector. 
-
-## Data
-
-The data used here is a MP3 playlist metadata. These CSV files are in `data` folder.
+# kafnus mqtt-kafka-connect
 
 ## Components
 
 The following technologies are used through Docker containers:
+* mosquitto
 * Kafka, the streaming platform
-* Kafka's schema registry, needed to use the Avro data format
-* Kafka Connect, to orchestrate csv file source and Postgres sink.
-* Postgres, pulled from [Debezium](https://debezium.io/), tailored for use with Connect
+* Kafka Connect
 * [Java 11+](https://openjdk.java.net)
 * [Apache Maven](https://maven.apache.org)
+* Orion* (for integrations with Orion mqtt subscriptions - Notifications received in kafka)
+* mongo* (for integrations with Orion mqtt subscriptions - Notifications received in kafka)
 
 The containers are pulled directly from official Docker Hub images.
 The Connect image used here needs some additional packages, some of them from `libs` folder, so it must be built from the 
@@ -24,21 +18,18 @@ included Dockerfile.
 ## ⚙️ Building components
 
 ### Build the Kafka Connect image
+
 ```
 docker build -t connector -f connector.Dockerfile .
 ```
 
-### Create volume for Postgres
-```
-docker volume create postgresdata
-```
+### Build the custom mqtt-kafka-connect
 
-### Build the custom Postgres sink Kafka Connect
 ```
 mvn clean package
 ```
 
-💡 A file named `target/postgres-sink-kafka-connector-1.0.jar` will be created. This is your Postgres sink connector for Kafka Connect.
+💡 A file named `target/mqtt-kafka-connect-1.0.jar` will be created . This is your mqtt source connector for Kafka Connect
 
 
 ## ⬆️ Bring up the environment
@@ -47,131 +38,104 @@ mvn clean package
 docker-compose up -d --build
 ```
 
-### Prepare Postgres database
-
-We will bring up a container with a psql command line, mount our local data
-files inside and create a database called `musics` with `playlist` table.
-
-```
-docker exec -it postgres psql -U postgres
-```
-
-At the command line:
-
-```
-CREATE DATABASE musics;
-\connect musics;
-CREATE TABLE playlist
-(album VARCHAR(256), track VARCHAR(256), performer VARCHAR(256),
-CONSTRAINT playlist_pk PRIMARY KEY (album, track));
-```
-
-Execute `exit;` command to disconnect from Postgres.
-
-### Using CSV file as source for Kafka
-
-We will copy CSV data to Kafka container.
-
-```
-docker cp data/playlist.csv connect:/tmp/data/input
-```
-
-The `csv-source.json` file contains the configuration settings needed to
-sink CSV file content to Kafka.
+### Add a custom connector to mqtt source
 
 ```
 curl -X POST -H "Accept:application/json" -H "Content-Type: application/json" \
-      --data @csv-source.json http://localhost:8083/connectors
+      --data @mqtt-source.json http://localhost:8083/connectors
 ```
-
-The connector `csv-spooldir-connector` should show up when curling for the list
-of existing connectors:
-
-```
-curl -H "Accept:application/json" localhost:8083/connectors/
-```
-
-The csv data now show up as topic in Kafka.
-You can check this by entering the Kafka container:
-
-```
-docker exec -it kafka /bin/bash
-```
-
-and viewing the topic:
-
-```
-kafka-console-consumer --bootstrap-server localhost:9092 --topic playlist-topic --from-beginning
-```
-
-Execute `exit` command to disconnect from Docker.
-
-
-### Add a custom connector to sink topic to Postgres
-
-The `postgres-sink.json` configuration file will create the `playlist`
-table and send the data to Postgres.
-
-```
-curl -X POST -H "Accept:application/json" -H "Content-Type: application/json" \
-      --data @postgres-sink.json http://localhost:8083/connectors
-```
-
-Bring up once again the container with a psql command line:
-
-```
-docker exec -it postgres psql -U postgres
-```
-
-At the command line:
-
-```
-\connect musics;
-SELECT * FROM playlist;
-```
-
-This command should return 10 rows. Execute `exit;` command to disconnect from Postgres.
 
 ## ⏹ Undeploy the connector
 
-Use the following commands to undeploy the connectors from Kafka Connect:
+Use the following commands to undeploy the connector from Kafka Connect:
 
 ```
-curl -X DELETE http://localhost:8083/connectors/csv-spooldir-connector
-
-curl -X DELETE http://localhost:8083/connectors/postgres-sink-connector
+curl -X DELETE http://localhost:8083/connectors/mosquitto-source-connector
 ```
 
-## ⬇️ Stopping the local environment
+The connector subscribes exclusively to MQTT topics under the format `kafnus/+/+/+`. 
+Each message is forwarded to a Kafka topic named after the last segment of the MQTT topic (example: for `kafnus/x/y/z`, the destination will be topic z in Kafka).
 
-Stop the containers using Docker Compose.
+## Test general operation of the connector
+
+To publish a message directly through the Mosquitto container in the topic `kafnus/service/servicePath/raw`, execute this command:
 
 ```
-docker compose down
+docker exec -it mosquitto mosquitto_pub -t "kafnus/service/servicePath/raw" -m "Hello from container" -h localhost
 ```
 
-## 🪲 Debugging the connector
+To inspect the messages published to the `raw` topic, you can execute the following Kafka console consumer command inside the Kafka Docker container:
 
-This is actually an optional step, but if you wish to debug the connector code to learn its behavior by watching the code executing line by line, you can do so by using remote debugging. The Kafka Connect container created in the Docker Compose file was changed to rebind the port **8888** to enable support for [JDWP](https://en.wikipedia.org/wiki/Java_Debug_Wire_Protocol). The instructions below assume that you are using [Visual Studio Code](https://code.visualstudio.com) for debugging. However, most IDEs for Java should provide support for JDWP. Please check their documentation manuals about how to attach their debugger to the remote process.
-
-1. Create a file named `.vscode/launch.json` with the following content:
-
-```json
-{
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Debug Connector",
-            "type": "java",
-            "request": "attach",
-            "hostName": "localhost",
-            "port": 8888
-        }
-    ]
-}
+```
+docker exec -it kafka \
+  kafka-console-consumer \
+  --bootstrap-server localhost:9092 \
+  --topic raw \
+  --from-beginning \
+  --property print.headers=true \
+  --property print.value=true \
+  --property key.separator=" | " \
+  --property headers.separator=" | " \
+  --property headers.deserializer=org.apache.kafka.common.serialization.StringDeserializer
 ```
 
-2. Set one or multiple breakpoints throughout the code.
-3. Bring up the environment.
-4. Launch a new debugging session to attach to the container.
-5. Play with the connector to trigger the live debugging.
+When consuming messages from the raw topic, the console will display each message in the following structured format:
+
+```
+fiware-service:service | fiware-servicepath:servicePath | Hello from container
+```
+
+## Integration mqtt source connector with Orion
+
+To create a subscription in Orion Context Broker that publishes notifications to an MQTT topic `kafnus/alcobendas/sensors/raw_historic` with FIWARE headers `fiware-service: alcobendas`, `fiware-servicepath: /sensors`, use the following curl command:
+
+```
+curl -X POST http://localhost:1026/v2/subscriptions \
+  -H "Content-Type: application/json" \
+  -H "fiware-service: alcobendas" \
+  -H "fiware-servicepath: /sensors" \
+  -d '{
+    "description": "Suscripción MQTT para datos de Room",
+    "subject": {
+      "entities": [{"idPattern": ".*", "type": "Room"}],
+      "condition": {
+        "attrs": ["temperature", "humidity"]
+      }
+    },
+    "notification": {
+      "mqtt": {
+        "url": "mqtt://mosquitto:1883",
+        "topic": "kafnus/alcobendas/sensors/raw"
+      },
+      "attrs": ["temperature", "humidity"]
+    }
+  }'
+```
+To create a new entity in Orion with FIWARE headers `fiware-service: alcobendas`, `fiware-servicepath: /sensors`, use the following HTTP request, you can also update existing entities:
+
+```
+curl -X POST http://localhost:1026/v2/entities \
+  -H "Content-Type: application/json" \
+  -H "fiware-service: alcobendas" \
+  -H "fiware-servicepath: /sensors" \
+  -d '{
+    "id": "Room",
+    "type": "Room",
+    "temperature": {
+      "value": 23,
+      "type": "Number",
+      "metadata": {}
+    },
+    "pressure": {
+      "value": 720,
+      "type": "Number",
+      "metadata": {}
+    }
+  }'
+```
+
+in the console where the kafka-console-consumer was executed, the following should be printed
+```
+fiware-service:alcobendas | fiware-servicepath:sensors | {"subscriptionId":"684f33eb436758adec043c1b","data":[{"id":"Room","type":"Room","temperature":{"type":"Number","value":23,"metadata":{}}}]}
+
+```

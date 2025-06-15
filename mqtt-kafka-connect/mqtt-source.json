@@ -1,7 +1,7 @@
 {
   "name": "mosquitto-source-connector",
   "config": {
-    "connector.class": "com.example.mqtt.MqttSourceConnector",
+    "connector.class": "es.tid.kafnus.mqtt.MqttSourceConnector",
     "mqtt.broker": "mosquitto",
     "mqtt.topic": "kafnus/+/+/+",
     "kafka.topic": "mqtt_events",
