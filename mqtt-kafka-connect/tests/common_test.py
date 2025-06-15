@@ -8,6 +8,18 @@ import time
 from requests.exceptions import RequestException
 from dataclasses import dataclass
 from typing import List, Dict
+from pathlib import Path
+
+
+def read_files(file_path: Path):
+    """Read file"""
+    request_data = {}
+    try:
+        with file_path.open("r", encoding="utf-8") as file:
+            request_data = json.load(file)
+    except FileNotFoundError as exc:
+        raise Exception(f"the file {file_path} does not exist") from exc
+    return request_data
 
 headers_mqtt_to_kafka_connector = {
         "content-type": "application/json",
@@ -15,18 +27,18 @@ headers_mqtt_to_kafka_connector = {
     }
 
 mqtt_to_kafka_connector = {
-        "name": "mosquitto-source-connector",
-        "config": {
-            "connector.class": "com.example.mqtt.MqttSourceConnector",
-            "mqtt.broker": "mosquitto",
-            "mqtt.topic": "kafnus/+/+/+",
-            "kafka.topic": "mqtt_events",
-            "mqtt.username": "user",
-            "mqtt.password": "pass",
-            "tasks.max": "1",
-            "mqtt.qos": "1"
-        }
-    }
+  "name": "mosquitto-source-connector",
+  "config": {
+    "connector.class": "es.tid.kafnus.mqtt.MqttSourceConnector",
+    "mqtt.broker": "mosquitto",
+    "mqtt.topic": "kafnus/+/+/+",
+    "kafka.topic": "mqtt_events",
+    "mqtt.username": "user",
+    "mqtt.password": "pass",
+    "tasks.max": "1",
+    "mqtt.qos": "1"
+  }
+}
 
 @dataclass
 class MultiServiceContainer:
@@ -53,8 +65,8 @@ def multiservice_stack():
         wait_for_kafka(kafka_host, kafka_port)
 
         #mqtt to kafka connect
-        mqtt_to_kafka_connect_host = compose.get_service_host("connect", 8083)
-        mqtt_to_kafka_connect_port = compose.get_service_port("connect", 8083)
+        mqtt_to_kafka_connect_host = compose.get_service_host("mqtt_kafka_connect", 8083)
+        mqtt_to_kafka_connect_port = compose.get_service_port("mqtt_kafka_connect", 8083)
         wait_for_mqtt_to_kafka_connect(mqtt_to_kafka_connect_host, mqtt_to_kafka_connect_port)
 
         # Configuring Kafka consumer
@@ -163,10 +175,10 @@ class OrionAdapter:
     headers: dict
     generators: List[OrionRequestData]
 
-    def __init__(self, orionHost:str, orionPort:str, generators:List[OrionRequestData]):
-        self.orionHost = orionHost
-        self.orionPort = orionPort
-        self.baseUrl = f"http://{orionHost}:{orionPort}/v2"
+    def __init__(self, orion_host:str, orion_port:str, generators:List[OrionRequestData]):
+        self.orionHost = orion_host
+        self.orionPort = orion_port
+        self.baseUrl = f"http://{orion_host}:{orion_port}/v2"
         self.generators = generators
         self.headers = {}
         for generator in self.generators:

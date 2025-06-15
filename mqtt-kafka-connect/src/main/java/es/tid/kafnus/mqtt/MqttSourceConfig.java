@@ -1,4 +1,4 @@
-package com.example.mqtt;
+package es.tid.kafnus.mqtt;
 
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;

@@ -1,32 +1,34 @@
-from common_test import multiservice_stack, ServiceOperations
-from common_test import OrionRequestData, KafkaMessages
-from streetlight import Streetlight
-from wasteContainer import WasteContainer
+from common_test import multiservice_stack, ServiceOperations, read_files, OrionRequestData, KafkaMessages
+from pathlib import Path
+
+streetlight = read_files(Path("streetlight.json"))
+wasteContainer = read_files(Path("wasteContainer.json"))
 
 alcobendas_streelight_streelight = OrionRequestData(
     name="alcobendas_streelight_streelight",
     service="alcobendas",
     subservice="/streelight",
-    subscriptions={"historic":Streetlight["subscriptions"]["mutable"]},
-    updateEntities= Streetlight["updateEntities"]
+    subscriptions={"historic":streetlight["subscriptions"]["mutable"]},
+    updateEntities= streetlight["updateEntities"]
 )
+
 alcobendas_dumps_wastecontainer = OrionRequestData(
     name="alcobendas_dumps_wasteconaster",
     service="alcobendas",
     subservice="/dumps",
-    subscriptions={"historic":WasteContainer["subscriptions"]["mutable"]},
-    updateEntities= WasteContainer["updateEntities"],
+    subscriptions={"historic":wasteContainer["subscriptions"]["mutable"]},
+    updateEntities= wasteContainer["updateEntities"],
 )
 
 jcyl_dumps_wastecontainer = OrionRequestData(
     name="jcyl_dumps_wasteconaster",
     service="jcyl",
     subservice="/dumps",
-    subscriptions={"historic":WasteContainer["subscriptions"]["mutable"]},
-    updateEntities= WasteContainer["updateEntities"],
+    subscriptions={"historic":wasteContainer["subscriptions"]["mutable"]},
+    updateEntities= wasteContainer["updateEntities"],
 )
 
-def test_orion_operations_one_entity(multiservice_stack):
+def test_services_operations_one_entity(multiservice_stack):
     #  Given
     entry= [alcobendas_streelight_streelight]
     expected_data_kafka = [
@@ -50,7 +52,7 @@ def test_orion_operations_one_entity(multiservice_stack):
     # Then
     assert all(elem in result_kafka for elem in expected_data_kafka)
 
-def test_orion_operations_two_entities_different_subservice(multiservice_stack):
+def test_services_operations_two_entities_different_subservice(multiservice_stack):
     #  Given
     entry= [alcobendas_streelight_streelight, alcobendas_dumps_wastecontainer]
     expected_data_kafka = [
@@ -83,7 +85,7 @@ def test_orion_operations_two_entities_different_subservice(multiservice_stack):
     # Then
     assert all(elem in result_kafka for elem in expected_data_kafka)
 
-def test_orion_operations_two_entities_different_subservice_and_different_service(multiservice_stack):
+def test_services_operations_two_entities_different_subservice_and_different_service(multiservice_stack):
     #  Given
     entry= [alcobendas_streelight_streelight, jcyl_dumps_wastecontainer]
     expected_data_kafka = [

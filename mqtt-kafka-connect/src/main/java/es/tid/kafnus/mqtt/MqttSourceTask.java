@@ -1,4 +1,4 @@
-package com.example.mqtt;
+package es.tid.kafnus.mqtt;
 
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.MqttGlobalPublishFilter;

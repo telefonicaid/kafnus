@@ -10,7 +10,7 @@ services:
     ports:
       - "1026:1026"
     environment:
-      - MQTT_SERVER=mosquitto  # Debe usar el nombre del servicio Docker
+      - MQTT_SERVER=mosquitto
       - MQTT_PORT=1883
       - MQTT_QOS=0
       - MQTT_RETRIES=3
@@ -18,7 +18,6 @@ services:
     depends_on:
       - mosquitto
       - mongo
-    #command: -dbURI mongodb://host.docker.internal:27017
     networks:  # Add to network
       - orion-network
     command: -dbURI mongodb://mongo:27017
@@ -82,7 +81,7 @@ services:
     networks:
       - orion-network
 
-  connect:
+  mqtt_kafka_connect:
     build:
       context: .
       dockerfile: connector.Dockerfile
@@ -120,7 +119,7 @@ services:
       # And add:
       CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
     volumes:
-      - ./target:/usr/share/java/postgres-sink-kafka-connector
+      - ./target:/usr/share/java/mqtt-kafka-connect
     healthcheck:
       interval: 5s
       retries: 10
