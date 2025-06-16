@@ -13,7 +13,7 @@ alcobendas_streelight_streelight = OrionRequestData(
 )
 
 alcobendas_dumps_wastecontainer = OrionRequestData(
-    name="alcobendas_dumps_wasteconaster",
+    name="alcobendas_dumps_wastecontainer",
     service="alcobendas",
     subservice="/dumps",
     subscriptions=wasteContainer["subscriptions"],
@@ -21,7 +21,7 @@ alcobendas_dumps_wastecontainer = OrionRequestData(
 )
 
 jcyl_dumps_wastecontainer = OrionRequestData(
-    name="jcyl_dumps_wasteconaster",
+    name="jcyl_dumps_wastecontainer",
     service="jcyl",
     subservice="/dumps",
     subscriptions=wasteContainer["subscriptions"],

@@ -6,7 +6,7 @@ The following technologies are used through Docker containers:
 * mosquitto
 * Kafka, the streaming platform
 * Kafka Connect
-* [Java 11+](https://openjdk.java.net)
+* [Java 11+(recommended 21)](https://openjdk.java.net)
 * [Apache Maven](https://maven.apache.org)
 * Orion* (for integrations with Orion mqtt subscriptions - Notifications received in kafka)
 * mongo* (for integrations with Orion mqtt subscriptions - Notifications received in kafka)
@@ -27,6 +27,12 @@ docker build -t connector -f connector.Dockerfile .
 
 ```
 mvn clean package
+```
+
+Supporting mqtt dependencies for kafka connect
+
+```
+mvn dependency:copy-dependencies -DoutputDirectory=libs -DincludeTransitive=true -Dartifact=com.hivemq:hivemq-mqtt-client:1.3.5
 ```
 
 💡 A file named `target/mqtt-kafka-connect-1.0.jar` will be created . This is your mqtt source connector for Kafka Connect

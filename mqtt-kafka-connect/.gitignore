@@ -34,4 +34,5 @@ hs_err_pid*
 replay_pid*
 
 # libs used in Debezium Connect
-!libs/*
+libs/*
+
