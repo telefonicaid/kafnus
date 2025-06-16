@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 def read_files(file_path: Path):
-    """Read file"""
+    """Read files"""
     request_data = {}
     try:
         with file_path.open("r", encoding="utf-8") as file:
@@ -26,19 +26,7 @@ headers_mqtt_to_kafka_connector = {
         "Accept": "application/json"
     }
 
-mqtt_to_kafka_connector = {
-  "name": "mosquitto-source-connector",
-  "config": {
-    "connector.class": "es.tid.kafnus.mqtt.MqttSourceConnector",
-    "mqtt.broker": "mosquitto",
-    "mqtt.topic": "kafnus/+/+/+",
-    "kafka.topic": "mqtt_events",
-    "mqtt.username": "user",
-    "mqtt.password": "pass",
-    "tasks.max": "1",
-    "mqtt.qos": "1"
-  }
-}
+mqtt_to_kafka_connector = read_files(Path("../mqtt-source.json"))
 
 @dataclass
 class MultiServiceContainer:
