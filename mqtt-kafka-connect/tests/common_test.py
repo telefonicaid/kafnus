@@ -36,8 +36,8 @@ class MultiServiceContainer:
     kafkaHost: str
     kafkaPort: str
     consumer: KafkaConsumer
-    mqttToKafkaConnectHost: str
-    mqttToKafkaConnectPort: str
+    kafkaConnectHost: str
+    KafkaConnectPort: str
 
 @pytest.fixture(scope="function")
 def multiservice_stack():
@@ -53,9 +53,9 @@ def multiservice_stack():
         wait_for_kafka(kafka_host, kafka_port)
 
         #mqtt to kafka connect
-        mqtt_to_kafka_connect_host = compose.get_service_host("mqtt_kafka_connect", 8083)
-        mqtt_to_kafka_connect_port = compose.get_service_port("mqtt_kafka_connect", 8083)
-        wait_for_mqtt_to_kafka_connect(mqtt_to_kafka_connect_host, mqtt_to_kafka_connect_port)
+        kafka_connect_host = compose.get_service_host("mqtt_kafka_connect", 8083)
+        kafka_connect_port = compose.get_service_port("mqtt_kafka_connect", 8083)
+        wait_for_mqtt_to_kafka_connect(kafka_connect_host, kafka_connect_port)
 
         # Configuring Kafka consumer
         consumer = KafkaConsumer(
@@ -71,8 +71,8 @@ def multiservice_stack():
             kafkaHost=kafka_host,
             kafkaPort=kafka_port,
             consumer=consumer,
-            mqttToKafkaConnectHost=mqtt_to_kafka_connect_host,
-            mqttToKafkaConnectPort=mqtt_to_kafka_connect_port
+            kafkaConnectHost=kafka_connect_host,
+            KafkaConnectPort=kafka_connect_port
         )
         # Cleaning
         consumer.close()
@@ -231,8 +231,6 @@ class ServiceOperations:
 
     def check_messages_on_kafka(self):
         """check messages on kafka"""
-        # Leer mensajes
-        all_entities = []
         expected_messages = 0
         for generator in self.generators:
             messages_by_generator = len(generator.updateEntities) * len(generator.subscriptions)
@@ -261,5 +259,4 @@ class ServiceOperations:
                             continue
             else:
                 completed = True
-        a=1
         return messages
