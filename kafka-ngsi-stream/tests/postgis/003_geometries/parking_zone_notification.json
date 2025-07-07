@@ -1,0 +1,45 @@
+{
+  "flow": "historic",
+  "headers": {
+    "fiware-service": "tests",
+    "fiware-servicepath": "/parking"
+  },
+  "body": {
+    "entityId": "PZ-123",
+    "entityType": "zone",
+    "attributes": [
+      {
+        "attrName": "name",
+        "attrValue": "Zona Centro"
+      },
+      {"attrName": "timeinstant", "attrValue": "2025-05-15T12:00:00Z"},
+      {
+        "attrName": "location",
+        "attrType": "geo:point",
+        "attrValue": "1.4168,-1.7038"
+      },
+      {
+        "attrName": "polygon",
+        "attrType": "geo:polygon",
+        "attrValue": [
+          "1.4168,-1.7040",
+          "1.4175,-1.7030",
+          "1.4162,-1.7020",
+          "1.4168,-1.7040"
+        ]
+      },
+      { "attrName": "district", "attrValue": "Centro" },
+      { "attrName": "municipality", "attrValue": "Ciudad" },
+      { "attrName": "province", "attrValue": "Ciudad" },
+      { "attrName": "region", "attrValue": "Ciudad" },
+      { "attrName": "community", "attrValue": "Ciudad" },
+      { "attrName": "country", "attrValue": "España" },
+      { "attrName": "streetaddress", "attrValue": "Calle X" },
+      { "attrName": "postalcode", "attrValue": "28013" },
+      { "attrName": "addresslocality", "attrValue": "Ciudad" },
+      { "attrName": "addressregion", "attrValue": "Ciudad" },
+      { "attrName": "addresscommunity", "attrValue": "Ciudad" },
+      { "attrName": "addresscountry", "attrValue": "España" }
+    ]
+  }
+}

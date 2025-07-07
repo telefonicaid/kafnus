@@ -1,0 +1,20 @@
+[
+{
+  "table": "test.simple_sensor",
+  "rows": [
+    {"entityid": "Sensor1", "temperature": 25.0}
+  ]
+},
+{
+  "table": "test.simple_sensor_lastdata",
+  "rows": [
+    {"entityid": "Sensor1", "temperature": 25.0}
+  ]
+},
+{
+  "table": "test.simple_sensor_mutable",
+  "rows": [
+    {"entityid": "Sensor1", "temperature": 25.0}
+  ]
+}
+]

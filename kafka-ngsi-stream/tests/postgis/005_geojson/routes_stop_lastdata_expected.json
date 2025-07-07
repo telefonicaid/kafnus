@@ -1,0 +1,51 @@
+{
+  "connection": {
+    "host": "localhost",
+    "port": 5432,
+    "dbname": "tests",
+    "user": "postgres",
+    "password": "postgres"
+  },
+  "table": "tests.routes_stop_lastdata",
+  "conditions": [
+    {
+		"timeinstant" : "2025-05-16T07:45:00.000Z",
+		"location" : "POINT (-1.639408946 1.54106925)",
+		"name" : "Parada X",
+		"category" : "Pública",
+		"subcategory" : "Urbana",
+		"enabled" : true,
+		"status" : "publidada",
+		"entityid" : "STOP-001",
+		"entitytype" : "Stop",
+		"fiwareservicepath" : "\/routes",
+		"streetaddress" : "Carretera X, km. X"
+	},
+	{
+		"timeinstant" : "2024-06-13T10:10:02.000Z",
+		"location" : "POINT (-1.71911475 1.65232372)",
+		"zip" : "00001",
+		"country" : "spain",
+		"entityid" : "1:0000447500000001",
+		"entitytype" : "Stop",
+		"fiwareservicepath" : "\/routes"
+	},
+	{
+		"timeinstant" : "2024-06-13T10:10:02.000Z",
+		"location" : "POINT (-1.72116536 1.65723111)",
+		"zip" : "00001",
+		"country" : "spain",
+		"entityid" : "1:0000447700000001",
+		"entitytype" : "Stop",
+		"fiwareservicepath" : "\/routes"
+	},
+	{
+		"timeinstant" : "2024-06-13T10:10:02.000Z",
+		"location" : "POINT (-1.72478359 1.66338868)",
+		"zip" : "00001",
+		"country" : "spain",
+		"entityid" : "1:0000449300000001",
+		"entitytype" : "Stop",
+		"fiwareservicepath" : "\/routes"
+	}]
+}
