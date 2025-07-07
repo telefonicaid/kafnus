@@ -1,0 +1,76 @@
+# Copyright 2025 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
+# PROJECT: Kafnus
+#
+# This software and / or computer program has been developed by Telefónica Soluciones
+# de Informática y Comunicaciones de España, S.A.U (hereinafter TSOL) and is protected
+# as copyright by the applicable legislation on intellectual property.
+#
+# It belongs to TSOL, and / or its licensors, the exclusive rights of reproduction,
+# distribution, public communication and transformation, and any economic right on it,
+# all without prejudice of the moral rights of the authors mentioned above. It is expressly
+# forbidden to decompile, disassemble, reverse engineer, sublicense or otherwise transmit
+# by any means, translate or create derivative works of the software and / or computer
+# programs, and perform with respect to all or part of such programs, any type of exploitation.
+#
+# Any use of all or part of the software and / or computer program will require the
+# express written consent of TSOL. In all cases, it will be necessary to make
+# an express reference to TSOL ownership in the software and / or computer
+# program.
+#
+# Non-fulfillment of the provisions set forth herein and, in general, any violation of
+# the peaceful possession and ownership of these rights will be prosecuted by the means
+# provided in both Spanish and international law. TSOL reserves any civil or
+# criminal actions it may exercise to protect its rights.
+
+services:
+  create-topics:
+    image: confluentinc/cp-kafka:7.9.0
+    container_name: create-topics
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command: >
+      bash -c "
+        echo 'Waiting for Kafka to be ready...';
+        cub kafka-ready -b kafka:9092 1 30;
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_historic --partitions 1 --replication-factor 1 &&
+        echo 'Topic raw_historic created or already created.'
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_lastdata --partitions 1 --replication-factor 1 &&
+        echo 'Topic raw_lastdata created or already created.'
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic ngsi-processor-lastdata_entity_timeinstant-changelog --partitions 1 --replication-factor 1 &&
+        echo 'Topic ngsi-processor-lastdata_entity_timeinstant-changelog created or already created.'
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_mutable --partitions 1 --replication-factor 1 &&
+        echo 'Topic raw_mutable created or already created.'
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_errors --partitions 1 --replication-factor 1 &&
+        echo 'Topic raw_errors created or already created.'
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_mongo --partitions 1 --replication-factor 1 &&
+        echo 'Topic raw_mongo created or already created.'
+      "
+    networks:
+      - kafka-postgis-net
+      
+  faust-stream:
+    image: faust-stream:latest
+    build:
+      context: ..
+      dockerfile: docker/faust.Dockerfile
+    container_name: faust-stream
+    depends_on:
+      kafka:
+        condition: service_healthy
+      create-topics:
+        condition: service_completed_successfully
+    environment:
+      - FAUST_BROKER=kafka://kafka:9092
+    networks:
+      - kafka-postgis-net
+    ports:
+      - "6066:6066"  # Faust web
+      # Monitoring
+      - "8000:8000"  # Prometheus
+    command: faust -A stream_processor worker -l info
+
+networks:
+  kafka-postgis-net:
+    external: true
+

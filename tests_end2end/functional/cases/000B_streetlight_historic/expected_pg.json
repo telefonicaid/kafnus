@@ -1,0 +1,76 @@
+[{
+  "table": "test.lighting_streetlight",
+  "rows": [
+    {
+      "entityid": "ENT-LUM-001",
+      "illuminancelevel": 0.5,
+      "enablehistoriccommand": true,
+      "lumensadjustment": 15,
+      "address": "Calle X, X. XXXX X, X"
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "illuminancelevel": 0.6,
+      "enablehistoriccommand": false,
+      "lumensadjustment": 16,
+      "address": "Calle X, X. XXXX X, X"
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "illuminancelevel": 0.7,
+      "enablehistoriccommand": true,
+      "lumensadjustment": 17,
+      "address": "Calle X, X. XXXX X, X"
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "illuminancelevel": 0.8,
+      "enablehistoriccommand": false,
+      "lumensadjustment": 18,
+      "address": "Calle X, X. XXXX X, X"
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "illuminancelevel": 0.9,
+      "enablehistoriccommand": true,
+      "lumensadjustment": 19,
+      "address": "Calle X, X. XXXX X, X"
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "illuminancelevel": 1.0,
+      "enablehistoriccommand": false,
+      "lumensadjustment": 20,
+      "address": "Calle X, X. XXXX X, X"
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "illuminancelevel": 0.4,
+      "enablehistoriccommand": true,
+      "lumensadjustment": 21,
+      "address": "Calle X, X. XXXX X, X"
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "illuminancelevel": 0.3,
+      "enablehistoriccommand": false,
+      "lumensadjustment": 22,
+      "address": "Calle X, X. XXXX X, X"
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "illuminancelevel": 0.2,
+      "enablehistoriccommand": true,
+      "lumensadjustment": 23,
+      "address": "Calle X, X. XXXX X, X"
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "illuminancelevel": 0.1,
+      "enablehistoriccommand": false,
+      "lumensadjustment": 24,
+      "address": "Calle X, X. XXXX X, X"
+    }
+  ]
+}
+]

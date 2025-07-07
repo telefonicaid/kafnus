@@ -1,0 +1,33 @@
+{
+  "connection": {
+    "host": "localhost",
+    "port": 5432,
+    "dbname": "tests",
+    "user": "postgres",
+    "password": "postgres"
+  },
+  "table": "tests.parking_zone",
+  "conditions": [
+    {
+      "entityid": "PZ-123",
+      "entitytype": "zone",
+      "fiwareservicepath": "/parking",
+      "name": "Zona Centro",
+      "timeinstant": "2025-05-15T12:00:00Z",
+      "location": "POINT (-1.7038 1.4168)",
+      "polygon": "POLYGON ((-1.704 1.4168, -1.703 1.4175, -1.702 1.4162, -1.704 1.4168))",
+      "district": "Centro",
+      "municipality": "Ciudad",
+      "province": "Ciudad",
+      "region": "Ciudad",
+      "community": "Ciudad",
+      "country": "España",
+      "streetaddress": "Calle X",
+      "postalcode": "28013",
+      "addresslocality": "Ciudad",
+      "addressregion": "Ciudad",
+      "addresscommunity": "Ciudad",
+      "addresscountry": "España"
+    }
+  ]
+}

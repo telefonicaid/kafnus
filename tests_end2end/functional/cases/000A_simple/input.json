@@ -1,0 +1,99 @@
+{
+  "name": "simple_test_case",
+  "fiware-service": "test",
+  "fiware-servicepath": "/simple",
+  "subscriptions": {
+    "historic": {
+      "description": "Sensor:HISTORIC:simple:historic",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_historic"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature"
+        ]
+      }
+    },
+    "lastdata": {
+      "description": "Sensor:LASTDATA:simple:lastdata",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_lastdata"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature"
+        ]
+      }
+    },
+    "mutable": {
+      "description": "Sensor:mutable:simple:mutable",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_mutable"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature"
+        ]
+      }
+    }
+    },
+  "updateEntities": [
+    {
+      "id": "Sensor1",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T11:00:00Z"
+      },
+      "temperature": {"value": 25.0, "type": "Float"}
+    }
+  ]
+}
