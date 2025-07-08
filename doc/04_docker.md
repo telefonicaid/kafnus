@@ -80,13 +80,13 @@ Exposes:
 - Port `8000`: Prometheus metrics
 - Port `6066`: Optional Faust web interface (disabled by default)
 
-To build from `/docker` folder you can use:
+To build from `/docker` directory you can use:
 
 ```bash
 docker build --no-cache -f faust.Dockerfile -t faust-stream:latest ..
 ```
 
-> Context for docker must be root folder
+> Context for docker must be root directory
 
 ---
 
@@ -107,7 +107,7 @@ Orion is configured to use Mosquitto as MQTT broker and MongoDB as DB backend. T
 Defines the PostGIS database:
 
 - Image: `telefonicaiot/iotp-postgis`
-- Mounts volume: `${DBPATH_POSTGIS}` (bind mount must be defined in your shell). **IMPORTANT**: that folder has to have the right owner/permissions or the PostGIS container will refuse to start (typically `sudo chown -R 999:999 ${BDPATH_POSTGIS}`, as 999 is the usual UID and GID for PostGIS user).
+- Mounts volume: `${DBPATH_POSTGIS}` (bind mount must be defined in your shell). **IMPORTANT**: that directory has to have the right owner/permissions or the PostGIS container will refuse to start (typically `sudo chown -R 999:999 ${BDPATH_POSTGIS}`, as 999 is the usual UID and GID for PostGIS user).
 - Exposes port `5432`
 
 You can activate this in `docker-up.sh` by uncommenting the corresponding line.
@@ -166,6 +166,6 @@ The test suite can also dynamically start these containers via **Testcontainers*
 
 ## Navegación
 
-- [⬅️ Previous: ](/doc/04_docker.md)
+- [⬅️ Previous: Operational-Guide](/doc/03_operational_guide.md)
 - [🏠 Main index](../README.md#documentation)
-- [➡️ Next: Kafka-Connect](/doc/06_kafka_connect.md)
+- [➡️ Next: Faust](/doc/05_faust.md)

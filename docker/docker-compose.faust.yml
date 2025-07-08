@@ -50,7 +50,6 @@ services:
       - kafka-postgis-net
       
   faust-stream:
-    image: faust-stream:latest
     build:
       context: ..
       dockerfile: docker/faust.Dockerfile

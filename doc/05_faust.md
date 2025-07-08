@@ -33,7 +33,7 @@ faust -A stream_processor worker -l info
 
 ### Build command:
 
-From docker folder:
+From docker directory:
 
 ```bash
 docker build --no-cache -f faust.Dockerfile -t faust-stream:latest ..

@@ -55,7 +55,7 @@ Custom dashboards have been created and exported as `.json` files. You can impor
 
 - `+ Create > Import > Upload .json file`
 
-Available dashboards (in /monitoring/dashboards_grafana folder) include:
+Available dashboards (in /monitoring/dashboards_grafana directory) include:
 
 - **Faust Metrics Dashboard**
   - Rate of messages processed per flow
@@ -95,7 +95,7 @@ Make sure the following files are present:
 
 These are mounted into the container and activated via the `JMX_PROMETHEUS_EXPORTER_OPTS` environment variable.
 
-> If these files are missing when Docker starts, Docker may create placeholder **folders** with their names. Make sure the files are present before launching the stack.
+> If these files are missing when Docker starts, Docker may create placeholder **directorys** with their names. Make sure the files are present before launching the stack.
 
 They can be installed with:
 
