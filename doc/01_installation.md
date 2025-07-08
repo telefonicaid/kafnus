@@ -212,7 +212,7 @@ Check that services are running:
 > If you don’t have an external PostGIS instance, **uncomment** the corresponding line in `docker-up.sh` to include the internal container.
 > In addition, you have to set `DBPATH_POSTGIS` env var to the host directory to mount the volume for the PostGIS data,
 > e.g. `export DBPATH_POSTGIS=/data/pg`. **IMPORTANT**: that directory has to have the right owner/permissions or the PostGIS container will
-> refuse to start (typically `sudo chown -R 999:999 ${BDPATH_POSTGIS}`, as 999 is the usual UID and GID for PostGIS user).
+> refuse to start (typically `sudo chown -R 999:999 ${DBPATH_POSTGIS}`, as 999 is the usual UID and GID for PostGIS user).
 
 ```bash
 cd docker/

@@ -107,7 +107,7 @@ Orion is configured to use Mosquitto as MQTT broker and MongoDB as DB backend. T
 Defines the PostGIS database:
 
 - Image: `telefonicaiot/iotp-postgis`
-- Mounts volume: `${DBPATH_POSTGIS}` (bind mount must be defined in your shell). **IMPORTANT**: that directory has to have the right owner/permissions or the PostGIS container will refuse to start (typically `sudo chown -R 999:999 ${BDPATH_POSTGIS}`, as 999 is the usual UID and GID for PostGIS user).
+- Mounts volume: `${DBPATH_POSTGIS}` (bind mount must be defined in your shell). **IMPORTANT**: that directory has to have the right owner/permissions or the PostGIS container will refuse to start (typically `sudo chown -R 999:999 ${DBPATH_POSTGIS}`, as 999 is the usual UID and GID for PostGIS user).
 - Exposes port `5432`
 
 You can activate this in `docker-up.sh` by uncommenting the corresponding line.
