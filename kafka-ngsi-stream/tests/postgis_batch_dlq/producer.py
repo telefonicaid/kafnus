@@ -71,7 +71,7 @@ def send_notifications():
     args = parser.parse_args()
 
     if not os.path.isdir(args.path):
-        print(f"❌ '{args.path}' is not a valid folder")
+        print(f"❌ '{args.path}' is not a valid directory")
         return
 
     json_files = sorted(f for f in os.listdir(args.path) if f.endswith(".json"))

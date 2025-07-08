@@ -53,7 +53,7 @@ Complete documentation is available in the [`doc/`](./doc) directory:
 
 ## 🛠️ Requirements
 
-- Docker + docker-compose
+- Docker + docker compose
 - Java 11+
 - Python 3.11+ (for tests)
 - Maven

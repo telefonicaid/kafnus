@@ -25,10 +25,12 @@
 import json
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Union
 import pytest
 import requests
-from testcontainers.compose import DockerCompose
+#from testcontainers.compose import DockerCompose
+from testcontainers.compose import DockerCompose as OriginalDockerCompose
+import subprocess
 import os
 from utils.kafka_connect_loader import deploy_all_sinks
 import socket
@@ -212,6 +214,77 @@ class KafkaMessages:
 # ──────────────────────────────
 # Testcontainers Fixture
 # ──────────────────────────────
+
+
+class DockerCompose(OriginalDockerCompose):
+    """
+    This subclass overrides the original Testcontainers DockerCompose class
+    to use the newer Docker Compose V2 CLI ("docker compose") instead of
+    the default Docker Compose V1 CLI ("docker-compose") which Testcontainers
+    uses by default. This ensures compatibility with the latest Docker CLI,
+    improving command support and avoiding deprecated syntax.
+    """
+    def __init__(self, filepath: str, compose_file_name: Union[str, List[str]] = "docker-compose.yml", **kwargs):
+        if isinstance(compose_file_name, str):
+            compose_file_name = [compose_file_name]
+        self.compose_file_name = compose_file_name
+        super().__init__(filepath, compose_file_name=compose_file_name, **kwargs)
+    
+    def _call_command(self, cmd: List[str]) -> None:
+        """Override to use docker compose instead of docker-compose"""
+        if cmd and cmd[0] == "docker-compose":
+            cmd = ["docker", "compose"] + cmd[1:]
+        super()._call_command(cmd)
+    
+    def _build_compose_command(self, subcommand: str) -> List[str]:
+        """Build a docker compose command with all compose files"""
+        cmd = ["docker", "compose"]
+        for compose_file in self.compose_file_name:
+            cmd.extend(["-f", str(Path(self.filepath) / compose_file)])
+        cmd.append(subcommand)
+        return cmd
+    
+    def _wait_for_service(self, service_name: str, port: int, timeout: int = 30):
+        """Wait until the service is responding to port queries"""
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            try:
+                cmd = self._build_compose_command("port")
+                cmd.extend([service_name, str(port)])
+                subprocess.check_output(cmd, cwd=self.filepath, stderr=subprocess.PIPE)
+                return True
+            except subprocess.CalledProcessError:
+                time.sleep(1)
+        return False
+    
+    def get_service_host(self, service_name: str, port: int) -> str:
+        if not self._wait_for_service(service_name, port):
+            raise RuntimeError(f"Service {service_name} port {port} not available after waiting")
+        
+        port_cmd = self._build_compose_command("port")
+        port_cmd.extend([service_name, str(port)])
+        
+        try:
+            output = subprocess.check_output(port_cmd, cwd=self.filepath).decode("utf-8")
+            return output.split(":")[0].strip()
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Failed to get service host for {service_name}:{port}. Is the service running and the port exposed?") from e
+    
+    def get_service_port(self, service_name: str, port: int) -> int:
+        if not self._wait_for_service(service_name, port):
+            raise RuntimeError(f"Service {service_name} port {port} not available after waiting")
+        
+        port_cmd = self._build_compose_command("port")
+        port_cmd.extend([service_name, str(port)])
+        
+        try:
+            output = subprocess.check_output(port_cmd, cwd=self.filepath).decode("utf-8")
+            return int(output.split(":")[1].strip())
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Failed to get service port for {service_name}:{port}") from e
+        except (IndexError, ValueError) as e:
+            raise RuntimeError(f"Unexpected output format from docker compose port command") from e
+    
 
 @pytest.fixture(scope="session")
 def multiservice_stack():

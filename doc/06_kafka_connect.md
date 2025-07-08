@@ -4,6 +4,20 @@ This document explains how Kafka Connect is configured to persist NGSI notificat
 
 ---
 
+
+## ⚙️ Environment Setup
+
+This project uses Docker Compose to orchestrate the multi-service environment, including Kafka Connect and other components.
+
+**Important:**  
+We override the default `docker-compose` CLI used by some tools and libraries to instead use the latest Docker Compose V2 syntax (`docker compose`). This ensures compatibility with the newest Docker CLI features and avoids issues related to the deprecated `docker-compose` command.
+
+The custom Python fixture leverages this by substituting commands so that all compose operations run through `docker compose` (V2), not `docker-compose` (V1).
+
+> ⚠️ **Note:** Legacy `docker-compose` command could be used, you can simply remove or disable the custom overriding class (`DockerCompose`) in the test fixtures in [`common_test.py`](../tests_end2end/functional/common_test.py). Doing so will revert to the default behavior.
+
+---
+
 ## 🧩 Kafka Connect Plugins
 
 Located under the `plugins/` directory:
