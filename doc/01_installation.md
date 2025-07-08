@@ -30,7 +30,7 @@ plugins/
 ```
 
 Next section explains how to build all them. At the end of executing the procedure described in that section, your
-`plugins/` folder should look like shown above.
+`plugins/` directory should look like shown above.
 
 ---
 
@@ -105,7 +105,7 @@ You can obtain the **MongoDB Kafka Connector** (`kafka-connect-mongodb-1.10.0.ja
 confluent-hub install mongodb/kafka-connect-mongodb:1.10.0
 ```
 
-After downloading, copy the main `.jar` and its dependencies manually into the correct folder:
+After downloading, copy the main `.jar` and its dependencies manually into the correct directory:
 
 ```bash
 mkdir -p plugins/mongodb/
@@ -137,10 +137,10 @@ Kafka Connect exposes JMX metrics, and this Java agent allows Prometheus to scra
 
 ### 🔧 JMX Prometheus Agent
 
-Download it to the `monitoring/` folder:
+Download it to the `monitoring/` directory:
 
 ```bash
-# Ensure no conflicting folder exists
+# Ensure no conflicting directory exists
 rm -rf monitoring/jmx_prometheus_javaagent.jar
 
 wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.20.0/jmx_prometheus_javaagent-0.20.0.jar -O monitoring/jmx_prometheus_javaagent.jar
@@ -210,8 +210,8 @@ Check that services are running:
 ---
 
 > If you don’t have an external PostGIS instance, **uncomment** the corresponding line in `docker-up.sh` to include the internal container.
-> In addition, you have to set `DBPATH_POSTGIS` env var to the host folder to mount the volume for the PostGIS data,
-> e.g. `export DBPATH_POSTGIS=/data/pg`. **IMPORTANT**: that folder has to have the right owner/permissions or the PostGIS container will
+> In addition, you have to set `DBPATH_POSTGIS` env var to the host directory to mount the volume for the PostGIS data,
+> e.g. `export DBPATH_POSTGIS=/data/pg`. **IMPORTANT**: that directory has to have the right owner/permissions or the PostGIS container will
 > refuse to start (typically `sudo chown -R 999:999 ${BDPATH_POSTGIS}`, as 999 is the usual UID and GID for PostGIS user).
 
 ```bash

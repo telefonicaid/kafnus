@@ -12,7 +12,7 @@ The following technologies are used through Docker containers:
 * mongo* (for integrations with Orion mqtt subscriptions - Notifications received in kafka)
 
 The containers are pulled directly from official Docker Hub images.
-The Connect image used here needs some additional packages, some of them from `libs` folder, so it must be built from the 
+The Connect image used here needs some additional packages, some of them from `libs` directory, so it must be built from the 
 included Dockerfile.
 
 ## ⚙️ Building components

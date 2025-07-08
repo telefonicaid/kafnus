@@ -19,7 +19,7 @@ Validate the full data processing pipeline, from **Context Broker notification**
 Tests are located in:
 
 - `tests_end2end/functional/`
-  - `cases/`: Each test scenario has its own folder
+  - `cases/`: Each test scenario has its own directory
   - `test_pipeline.py`:
   - `common_test.py`: Core functionalities (raise containers, subs to CB...)
   - `config.py`: database configuration, kafka-connect endpoint...
@@ -44,7 +44,7 @@ tests_end2end/functional/
 
 ## 🧪 Test Scenario Format
 
-Each test case folder under `cases/` includes:
+Each test case directory under `cases/` includes:
 
 - `input.json`: CB subscriptions and update entities
 - `expected_pg.json`: Expected DB rows after processing
@@ -54,7 +54,7 @@ Each test case folder under `cases/` includes:
 
 ## 🏗️ How It Works
 
-1. The test runner discovers folders under `cases/`.
+1. The test runner discovers directorys under `cases/`.
 2. Each case is parametrized into a Pytest test.
 3. When launched:
    - A full test environment is deployed using **Testcontainers**
@@ -113,7 +113,7 @@ To run specific scenarios with an **already-running PostGIS**:
 USE_EXTERNAL_POSTGIS=true pytest -s test_pipeline.py -k "000A or 000B"
 ```
 
-You can filter scenarios using `-k` and their folder names or tags.
+You can filter scenarios using `-k` and their directory names or tags.
 
 ---
 

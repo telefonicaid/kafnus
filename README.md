@@ -37,7 +37,7 @@ It processes NGSI notifications from the Context Broker (CB) and stores them in 
 
 ## 📁 Documentation
 
-Complete documentation is available in the [`doc/`](./doc) folder:
+Complete documentation is available in the [`doc/`](./doc) directory:
 
 - [`00_overview.md`](./doc/00_overview.md) – Project overview
 - [`01_installation.md`](./doc/01_installation.md) – How to install & build
