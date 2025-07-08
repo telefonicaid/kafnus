@@ -166,6 +166,6 @@ The test suite can also dynamically start these containers via **Testcontainers*
 
 ## Navegación
 
-- [⬅️ Previous: Operational-Guide]()
+- [⬅️ Previous: Operational-Guide](/doc/03_operational_guide.md)
 - [🏠 Main index](../README.md#documentation)
 - [➡️ Next: Faust](/doc/05_faust.md)

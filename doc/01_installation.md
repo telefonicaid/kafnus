@@ -255,6 +255,8 @@ Look for:
 
 ## 7. ⚙️ Register Kafka Connectors
 
+Hint: Before registering the connectors, make sure the tests database has been created. This is explained in the next section.
+
 ```bash
 cd sinks/
 

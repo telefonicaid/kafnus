@@ -32,4 +32,4 @@ COMPOSE_FILES=(
   # -f docker-compose.postgis.yml
 )
 
-docker compose "${COMPOSE_FILES[@]}" up "$@"
+docker compose "${COMPOSE_FILES[@]}" up --build "$@"
