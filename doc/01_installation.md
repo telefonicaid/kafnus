@@ -234,7 +234,7 @@ Uncomment the relevant line in `docker-up.sh` to include the internal PostGIS co
 Also define the same environment variable:
 
 ```bash
-export DBPATH_POSTGIS=/data/pg
+export DBPATH_POSTGIS=/data/postgis
 ```
 
 Ensure that the directory exists and is writable by the container (UID/GID 999):
