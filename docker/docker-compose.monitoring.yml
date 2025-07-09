@@ -23,9 +23,9 @@
 # criminal actions it may exercise to protect its rights.
 
 services:
-  kafka-connect-exporter:
+  kafka-exporter:
     image: danielqsj/kafka-exporter
-    container_name: kafka-connect-exporter
+    container_name: kafka-exporter
     depends_on:
       kafka-connect:
         condition: service_healthy
@@ -46,7 +46,7 @@ services:
     networks:
       - kafka-postgis-net
     depends_on:
-      - kafka-connect-exporter
+      - kafka-exporter
 
   grafana:
     image: grafana/grafana

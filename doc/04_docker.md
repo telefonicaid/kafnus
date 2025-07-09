@@ -6,7 +6,7 @@ This document describes the Docker-based environment used in Kafnus, including t
 
 ## 📁 File Structure
 
-All Docker-related files are located in the `docker/` directory:
+Most of Docker-related files are located in the `docker/` directory:
 
 ```plaintext
 docker/
@@ -15,10 +15,18 @@ docker/
 ├── docker-compose.orion.yml
 ├── docker-compose.postgis.yml     # (optional, disabled by default)
 ├── docker-compose.monitoring.yml  # (optional, disabled by default)
-├── faust.Dockerfile
-├── kafka-connect.Dockerfile       # (unused at this moment)
 ├── docker-up.sh
 └── docker-down.sh
+```
+
+Custom Dockerfiles are located in their respective component directories:
+
+```plaintext
+kafka-connect-custom/
+└── Dockerfile
+
+kafka-ngsi-stream/
+└── Dockerfile
 ```
 
 ---
@@ -47,7 +55,7 @@ Stops the same services and removes volumes & orphan containers:
 ./docker-down.sh
 ```
 
-> You can pass arguments like `-build` or `-d` to run in detached mode.
+> You can pass arguments like `-d` to run in detached mode (`--build` argument it is present by default).
 
 ---
 
@@ -58,12 +66,25 @@ Stops the same services and removes volumes & orphan containers:
 Defines:
 
 - Kafka broker (port 9092, 29092)
-- Kafka Connect with:
-  - Custom plugins in `/etc/kafka-connect/plugins`
+- Kafka Connect custom image with plugins:
+  - Builds and runs custom image
+  - Custom plugins in `/usr/local/share/kafka-connect/plugins`
   - Monitoring enabled via JMX Exporter
 - Connect waits for Kafka to be healthy before starting
 
 Topics are auto-created (`KAFKA_AUTO_CREATE_TOPICS_ENABLE=true`)
+
+Kafka Connect image is built from the [`Dockerfile`](../kafka-connect-custom/Dockerfile).
+
+Exposes:
+- Port `8083`: Kafka Connect API
+- Port `9100`: Prometheus metrics
+
+To build from `/kafka-connect-custom` directory you can use:
+
+```bash
+docker build --no-cache -t kafnus-connect:1.0.0 .
+```
 
 ---
 
@@ -74,19 +95,17 @@ Defines:
 - `create-topics`: Creates all Kafka topics needed by Faust and Connect
 - `faust-stream`: Builds and runs the Faust service
 
-Faust image is built from the [`faust.Dockerfile`](../docker/faust.Dockerfile).
+Faust image is built from the [`Dockerfile`](../kafka-ngsi-stream/Dockerfile).
 
 Exposes:
 - Port `8000`: Prometheus metrics
 - Port `6066`: Optional Faust web interface (disabled by default)
 
-To build from `/docker` directory you can use:
+To build from `/kafka-ngsi-stream` directory you can use:
 
 ```bash
-docker build --no-cache -f faust.Dockerfile -t faust-stream:latest ..
+docker build --no-cache -t faust-stream:1.0.0 .
 ```
-
-> Context for docker must be root directory
 
 ---
 
@@ -145,14 +164,15 @@ docker network create kafka-postgis-net
 
 ---
 
-## ⚙️ Plugin Mounting
+## ⚙️ Plugins
 
-Kafka Connect mounts plugins from:
+Kafka Connect copy plugins from:
 
-- `../plugins/`: contains:
-  - `header-router.jar` (custom SMT)
-  - `kafka-connect-jdbc`
+- `kafka-connect-custom/plugins/`: contains:
+  - `header-router` (custom SMT)
+  - `kafka-connect-jdbc` (custom connector with geometry support)
   - `mongodb` connector
+  - `mqtt-kafka-connect` temporal bridge between CB and Kafka
 
 Plugins are referenced by `CONNECT_PLUGIN_PATH`.
 

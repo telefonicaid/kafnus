@@ -65,13 +65,15 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 ## 📂 Source Structure (simplified)
 
-- `kafka-ngsi-stream/`: Faust logic and tests
-- `docker/`: docker-compose files and scripts
-- `monitoring/`: Prometheus + Grafana setup
-- `tests_end2end/`: E2E test cases and framework
-- `sinks`: Example connectors used for tests
-- `mqtt-kafka-connect`: Source code for temporal mqtt connector
-- `own-jdbc-connector`: Contains patch needed for building own JDBC custom connector
+- `kafka-ngsi-stream/`: Faust logic and tests  
+- `docker/`: docker-compose files and scripts  
+- `monitoring/`: Prometheus + Grafana setup  
+- `tests_end2end/`: E2E test cases and framework  
+- `sinks/`: Example connectors used for tests  
+- `kafka-connect-custom/`: Builds image with needed plugins  
+  - `src/mqtt-kafka-connect/`: Source code for temporal mqtt connector  
+  - `src/header-router/`: Custom Single Message Transform (SMT) implementation  
+  - `src/own-jdbc-connector/`: Contains patch needed for building own JDBC custom connector  
 
 ## Navegación
 

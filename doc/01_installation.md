@@ -4,24 +4,27 @@ This document provides step-by-step instructions to prepare and launch the Kafnu
 
 ---
 
+
 ## 1. 📦 Kafka Connect Plugins Setup
 
-Kafka Connect requires several custom and third-party `.jar` files under:
+Kafka Connect now uses a custom-built Docker image with all required plugins included. You'll need to:
 
-```bash
-./plugins/
-```
+1. Build the required JARs (next section)
+2. Place them in the correct structure under `kafka-connect-custom/plugins/`
+3. Build the custom Kafka Connect image
+
 
 ### ✅ Required JARs
 
 ```plaintext
-plugins/
-├── header-router-1.0.0.jar
-├── kafka-connect-jdbc-10.7.0/
+kafka-connect-custom/plugins/
+├── header-router/
+│   └── header-router-1.0.0.jar
+├── kafka-connect-jdbc/
 │   ├── kafka-connect-jdbc-10.7.0.jar
 │   └── postgresql-42.7.1.jar
 ├── mongodb/
-│   ├── kafka-connect-mongodb-1.10.0.jar
+│   ├── mongo-kafka-connect-1.10.0-confluent.jar
 │   ├── mongodb-driver-core-4.9.1.jar
 │   ├── mongodb-driver-sync-4.9.1.jar
 │   └── bson-4.9.1.jar
@@ -30,7 +33,14 @@ plugins/
 ```
 
 Next section explains how to build all them. At the end of executing the procedure described in that section, your
-`plugins/` directory should look like shown above.
+`kafka-connect-custom/plugins/` directory should look like shown above.
+
+**Setup Notes**:  
+- The custom Kafka Connect image builds automatically when running `docker-up.sh`  
+- Plugin preparation (steps 1-4) is only required for:  
+  - Initial system setup    
+  - Adding new plugins
+  - Modify existing plugins  
 
 ---
 
@@ -52,10 +62,11 @@ java --version
 From the root of the project:
 
 ```bash
-cd kafka-ngsi-stream/header-router/
+cd kafka-connect-custom/src/header-router/
 mvn clean package
 mkdir -p ../../plugins
-cp target/header-router-1.0.0-jar-with-dependencies.jar ../../plugins/header-router-1.0.0.jar
+mkdir -p ../../plugins/header-router
+cp target/header-router-1.0.0-jar-with-dependencies.jar ../../plugins/header-router/header-router-1.0.0.jar
 ```
 
 ---
@@ -65,9 +76,9 @@ cp target/header-router-1.0.0-jar-with-dependencies.jar ../../plugins/header-rou
 Modified version with dependencies included:
 
 ```bash
-cd ../../mqtt-kafka-connect/
+cd ../mqtt-kafka-connect/
 mvn clean package
-mkdir -p ../plugins/mqtt-kafka-connect/
+mkdir -p ../../plugins/mqtt-kafka-connect/
 cp target/mqtt-kafka-connect-1.0-jar-with-dependencies.jar ../plugins/mqtt-kafka-connect/
 ```
 
@@ -84,14 +95,14 @@ cd kafka-connect-jdbc
 git checkout v10.7.0
 git apply ../postgis-support.patch
 mvn clean package -DskipTests -Dcheckstyle.skip=true
-mkdir -p ../../plugins/kafka-connect-jdbc-10.7.0
-cp target/kafka-connect-jdbc-10.7.0.jar ../../plugins/kafka-connect-jdbc-10.7.0/
+mkdir -p ../../../plugins/kafka-connect-jdbc
+cp target/kafka-connect-jdbc-10.7.0.jar ../../../plugins/kafka-connect-jdbc/
 ```
 
 Download PostgreSQL driver (required)
 
 ```bash
-wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -P ../../plugins/kafka-connect-jdbc-10.7.0/
+wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -P ../../../plugins/kafka-connect-jdbc/
 ```
 
 ---
@@ -110,6 +121,7 @@ You can obtain the **MongoDB Kafka Connector** (`mongo-kafka-connect-1.10.0-conf
 After downloading the `.zip` manually, extract it and copy the `.jar` from the `lib/` folder:
 
 ```bash
+cd ../../..
 unzip kafka-connect-mongodb-1.10.0.zip
 mkdir -p plugins/mongodb/
 cp kafka-connect-mongodb-1.10.0/lib/mongo-kafka-connect-1.10.0-confluent.jar plugins/mongodb/
@@ -130,7 +142,7 @@ wget https://repo1.maven.org/maven2/org/mongodb/bson/4.9.1/bson-4.9.1.jar
 
 ---
 
-## 3. 📥 Download External Tools (Optional – for Monitoring)
+## 3. 📥 Download External Tools (for Monitoring)
 
 If you plan to use **Prometheus and Grafana** for monitoring Kafka Connect, you’ll need to download the **JMX Prometheus Java Agent**.
 
@@ -140,9 +152,10 @@ Kafka Connect exposes JMX metrics, and this Java agent allows Prometheus to scra
 
 ### 🔧 JMX Prometheus Agent
 
-Download it to the `monitoring/` directory:
+Download it to the `kafka-connect-custom/monitoring/` directory:
 
 ```bash
+cd ../..
 # Ensure no conflicting directory exists
 rm -rf monitoring/jmx_prometheus_javaagent.jar
 
@@ -151,7 +164,7 @@ wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0
 
 This file will be automatically mounted into the Kafka Connect container if monitoring is enabled.
 
-The default port is `9100`, and the configuration file used is `monitoring/kafka-connect.yml`.
+The default port is `9100`, and the configuration file used is `kafka-connect-custom/monitoring/kafka-connect.yml`.
 
 ---
 
@@ -159,7 +172,7 @@ The default port is `9100`, and the configuration file used is `monitoring/kafka
 
 > ✅ Requires **Python 3.11**
 
-Recommended: use a virtual environment and install dependencies:
+Recommended: use a virtual environment and install dependencies (from root):
 
 ```bash
 cd tests_end2end/functional/
@@ -299,7 +312,7 @@ cd sinks/
 curl -X POST -H "Content-Type: application/json" --data @pg-sink-historic.json http://localhost:8083/connectors
 curl -X POST -H "Content-Type: application/json" --data @pg-sink-lastdata.json http://localhost:8083/connectors
 curl -X POST -H "Content-Type: application/json" --data @pg-sink-mutable.json http://localhost:8083/connectors
-curl -X POST -H "Content-Type: application/json" --data @pg-sink-erros.json   http://localhost:8083/connectors
+curl -X POST -H "Content-Type: application/json" --data @pg-sink-errors.json   http://localhost:8083/connectors
 curl -X POST -H "Content-Type: application/json" --data @mqtt-source.json     http://localhost:8083/connectors
 ```
 
