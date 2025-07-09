@@ -51,9 +51,9 @@ services:
       
   faust-stream:
     build:
-      context: ..
-      dockerfile: docker/faust.Dockerfile
-    container_name: faust-stream
+      context: ../kafka-ngsi-stream
+      dockerfile: Dockerfile
+    image: faust-stream:1.0.0
     depends_on:
       kafka:
         condition: service_healthy

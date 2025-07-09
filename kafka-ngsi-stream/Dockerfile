@@ -22,15 +22,19 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-FROM confluentinc/cp-kafka-connect:7.9.0
+FROM python:3.9-slim
 
-USER root
+WORKDIR /app
 
-# Copy plugins to a standard path
-COPY plugins/ /etc/kafka-connect/plugins/
+# Install the dependencies required for compilation
+RUN apt-get update && apt-get install -y gcc build-essential
 
-# Set permissions so that the Kafka user can access the jars/plugins
-RUN chown -R appuser:appuser /etc/kafka-connect/plugins
+# Copy full code
+COPY /src/ /app
+COPY /src/requirements.txt .
 
-# Return to the appuser user (required for Kafka Connect)
-USER appuser
+# Install dependencies
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+# Command that starts the process
+CMD ["faust", "-A", "stream_processor", "worker", "-l", "info"]
