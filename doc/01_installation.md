@@ -88,28 +88,31 @@ mkdir -p ../../plugins/kafka-connect-jdbc-10.7.0
 cp target/kafka-connect-jdbc-10.7.0.jar ../../plugins/kafka-connect-jdbc-10.7.0/
 ```
 
+Download PostgreSQL driver (required)
+
+```bash
+wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -P ../../plugins/kafka-connect-jdbc-10.7.0/
+```
+
 ---
 
 ### 🔗 Download MongoDB Kafka Sink Connector and Dependencies
 
 To use MongoDB with Kafka Connect, you need the MongoDB connector and its dependencies.
 
-You can obtain the **MongoDB Kafka Connector** (`kafka-connect-mongodb-1.10.0.jar`) from:
+You can obtain the **MongoDB Kafka Connector** (`mongo-kafka-connect-1.10.0-confluent.jar`) from:
 
 👉 **[Confluent Hub – MongoDB Kafka Connector](https://www.confluent.io/hub/mongodb/kafka-connect-mongodb)**
 
 > 📌 This project uses **version `1.10.0`**, but newer version (e.g., `1.16.0`) has been tested and `1.10+` versions are expected to work without issues.  
 > ✅ Alternatively, you can install it using the Confluent Hub CLI:
 
-```bash
-confluent-hub install mongodb/kafka-connect-mongodb:1.10.0
-```
-
-After downloading, copy the main `.jar` and its dependencies manually into the correct directory:
+After downloading the `.zip` manually, extract it and copy the `.jar` from the `lib/` folder:
 
 ```bash
+unzip kafka-connect-mongodb-1.10.0.zip
 mkdir -p plugins/mongodb/
-mv kafka-connect-mongodb-1.10.0.jar plugins/mongodb/
+cp kafka-connect-mongodb-1.10.0/lib/mongo-kafka-connect-1.10.0-confluent.jar plugins/mongodb/
 ```
 
 Then download the required MongoDB driver JARs from Maven Central:
@@ -195,9 +198,15 @@ docker network create kafka-postgis-net
 
 ---
 
-#### 🔌 If you already have a PostGIS instance running externally
+### 🔌 Connecting to PostGIS
 
-You must connect your PostGIS container to the `kafka-postgis-net`:
+You have two options:
+
+---
+
+✅ **1. If you already have an external PostGIS instance running**
+
+You must connect your PostGIS container to the shared Docker network:
 
 ```bash
 docker network connect kafka-postgis-net your-postgis-container-name
@@ -205,21 +214,47 @@ docker network connect kafka-postgis-net your-postgis-container-name
 
 > Replace `your-postgis-container-name` with the actual container name.
 
-Check that services are running:
+You must also define the `DBPATH_POSTGIS` environment variable, pointing to the host directory where your external PostGIS instance stores data:
+
+```bash
+export DBPATH_POSTGIS=/data/postgis
+```
+
+> ⚠️ **IMPORTANT**: Ensure this directory exists and is owned by UID 999 and GID 999 (commonly used by PostGIS). Otherwise, the container may fail to start:
+
+```bash
+sudo chown -R 999:999 ${DBPATH_POSTGIS}
+```
+
+
+✅ **2. If you want to use the internal PostGIS container**
+
+Uncomment the relevant line in `docker-up.sh` to include the internal PostGIS container.
+
+Also define the same environment variable:
+
+```bash
+export DBPATH_POSTGIS=/data/postgis
+```
+
+Ensure that the directory exists and is writable by the container (UID/GID 999):
+
+```bash
+sudo chown -R 999:999 ${DBPATH_POSTGIS}
+```
 
 ---
 
-> If you don’t have an external PostGIS instance, **uncomment** the corresponding line in `docker-up.sh` to include the internal container.
-> In addition, you have to set `DBPATH_POSTGIS` env var to the host directory to mount the volume for the PostGIS data,
-> e.g. `export DBPATH_POSTGIS=/data/pg`. **IMPORTANT**: that directory has to have the right owner/permissions or the PostGIS container will
-> refuse to start (typically `sudo chown -R 999:999 ${DBPATH_POSTGIS}`, as 999 is the usual UID and GID for PostGIS user).
+### 🏁 Startup
+
+Now launch the environment:
 
 ```bash
 cd docker/
 ./docker-up.sh
 ```
 
-Check:
+Check containers are running:
 
 ```bash
 docker ps
@@ -236,6 +271,7 @@ iot-postgis
 mongo
 mosquitto
 ```
+
 
 ---
 
