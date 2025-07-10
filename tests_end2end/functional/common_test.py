@@ -348,8 +348,8 @@ def multiservice_stack():
             KafkaConnectPort=kafka_connect_port
         )
 
-        print("🧪 Pausing for manual inspection. Ctrl+C to terminate.")
-        time.sleep(3600)
+        #print("🧪 Pausing for manual inspection. Ctrl+C to terminate.")
+        #time.sleep(3600)
     
     print("\nServices successfully deployed")
 

@@ -36,7 +36,7 @@ Next section explains how to build all them. At the end of executing the procedu
 `kafka-connect-custom/plugins/` directory should look like shown above.
 
 **Setup Notes**:  
-- The custom Kafka Connect image builds automatically when running `docker-up.sh`  
+- Custom Kafka Connect and Faust images build automatically when running `docker-up.sh`  
 - Plugin preparation (steps 1-4) is only required for:  
   - Initial system setup    
   - Adding new plugins
@@ -79,7 +79,7 @@ Modified version with dependencies included:
 cd ../mqtt-kafka-connect/
 mvn clean package
 mkdir -p ../../plugins/mqtt-kafka-connect/
-cp target/mqtt-kafka-connect-1.0-jar-with-dependencies.jar ../plugins/mqtt-kafka-connect/
+cp target/mqtt-kafka-connect-1.0-jar-with-dependencies.jar ../../plugins/mqtt-kafka-connect/
 ```
 
 ---
@@ -118,13 +118,13 @@ You can obtain the **MongoDB Kafka Connector** (`mongo-kafka-connect-1.10.0-conf
 > 📌 This project uses **version `1.10.0`**, but newer version (e.g., `1.16.0`) has been tested and `1.10+` versions are expected to work without issues.  
 > ✅ Alternatively, you can install it using the Confluent Hub CLI:
 
-After downloading the `.zip` manually, extract it and copy the `.jar` from the `lib/` folder:
+After downloading the `.zip` manually, extract it and copy the `.jar` from the `lib/` directory. You can use this commands from `kafka-connect-custom` directory, if `.zip` is present:
 
 ```bash
 cd ../../..
-unzip kafka-connect-mongodb-1.10.0.zip
+unzip mongodb-kafka-connect-mongodb-1.10.0.zip
 mkdir -p plugins/mongodb/
-cp kafka-connect-mongodb-1.10.0/lib/mongo-kafka-connect-1.10.0-confluent.jar plugins/mongodb/
+cp mongodb-kafka-connect-mongodb-1.10.0/lib/mongo-kafka-connect-1.10.0-confluent.jar plugins/mongodb/
 ```
 
 Then download the required MongoDB driver JARs from Maven Central:
@@ -144,11 +144,9 @@ wget https://repo1.maven.org/maven2/org/mongodb/bson/4.9.1/bson-4.9.1.jar
 
 ## 3. 📥 Download External Tools (for Monitoring)
 
-If you plan to use **Prometheus and Grafana** for monitoring Kafka Connect, you’ll need to download the **JMX Prometheus Java Agent**.
+To use **Prometheus and Grafana** for monitoring Kafka Connect, you’ll need to download the **JMX Prometheus Java Agent**.
 
 Kafka Connect exposes JMX metrics, and this Java agent allows Prometheus to scrape them via HTTP.
-
-> 🧠 This is only needed if you plan to activate `docker-compose.monitoring.yml`
 
 ### 🔧 JMX Prometheus Agent
 

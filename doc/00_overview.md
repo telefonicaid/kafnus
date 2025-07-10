@@ -60,6 +60,7 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 - Remove Mosquitto once CB supports Kafka output natively.
 - Advance Mongo's functionality.
 - Implement HTTP agent.
+- Update tests if the testcontainer library adds direct support for Docker Compose V2
 
 ---
 

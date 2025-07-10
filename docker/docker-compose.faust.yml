@@ -50,10 +50,11 @@ services:
       - kafka-postgis-net
       
   faust-stream:
+    container_name: faust-stream
     build:
       context: ../kafka-ngsi-stream
       dockerfile: Dockerfile
-    image: faust-stream:1.0.0
+    #image: faust-stream:1.0.0
     depends_on:
       kafka:
         condition: service_healthy

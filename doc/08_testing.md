@@ -14,7 +14,7 @@ Validate the full data processing pipeline, from **Context Broker notification**
 
 ---
 
-## 🗂️ Folder Structure
+## 🗂️ Directory Structure
 
 Tests are located in:
 
