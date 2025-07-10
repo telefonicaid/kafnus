@@ -148,6 +148,8 @@ To use **Prometheus and Grafana** for monitoring Kafka Connect, you’ll need to
 
 Kafka Connect exposes JMX metrics, and this Java agent allows Prometheus to scrape them via HTTP.
 
+Note: This plugin is required for the Dockerfile to build successfully. Even if monitoring is optional, the JMX Prometheus Java Agent must be downloaded and available to avoid build failures.
+
 ### 🔧 JMX Prometheus Agent
 
 Download it to the `kafka-connect-custom/monitoring/` directory:
