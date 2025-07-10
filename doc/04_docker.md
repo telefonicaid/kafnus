@@ -83,7 +83,7 @@ Exposes:
 To build from `/kafka-connect-custom` directory you can use:
 
 ```bash
-docker build --no-cache -t kafnus-connect:1.0.0 .
+docker build --no-cache -t kafnus-connect .
 ```
 
 ---
@@ -104,7 +104,7 @@ Exposes:
 To build from `/kafka-ngsi-stream` directory you can use:
 
 ```bash
-docker build --no-cache -t faust-stream:1.0.0 .
+docker build --no-cache -t faust-stream .
 ```
 
 ---

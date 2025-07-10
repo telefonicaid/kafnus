@@ -36,7 +36,7 @@ faust -A stream_processor worker -l info
 From `/kafka-ngsi-stream` directory:
 
 ```bash
-docker build --no-cache -t faust-stream:1.0.0 .
+docker build --no-cache -t faust-stream .
 ```
 
 ---

@@ -59,7 +59,7 @@ services:
     build:
       context: ../kafka-connect-custom
       dockerfile: Dockerfile
-    #image: kafnus-connect:1.0.0
+    image: kafnus-connect
     ports:
       - "8083:8083"
       - "9100:9100"
