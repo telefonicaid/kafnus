@@ -348,6 +348,7 @@ def multiservice_stack():
             KafkaConnectPort=kafka_connect_port
         )
 
+        # Uncomment these lines to pause the test for manual inspection before testcontainer stops the services.
         #print("🧪 Pausing for manual inspection. Ctrl+C to terminate.")
         #time.sleep(3600)
     
