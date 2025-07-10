@@ -10,7 +10,7 @@ This document provides step-by-step instructions to prepare and launch the Kafnu
 Kafka Connect now uses a custom-built Docker image with all required plugins included. You'll need to:
 
 1. Build the required JARs (next section)
-2. Place them in the correct structure under `kafka-connect-custom/plugins/`
+2. Place them in under `kafka-connect-custom/plugins/` in the same directory structure shown below.
 3. Build the custom Kafka Connect image
 
 
