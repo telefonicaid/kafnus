@@ -24,22 +24,93 @@
 
 FROM confluentinc/cp-kafka-connect:7.9.0
 
-# Create plugin directory with correct permissions
 USER root
-RUN mkdir -p /usr/local/share/kafka-connect/plugins && \
-    chown -R appuser:appuser /usr/local/share/kafka-connect/plugins
 
-# Copy all plugins to an alternative location with proper permissions
-COPY --chown=appuser:appuser plugins/ /usr/local/share/kafka-connect/plugins/
+# -----------------------------
+# Install build dependencies
+# -----------------------------
+RUN microdnf install -y \
+    java-17-openjdk-devel \
+    git \
+    wget \
+    tar \
+    gzip \
+    && microdnf clean all
 
-# Copy monitoring configuration
-COPY monitoring/jmx_prometheus_javaagent.jar /usr/share/jmx_exporter/
+# Install Maven 3.9.7
+RUN wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.7/apache-maven-3.9.7-bin.tar.gz -P /tmp && \
+    tar xf /tmp/apache-maven-3.9.7-bin.tar.gz -C /opt && \
+    ln -s /opt/apache-maven-3.9.7 /opt/maven && \
+    rm /tmp/apache-maven-3.9.7-bin.tar.gz
+
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+ENV MAVEN_HOME=/opt/maven
+ENV PATH="${JAVA_HOME}/bin:${MAVEN_HOME}/bin:${PATH}"
+
+# -----------------------------
+# Create plugin directories
+# -----------------------------
+RUN mkdir -p /usr/local/share/kafka-connect/plugins \
+    && chown -R appuser:appuser /usr/local/share/kafka-connect/plugins
+
+# -----------------------------
+# Build HeaderRouter
+# -----------------------------
+COPY src/header-router /tmp/header-router
+RUN cd /tmp/header-router && \
+    mvn clean package && \
+    mkdir -p /usr/local/share/kafka-connect/plugins/header-router && \
+    cp target/header-router-1.0.0-jar-with-dependencies.jar /usr/local/share/kafka-connect/plugins/header-router/header-router-1.0.0.jar
+
+# -----------------------------
+# Build MQTT Connector
+# -----------------------------
+COPY src/mqtt-kafka-connect /tmp/mqtt-kafka-connect
+RUN cd /tmp/mqtt-kafka-connect && \
+    mvn clean package && \
+    mkdir -p /usr/local/share/kafka-connect/plugins/mqtt-kafka-connect && \
+    cp target/mqtt-kafka-connect-1.0-jar-with-dependencies.jar /usr/local/share/kafka-connect/plugins/mqtt-kafka-connect/
+
+# -----------------------------
+# Build JDBC Connector with PostGIS patch
+# -----------------------------
+COPY src/own-jdbc-connector/postgis-support.patch /tmp/postgis-support.patch
+RUN cd /tmp && \
+    git clone https://github.com/confluentinc/kafka-connect-jdbc.git && \
+    cd kafka-connect-jdbc && \
+    git checkout v10.7.0 && \
+    git apply /tmp/postgis-support.patch && \
+    mvn clean package -DskipTests -Dcheckstyle.skip=true && \
+    mkdir -p /usr/local/share/kafka-connect/plugins/kafka-connect-jdbc && \
+    cp target/kafka-connect-jdbc-10.7.0.jar /usr/local/share/kafka-connect/plugins/kafka-connect-jdbc/
+
+# PostgreSQL JDBC Driver
+RUN wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -P /usr/local/share/kafka-connect/plugins/kafka-connect-jdbc/
+
+# -----------------------------
+# MongoDB Kafka Connector
+# -----------------------------
+RUN mkdir -p /usr/local/share/kafka-connect/plugins/mongodb && \
+    wget https://repo.maven.apache.org/maven2/org/mongodb/kafka/mongo-kafka-connect/1.10.0/mongo-kafka-connect-1.10.0-confluent.jar -O /usr/local/share/kafka-connect/plugins/mongodb/mongo-kafka-connect-1.10.0-confluent.jar && \
+    wget https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-core/4.9.1/mongodb-driver-core-4.9.1.jar -P /usr/local/share/kafka-connect/plugins/mongodb/ && \
+    wget https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-sync/4.9.1/mongodb-driver-sync-4.9.1.jar -P /usr/local/share/kafka-connect/plugins/mongodb/ && \
+    wget https://repo1.maven.org/maven2/org/mongodb/bson/4.9.1/bson-4.9.1.jar -P /usr/local/share/kafka-connect/plugins/mongodb/
+
+# -----------------------------
+# JMX Exporter Agent
+# -----------------------------
+RUN mkdir -p /usr/share/jmx_exporter && \
+    wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.20.0/jmx_prometheus_javaagent-0.20.0.jar -O /usr/share/jmx_exporter/jmx_prometheus_javaagent.jar
+
 COPY monitoring/kafka-connect.yml /usr/share/jmx_exporter/
 
-# Switch back to the original user (appuser)
+# -----------------------------
+# Set permissions and environment
+# -----------------------------
+RUN chown -R appuser:appuser /usr/local/share/kafka-connect/plugins /usr/share/jmx_exporter
+
 USER appuser
 
-# Default environment variables
 ENV CONNECT_PLUGIN_PATH="/usr/local/share/kafka-connect/plugins:/usr/share/java"
 ENV KAFKA_JMX_PORT=9100
 ENV JMX_PROMETHEUS_PORT=9100

@@ -1,174 +1,69 @@
 # 🧰 Installation Guide – Setting up Kafnus
 
-This document provides step-by-step instructions to prepare and launch the Kafnus system. It covers the required plugins, custom builds, Python environment, and Docker setup.
+This guide helps you get Kafnus up and running locally.
+
+All required plugins, connectors, and monitoring tools are now automatically built and included via the custom **Kafka Connect Dockerfile**.  
+You don’t need to manually download or compile any JARs—everything is handled during the Docker build.
 
 ---
-
 
 ## 1. 📦 Kafka Connect Plugins Setup
 
-Kafka Connect now uses a custom-built Docker image with all required plugins included. You'll need to:
+Kafka Connect uses a **custom Docker image** that already includes:
 
-1. Build the required JARs (next section)
-2. Place them in under `kafka-connect-custom/plugins/` in the same directory structure shown below.
-3. Build the custom Kafka Connect image
+- All required connectors (JDBC, MongoDB, MQTT)
+- Custom SMTs like the `HeaderRouter`
+- Dependencies (e.g., PostgreSQL and MongoDB drivers)
+- JMX Prometheus Java Agent for monitoring
 
+This image is automatically built the first time you run:
 
-### ✅ Required JARs
+```
+./docker-up.sh
+```
 
-```plaintext
+> ⚠️ Note about Docker images  
+> The `docker-compose.*.yml` files specify the `image:` option for Faust and custom Kafka Connect.  
+> If the image is not present locally, Docker Compose will try to pull it from the registry (Docker Hub by default) and will show a warning if the image is not found.  
+> For now, this warning is expected and does not affect test execution, as images are built dynamically or local images are used depending on the environment.
+
+You can still inspect or modify the plugin structure by looking inside:
+
+```
 kafka-connect-custom/plugins/
-├── header-router/
-│   └── header-router-1.0.0.jar
-├── kafka-connect-jdbc/
-│   ├── kafka-connect-jdbc-10.7.0.jar
-│   └── postgresql-42.7.1.jar
-├── mongodb/
-│   ├── mongo-kafka-connect-1.10.0-confluent.jar
-│   ├── mongodb-driver-core-4.9.1.jar
-│   ├── mongodb-driver-sync-4.9.1.jar
-│   └── bson-4.9.1.jar
-└── mqtt-kafka-connect/
-    └── mqtt-kafka-connect-1.0-jar-with-dependencies.jar
 ```
 
-Next section explains how to build all them. At the end of executing the procedure described in that section, your
-`kafka-connect-custom/plugins/` directory should look like shown above.
-
-**Setup Notes**:  
-- Custom Kafka Connect and Faust images build automatically when running `docker-up.sh`  
-- Plugin preparation (steps 1-4) is only required for:  
-  - Initial system setup    
-  - Adding new plugins
-  - Modify existing plugins  
+This directory is automatically populated during the image build, based on the logic in the [Dockerfile](/kafka-connect-custom/Dockerfile).
 
 ---
 
-## 2. 🔨 Building Required JARs
+## 2. ⚙️ Faust Worker Image
 
-> ✅ Requires **Java 17+**, **Maven 3.6+**
+The **Faust stream processor** is also containerized and automatically built during `docker-up.sh` execution. This ensures the worker is:
 
-You can check your version with:
+- Compiled with the correct Python version and dependencies
+- Isolated from the host system
+- Ready to run with the default command:  
 
 ```bash
-mvn --version
-java --version
+faust -A stream_processor worker -l info
 ```
+
+The source code lives in:
+
+```
+faust-worker/src/
+```
+
+
+The build process for Faust is defined in the [Dockerfile](/kafka-ngsi-stream/Dockerfile), which installs all dependencies and starts the worker.
+
+> ℹ️ No additional setup is required—this container is fully managed within the `docker compose` environment.
+
 
 ---
 
-### 2.1. HeaderRouter (Custom SMT)
-
-From the root of the project:
-
-```bash
-cd kafka-connect-custom/src/header-router/
-mvn clean package
-mkdir -p ../../plugins
-mkdir -p ../../plugins/header-router
-cp target/header-router-1.0.0-jar-with-dependencies.jar ../../plugins/header-router/header-router-1.0.0.jar
-```
-
----
-
-### 2.2. MQTT Source Connector
-
-Modified version with dependencies included:
-
-```bash
-cd ../mqtt-kafka-connect/
-mvn clean package
-mkdir -p ../../plugins/mqtt-kafka-connect/
-cp target/mqtt-kafka-connect-1.0-jar-with-dependencies.jar ../../plugins/mqtt-kafka-connect/
-```
-
----
-
-### 2.3. Custom JDBC Connector with PostGIS Support
-
-Do this inside `own-jdbc-connector/`, where the patch file is located. Based on [PR #1048](https://github.com/confluentinc/kafka-connect-jdbc/pull/1048):
-
-```bash
-cd ../own-jdbc-connector/
-git clone https://github.com/confluentinc/kafka-connect-jdbc.git
-cd kafka-connect-jdbc
-git checkout v10.7.0
-git apply ../postgis-support.patch
-mvn clean package -DskipTests -Dcheckstyle.skip=true
-mkdir -p ../../../plugins/kafka-connect-jdbc
-cp target/kafka-connect-jdbc-10.7.0.jar ../../../plugins/kafka-connect-jdbc/
-```
-
-Download PostgreSQL driver (required)
-
-```bash
-wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -P ../../../plugins/kafka-connect-jdbc/
-```
-
----
-
-### 🔗 Download MongoDB Kafka Sink Connector and Dependencies
-
-To use MongoDB with Kafka Connect, you need the MongoDB connector and its dependencies.
-
-You can obtain the **MongoDB Kafka Connector** (`mongo-kafka-connect-1.10.0-confluent.jar`) from:
-
-👉 **[Confluent Hub – MongoDB Kafka Connector](https://www.confluent.io/hub/mongodb/kafka-connect-mongodb)**
-
-> 📌 This project uses **version `1.10.0`**, but newer version (e.g., `1.16.0`) has been tested and `1.10+` versions are expected to work without issues.  
-> ✅ Alternatively, you can install it using the Confluent Hub CLI:
-
-After downloading the `.zip` manually, extract it and copy the `.jar` from the `lib/` directory. You can use this commands from `kafka-connect-custom` directory, if `.zip` is present:
-
-```bash
-cd ../../..
-unzip mongodb-kafka-connect-mongodb-1.10.0.zip
-mkdir -p plugins/mongodb/
-cp mongodb-kafka-connect-mongodb-1.10.0/lib/mongo-kafka-connect-1.10.0-confluent.jar plugins/mongodb/
-```
-
-Then download the required MongoDB driver JARs from Maven Central:
-
-- [`mongodb-driver-core-4.9.1.jar`](https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-core/4.9.1/mongodb-driver-core-4.9.1.jar)
-- [`mongodb-driver-sync-4.9.1.jar`](https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-sync/4.9.1/mongodb-driver-sync-4.9.1.jar)
-- [`bson-4.9.1.jar`](https://repo1.maven.org/maven2/org/mongodb/bson/4.9.1/bson-4.9.1.jar)
-
-```bash
-cd plugins/mongodb/
-wget https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-core/4.9.1/mongodb-driver-core-4.9.1.jar
-wget https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-sync/4.9.1/mongodb-driver-sync-4.9.1.jar
-wget https://repo1.maven.org/maven2/org/mongodb/bson/4.9.1/bson-4.9.1.jar
-```
-
----
-
-## 3. 📥 Download External Tools (for Monitoring)
-
-To use **Prometheus and Grafana** for monitoring Kafka Connect, you’ll need to download the **JMX Prometheus Java Agent**.
-
-Kafka Connect exposes JMX metrics, and this Java agent allows Prometheus to scrape them via HTTP.
-
-Note: This plugin is required for the Dockerfile to build successfully. Even if monitoring is optional, the JMX Prometheus Java Agent must be downloaded and available to avoid build failures.
-
-### 🔧 JMX Prometheus Agent
-
-Download it to the `kafka-connect-custom/monitoring/` directory:
-
-```bash
-cd ../..
-# Ensure no conflicting directory exists
-rm -rf monitoring/jmx_prometheus_javaagent.jar
-
-wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.20.0/jmx_prometheus_javaagent-0.20.0.jar -O monitoring/jmx_prometheus_javaagent.jar
-```
-
-This file will be automatically mounted into the Kafka Connect container if monitoring is enabled.
-
-The default port is `9100`, and the configuration file used is `kafka-connect-custom/monitoring/kafka-connect.yml`.
-
----
-
-## 4. 🐍 Python Environment Setup
+## 3. 🐍 Python Environment Setup
 
 > ✅ Requires **Python 3.11**
 
@@ -183,7 +78,7 @@ pip install -r requirements.txt
 
 ---
 
-## 5. 🐳 Launch Docker Environment
+## 4. 🐳 Launch Docker Environment
 
 ### 🌐 Kafka Network: `kafka-postgis-net`
 
@@ -288,7 +183,7 @@ mosquitto
 
 ---
 
-## 6. 🔌 Check Kafka Connect Plugins
+## 5. 🔌 Check Kafka Connect Plugins
 
 ```bash
 curl -s http://localhost:8083/connector-plugins | jq
@@ -302,7 +197,7 @@ Look for:
 
 ---
 
-## 7. ⚙️ Register Kafka Connectors
+## 6. ⚙️ Register Kafka Connectors
 
 Hint: Before registering the connectors, make sure the tests database has been created. This is explained in the next section.
 
@@ -326,7 +221,7 @@ However, note that the registration is not kept if docker containers are stopped
 
 ---
 
-## 8. 🧪 Quick Manual Test (MQTT → PostGIS)
+## 7. 🧪 Quick Manual Test (MQTT → PostGIS)
 
 You must have:
 
@@ -352,7 +247,7 @@ CREATE TABLE test.simple_sensor (
 
 ---
 
-### 8.1. Create Orion Subscription
+### 7.1. Create Orion Subscription
 
 ```bash
 curl -X POST http://localhost:1026/v2/subscriptions \
@@ -379,7 +274,7 @@ Hint: you can check the subscription has been correctly created executing `curl 
 
 ---
 
-### 8.2. Trigger a Notification
+### 7.2. Trigger a Notification
 
 ```bash
 curl -X POST http://localhost:1026/v2/entities?options=upsert,forcedUpdate \
@@ -415,7 +310,7 @@ tests=# SELECT * FROM test.simple_sensor;
 
 ---
 
-## 9. 🧹 Shut Down
+## 8. 🧹 Shut Down
 
 To stop all services:
 
