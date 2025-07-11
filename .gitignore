@@ -8,9 +8,10 @@
 # Targets for java
 **/target/
 
-# Pycache
+# Tests
 **/__pycache__/
 .pytest_cache
+tests_end2end/functional/.env
 
 # Internal for grafana
 monitoring/grafana

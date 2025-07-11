@@ -23,3 +23,6 @@
 # criminal actions it may exercise to protect its rights.
 
 from common_test import multiservice_stack
+
+from dotenv import load_dotenv
+load_dotenv()

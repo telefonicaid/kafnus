@@ -21,22 +21,24 @@
 # the peaceful possession and ownership of these rights will be prosecuted by the means
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
+import os
 from pathlib import Path
 
 # Directory where all scenario test cases are stored
 SCENARIOS_DIR = Path(__file__).parent / "cases"
 
-# Default database configuration used for testing
+# Default database configuration used for testing, con soporte a env vars
 DEFAULT_DB_CONFIG = {
-    "host": "localhost",
-    "port": 5432,
-    "dbname": "tests",
-    "user": "postgres",
-    "password": "postgres"
+    "host": os.getenv("PG_HOST", "localhost"),
+    "port": int(os.getenv("PG_PORT", 5432)),
+    "dbname": os.getenv("PG_DBNAME", "tests"),
+    "user": os.getenv("PG_USER", "postgres"),
+    "password": os.getenv("PG_PASSWORD", "postgres"),
 }
 
 # Kafka Connect default endpoint
-KAFKA_CONNECT_URL = "http://localhost:8083"
+KAFKA_CONNECT_URL = os.getenv("KAFKA_CONNECT_URL", "http://localhost:8083")
 
 # Default connector name for health-check
-DEFAULT_CONNECTOR_NAME = "mosquitto-source-connector"
+DEFAULT_CONNECTOR_NAME = os.getenv("DEFAULT_CONNECTOR_NAME", "mosquitto-source-connector")
+
