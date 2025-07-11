@@ -181,6 +181,14 @@ source pytests-venv/bin/activate
 pip install -r requirements.txt
 ```
 
+> Before running the tests, copy the example environment file:
+
+```bash
+cp .env.example .env
+```
+
+> Then, customize any necessary environment variables (e.g. USE_EXTERNAL_POSTGIS, E2E_MANUAL_INSPECTION, etc.) in .env.
+
 ---
 
 ## 5. 🐳 Launch Docker Environment

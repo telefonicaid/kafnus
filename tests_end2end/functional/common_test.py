@@ -298,6 +298,9 @@ def multiservice_stack():
     - A MultiServiceContainer object with network configurations for each service.
     """
     docker_dir = Path(__file__).resolve().parent.parent.parent / "docker"
+
+    # If the USE_EXTERNAL_POSTGIS env var is set to "false",
+    # the test will deploy a postgis container.
     use_external_pg = os.getenv("USE_EXTERNAL_POSTGIS", "false").lower() == "true"
 
     compose_files = [
@@ -348,9 +351,11 @@ def multiservice_stack():
             KafkaConnectPort=kafka_connect_port
         )
 
-        # Uncomment these lines to pause the test for manual inspection before testcontainer stops the services.
-        #print("🧪 Pausing for manual inspection. Ctrl+C to terminate.")
-        #time.sleep(3600)
+        # If the E2E_MANUAL_INSPECTION env var is set to "true", the test will pause
+        # before stopping containers, to allow manual inspection.
+        if os.getenv("E2E_MANUAL_INSPECTION", "false").lower() == "true":
+            print("🧪 Pausing for manual inspection. Ctrl+C to terminate.")
+            time.sleep(3600)
     
     print("\nServices successfully deployed")
 
