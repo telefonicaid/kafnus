@@ -14,6 +14,7 @@ This document describes how monitoring has been set up for the Kafka–Faust–K
 | **Prometheus**    | [http://localhost:9090](http://localhost:9090) | `9090` |
 | **Kafka Exporter**| [http://localhost:9308/metrics](http://localhost:9308/metrics) | `9308` |
 | **Faust metrics** | [http://localhost:8000/metrics](http://localhost:8000/metrics) | `8000` |
+| **JMX Exporter**  | [http://localhost:9100/metrics](http://localhost:9100/metrics) | `9100` |
 
 ---
 
@@ -35,7 +36,7 @@ These are accessible at [`http://localhost:8000/metrics`](http://localhost:8000/
 
 ---
 
-### ✅ From Kafka Connect (via kafka-connect-exporter)
+### ✅ From Kafka Connect (via kafka-exporter)
 
 Using [`danielqsj/kafka-exporter`](https://github.com/danielqsj/kafka-exporter), we also expose Kafka Connect metrics including:
 
@@ -75,7 +76,7 @@ Available dashboards (in /monitoring/dashboards_grafana directory) include:
 scrape_configs:
   - job_name: 'kafka'
     static_configs:
-      - targets: ['kafka-connect-exporter:9308']
+      - targets: ['kafka-exporter:9308']
   - job_name: 'faust'
     static_configs:
       - targets: ['faust-stream:8000']
@@ -90,8 +91,8 @@ Kafka Connect is instrumented with [JMX Exporter](https://github.com/prometheus/
 
 Make sure the following files are present:
 
-- `monitoring/jmx_prometheus_javaagent.jar`
-- `monitoring/kafka-connect.yml`
+- `kafka-connect-custom/monitoring/jmx_prometheus_javaagent.jar`
+- `kafka-connect-custom/monitoring/kafka-connect.yml`
 
 These are mounted into the container and activated via the `JMX_PROMETHEUS_EXPORTER_OPTS` environment variable.
 
@@ -100,7 +101,7 @@ These are mounted into the container and activated via the `JMX_PROMETHEUS_EXPOR
 They can be installed with:
 
 ```bash
-cd ../monitoring
+cd kafka-connect-custom/monitoring
 wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.20.0/jmx_prometheus_javaagent-0.20.0.jar -O jmx_prometheus_javaagent.jar
 ```
 
@@ -122,4 +123,4 @@ command: faust -A stream_processor worker -l info
 
 - [⬅️ Previous: Kafka-Connect](/doc/06_kafka_connect.md)
 - [🏠 Main index](../README.md#documentation)
-- [➡️ Next: Testing](/doc/08_testting.md)
+- [➡️ Next: Testing](/doc/08_testing.md)

@@ -66,7 +66,7 @@ def send_notification_from_file(file_path, producer, i=0):
 
 def send_notifications():
     parser = argparse.ArgumentParser(description='Send JSON notifications to Kafka')
-    parser.add_argument('path', type=str, help='Folder containing JSON files')
+    parser.add_argument('path', type=str, help='Directory containing JSON files')
     parser.add_argument('--repeat', type=int, default=1, help='Number of times to repeat the set of files')
     args = parser.parse_args()
 

@@ -28,7 +28,7 @@ global:
 scrape_configs:
   - job_name: 'kafka'
     static_configs:
-      - targets: ['kafka-connect-exporter:9308']
+      - targets: ['kafka-exporter:9308']
   - job_name: 'faust'
     static_configs:
       - targets: ['faust-stream:8000']

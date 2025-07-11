@@ -108,7 +108,7 @@ curl -X POST -H "Content-Type: application/json" \
      http://localhost:8083/connectors
 ```
 
-Repeat for `pg-sink-lastdata.json`, `pg-sink-mutable.json`, `pg-sink-erros.json`, `mqtt-source.json`.
+Repeat for `pg-sink-lastdata.json`, `pg-sink-mutable.json`, `pg-sink-errors.json`, `mqtt-source.json`.
 
 ### 4.2 Update Connector Config
 
@@ -168,7 +168,7 @@ SELECT * FROM test.simple_sensor LIMIT 5;
 ## ⚠️ 6. Common Issues & Fixes
 
 - **Connector won't start**  
-  Check plugin path and JARs under `plugins/`.  
+  Check plugin path and JARs under `kafka-connect-custom/plugins/`.  
 - **Port conflicts**  
   Ensure no other service is using ports 9092, 8083, 1026, 1883, 5432, 27017.  
 - **Network not found**  
@@ -177,7 +177,7 @@ SELECT * FROM test.simple_sensor LIMIT 5;
   docker network create kafka-postgis-net
   ```  
 - **JMX agent mount fails**  
-  Ensure `monitoring/jmx_prometheus_javaagent.jar` is a file, not directory, and path has no spaces.
+  Ensure `kafka-connect-custom/monitoring/jmx_prometheus_javaagent.jar` is a file, not directory, and path has no spaces.
 
 ---
 

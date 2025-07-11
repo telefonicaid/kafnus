@@ -22,19 +22,25 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-FROM python:3.9-slim
+FROM confluentinc/cp-kafka-connect:7.9.0
 
-WORKDIR /app
+# Create plugin directory with correct permissions
+USER root
+RUN mkdir -p /usr/local/share/kafka-connect/plugins && \
+    chown -R appuser:appuser /usr/local/share/kafka-connect/plugins
 
-# Install the dependencies required for compilation
-RUN apt-get update && apt-get install -y gcc build-essential
+# Copy all plugins to an alternative location with proper permissions
+COPY --chown=appuser:appuser plugins/ /usr/local/share/kafka-connect/plugins/
 
-# Copy full code
-COPY ../kafka-ngsi-stream/src/ /app
-COPY ../kafka-ngsi-stream/src/requirements.txt .
+# Copy monitoring configuration
+COPY monitoring/jmx_prometheus_javaagent.jar /usr/share/jmx_exporter/
+COPY monitoring/kafka-connect.yml /usr/share/jmx_exporter/
 
-# Install dependencies
-RUN pip install --upgrade pip && pip install -r requirements.txt
+# Switch back to the original user (appuser)
+USER appuser
 
-# Command that starts the process
-CMD ["faust", "-A", "stream_processor", "worker", "-l", "info"]
+# Default environment variables
+ENV CONNECT_PLUGIN_PATH="/usr/local/share/kafka-connect/plugins:/usr/share/java"
+ENV KAFKA_JMX_PORT=9100
+ENV JMX_PROMETHEUS_PORT=9100
+ENV JMX_PROMETHEUS_EXPORTER_OPTS="-javaagent:/usr/share/jmx_exporter/jmx_prometheus_javaagent.jar=9100:/usr/share/jmx_exporter/kafka-connect.yml"

@@ -45,7 +45,7 @@ Complete documentation is available in the [`doc/`](./doc) directory:
 - [`03_operational_guide.md`](./doc/03_operational_guide.md) – Operational guide
 - [`04_docker.md`](./doc/04_docker.md) – Docker details
 - [`05_faust.md`](./doc/05_faust.md) – Faust stream processor
-- [`06_kafka_connect.md`](./doc/06_kafka_connect.md) – Kafka Connect sinks
+- [`06_kafka_connect.md`](./doc/06_kafka_connect.md) – Kafka Connect and sinks details
 - [`07_monitoring.md`](./doc/07_monitoring.md) – Metrics & observability
 - [`08_testing.md`](./doc/08_testing.md) – Test structure
 

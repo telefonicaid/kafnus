@@ -20,11 +20,11 @@ The custom Python fixture leverages this by substituting commands so that all co
 
 ## 🧩 Kafka Connect Plugins
 
-Located under the `plugins/` directory:
+Located under the `kafka-connect-custom/plugins/` directory:
 
 ### 1. JDBC Plugin for PostGIS
 
-Path: `plugins/kafka-connect-jdbc-10.7.0/`
+Path: `kafka-connect-custom/plugins/kafka-connect-jdbc/`
 
 Includes:
 
@@ -35,22 +35,22 @@ Used in:
 - `pg-sink-historic.json`
 - `pg-sink-lastdata.json`
 - `pg-sink-mutable.json`
-- `pg-sink-erros.json`
+- `pg-sink-errors.json`
 
 ### 2. MongoDB Sink Plugin
 
-Path: `plugins/mongodb/`
+Path: `kafka-connect-custom/plugins/mongodb/`
 
 Includes:
 
-- `kafka-connect-mongodb-1.10.0.jar`
+- `mongo-kafka-connect-1.10.0-confluent.jar`
 - MongoDB drivers (`bson`, `driver-core`, `driver-sync`)
 
 > 🚧 Mongo support is experimental and may change.
 
 ### 3. Custom SMT – HeaderRouter
 
-Path: `plugins/header-router-1.0.0.jar`
+Path: `kafka-connect-custom/plugins/header-router`
 
 A Java-based Single Message Transform (SMT) implemented in `HeaderRouter.java`. It rewrites the topic name based on a Kafka record header (e.g. `target_table`) set by Faust.
 
@@ -64,7 +64,7 @@ A Java-based Single Message Transform (SMT) implemented in `HeaderRouter.java`. 
 
 ### 4. MQTT Source Plugin
 
-**Path:** `plugins/mqtt-source-connector/`
+**Path:** `kafka-connect-custom/plugins/mqtt-kafka-connect/`
 
 This connector enables receiving data from an MQTT broker (Mosquitto) and publishing it to Kafka. It has been added **temporarily** to serve as a bridge so that the **Context Broker (CB)** can continue sending notifications via MQTT until native Kafka support is implemented in the CB.
 
@@ -97,7 +97,7 @@ The sink connectors are defined under the `sinks/` directory and are responsible
   - **Mode**: Mutable upsert  
   - Designed for data that may change (e.g., device status)
 
-- `pg-sink-erros.json`:  
+- `pg-sink-errors.json`:  
   - **Mode**: DLQ (Dead Letter Queue)  
   - Captures failed records during transformation or persistence  
   - Useful for debugging and monitoring errors
@@ -136,7 +136,7 @@ curl -X POST http://localhost:8083/connectors \
 
 curl -X POST http://localhost:8083/connectors \
   -H "Content-Type: application/json" \
-  --data @pg-sink-erros.json
+  --data @pg-sink-errors.json
 
 curl -X POST http://localhost:8083/connectors \
   -H "Content-Type: application/json" \
@@ -149,6 +149,12 @@ curl -X POST http://localhost:8083/connectors \
 curl -H "Accept: application/json" http://localhost:8083/connectors
 ```
 
+> To check connector status:
+
+```bash
+curl -s http://localhost:8083/connectors/your-connector/status | jq
+```
+
 **Expected output (example):**
 
 ```json
@@ -156,7 +162,7 @@ curl -H "Accept: application/json" http://localhost:8083/connectors
   "pg-sink-historic",
   "pg-sink-lastdata",
   "pg-sink-mutable",
-  "pg-sink-erros",
+  "pg-sink-errors",
   "mqtt-source"
 ]
 ```

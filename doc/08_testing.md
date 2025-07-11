@@ -14,7 +14,7 @@ Validate the full data processing pipeline, from **Context Broker notification**
 
 ---
 
-## 🗂️ Folder Structure
+## 🗂️ Directory Structure
 
 Tests are located in:
 
@@ -114,6 +114,13 @@ USE_EXTERNAL_POSTGIS=true pytest -s test_pipeline.py -k "000A or 000B"
 ```
 
 You can filter scenarios using `-k` and their directory names or tags.
+
+
+> ⚠️ Note about Docker images  
+> The `docker-compose.*.yml` files specify the `image:` option for Faust and custom Kafka Connect.  
+> If the image is not present locally, Docker Compose will try to pull it from the registry (Docker Hub by default) and will show a warning if the image is not found.  
+> For now, this warning is expected and does not affect test execution, as images are built dynamically or local images are used depending on the environment.
+
 
 ---
 

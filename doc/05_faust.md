@@ -33,10 +33,10 @@ faust -A stream_processor worker -l info
 
 ### Build command:
 
-From docker directory:
+From `/kafka-ngsi-stream` directory:
 
 ```bash
-docker build --no-cache -f faust.Dockerfile -t faust-stream:latest ..
+docker build --no-cache -t faust-stream .
 ```
 
 ---
