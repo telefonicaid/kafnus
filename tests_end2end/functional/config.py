@@ -27,7 +27,7 @@ from pathlib import Path
 # Directory where all scenario test cases are stored
 SCENARIOS_DIR = Path(__file__).parent / "cases"
 
-# Default database configuration used for testing, con soporte a env vars
+# Default database configuration used for testing, with env vars supports
 DEFAULT_DB_CONFIG = {
     "host": os.getenv("KAFNUS_TESTS_PG_HOST", "localhost"),
     "port": int(os.getenv("KAFNUS_TESTS_PG_PORT", 5432)),
