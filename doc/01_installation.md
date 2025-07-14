@@ -76,6 +76,14 @@ source pytests-venv/bin/activate
 pip install -r requirements.txt
 ```
 
+> Before running the tests, copy the example environment file:
+
+```bash
+cp .env.example .env
+```
+
+> Then, customize any necessary environment variables (e.g. KAFNUS_TESTS_USE_EXTERNAL_POSTGIS, KAFNUS_TESTS_E2E_MANUAL_INSPECTION, etc.) in `.env`.
+
 ---
 
 ## 4. 🐳 Launch Docker Environment
