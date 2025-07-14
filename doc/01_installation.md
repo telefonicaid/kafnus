@@ -187,7 +187,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-> Then, customize any necessary environment variables (e.g. KAFNUS_TESTS_USE_EXTERNAL_POSTGIS, KAFNUS_TESTS_E2E_MANUAL_INSPECTION, etc.) in .env.
+> Then, customize any necessary environment variables (e.g. KAFNUS_TESTS_USE_EXTERNAL_POSTGIS, KAFNUS_TESTS_E2E_MANUAL_INSPECTION, etc.) in `.env`.
 
 ---
 
