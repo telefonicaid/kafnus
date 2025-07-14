@@ -10,7 +10,7 @@ This document explains how Kafka Connect is configured to persist NGSI notificat
 This project uses Docker Compose to orchestrate the multi-service environment, including Kafka Connect and other components.
 
 **Important:**  
-We override the default `docker-compose` CLI used by some tools and libraries to instead use the latest Docker Compose V2 syntax (`docker compose`). This ensures compatibility with the newest Docker CLI features and avoids issues related to the deprecated `docker-compose` command.
+In tests, we override the default `docker-compose` CLI used by some tools and libraries to instead use the latest Docker Compose V2 syntax (`docker compose`). This ensures compatibility with the newest Docker CLI features and avoids issues related to the deprecated `docker-compose` command.
 
 The custom Python fixture leverages this by substituting commands so that all compose operations run through `docker compose` (V2), not `docker-compose` (V1).
 
@@ -20,7 +20,10 @@ The custom Python fixture leverages this by substituting commands so that all co
 
 ## 🧩 Kafka Connect Plugins
 
-Located under the `kafka-connect-custom/plugins/` directory:
+Kafka Connect plugins are automatically built into the Docker image.
+
+You can inspect them at runtime under the `kafka-connect-custom/plugins/` directory.  
+This directory is **populated automatically** during the Docker build using the logic defined in the [Dockerfile](/kafka-connect-custom/Dockerfile).
 
 ### 1. JDBC Plugin for PostGIS
 
@@ -122,6 +125,8 @@ curl -X POST http://localhost:8083/connectors \
   -H "Content-Type: application/json" \
   --data @pg-sink-historic.json
 ```
+
+> ℹ️ Ensure the `tests` database exists before registering the connectors.  
 
 Repeat the same process for the other configuration files:
 

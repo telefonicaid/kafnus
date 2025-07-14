@@ -47,6 +47,9 @@ PostGIS and Monitoring are commented out by default.
 ./docker-up.sh
 ```
 
+> You can pass arguments like `-d` to run in detached mode.
+
+
 ### `docker-down.sh`
 
 Stops the same services and removes volumes & orphan containers:
@@ -55,11 +58,17 @@ Stops the same services and removes volumes & orphan containers:
 ./docker-down.sh
 ```
 
-> You can pass arguments like `-d` to run in detached mode (`--build` argument it is present by default).
-
 ---
 
 ## 🧱 Compose Files Summary
+
+The Docker Compose setup relies on two custom images:
+
+- **Kafka Connect** is built using `kafka-connect-custom/Dockerfile`, which includes all required connectors and plugins during the image build process.
+- **Faust** is built using `kafka-ngsi-stream/Dockerfile`, which includes the stream processing app and all dependencies.
+
+Both images are automatically built via `docker-up.sh`, so you don't need to build them manually unless debugging or developing.
+
 
 ### `docker-compose.kafka.yml`
 
@@ -166,7 +175,9 @@ docker network create kafka-postgis-net
 
 ## ⚙️ Plugins
 
-Kafka Connect copy plugins from:
+Kafka Connect plugins are automatically bundled during image build (inside [`kafka-connect-custom/Dockerfile`](/kafka-connect-custom/Dockerfile)).
+
+The plugin directory (`kafka-connect-custom/plugins/`) contains:
 
 - `kafka-connect-custom/plugins/`: contains:
   - `header-router` (custom SMT)
@@ -174,13 +185,11 @@ Kafka Connect copy plugins from:
   - `mongodb` connector
   - `mqtt-kafka-connect` temporal bridge between CB and Kafka
 
-Plugins are referenced by `CONNECT_PLUGIN_PATH`.
-
 ---
 
 ## 🧪 Notes for Testing
 
-The test suite can also dynamically start these containers via **Testcontainers** when running end-to-end tests. See `doc/08_testing.md`.
+The test suite can also dynamically start these containers via **Testcontainers** when running end-to-end tests. See [`08_testing.md`](doc/08_testing.md).
 
 ---
 
