@@ -29,16 +29,16 @@ SCENARIOS_DIR = Path(__file__).parent / "cases"
 
 # Default database configuration used for testing, con soporte a env vars
 DEFAULT_DB_CONFIG = {
-    "host": os.getenv("PG_HOST", "localhost"),
-    "port": int(os.getenv("PG_PORT", 5432)),
-    "dbname": os.getenv("PG_DBNAME", "tests"),
-    "user": os.getenv("PG_USER", "postgres"),
-    "password": os.getenv("PG_PASSWORD", "postgres"),
+    "host": os.getenv("KAFNUS_TESTS_PG_HOST", "localhost"),
+    "port": int(os.getenv("KAFNUS_TESTS_PG_PORT", 5432)),
+    "dbname": os.getenv("KAFNUS_TESTS_PG_DBNAME", "tests"),
+    "user": os.getenv("KAFNUS_TESTS_PG_USER", "postgres"),
+    "password": os.getenv("KAFNUS_TESTS_PG_PASSWORD", "postgres"),
 }
 
 # Kafka Connect default endpoint
-KAFKA_CONNECT_URL = os.getenv("KAFKA_CONNECT_URL", "http://localhost:8083")
+KAFNUS_TESTS_KAFKA_CONNECT_URL = os.getenv("KAFNUS_TESTS_KAFKA_CONNECT_URL", "http://localhost:8083")
 
 # Default connector name for health-check
-DEFAULT_CONNECTOR_NAME = os.getenv("DEFAULT_CONNECTOR_NAME", "mosquitto-source-connector")
+KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME = os.getenv("KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME", "mosquitto-source-connector")
 

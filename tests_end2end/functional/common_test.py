@@ -38,9 +38,9 @@ import time
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from config import KAFKA_CONNECT_URL
+from config import KAFNUS_TESTS_KAFKA_CONNECT_URL
 
-def wait_for_kafka_connect(url=KAFKA_CONNECT_URL, timeout=60):
+def wait_for_kafka_connect(url=KAFNUS_TESTS_KAFKA_CONNECT_URL, timeout=60):
     """
     Waits until the Kafka Connect service is available at the given URL.
     Raises an exception if the timeout is exceeded before the service becomes reachable.
@@ -62,7 +62,7 @@ def wait_for_kafka_connect(url=KAFKA_CONNECT_URL, timeout=60):
         time.sleep(2)
     raise RuntimeError("❌ Kafka Connect did not respond within the expected time.")
 
-def wait_for_connector(name="mosquitto-source-connector", url=KAFKA_CONNECT_URL):
+def wait_for_connector(name="mosquitto-source-connector", url=KAFNUS_TESTS_KAFKA_CONNECT_URL):
     """
     Waits for the specified Kafka Connect connector to reach the RUNNING state.
     Raises an exception if the connector does not become active after multiple attempts.
@@ -126,25 +126,25 @@ def read_files(file_path: Path):
         raise Exception(f"the file {file_path} does not exist") from exc
 
 
-def ensure_postgis_db_ready(pg_host, pg_port, pg_user, pg_password, db_name='tests'):
+def ensure_postgis_db_ready(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT, KAFNUS_TESTS_PG_USER, KAFNUS_TESTS_PG_PASSWORD, db_name='tests'):
     """
     Ensures the PostgreSQL database exists and is ready with PostGIS extension,
     schema, and base tables as defined in an external SQL file.
 
     Parameters:
-    - pg_host (str): PostgreSQL host
-    - pg_port (int): PostgreSQL port
-    - pg_user (str): PostgreSQL username
-    - pg_password (str): PostgreSQL password
+    - KAFNUS_TESTS_PG_HOST (str): PostgreSQL host
+    - KAFNUS_TESTS_PG_PORT (int): PostgreSQL port
+    - KAFNUS_TESTS_PG_USER (str): PostgreSQL username
+    - KAFNUS_TESTS_PG_PASSWORD (str): PostgreSQL password
     - db_name (str): Name of the database to create/use
     """
     # Connect to default postgres DB to create target DB if it does not exist
     admin_conn = psycopg2.connect(
         dbname='postgres',
-        user=pg_user,
-        password=pg_password,
-        host=pg_host,
-        port=pg_port
+        user=KAFNUS_TESTS_PG_USER,
+        password=KAFNUS_TESTS_PG_PASSWORD,
+        host=KAFNUS_TESTS_PG_HOST,
+        port=KAFNUS_TESTS_PG_PORT
     )
     admin_conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     admin_cur = admin_conn.cursor()
@@ -163,10 +163,10 @@ def ensure_postgis_db_ready(pg_host, pg_port, pg_user, pg_password, db_name='tes
     # Connect to the created DB to apply PostGIS setup using the external SQL file
     db_conn = psycopg2.connect(
         dbname=db_name,
-        user=pg_user,
-        password=pg_password,
-        host=pg_host,
-        port=pg_port
+        user=KAFNUS_TESTS_PG_USER,
+        password=KAFNUS_TESTS_PG_PASSWORD,
+        host=KAFNUS_TESTS_PG_HOST,
+        port=KAFNUS_TESTS_PG_PORT
     )
     db_conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     db_cur = db_conn.cursor()
@@ -299,9 +299,9 @@ def multiservice_stack():
     """
     docker_dir = Path(__file__).resolve().parent.parent.parent / "docker"
 
-    # If the USE_EXTERNAL_POSTGIS env var is set to "false",
+    # If the KAFNUS_TESTS_USE_EXTERNAL_POSTGIS env var is set to "false",
     # the test will deploy a postgis container.
-    use_external_pg = os.getenv("USE_EXTERNAL_POSTGIS", "false").lower() == "true"
+    use_external_pg = os.getenv("KAFNUS_TESTS_USE_EXTERNAL_POSTGIS", "false").lower() == "true"
 
     compose_files = [
         "docker-compose.kafka.yml",
@@ -327,13 +327,13 @@ def multiservice_stack():
         print(f"📁 Files found: {[f.name for f in sinks_dir.glob('*')]}")
 
         # Setup PostgreSQL DB with PostGIS extension
-        pg_host = os.getenv("PG_HOST", "localhost")
-        pg_port = int(os.getenv("PG_PORT", "5432"))
-        pg_user = os.getenv("PG_USER", "postgres")
-        pg_password = os.getenv("PG_PASSWORD", "postgres")
+        KAFNUS_TESTS_PG_HOST = os.getenv("KAFNUS_TESTS_PG_HOST", "localhost")
+        KAFNUS_TESTS_PG_PORT = int(os.getenv("KAFNUS_TESTS_PG_PORT", "5432"))
+        KAFNUS_TESTS_PG_USER = os.getenv("KAFNUS_TESTS_PG_USER", "postgres")
+        KAFNUS_TESTS_PG_PASSWORD = os.getenv("KAFNUS_TESTS_PG_PASSWORD", "postgres")
 
-        wait_for_postgres(pg_host, pg_port)
-        ensure_postgis_db_ready(pg_host, pg_port, pg_user, pg_password)
+        wait_for_postgres(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT)
+        ensure_postgis_db_ready(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT, KAFNUS_TESTS_PG_USER, KAFNUS_TESTS_PG_PASSWORD)
         
         wait_for_kafka_connect()
         print("🚀 Deployings sinks...")
@@ -351,9 +351,9 @@ def multiservice_stack():
             KafkaConnectPort=kafka_connect_port
         )
 
-        # If the E2E_MANUAL_INSPECTION env var is set to "true", the test will pause
+        # If the KAFNUS_TESTS_E2E_MANUAL_INSPECTION env var is set to "true", the test will pause
         # before stopping containers, to allow manual inspection.
-        if os.getenv("E2E_MANUAL_INSPECTION", "false").lower() == "true":
+        if os.getenv("KAFNUS_TESTS_E2E_MANUAL_INSPECTION", "false").lower() == "true":
             print("🧪 Pausing for manual inspection. Ctrl+C to terminate.")
             time.sleep(3600)
     

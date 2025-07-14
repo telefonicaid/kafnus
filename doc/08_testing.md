@@ -88,12 +88,12 @@ The test suite **always checks** whether the required PostGIS database exists, a
 
 This behavior is **independent of whether you use a containerized or external PostGIS instance**.
 
-To control whether the test environment should **launch a PostGIS container** or not, use the environment variable `USE_EXTERNAL_POSTGIS` in your `.env` file:
+To control whether the test environment should **launch a PostGIS container** or not, use the environment variable `KAFNUS_TESTS_USE_EXTERNAL_POSTGIS` in your `.env` file:
 
 ```env
-USE_EXTERNAL_POSTGIS=false  # to run PostGIS container
+KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=false  # to run PostGIS container
 # or
-USE_EXTERNAL_POSTGIS=true   # to use an external PostGIS instance
+KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=true   # to use an external PostGIS instance
 ```
 
 ---
@@ -122,10 +122,10 @@ You can filter scenarios using `-k` and their directory names or tags.
 
 ## ▶️ Optional Manual Inspection Pause
 
-For manual inspection before test containers shut down, enable the `E2E_MANUAL_INSPECTION` flag in your `.env` file:
+For manual inspection before test containers shut down, enable the `KAFNUS_TESTS_E2E_MANUAL_INSPECTION` flag in your `.env` file:
 
 ```env
-E2E_MANUAL_INSPECTION=true
+KAFNUS_TESTS_E2E_MANUAL_INSPECTION=true
 ```
 
 When enabled, tests will pause for up to 1 hour (or until you press `Ctrl + C`), allowing manual inspection of the running services.
