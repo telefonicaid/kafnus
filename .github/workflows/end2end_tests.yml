@@ -1,0 +1,50 @@
+name: Run end-to-end tests
+ 
+on:
+  push:
+     branches:
+      - main
+  pull_request:
+    branches:
+      - main
+ 
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-24.04
+ 
+    env:
+      KAFNUS_TESTS_E2E_MANUAL_INSPECTION: "false"
+      KAFNUS_TESTS_E2E_MANUAL_INSPECTION: "false"
+ 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+ 
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+ 
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('tests_end2end/functional/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+ 
+      - name: Install dependencies
+        working-directory: tests_end2end/functional
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+ 
+      - name: Run end-to-end tests with pytest
+        working-directory: tests_end2end/functional
+        run: |
+          source .venv/bin/activate
+          pytest -s test_pipeline.py
+ 
+ 
