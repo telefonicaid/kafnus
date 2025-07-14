@@ -39,7 +39,7 @@ def deploy_all_sinks(sinks_dir: Path, kafka_connect_url: str = KAFNUS_TESTS_KAFK
 
     Parameters:
     - sinks_dir: Path to the directory containing JSON sink connector definitions.
-    - KAFNUS_TESTS_KAFKA_CONNECT_URL: URL to the Kafka Connect REST API (defaults to KAFNUS_TESTS_KAFKA_CONNECT_URL).
+    - kafka_connect_url: URL to the Kafka Connect REST API (defaults to KAFNUS_TESTS_KAFKA_CONNECT_URL).
     """
     for file in sinks_dir.glob("*.json"):
         with file.open("r", encoding="utf-8") as f:
@@ -50,7 +50,7 @@ def deploy_all_sinks(sinks_dir: Path, kafka_connect_url: str = KAFNUS_TESTS_KAFK
             continue
         try:
             res = requests.post(
-                f"{KAFNUS_TESTS_KAFKA_CONNECT_URL}/connectors",
+                f"{kafka_connect_url}/connectors",
                 headers={"Content-Type": "application/json"},
                 json=config
             )
