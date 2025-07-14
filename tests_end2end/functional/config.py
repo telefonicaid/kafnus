@@ -22,7 +22,12 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 import os
+import logging
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Import env variables
+load_dotenv()
 
 # Directory where all scenario test cases are stored
 SCENARIOS_DIR = Path(__file__).parent / "cases"
@@ -42,3 +47,33 @@ KAFNUS_TESTS_KAFKA_CONNECT_URL = os.getenv("KAFNUS_TESTS_KAFKA_CONNECT_URL", "ht
 # Default connector name for health-check
 KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME = os.getenv("KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME", "mosquitto-source-connector")
 
+
+def setup_test_logger(name="kafnus-tests"):
+    """
+    Initializes and returns a structured logger for test execution.
+    Supports standard log levels: DEBUG, INFO, WARN, ERROR, FATAL.
+    """
+    level_map = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARN": logging.WARNING,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "FATAL": logging.CRITICAL,
+        "CRITICAL": logging.CRITICAL
+    }
+
+    raw_level = os.getenv("KAFNUS_TESTS_LOG_LEVEL", "INFO").upper()
+    log_level = level_map.get(raw_level, logging.INFO)
+
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(log_level)
+
+    return logger
+
+logger = setup_test_logger()
