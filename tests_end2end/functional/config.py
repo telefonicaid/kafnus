@@ -21,22 +21,24 @@
 # the peaceful possession and ownership of these rights will be prosecuted by the means
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
+import os
 from pathlib import Path
 
 # Directory where all scenario test cases are stored
 SCENARIOS_DIR = Path(__file__).parent / "cases"
 
-# Default database configuration used for testing
+# Default database configuration used for testing, with env vars supports
 DEFAULT_DB_CONFIG = {
-    "host": "localhost",
-    "port": 5432,
-    "dbname": "tests",
-    "user": "postgres",
-    "password": "postgres"
+    "host": os.getenv("KAFNUS_TESTS_PG_HOST", "localhost"),
+    "port": int(os.getenv("KAFNUS_TESTS_PG_PORT", 5432)),
+    "dbname": os.getenv("KAFNUS_TESTS_PG_DBNAME", "tests"),
+    "user": os.getenv("KAFNUS_TESTS_PG_USER", "postgres"),
+    "password": os.getenv("KAFNUS_TESTS_PG_PASSWORD", "postgres"),
 }
 
 # Kafka Connect default endpoint
-KAFKA_CONNECT_URL = "http://localhost:8083"
+KAFNUS_TESTS_KAFKA_CONNECT_URL = os.getenv("KAFNUS_TESTS_KAFKA_CONNECT_URL", "http://localhost:8083")
 
 # Default connector name for health-check
-DEFAULT_CONNECTOR_NAME = "mosquitto-source-connector"
+KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME = os.getenv("KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME", "mosquitto-source-connector")
+

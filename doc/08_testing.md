@@ -88,14 +88,13 @@ The test suite **always checks** whether the required PostGIS database exists, a
 
 This behavior is **independent of whether you use a containerized or external PostGIS instance**.
 
-To control whether the test environment should **launch a PostGIS container** or not, use the environment variable:
+To control whether the test environment should **launch a PostGIS container** or not, use the environment variable `KAFNUS_TESTS_USE_EXTERNAL_POSTGIS` in your `.env` file:
 
-```bash
-export USE_EXTERNAL_POSTGIS=true
+```env
+KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=false  # to run PostGIS container
+# or
+KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=true   # to use an external PostGIS instance
 ```
-
-- If `true`: assumes PostGIS is already running externally and skips starting the container.
-- If `false` (default): launches PostGIS via Docker using Testcontainers.
 
 ---
 
@@ -104,23 +103,29 @@ export USE_EXTERNAL_POSTGIS=true
 To run **all scenarios** with a container-managed PostGIS:
 
 ```bash
-USE_EXTERNAL_POSTGIS=false pytest -s test_pipeline.py
+pytest -s test_pipeline.py
 ```
 
 To run specific scenarios with an **already-running PostGIS**:
 
 ```bash
-USE_EXTERNAL_POSTGIS=true pytest -s test_pipeline.py -k "000A or 000B"
+pytest -s test_pipeline.py -k "000A or 000B"
 ```
 
 You can filter scenarios using `-k` and their directory names or tags.
 
 
-> ⚠️ Note about Docker images  
-> The `docker-compose.*.yml` files specify the `image:` option for Faust and custom Kafka Connect.  
-> If the image is not present locally, Docker Compose will try to pull it from the registry (Docker Hub by default) and will show a warning if the image is not found.  
-> For now, this warning is expected and does not affect test execution, as images are built dynamically or local images are used depending on the environment.
+> ⚠️ Remember that a warning will be displayed if the images have not been built.
 
+## ▶️ Optional Manual Inspection Pause
+
+For manual inspection before test containers shut down, enable the `KAFNUS_TESTS_E2E_MANUAL_INSPECTION` flag in your `.env` file:
+
+```env
+KAFNUS_TESTS_E2E_MANUAL_INSPECTION=true
+```
+
+When enabled, tests will pause for up to 1 hour (or until you press `Ctrl + C`), allowing manual inspection of the running services.
 
 ---
 
