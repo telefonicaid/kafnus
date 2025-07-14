@@ -17,8 +17,3 @@ monitoring/grafana
 
 # Plugins (to avoid any jar file to hit the repo unintentionally)
 plugins/
-
-# Installation instructions in 01_installation.md do a git clone of an external repository
-# inside own-jdbc-connector/. This entry ensures that such external repository is not
-# commited in ours unintentionally
-own-jdbc-connector/kafka-connect-jdbc
