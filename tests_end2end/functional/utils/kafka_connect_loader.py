@@ -28,7 +28,7 @@ from pathlib import Path
 
 from config import KAFNUS_TESTS_KAFKA_CONNECT_URL
 
-def deploy_all_sinks(sinks_dir: Path, KAFNUS_TESTS_KAFKA_CONNECT_URL: str = KAFNUS_TESTS_KAFKA_CONNECT_URL):
+def deploy_all_sinks(sinks_dir: Path, kafka_connect_url: str = KAFNUS_TESTS_KAFKA_CONNECT_URL):
     """
     Deploys all Kafka Connect sink connectors defined as JSON files in the given directory.
 
