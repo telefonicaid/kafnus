@@ -42,16 +42,16 @@ def deploy_all_sinks(sinks_dir: Path, kafka_connect_url: str = KAFNUS_TESTS_KAFK
     - sinks_dir: Path to the directory containing JSON sink connector definitions.
     - kafka_connect_url: URL to the Kafka Connect REST API (defaults to KAFNUS_TESTS_KAFKA_CONNECT_URL).
     """
-    logger.info("📤 Deploying all sinks from directory: %s", sinks_dir)
+    logger.info(f"📤 Deploying all sinks from directory: {sinks_dir}")
 
     for file in sinks_dir.glob("*.json"):
-        logger.debug("🔍 Reading file: %s", file)
+        logger.debug(f"🔍 Reading file: {file}")
         with file.open("r", encoding="utf-8") as f:
             config = json.load(f)
         name = config.get("name")
 
         if not name:
-            logger.warning("⚠️ File %s does not have 'name', skipping.", file.name)
+            logger.warning(f"⚠️ File {file.name} does not have 'name', skipping.")
             continue
 
         try:
@@ -61,8 +61,8 @@ def deploy_all_sinks(sinks_dir: Path, kafka_connect_url: str = KAFNUS_TESTS_KAFK
                 json=config
             )
             if res.status_code in [200, 201, 409]:
-                logger.info("✅ Sink '%s' deployed (status: %s)", name, res.status_code)
+                logger.info(f"✅ Sink {name} deployed (status: {res.status_code})")
             else:
-                logger.error("❌ Error deploying %s: %s, %s", name, res.status_code, res.text)
+                logger.error(f"❌ Error deploying {name} : {res.status_code}, {res.text}")
         except Exception as e:
-            logger.error("❌ Connection error with Kafka Connect for '%s': %s", name, e)
+            logger.error(f"❌ Connection error with Kafka Connect for {name}: {e}")

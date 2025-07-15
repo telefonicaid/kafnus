@@ -61,7 +61,7 @@ def wait_for_kafka_connect(url=KAFNUS_TESTS_KAFKA_CONNECT_URL, timeout=60):
             pass
         logger.debug("⏳ Waiting for Kafka Connect...")
         time.sleep(2)
-    logger.fatal("❌ Kafka Connect did not respond within %d seconds", timeout)
+    logger.fatal(f"❌ Kafka Connect did not respond within {timeout} seconds")
     raise RuntimeError("❌ Kafka Connect did not respond within the expected time.")
 
 def wait_for_connector(name="mosquitto-source-connector", url=KAFNUS_TESTS_KAFKA_CONNECT_URL):
@@ -73,17 +73,17 @@ def wait_for_connector(name="mosquitto-source-connector", url=KAFNUS_TESTS_KAFKA
     - name: Name of the Kafka Connect connector.
     - url: Kafka Connect REST endpoint.
     """
-    logger.info("⏳ Waiting for connector '%s' to reach RUNNING state...", name)
+    logger.info(f"⏳ Waiting for connector {name} to reach RUNNING state...")
     for _ in range(30):
         try:
             r = requests.get(f"{url}/connectors/{name}/status")
             if r.status_code == 200 and r.json().get("connector", {}).get("state") == "RUNNING":
-                logger.info("✅ Connector '%s' is RUNNING", name)
+                logger.info(f"✅ Connector {name} is RUNNING")
                 return
         except Exception as e:
-            logger.warning("⚠️ Error querying connector status: %s", str(e))
+            logger.warning(f"⚠️ Error querying connector status: {str(e)}")
         time.sleep(2)
-    logger.fatal("❌ Connector '%s' did not reach RUNNING state", name)
+    logger.fatal(f"❌ Connector {name} did not reach RUNNING state")
     raise RuntimeError(f"❌ Connector {name} did not reach RUNNING state")
 
 def wait_for_postgres(host, port, timeout=60):
@@ -100,10 +100,10 @@ def wait_for_postgres(host, port, timeout=60):
     while time.time() - start < timeout:
         try:
             with socket.create_connection((host, port), timeout=2):
-                logger.info("✅ Postgres is up at %s:%s", host, port)
+                logger.info(f"✅ Postgres is up at: {host}:{port}")
                 return
         except OSError:
-            logger.debug("⏳ Waiting for Postgres to be ready at %s:%s...", host, port)
+            logger.debug(f"⏳ Waiting for Postgres to be ready at: {host}:{port}...")
             time.sleep(2)
     logger.fatal("❌ Postgres did not become available in time")
     raise RuntimeError("Postgres did not become available in time")
@@ -142,7 +142,7 @@ def ensure_postgis_db_ready(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT, KAFNUS_T
     - KAFNUS_TESTS_PG_PASSWORD (str): PostgreSQL password
     - db_name (str): Name of the database to create/use
     """
-    logger.info("🔧 Preparing PostGIS database: %s", db_name)
+    logger.info(f"🔧 Preparing PostGIS database: {db_name}")
 
     # Connect to default postgres DB to create target DB if it does not exist
     admin_conn = psycopg2.connect(
@@ -158,10 +158,10 @@ def ensure_postgis_db_ready(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT, KAFNUS_T
     admin_cur.execute(f"SELECT 1 FROM pg_database WHERE datname = '{db_name}';")
     exists = admin_cur.fetchone()
     if not exists:
-        logger.debug("⚙️ Creating database '%s'", db_name)
+        logger.debug(f"⚙️ Creating database {db_name}")
         admin_cur.execute(f'CREATE DATABASE {db_name};')
     else:
-        logger.debug("✅ Database '%s' already exists", db_name)
+        logger.debug(f"✅ Database {db_name} already exists")
 
     admin_cur.close()
     admin_conn.close()
@@ -183,7 +183,7 @@ def ensure_postgis_db_ready(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT, KAFNUS_T
     logger.debug("📥 Applying PostGIS setup from SQL file")
     db_cur.execute(sql_commands)
 
-    logger.debug("✅ Database setup complete for '%s'", db_name)
+    logger.debug(f"✅ Database setup complete for {db_name}")
     db_cur.close()
     db_conn.close()
 
@@ -331,8 +331,8 @@ def multiservice_stack():
         logger.info("✅ Services successfully deployed")
 
         sinks_dir = Path(__file__).resolve().parent.parent.parent / "sinks"
-        logger.debug("📂 sinks_dir path: %s", sinks_dir)
-        logger.debug("📁 Files found: %s", [f.name for f in sinks_dir.glob('*')])
+        logger.debug(f"📂 sinks_dir path: {sinks_dir}")
+        logger.debug(f"📁 Files found: {[f.name for f in sinks_dir.glob('*')]}")
 
         # Setup PostgreSQL DB with PostGIS extension
         KAFNUS_TESTS_PG_HOST = os.getenv("KAFNUS_TESTS_PG_HOST", "localhost")
@@ -436,7 +436,7 @@ class OrionAdapter:
                 data=json.dumps(data),
                 headers=headers_
             )
-            logger.debug("[Orion update] %s %s", response.status_code, response.content)
+            logger.debug(f"[Orion update] {response.status_code} {response.content}")
             assert response.status_code in [201, 204]
 
 

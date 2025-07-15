@@ -40,7 +40,7 @@ def load_scenario(json_path, as_expected=False):
     Returns:
     - A list of dictionaries (if `as_expected=True`) or an OrionRequestData object.
     """
-    logger.debug("📂 Loading scenario file: %s", json_path)
+    logger.debug(f"📂 Loading scenario file: {json_path}")
 
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -49,7 +49,7 @@ def load_scenario(json_path, as_expected=False):
         logger.debug("📦 Loading as expected PostGIS result")
         return data if isinstance(data, list) else [data]
     else:
-        logger.debug("🛰️ Loading as Orion scenario: %s", data.get("name"))
+        logger.debug(f"🛰️ Loading as Orion scenario: {data.get("name")}")
         return OrionRequestData(
             name=data["name"],
             service=data["fiware-service"],

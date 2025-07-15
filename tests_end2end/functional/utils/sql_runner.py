@@ -39,8 +39,8 @@ def execute_sql_file(sql_path, db_config):
     Raises:
     - Exception if SQL execution or database connection fails.
     """
-    logger.debug("📄 Executing SQL from: %s", sql_path)
-    logger.debug("🔗 Connecting to DB: %(host)s:%(port)s, DB: %(dbname)s", db_config)
+    logger.debug(f"📄 Executing SQL from: {sql_path}")
+    logger.debug(f"🔗 Connecting to DB: {db_config['host']}:{db_config['port']}, DB: {db_config['dbname']}")
 
     with open(sql_path, "r", encoding="utf-8") as f:
         sql = f.read()
@@ -54,7 +54,7 @@ def execute_sql_file(sql_path, db_config):
                 cursor.execute(sql)
                 logger.info("✅ SQL executed successfully")
     except Exception as e:
-        logger.error("❌ Error executing SQL from %s: %s", sql_path, e)
+        logger.error(f"❌ Error executing SQL from {sql_path}: {e}")
         raise
     finally:
         conn.close()

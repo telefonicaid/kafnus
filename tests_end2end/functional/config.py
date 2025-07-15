@@ -47,7 +47,7 @@ KAFNUS_TESTS_KAFKA_CONNECT_URL = os.getenv("KAFNUS_TESTS_KAFKA_CONNECT_URL", "ht
 # Default connector name for health-check
 KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME = os.getenv("KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME", "mosquitto-source-connector")
 
-
+# Setup and start logger
 def setup_test_logger(name="kafnus-tests"):
     """
     Initializes and returns a structured logger for test execution.
@@ -66,14 +66,12 @@ def setup_test_logger(name="kafnus-tests"):
     raw_level = os.getenv("KAFNUS_TESTS_LOG_LEVEL", "INFO").upper()
     log_level = level_map.get(raw_level, logging.INFO)
 
-    logger = logging.getLogger(name)
-    if not logger.handlers:
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        logger.setLevel(log_level)
+    logging.basicConfig(
+        level=log_level,
+        format="time=%(asctime)s | lvl=%(levelname)s | comp=KAFNUS-TESTS | op=%(name)s:%(filename)s[%(lineno)d]:%(funcName)s | msg=%(message)s",
+        handlers=[logging.StreamHandler()]
+    )
 
-    return logger
+    return logging.getLogger(name)
 
 logger = setup_test_logger()
