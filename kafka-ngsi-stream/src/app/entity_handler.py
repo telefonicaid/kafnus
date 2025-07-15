@@ -25,10 +25,9 @@
 import json
 from app.kafka_utils import to_kafka_connect_schema, build_kafka_key
 from app.types_utils import sanitize_topic, to_wkb_struct_from_wkt, to_wkt_geometry
+
 import logging
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
-
 
 def build_target_table(datamodel, service, servicepath, entityid, entitytype, suffix):
     """
@@ -88,7 +87,7 @@ async def handle_entity(app, raw_value, datamodel="dm-by-entity-type-database", 
             try:
                 value = json.dumps(value, ensure_ascii=False)
             except Exception as e:
-                print(f"⚠️ Error serializing field {name} as JSON string: {e}")
+                logger.warning(f"⚠️ Error serializing field '{name}' as JSON string: {e}")
                 value = str(value)
 
         attributes[name] = value
@@ -107,7 +106,7 @@ async def handle_entity(app, raw_value, datamodel="dm-by-entity-type-database", 
         headers=[("target_table", target_table.encode())]
     )
 
-    print(f"✅ [{suffix.lstrip('_') or 'historic'}] Sent to topic '{topic_name}' (table: '{target_table}'): {entity.get('entityid')}")
+    logger.info(f"✅ [{suffix.lstrip('_') or 'historic'}] Sent to topic '{topic_name}' (table: '{target_table}'): {entity.get('entityid')}")
 
 
 async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity-type-database", suffix="", include_timeinstant=True, key_fields=None):
@@ -118,13 +117,13 @@ async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity
     event = json.loads(raw_value)
     payload_str = event.get("payload")
     if not payload_str:
-        print("⚠️ No payload found in message")
+        logger.warning("⚠️ No payload found in message")
         return
 
     try:
         payload = json.loads(payload_str)
     except Exception as e:
-        print(f"❌ Error parsing payload: {e}")
+        logger.error(f"❌ Error parsing payload: {e}")
         return
 
     if headers:
@@ -180,7 +179,7 @@ async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity
                 try:
                     value = json.dumps(value, ensure_ascii=False)
                 except Exception as e:
-                    print(f"⚠️ Error serializing field {attr_name} as JSON string: {e}")
+                    logger.warning(f"⚠️ Error serializing field '{attr_name}' as JSON string: {e}")
                     value = str(value)
 
             attributes[attr_name] = value
@@ -199,5 +198,5 @@ async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity
             headers=[("target_table", target_table.encode())]
         )
 
-        print(f"✅ [{suffix.lstrip('_') or 'historic'}] Sent to topic '{topic_name}' (table: '{target_table}'): {entity.get('entityid')}")
+        logger.info(f"✅ [{suffix.lstrip('_') or 'historic'}] Sent to topic '{topic_name}' (table: '{target_table}'): {entity.get('entityid')}")
 

@@ -33,6 +33,9 @@ from app.entity_handler import handle_entity, build_target_table, handle_entity_
 from app.metrics import start_metrics_server, messages_processed, processing_time
 from app.faust_app import app, raw_historic_topic, raw_lastdata_topic, raw_mutable_topic, raw_errors_topic, mongo_output_topic, mongo_topic
 
+import logging
+logger = logging.getLogger(__name__)
+
 DATAMODEL = "dm-by-entity-type-database"
 
 # Historic Agent
@@ -59,7 +62,8 @@ async def process_historic(stream):
                 datamodel=DATAMODEL
             )
         except Exception as e:
-            print(f"❌ Historic error: {e}")
+            logger.error(f"❌ [historic] Error processing event: {e}")
+
         
         duration = time.time() - start
         messages_processed.labels(flow="historic").inc()
@@ -120,7 +124,7 @@ async def process_lastdata(stream):
                     headers=[("target_table", target_table.encode())]
                 )
                 last_seen_timestamps.pop(entity_id, None)
-                print(f"🗑️ [lastdata] Sent delete for entity: {entity_id}")
+                logger.info(f"🗑️ [lastdata] Sent delete for entity: {entity_id}")
                 continue
 
             # Check previous timestamp
@@ -139,10 +143,10 @@ async def process_lastdata(stream):
                     datamodel=DATAMODEL
                 )
             else:
-                print(f"⚠️ Ignorado {entity_id} por timestamp viejo ({current_ts} < {last_ts})")
+                logger.debug(f"⚠️ Ignored entity '{entity_id}' due to old timestamp ({current_ts} < {last_ts})")
 
         except Exception as e:
-            print(f"❌ Lastdata error: {e}")
+            logger.error(f"❌ [lastdata] Error processing event: {e}")
 
         duration = time.time() - start
         messages_processed.labels(flow="lastdata").inc()
@@ -172,7 +176,7 @@ async def process_mutable(stream):
                 datamodel=DATAMODEL
             )
         except Exception as e:
-            print(f"❌ Mutable error: {e}")
+            logger.error(f"❌ [mutable] Error processing event: {e}")
         
         duration = time.time() - start
         messages_processed.labels(flow="mutable").inc()
@@ -196,7 +200,7 @@ async def process_errors(stream):
         try:
             value_json = json.loads(value_raw)
         except Exception as e:
-            print(f"⚠️ Error parsing JSON payload: {e}")
+            logger.warning(f"⚠️ Could not parse JSON payload: {e}")
             continue
 
         # Extract full error information
@@ -281,7 +285,7 @@ async def process_errors(stream):
         # Send to client error_log topic
         await error_topic.send(value=error_record)
 
-        print(f"🐞 Logged SQL error to '{error_topic_name}': {error_message}")
+        logger.info(f"🐞 Logged SQL error to '{error_topic_name}': {error_message}")
 
         duration = time.time() - start
         messages_processed.labels(flow="errors").inc()
@@ -338,10 +342,10 @@ async def process(events):
                 value=json.dumps(doc)
             )
 
-            print(f"✅ ['mongo'] Sent to topic 'tests_mongo' | DB: {mongo_db}, Collection: {mongo_collection}")
+            logger.info(f"✅ [mongo] Sent document to topic 'tests_mongo' | DB: {mongo_db}, Collection: {mongo_collection}")
 
         except Exception as e:
-            print("❌ Error processing event:", e)
+            logger.error(f"❌ [mongo] Error processing event: {e}")
         
         duration = time.time() - start
         messages_processed.labels(flow="mongo").inc()

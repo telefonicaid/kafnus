@@ -24,6 +24,36 @@
 
 import os
 
-KAFKA_BROKER = os.getenv("KAFKA_BROKER", "kafka://kafka:9092")
-METRICS_PORT = int(os.getenv("METRICS_PORT", "8000"))
-TIMEZONE = os.getenv("DEFAULT_TZ", "Europe/Madrid")
+KAFNUS_NGSI_KAFKA_BROKER = os.getenv("KAFNUS_NGSI_KAFKA_BROKER", "kafka://kafka:9092")
+KAFNUS_NGSI_METRICS_PORT = int(os.getenv("KAFNUS_NGSI_METRICS_PORT", "8000"))
+TIMEZONE = os.getenv("KAFNUS_NGSI_DEFAULT_TZ", "Europe/Madrid")
+
+def get_logging_config():
+    """
+    Returns a logging configuration dict compatible with Python's logging.config.dictConfig.
+    Intended for use with Faust's logging_config parameter.
+    """
+    level = os.getenv("KAFNUS_NGSI_LOG_LEVEL", "INFO").upper()
+    return {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "kafnus_fmt": {
+                "format": (
+                    "time=%(asctime)s | lvl=%(levelname)s | comp=KAFNUS-NGSI | "
+                    "op=%(name)s:%(filename)s[%(lineno)d]:%(funcName)s | msg=%(message)s"
+                )
+            }
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "kafnus_fmt",
+                "level": level,
+            }
+        },
+        "root": {
+            "handlers": ["console"],
+            "level": level,
+        },
+    }
