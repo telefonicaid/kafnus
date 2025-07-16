@@ -40,6 +40,18 @@ jobs:
           source .venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
+      
+      - name: Ensure kafka-postgis-net exists
+        run: |
+          if ! docker network ls | grep -q kafka-postgis-net; then
+            docker network create kafka-postgis-net
+          fi
+      
+      - name: Setup PostGIS data directory
+        run: |
+          sudo mkdir -p /data/postgis
+          sudo chown -R 999:999 /data/postgis
+          export DBPATH_POSTGIS=/data/postgis
  
       - name: Run end-to-end tests with pytest
         working-directory: tests_end2end/functional
