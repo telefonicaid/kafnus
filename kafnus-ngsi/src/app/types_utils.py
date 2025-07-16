@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 def to_wkb_struct_from_wkt(wkt_str, field_name, srid=4326):
     """
     Converts a WKT geometry string to a Debezium-compatible WKB struct with schema and base64-encoded payload.
-    Used for sending geo attributes in Kafka Connect format.
+    Used for sending geo attributes in Kafnus Connect format.
     """
     try:
         geom = wkt.loads(wkt_str)
@@ -115,7 +115,7 @@ def sanitize_topic(name):
 
 def infer_field_type(name, value, attr_type=None):
     """
-    Infers Kafka Connect field type from NGSI attrType or Python native type.
+    Infers Kafnus Connect field type from NGSI attrType or Python native type.
     Also transforms the value if needed (e.g. formatting dates, serializing JSON).
     Returns a tuple (field_type, processed_value).
     """

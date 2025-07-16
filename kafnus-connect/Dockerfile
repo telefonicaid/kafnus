@@ -50,8 +50,8 @@ ENV PATH="${JAVA_HOME}/bin:${MAVEN_HOME}/bin:${PATH}"
 # -----------------------------
 # Create plugin directories
 # -----------------------------
-RUN mkdir -p /usr/local/share/kafka-connect/plugins \
-    && chown -R appuser:appuser /usr/local/share/kafka-connect/plugins
+RUN mkdir -p /usr/local/share/kafnus-connect/plugins \
+    && chown -R appuser:appuser /usr/local/share/kafnus-connect/plugins
 
 # -----------------------------
 # Build HeaderRouter
@@ -59,8 +59,8 @@ RUN mkdir -p /usr/local/share/kafka-connect/plugins \
 COPY src/header-router /tmp/header-router
 RUN cd /tmp/header-router && \
     mvn clean package && \
-    mkdir -p /usr/local/share/kafka-connect/plugins/header-router && \
-    cp target/header-router-1.0.0-jar-with-dependencies.jar /usr/local/share/kafka-connect/plugins/header-router/header-router-1.0.0.jar
+    mkdir -p /usr/local/share/kafnus-connect/plugins/header-router && \
+    cp target/header-router-1.0.0-jar-with-dependencies.jar /usr/local/share/kafnus-connect/plugins/header-router/header-router-1.0.0.jar
 
 # -----------------------------
 # Build MQTT Connector
@@ -68,8 +68,8 @@ RUN cd /tmp/header-router && \
 COPY src/mqtt-kafka-connect /tmp/mqtt-kafka-connect
 RUN cd /tmp/mqtt-kafka-connect && \
     mvn clean package && \
-    mkdir -p /usr/local/share/kafka-connect/plugins/mqtt-kafka-connect && \
-    cp target/mqtt-kafka-connect-1.0-jar-with-dependencies.jar /usr/local/share/kafka-connect/plugins/mqtt-kafka-connect/
+    mkdir -p /usr/local/share/kafnus-connect/plugins/mqtt-kafka-connect && \
+    cp target/mqtt-kafka-connect-1.0-jar-with-dependencies.jar /usr/local/share/kafnus-connect/plugins/mqtt-kafka-connect/
 
 # -----------------------------
 # Build JDBC Connector with PostGIS patch
@@ -81,20 +81,20 @@ RUN cd /tmp && \
     git checkout v10.7.0 && \
     git apply /tmp/postgis-support.patch && \
     mvn clean package -DskipTests -Dcheckstyle.skip=true && \
-    mkdir -p /usr/local/share/kafka-connect/plugins/kafka-connect-jdbc && \
-    cp target/kafka-connect-jdbc-10.7.0.jar /usr/local/share/kafka-connect/plugins/kafka-connect-jdbc/
+    mkdir -p /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc && \
+    cp target/kafka-connect-jdbc-10.7.0.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
 
 # PostgreSQL JDBC Driver
-RUN wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -P /usr/local/share/kafka-connect/plugins/kafka-connect-jdbc/
+RUN wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -P /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
 
 # -----------------------------
 # MongoDB Kafka Connector
 # -----------------------------
-RUN mkdir -p /usr/local/share/kafka-connect/plugins/mongodb && \
-    wget https://repo.maven.apache.org/maven2/org/mongodb/kafka/mongo-kafka-connect/1.10.0/mongo-kafka-connect-1.10.0-confluent.jar -O /usr/local/share/kafka-connect/plugins/mongodb/mongo-kafka-connect-1.10.0-confluent.jar && \
-    wget https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-core/4.9.1/mongodb-driver-core-4.9.1.jar -P /usr/local/share/kafka-connect/plugins/mongodb/ && \
-    wget https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-sync/4.9.1/mongodb-driver-sync-4.9.1.jar -P /usr/local/share/kafka-connect/plugins/mongodb/ && \
-    wget https://repo1.maven.org/maven2/org/mongodb/bson/4.9.1/bson-4.9.1.jar -P /usr/local/share/kafka-connect/plugins/mongodb/
+RUN mkdir -p /usr/local/share/kafnus-connect/plugins/mongodb && \
+    wget https://repo.maven.apache.org/maven2/org/mongodb/kafka/mongo-kafka-connect/1.10.0/mongo-kafka-connect-1.10.0-confluent.jar -O /usr/local/share/kafnus-connect/plugins/mongodb/mongo-kafka-connect-1.10.0-confluent.jar && \
+    wget https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-core/4.9.1/mongodb-driver-core-4.9.1.jar -P /usr/local/share/kafnus-connect/plugins/mongodb/ && \
+    wget https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-sync/4.9.1/mongodb-driver-sync-4.9.1.jar -P /usr/local/share/kafnus-connect/plugins/mongodb/ && \
+    wget https://repo1.maven.org/maven2/org/mongodb/bson/4.9.1/bson-4.9.1.jar -P /usr/local/share/kafnus-connect/plugins/mongodb/
 
 # -----------------------------
 # JMX Exporter Agent
@@ -102,16 +102,16 @@ RUN mkdir -p /usr/local/share/kafka-connect/plugins/mongodb && \
 RUN mkdir -p /usr/share/jmx_exporter && \
     wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.20.0/jmx_prometheus_javaagent-0.20.0.jar -O /usr/share/jmx_exporter/jmx_prometheus_javaagent.jar
 
-COPY monitoring/kafka-connect.yml /usr/share/jmx_exporter/
+COPY monitoring/kafnus-connect.yml /usr/share/jmx_exporter/
 
 # -----------------------------
 # Set permissions and environment
 # -----------------------------
-RUN chown -R appuser:appuser /usr/local/share/kafka-connect/plugins /usr/share/jmx_exporter
+RUN chown -R appuser:appuser /usr/local/share/kafnus-connect/plugins /usr/share/jmx_exporter
 
 USER appuser
 
-ENV CONNECT_PLUGIN_PATH="/usr/local/share/kafka-connect/plugins:/usr/share/java"
+ENV CONNECT_PLUGIN_PATH="/usr/local/share/kafnus-connect/plugins:/usr/share/java"
 ENV KAFKA_JMX_PORT=9100
 ENV JMX_PROMETHEUS_PORT=9100
-ENV JMX_PROMETHEUS_EXPORTER_OPTS="-javaagent:/usr/share/jmx_exporter/jmx_prometheus_javaagent.jar=9100:/usr/share/jmx_exporter/kafka-connect.yml"
+ENV JMX_PROMETHEUS_EXPORTER_OPTS="-javaagent:/usr/share/jmx_exporter/jmx_prometheus_javaagent.jar=9100:/usr/share/jmx_exporter/kafnus-connect.yml"

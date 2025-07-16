@@ -27,18 +27,18 @@ lowercaseOutputName: true
 lowercaseOutputLabelNames: true
 rules:
   - pattern: 'kafka.connect<type=connector-metrics, connector=(.+)><>status'
-    name: 'kafka_connect_connector_status'
+    name: 'kafnus_connect_connector_status'
     labels:
       connector: "$1"
     type: GAUGE
   - pattern: 'kafka.connect<type=connector-task-metrics, connector=(.+), task=(\d+)><>status'
-    name: 'kafka_connect_task_status'
+    name: 'kafnus_connect_task_status'
     labels:
       connector: "$1"
       task: "$2"
     type: GAUGE
   - pattern: 'kafka.connect<type=connector-task-metrics, connector=(.+), task=(\d+)><>put-batch-time-avg'
-    name: 'kafka_connect_put_batch_time_avg'
+    name: 'kafnus_connect_put_batch_time_avg'
     labels:
       connector: "$1"
       task: "$2"

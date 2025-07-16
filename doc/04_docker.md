@@ -22,10 +22,10 @@ docker/
 Custom Dockerfiles are located in their respective component directories:
 
 ```plaintext
-kafka-connect-custom/
+kafnus-connect/
 └── Dockerfile
 
-kafka-ngsi-stream/
+kafnus-ngsi/
 └── Dockerfile
 ```
 
@@ -37,8 +37,8 @@ kafka-ngsi-stream/
 
 Starts the default stack, including:
 
-- Kafka + Kafka Connect
-- Faust
+- Kafka + Kafnus Connect
+- Kafnus NGSI
 - Orion + Mongo + Mosquitto
 
 PostGIS and Monitoring are commented out by default.
@@ -64,8 +64,8 @@ Stops the same services and removes volumes & orphan containers:
 
 The Docker Compose setup relies on two custom images:
 
-- **Kafka Connect** is built using `kafka-connect-custom/Dockerfile`, which includes all required connectors and plugins during the image build process.
-- **Faust** is built using `kafka-ngsi-stream/Dockerfile`, which includes the stream processing app and all dependencies.
+- **Kafnus Connect** is built using `kafnus-connect/Dockerfile`, which includes all required connectors and plugins during the image build process.
+- **Kafnus NGSI** is built using `kafnus-ngsi/Dockerfile`, which includes the stream processing app and all dependencies.
 
 Both images are automatically built via `docker-up.sh`, so you don't need to build them manually unless debugging or developing.
 
@@ -75,21 +75,21 @@ Both images are automatically built via `docker-up.sh`, so you don't need to bui
 Defines:
 
 - Kafka broker (port 9092, 29092)
-- Kafka Connect custom image with plugins:
+- Kafnus Connect image with plugins:
   - Builds and runs custom image
-  - Custom plugins in `/usr/local/share/kafka-connect/plugins`
+  - Custom plugins in `/usr/local/share/kafnus-connect/plugins`
   - Monitoring enabled via JMX Exporter
 - Connect waits for Kafka to be healthy before starting
 
 Topics are auto-created (`KAFKA_AUTO_CREATE_TOPICS_ENABLE=true`)
 
-Kafka Connect image is built from the [`Dockerfile`](../kafka-connect-custom/Dockerfile).
+Kafnus Connect image is built from the [`Dockerfile`](../kafnus-connect/Dockerfile).
 
 Exposes:
-- Port `8083`: Kafka Connect API
+- Port `8083`: Kafnus Connect API
 - Port `9100`: Prometheus metrics
 
-To build from `/kafka-connect-custom` directory you can use:
+To build from `/kafnus-connect` directory you can use:
 
 ```bash
 docker build --no-cache -t kafnus-connect .
@@ -101,19 +101,19 @@ docker build --no-cache -t kafnus-connect .
 
 Defines:
 
-- `create-topics`: Creates all Kafka topics needed by Faust and Connect
-- `faust-stream`: Builds and runs the Faust service
+- `create-topics`: Creates all Kafka topics needed by Kafnus NGSI and Connect
+- `kafnus-ngsi`: Builds and runs the Faust service
 
-Faust image is built from the [`Dockerfile`](../kafka-ngsi-stream/Dockerfile).
+Kafnus NGSI image is built from the [`Dockerfile`](../kafnus-ngsi/Dockerfile).
 
 Exposes:
 - Port `8000`: Prometheus metrics
 - Port `6066`: Optional Faust web interface (disabled by default)
 
-To build from `/kafka-ngsi-stream` directory you can use:
+To build from `/kafnus-ngsi` directory you can use:
 
 ```bash
-docker build --no-cache -t faust-stream .
+docker build --no-cache -t kafnus-ngsi .
 ```
 
 ---
@@ -149,7 +149,6 @@ Includes:
 - Prometheus
 - Grafana
 - Kafka Exporter
-- Faust/Metrics Exporter
 
 Disabled by default. You can enable it by uncommenting in `docker-up.sh`.
 
@@ -175,11 +174,11 @@ docker network create kafka-postgis-net
 
 ## ⚙️ Plugins
 
-Kafka Connect plugins are automatically bundled during image build (inside [`kafka-connect-custom/Dockerfile`](/kafka-connect-custom/Dockerfile)).
+Kafnus Connect plugins are automatically bundled during image build (inside [`kafnus-connect/Dockerfile`](/kafnus-connect/Dockerfile)).
 
-The plugin directory (`kafka-connect-custom/plugins/`) contains:
+The plugin directory (`kafnus-connect/plugins/`) contains:
 
-- `kafka-connect-custom/plugins/`: contains:
+- `kafnus-connect/plugins/`: contains:
   - `header-router` (custom SMT)
   - `kafka-connect-jdbc` (custom connector with geometry support)
   - `mongodb` connector
@@ -197,4 +196,4 @@ The test suite can also dynamically start these containers via **Testcontainers*
 
 - [⬅️ Previous: Operational-Guide](/doc/03_operational_guide.md)
 - [🏠 Main index](../README.md#documentation)
-- [➡️ Next: Faust](/doc/05_faust.md)
+- [➡️ Next: Kafnus NGSI](/doc/05_kafnus_ngsi.md)

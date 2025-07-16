@@ -41,8 +41,8 @@ Confirm these are **Up (healthy)**:
 
 ```plaintext
 kafka           ← Kafka broker
-kafka-connect   ← Kafka Connect
-faust-stream    ← Faust
+kafnus-connect  ← Kafnus Connect
+kafnus-ngsi     ← Kafnus NGSI
 orion           ← Context Broker
 mongo           ← MongoDB
 mosquitto       ← MQTT broker
@@ -74,14 +74,14 @@ Still in progress...
 Tail logs for quick debugging:
 
 ```bash
-docker logs -f kafka-connect
-docker logs -f faust-stream
+docker logs -f kafnus-connect
+docker logs -f kafnus-ngsi
 docker logs -f iot-postgis
 ```
 
-### 3.2 Kafka Connect Errors
+### 3.2 Kafnus Connect Errors
 
-– Failed connector loads appear in `kafka-connect` logs.  
+– Failed connector loads appear in `kafnus-connect` logs.  
 – DLQ errors land in the topic `raw_errors`. To inspect:
 
 ```bash
@@ -168,7 +168,7 @@ SELECT * FROM test.simple_sensor LIMIT 5;
 ## ⚠️ 6. Common Issues & Fixes
 
 - **Connector won't start**  
-  Check plugin path and JARs under `kafka-connect-custom/plugins/`.  
+  Check plugin path and JARs under `kafnus-connect/plugins/`.  
 - **Port conflicts**  
   Ensure no other service is using ports 9092, 8083, 1026, 1883, 5432, 27017.  
 - **Network not found**  
@@ -177,7 +177,7 @@ SELECT * FROM test.simple_sensor LIMIT 5;
   docker network create kafka-postgis-net
   ```  
 - **JMX agent mount fails**  
-  Ensure `kafka-connect-custom/monitoring/jmx_prometheus_javaagent.jar` is a file, not directory, and path has no spaces.
+  Ensure `kafnus-connect/monitoring/jmx_prometheus_javaagent.jar` is a file, not directory, and path has no spaces.
 
 ---
 

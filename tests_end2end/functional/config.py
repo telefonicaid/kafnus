@@ -41,8 +41,8 @@ DEFAULT_DB_CONFIG = {
     "password": os.getenv("KAFNUS_TESTS_PG_PASSWORD", "postgres"),
 }
 
-# Kafka Connect default endpoint
-KAFNUS_TESTS_KAFKA_CONNECT_URL = os.getenv("KAFNUS_TESTS_KAFKA_CONNECT_URL", "http://localhost:8083")
+# Kafnus Connect default endpoint
+KAFNUS_TESTS_KAFNUS_CONNECT_URL = os.getenv("KAFNUS_TESTS_KAFNUS_CONNECT_URL", "http://localhost:8083")
 
 # Default connector name for health-check
 KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME = os.getenv("KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME", "mosquitto-source-connector")

@@ -25,9 +25,9 @@
 import json
 from app.types_utils import infer_field_type, format_timestamp
 
-def to_kafka_connect_schema(entity: dict, schema_overrides: dict = None):
+def to_kafnus_connect_schema(entity: dict, schema_overrides: dict = None):
     """
-    Builds a Kafka Connect compatible schema and payload dict from the entity dict.
+    Builds a Kafnus Connect compatible schema and payload dict from the entity dict.
     Allows overriding field schemas (used mainly for geo attributes).
     """
     schema_fields = []
@@ -74,7 +74,7 @@ def to_kafka_connect_schema(entity: dict, schema_overrides: dict = None):
 def build_kafka_key(entity: dict, key_fields: list, include_timeinstant=False):
     """
     Builds the Kafka message key with schema based on key_fields and optionally timeinstant.
-    This key is used for Kafka Connect upsert mode or primary key definition.
+    This key is used for Kafnus Connect upsert mode or primary key definition.
     """
     fields = []
     payload = {}

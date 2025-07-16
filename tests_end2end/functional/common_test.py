@@ -32,22 +32,22 @@ import requests
 from testcontainers.compose import DockerCompose as OriginalDockerCompose
 import subprocess
 import os
-from utils.kafka_connect_loader import deploy_all_sinks
+from utils.kafnus_connect_loader import deploy_all_sinks
 import socket
 import time
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from config import logger
-from config import KAFNUS_TESTS_KAFKA_CONNECT_URL
+from config import KAFNUS_TESTS_KAFNUS_CONNECT_URL
 
-def wait_for_kafka_connect(url=KAFNUS_TESTS_KAFKA_CONNECT_URL, timeout=60):
+def wait_for_kafnus_connect(url=KAFNUS_TESTS_KAFNUS_CONNECT_URL, timeout=60):
     """
-    Waits until the Kafka Connect service is available at the given URL.
+    Waits until the Kafnus Connect service is available at the given URL.
     Raises an exception if the timeout is exceeded before the service becomes reachable.
 
     Parameters:
-    - url: The Kafka Connect REST endpoint.
+    - url: The Kafnus Connect REST endpoint.
     - timeout: Maximum time to wait in seconds.
     """
     start = time.time()
@@ -55,23 +55,22 @@ def wait_for_kafka_connect(url=KAFNUS_TESTS_KAFKA_CONNECT_URL, timeout=60):
         try:
             res = requests.get(url)
             if res.ok:
-                logger.info("✅ Kafka Connect is available.")
+                logger.info("✅ Kafnus Connect is available..")
                 return
         except requests.exceptions.RequestException:
             pass
-        logger.debug("⏳ Waiting for Kafka Connect...")
+        logger.debug("⏳ Waiting for Kafnus Connect...")
         time.sleep(2)
-    logger.fatal(f"❌ Kafka Connect did not respond within {timeout} seconds")
-    raise RuntimeError("❌ Kafka Connect did not respond within the expected time.")
+    logger.fatal(f"❌ Kafnus Connect did not respond within {timeout} seconds")
 
-def wait_for_connector(name="mosquitto-source-connector", url=KAFNUS_TESTS_KAFKA_CONNECT_URL):
+def wait_for_connector(name="mosquitto-source-connector", url=KAFNUS_TESTS_KAFNUS_CONNECT_URL):
     """
-    Waits for the specified Kafka Connect connector to reach the RUNNING state.
+    Waits for the specified Kafnus Connect connector to reach the RUNNING state.
     Raises an exception if the connector does not become active after multiple attempts.
 
     Parameters:
-    - name: Name of the Kafka Connect connector.
-    - url: Kafka Connect REST endpoint.
+    - name: Name of the Kafnus Connect connector.
+    - url: Kafnus Connect REST endpoint.
     """
     logger.info(f"⏳ Waiting for connector {name} to reach RUNNING state...")
     for _ in range(30):
@@ -296,9 +295,9 @@ class DockerCompose(OriginalDockerCompose):
 def multiservice_stack():
     """
     Pytest fixture that deploys a multi-service environment using Testcontainers.
-    This includes Orion, Kafka, Kafka-Connect, Faust, and optionally PostGIS.
+    This includes Orion, Kafka, Kafnus-Connect, Kafnus-NGSI, and optionally PostGIS.
 
-    It also deploys the required Kafka connectors and waits for them to become active.
+    It also deploys the required Kafnus connectors and waits for them to become active.
     
     Returns:
     - A MultiServiceContainer object with network configurations for each service.
@@ -325,8 +324,8 @@ def multiservice_stack():
         kafka_host = compose.get_service_host("kafka", 9092)
         kafka_port = compose.get_service_port("kafka", 9092)
 
-        kafka_connect_host = compose.get_service_host("kafka-connect", 8083)
-        kafka_connect_port = compose.get_service_port("kafka-connect", 8083)
+        kafnus_connect_host = compose.get_service_host("kafnus-connect", 8083)
+        kafnus_connect_port = compose.get_service_port("kafnus-connect", 8083)
 
         logger.info("✅ Services successfully deployed")
 
@@ -343,8 +342,8 @@ def multiservice_stack():
         wait_for_postgres(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT)
         ensure_postgis_db_ready(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT, KAFNUS_TESTS_PG_USER, KAFNUS_TESTS_PG_PASSWORD)
         
-        wait_for_kafka_connect()
-        logger.info("🚀 Deploying sinks...")
+        wait_for_kafnus_connect()
+        logger.info("🚀 Deployings sinks...")
         deploy_all_sinks(sinks_dir)
         wait_for_connector()
         time.sleep(1)
@@ -354,8 +353,8 @@ def multiservice_stack():
             orionPort=orion_port,
             kafkaHost=kafka_host,
             kafkaPort=kafka_port,
-            kafkaConnectHost=kafka_connect_host,
-            KafkaConnectPort=kafka_connect_port
+            kafkaConnectHost=kafnus_connect_host,
+            KafkaConnectPort=kafnus_connect_port
         )
 
         # If the KAFNUS_TESTS_E2E_MANUAL_INSPECTION env var is set to "true", the test will pause

@@ -27,20 +27,20 @@ import requests
 from pathlib import Path
 
 from config import logger
-from config import KAFNUS_TESTS_KAFKA_CONNECT_URL
+from config import KAFNUS_TESTS_KAFNUS_CONNECT_URL
 
-def deploy_all_sinks(sinks_dir: Path, kafka_connect_url: str = KAFNUS_TESTS_KAFKA_CONNECT_URL):
+def deploy_all_sinks(sinks_dir: Path, kafnus_connect_url: str = KAFNUS_TESTS_KAFNUS_CONNECT_URL):
     """
-    Deploys all Kafka Connect sink connectors defined as JSON files in the given directory.
+    Deploys all Kafnus Connect sink connectors defined as JSON files in the given directory.
 
     For each JSON file:
     - Loads the configuration.
     - Extracts the connector name.
-    - Sends a POST request to Kafka Connect to deploy the connector.
+    - Sends a POST request to Kafnus Connect to deploy the connector.
 
     Parameters:
     - sinks_dir: Path to the directory containing JSON sink connector definitions.
-    - kafka_connect_url: URL to the Kafka Connect REST API (defaults to KAFNUS_TESTS_KAFKA_CONNECT_URL).
+    - kafnus_connect_url: URL to the Kafnus Connect REST API (defaults to KAFNUS_TESTS_KAFNUS_CONNECT_URL).
     """
     logger.info(f"📤 Deploying all sinks from directory: {sinks_dir}")
 
@@ -56,7 +56,7 @@ def deploy_all_sinks(sinks_dir: Path, kafka_connect_url: str = KAFNUS_TESTS_KAFK
 
         try:
             res = requests.post(
-                f"{kafka_connect_url}/connectors",
+                f"{kafnus_connect_url}/connectors",
                 headers={"Content-Type": "application/json"},
                 json=config
             )
@@ -65,4 +65,4 @@ def deploy_all_sinks(sinks_dir: Path, kafka_connect_url: str = KAFNUS_TESTS_KAFK
             else:
                 logger.error(f"❌ Error deploying {name} : {res.status_code}, {res.text}")
         except Exception as e:
-            logger.error(f"❌ Connection error with Kafka Connect for {name}: {e}")
+            logger.error(f"❌ Connection error with Kafnus Connect for {name}: {e}")
