@@ -138,9 +138,10 @@ KAFNUS_TESTS_LOG_LEVEL=DEBUG
 Logs are printed to standard output in the following format:
 
 ```
-2025-07-14 14:10:37,210 | DEBUG | 📦 Rows found in test.simple_sensor: 1  
-2025-07-14 14:10:37,743 | DEBUG | ✅ Validation successful: all expected data found in test.simple_sensor  
-2025-07-14 14:10:37,744 | INFO  | ✅ Scenario '000A_simple' passed successfully.  
+time=2025-07-16 14:26:55,580 | lvl=DEBUG | comp=KAFNUS-TESTS | op=kafnus-tests:postgis_validator.py[50]:_query_table | msg=📦 Rows found in test.simple_sensor_mutable: 1
+time=2025-07-16 14:26:55,581 | lvl=DEBUG | comp=KAFNUS-TESTS | op=kafnus-tests:postgis_validator.py[67]:validate | msg=✅ Validation successful: all expected data found in test.simple_sensor_mutable
+time=2025-07-16 14:26:55,581 | lvl=DEBUG | comp=KAFNUS-TESTS | op=kafnus-tests:test_pipeline.py[115]:test_e2e_pipeline | msg=✅ Table test.simple_sensor_mutable validated successfully
+time=2025-07-16 14:26:55,581 | lvl=INFO | comp=KAFNUS-TESTS | op=kafnus-tests:test_pipeline.py[118]:test_e2e_pipeline | msg=✅ Scenario 000A_simple passed successfully.
 ```
 
 If no log level is defined, the default is `INFO`.

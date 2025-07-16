@@ -79,7 +79,7 @@ class PostgisValidator:
         """
         for expected in expected_rows:
             if not any(self._row_matches(expected, actual) for actual in actual_rows):
-                #logger.debug(f"🚫 Expected row not found: {expected}")
+                logger.debug(f"🚫 Expected row not found: {expected}")
                 return False
         return True
 
@@ -88,9 +88,7 @@ class PostgisValidator:
             actual_value = actual.get(key)
             if isinstance(expected_value, float) and isinstance(actual_value, float):
                 if abs(expected_value - actual_value) > 0.001:
-                    #logger.debug(f"⚠️ Float mismatch {key}: expected={expected_value}.3f, actual={actual_value}.3f")
                     return False
             elif expected_value != actual_value:
-                #logger.debug(f"❗ Mismatch {key}: expected={expected_value}, actual={actual_value}")
                 return False
         return True
