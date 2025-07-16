@@ -16,6 +16,7 @@ jobs:
       KAFNUS_TESTS_USE_EXTERNAL_POSTGIS: "false"
       KAFNUS_TESTS_E2E_MANUAL_INSPECTION: "false"
       DBPATH_POSTGIS: /data/postgis
+      KAFNUS_TESTS_POSTGIS_IMAGE: postgis/postgis:15-3.3
 
     steps:
       - name: Checkout code
