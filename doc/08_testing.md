@@ -8,7 +8,7 @@ This document explains how functional end-to-end tests are designed and executed
 
 Validate the full data processing pipeline, from **Context Broker notification** ingestion to **PostGIS persistence**, by:
 
-- Automatically deploying services (Orion, Kafka, Kafka-Connect, Faust, PostGIS).
+- Automatically deploying services (Orion, Kafka, Kafnus-Connect, Kafnus-NGSI, PostGIS).
 - Sending notifications as test input.
 - Verifying final DB state against expected outputs.
 
@@ -22,7 +22,7 @@ Tests are located in:
   - `cases/`: Each test scenario has its own directory
   - `test_pipeline.py`:
   - `common_test.py`: Core functionalities (raise containers, subs to CB...)
-  - `config.py`: database configuration, kafka-connect endpoint...
+  - `config.py`: database configuration, kafnus-connect endpoint...
   - `utils/`: Scenario loader, DB validator, SQL runner, Kafka loader
 
 ```plaintext
@@ -70,8 +70,8 @@ All necessary services are deployed dynamically via Docker using the `docker-com
 
 - Orion Context Broker
 - Kafka
-- Kafka Connect
-- Faust
+- Kafnus Connect
+- Kafnus NGSI
 - PostGIS (optional, see below)
 
 You don’t need to manually start any service.

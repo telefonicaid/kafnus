@@ -29,11 +29,11 @@ scrape_configs:
   - job_name: 'kafka'
     static_configs:
       - targets: ['kafka-exporter:9308']
-  - job_name: 'faust'
+  - job_name: 'kafnus-ngsi'
     static_configs:
-      - targets: ['faust-stream:8000']
-  - job_name: 'kafka-connect'
+      - targets: ['kafnus-ngsi:8000']
+  - job_name: 'kafnus-connect'
     static_configs:
-      - targets: ['kafka-connect:9100']
+      - targets: ['kafnus-connect:9100']
 
 

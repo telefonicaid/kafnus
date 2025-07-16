@@ -15,11 +15,11 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
   Temporarily receives notifications from the Context Broker.
 
 ### 🧠 Processing Layer
-- **Faust Stream Processor**  
-  A Python-based service that enriches and transforms raw notifications into structured messages. Each flow (e.g., `historic`, `lastdata`, `mutable`) is managed by a dedicated Faust agent.
+- **Kafnus NGSI Stream Processor**  
+  A Python-based service that enriches and transforms raw notifications into structured messages. Each flow (e.g., `historic`, `lastdata`, `mutable`) is managed by a dedicated Kafnus NGSI agent.
 
 ### 💾 Persistence Layer
-- **Kafka Connect (JDBC + MongoDB)**  
+- **Kafnus Connect (JDBC + MongoDB)**  
   - Custom SMT and patched JDBC connector to handle PostGIS geometries.
   - MongoDB connector for storing JSON documents.
 
@@ -29,9 +29,9 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 1. **CB → MQTT (Mosquitto)**  
 2. **MQTT → Kafka (custom MQTT connector)**  
-3. **Kafka raw topics → Faust agents**  
-4. **Faust → Kafka processed topics**  
-5. **Kafka → Kafka Connect → PostGIS / MongoDB**
+3. **Kafka raw topics → Kafnus NGSI agents**  
+4. **Kafnus NGSI → Kafka processed topics**  
+5. **Kafka → Kafnus Connect → PostGIS / MongoDB**
 
 ![Simplified Temporal Schema with Mosquitto](/doc/SimplifiedTemporalSchema.png)
 
@@ -39,7 +39,7 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 ## 📊 Observability
 
-- **Prometheus** scrapes metrics from Faust and Kafka Connect.
+- **Prometheus** scrapes metrics from Kafnus NGSI and Kafnus Connect.
 - **Grafana** dashboards visualize processing throughput, lag, task states, etc.
 - **Kafka Exporter** and **JMX Exporter** enhance Kafka and JVM observability.
 
@@ -66,12 +66,12 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 ## 📂 Source Structure (simplified)
 
-- `kafka-ngsi-stream/`: Faust logic and tests  
+- `kafnus-ngsi/`: Kafnus NGSI logic and tests  
 - `docker/`: docker-compose files and scripts  
 - `monitoring/`: Prometheus + Grafana setup  
 - `tests_end2end/`: E2E test cases and framework  
 - `sinks/`: Example connectors used for tests  
-- `kafka-connect-custom/`: Builds image with needed plugins  
+- `kafnus-connect/`: Builds image with needed plugins  
   - `src/mqtt-kafka-connect/`: Source code for temporal mqtt connector  
   - `src/header-router/`: Custom Single Message Transform (SMT) implementation  
   - `src/own-jdbc-connector/`: Contains patch needed for building own JDBC custom connector  
