@@ -23,7 +23,7 @@
 # criminal actions it may exercise to protect its rights.
 
 import json
-from app.kafka_utils import to_kafka_connect_schema, build_kafka_key
+from app.kafka_utils import to_kafnus_connect_schema, build_kafka_key
 from app.types_utils import sanitize_topic, to_wkb_struct_from_wkt, to_wkt_geometry
 import logging
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ def build_target_table(datamodel, service, servicepath, entityid, entitytype, su
 
 async def handle_entity(app, raw_value, datamodel="dm-by-entity-type-database", suffix="", include_timeinstant=True, key_fields=None):
     """
-    Consumes raw NGSI notifications, processes and transforms them into Kafka Connect format.
+    Consumes raw NGSI notifications, processes and transforms them into Kafnus Connect format.
     key_fields allows configuring which fields to use as primary key for upsert.
     """
     event = json.loads(raw_value)
@@ -98,7 +98,7 @@ async def handle_entity(app, raw_value, datamodel="dm-by-entity-type-database", 
     if key_fields is None:
         key_fields = ["entityid"]
 
-    kafka_message = to_kafka_connect_schema(entity, schema_overrides)
+    kafka_message = to_kafnus_connect_schema(entity, schema_overrides)
     kafka_key = build_kafka_key(entity, key_fields=key_fields, include_timeinstant=include_timeinstant)
 
     await output_topic.send(
@@ -112,7 +112,7 @@ async def handle_entity(app, raw_value, datamodel="dm-by-entity-type-database", 
 
 async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity-type-database", suffix="", include_timeinstant=True, key_fields=None):
     """
-    Consumes NGSI notifications coming via FIWARE Context Broker, processes and transforms them into Kafka Connect format.
+    Consumes NGSI notifications coming via FIWARE Context Broker, processes and transforms them into Kafnus Connect format.
     Assumes raw_value is a JSON string with a payload field containing another JSON string with 'data' array.
     """
     event = json.loads(raw_value)
@@ -190,7 +190,7 @@ async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity
         if key_fields is None:
             key_fields = ["entityid"]
 
-        kafka_message = to_kafka_connect_schema(entity, schema_overrides)
+        kafka_message = to_kafnus_connect_schema(entity, schema_overrides)
         kafka_key = build_kafka_key(entity, key_fields=key_fields, include_timeinstant=include_timeinstant)
 
         await output_topic.send(

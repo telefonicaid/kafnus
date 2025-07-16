@@ -49,12 +49,12 @@ services:
     networks:
       - kafka-postgis-net
       
-  faust-stream:
-    container_name: faust-stream
+  kafnus-ngsi:
+    container_name: kafnus-ngsi
     build:
-      context: ../kafka-ngsi-stream
+      context: ../kafnus-ngsi
       dockerfile: Dockerfile
-    image: faust-stream
+    image: kafnus-ngsi
     depends_on:
       kafka:
         condition: service_healthy

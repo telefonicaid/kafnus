@@ -1,13 +1,13 @@
-# 🔄 Kafka Connect Configuration and Plugins
+# 🔄 Kafnus Connect Configuration and Plugins
 
-This document explains how Kafka Connect is configured to persist NGSI notifications processed by Faust to different data sinks (PostGIS and MongoDB).
+This document explains how Kafnus Connect is configured to persist NGSI notifications processed by Kafnus NGSI to different data sinks (PostGIS and MongoDB).
 
 ---
 
 
 ## ⚙️ Environment Setup
 
-This project uses Docker Compose to orchestrate the multi-service environment, including Kafka Connect and other components.
+This project uses Docker Compose to orchestrate the multi-service environment, including Kafnus Connect and other components.
 
 **Important:**  
 In tests, we override the default `docker-compose` CLI used by some tools and libraries to instead use the latest Docker Compose V2 syntax (`docker compose`). This ensures compatibility with the newest Docker CLI features and avoids issues related to the deprecated `docker-compose` command.
@@ -18,16 +18,16 @@ The custom Python fixture leverages this by substituting commands so that all co
 
 ---
 
-## 🧩 Kafka Connect Plugins
+## 🧩 Kafnus Connect Plugins
 
-Kafka Connect plugins are automatically built into the Docker image.
+Kafnus Connect plugins are automatically built into the Docker image.
 
-You can inspect them at runtime under the `kafka-connect-custom/plugins/` directory.  
-This directory is **populated automatically** during the Docker build using the logic defined in the [Dockerfile](/kafka-connect-custom/Dockerfile).
+You can inspect them at runtime under the `kafnus-connect/plugins/` directory.  
+This directory is **populated automatically** during the Docker build using the logic defined in the [Dockerfile](/kafnus-connect/Dockerfile).
 
 ### 1. JDBC Plugin for PostGIS
 
-Path: `kafka-connect-custom/plugins/kafka-connect-jdbc/`
+Path: `kafnus-connect/plugins/kafka-connect-jdbc/`
 
 Includes:
 
@@ -42,7 +42,7 @@ Used in:
 
 ### 2. MongoDB Sink Plugin
 
-Path: `kafka-connect-custom/plugins/mongodb/`
+Path: `kafnus-connect/plugins/mongodb/`
 
 Includes:
 
@@ -53,9 +53,9 @@ Includes:
 
 ### 3. Custom SMT – HeaderRouter
 
-Path: `kafka-connect-custom/plugins/header-router`
+Path: `kafnus-connect/plugins/header-router`
 
-A Java-based Single Message Transform (SMT) implemented in `HeaderRouter.java`. It rewrites the topic name based on a Kafka record header (e.g. `target_table`) set by Faust.
+A Java-based Single Message Transform (SMT) implemented in `HeaderRouter.java`. It rewrites the topic name based on a Kafka record header (e.g. `target_table`) set by Kafnus NGSI.
 
 #### SMT Configuration Example
 
@@ -67,7 +67,7 @@ A Java-based Single Message Transform (SMT) implemented in `HeaderRouter.java`. 
 
 ### 4. MQTT Source Plugin
 
-**Path:** `kafka-connect-custom/plugins/mqtt-kafka-connect/`
+**Path:** `kafnus-connect/plugins/mqtt-kafka-connect/`
 
 This connector enables receiving data from an MQTT broker (Mosquitto) and publishing it to Kafka. It has been added **temporarily** to serve as a bridge so that the **Context Broker (CB)** can continue sending notifications via MQTT until native Kafka support is implemented in the CB.
 
@@ -82,7 +82,7 @@ Once the CB is updated to support Kafka natively, this connector will be **remov
 
 ## 🗂️ Sink Configurations
 
-The sink connectors are defined under the `sinks/` directory and are responsible for persisting data processed by Kafka (and Faust) to destination databases.
+The sink connectors are defined under the `sinks/` directory and are responsible for persisting data processed by Kafka (and Kafnus NGSI) to destination databases.
 
 ### Configuration files:
 
@@ -172,7 +172,7 @@ curl -s http://localhost:8083/connectors/your-connector/status | jq
 ]
 ```
 
-> 🔍 If a connector is missing, check the Kafka Connect logs (`docker logs kafka-connect`) to identify possible errors in loading or configuration.
+> 🔍 If a connector is missing, check the Kafnus Connect logs (`docker logs kafnus-connect`) to identify possible errors in loading or configuration.
 
 ---
 
@@ -191,6 +191,6 @@ To confirm persistence, check tables in PostGIS or MongoDB after running the cor
 
 ## Navegación
 
-- [⬅️ Previous: Faust](/doc/05_faust.md)
+- [⬅️ Previous: Kafnus NGSI](/doc/05_kafnus_ngsi.md)
 - [🏠 Main index](../README.md#documentation)
 - [➡️ Next: Monitoring](/doc/07_monitoring.md)

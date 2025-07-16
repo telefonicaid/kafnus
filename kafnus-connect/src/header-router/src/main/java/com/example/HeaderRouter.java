@@ -38,7 +38,7 @@
  * - Dynamically rewrite the record’s topic name using a configured prefix (usually the client name) and
  *   the table name from the header, allowing the sink connector to route records to the correct table.
  *
- * For example, if the Kafka Connect sink is configured with:
+ * For example, if the Kafnus Connect sink is configured with:
  * - `"table.name.format": "test.${topic}"` (where `test` is the client name)
  * - Header: `target_table = users`
  *

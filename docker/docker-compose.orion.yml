@@ -61,7 +61,7 @@ services:
       - "1883:1883"
       - "9001:9001"
     volumes:
-      - ../kafka-connect-custom/src/mqtt-kafka-connect/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ../kafnus-connect/src/mqtt-kafka-connect/mosquitto.conf:/mosquitto/config/mosquitto.conf
     restart: unless-stopped
     environment:
       - ALLOW_ANONYMOUS=true

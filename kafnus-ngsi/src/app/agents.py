@@ -40,7 +40,7 @@ DATAMODEL = "dm-by-entity-type-database"
 async def process_historic(stream):
     """
     Consumes raw NGSI notifications from the 'raw_historic' topic and processes them as historic records.
-    Each message is transformed to Kafka Connect format and forwarded to the corresponding output topic.
+    Each message is transformed to Kafnus Connect format and forwarded to the corresponding output topic.
     Primary key includes entity ID and TimeInstant for proper versioning of historical data.
     """
     async for event in stream.events():
@@ -183,7 +183,7 @@ async def process_mutable(stream):
 @app.agent(raw_errors_topic)
 async def process_errors(stream):
     """
-    Processes Kafka Connect error messages from the 'raw_errors' topic.
+    Processes Kafnus Connect error messages from the 'raw_errors' topic.
     Parses failed inserts or connector issues, extracts the relevant SQL error message and context,
     and emits a structured error log message to a per-tenant error topic (e.g., 'clientname_error_log').
     """
