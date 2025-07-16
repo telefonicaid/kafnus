@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - main
- 
+
 jobs:
   e2e-tests:
     runs-on: ubuntu-24.04
@@ -15,16 +15,17 @@ jobs:
     env:
       KAFNUS_TESTS_USE_EXTERNAL_POSTGIS: "false"
       KAFNUS_TESTS_E2E_MANUAL_INSPECTION: "false"
- 
+      DBPATH_POSTGIS: /data/postgis
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
- 
+
       - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
- 
+
       - name: Cache Python dependencies
         uses: actions/cache@v3
         with:
@@ -32,7 +33,7 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('tests_end2end/functional/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
- 
+
       - name: Install dependencies
         working-directory: tests_end2end/functional
         run: |
@@ -51,12 +52,15 @@ jobs:
         run: |
           sudo mkdir -p /data/postgis
           sudo chown -R 999:999 /data/postgis
-          export DBPATH_POSTGIS=/data/postgis
- 
+
       - name: Run end-to-end tests with pytest
         working-directory: tests_end2end/functional
         run: |
           source .venv/bin/activate
           pytest -s test_pipeline.py
- 
- 
+
+      - name: Print Docker Compose logs on failure
+        if: failure()
+        run: |
+          docker ps -a
+          docker-compose -f docker/docker-compose.kafka.yml -f docker/docker-compose.orion.yml -f docker/docker-compose.faust.yml -f docker/docker-compose.postgis.yml logs
