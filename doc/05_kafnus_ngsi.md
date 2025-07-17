@@ -39,6 +39,26 @@ From `/kafnus-ngsi` directory:
 docker build --no-cache -t kafnus-ngsi .
 ```
 
+### **Logging**
+
+The Faust processor uses structured logging to track processing flow, entity transformations, and message routing.
+
+**Supported log levels:**
+
+- `DEBUG`: Detailed internals (entity parsing, Kafka key/schema generation).
+- `INFO`: Normal operation (successful sends to topics, startup lifecycle).
+- `WARN`: Recoverable issues (e.g., invalid geo formats).
+- `ERROR`: Parsing failures or bad input payloads.
+
+ℹ️ The environment variable `KAFNUS_NGSI_LOG_LEVEL` controls the verbosity, set the variable in [`/docker/docker-compose.faust.yml`](/docker/docker-compose.faust.yml).  
+Defaults to `INFO` if not set.
+
+Example log output:
+
+```
+time=2025-07-15 10:04:31,786 | lvl=INFO | comp=KAFNUS-NGSI | op=app.agents.process:entity_handler.py[219]:handle_entity_cb | msg=✅ [mutable] Sent to topic 'test_mutable' (table: 'lighting_streetlight_mutable'): ENT-LUM-001
+```
+
 ---
 
 ## 📥 Topics Consumed

@@ -26,6 +26,7 @@ import json
 import requests
 from pathlib import Path
 
+from config import logger
 from config import KAFNUS_TESTS_KAFNUS_CONNECT_URL
 
 def deploy_all_sinks(sinks_dir: Path, kafnus_connect_url: str = KAFNUS_TESTS_KAFNUS_CONNECT_URL):
@@ -41,13 +42,18 @@ def deploy_all_sinks(sinks_dir: Path, kafnus_connect_url: str = KAFNUS_TESTS_KAF
     - sinks_dir: Path to the directory containing JSON sink connector definitions.
     - kafnus_connect_url: URL to the Kafnus Connect REST API (defaults to KAFNUS_TESTS_KAFNUS_CONNECT_URL).
     """
+    logger.info(f"📤 Deploying all sinks from directory: {sinks_dir}")
+
     for file in sinks_dir.glob("*.json"):
+        logger.debug(f"🔍 Reading file: {file}")
         with file.open("r", encoding="utf-8") as f:
             config = json.load(f)
         name = config.get("name")
+
         if not name:
-            print(f"⚠️  File {file} does not have 'name', skipping.")
+            logger.warning(f"⚠️ File {file.name} does not have 'name', skipping.")
             continue
+
         try:
             res = requests.post(
                 f"{kafnus_connect_url}/connectors",
@@ -55,8 +61,8 @@ def deploy_all_sinks(sinks_dir: Path, kafnus_connect_url: str = KAFNUS_TESTS_KAF
                 json=config
             )
             if res.status_code in [200, 201, 409]:
-                print(f"✅ Sink {name} deployed.")
+                logger.info(f"✅ Sink {name} deployed (status: {res.status_code})")
             else:
-                print(f"❌ Error deploying {name}: {res.status_code}, {res.text}")
+                logger.error(f"❌ Error deploying {name} : {res.status_code}, {res.text}")
         except Exception as e:
-            print(f"❌ Connection error with Kafnus Connect: {e}")
+            logger.error(f"❌ Connection error with Kafnus Connect for {name}: {e}")

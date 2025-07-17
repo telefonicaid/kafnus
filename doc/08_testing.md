@@ -117,6 +117,35 @@ You can filter scenarios using `-k` and their directory names or tags.
 
 > ⚠️ Remember that a warning will be displayed if the images have not been built.
 
+## 🐞 Debugging & Logging
+
+The test suite uses **structured logging** with the following severity levels:
+
+- `DEBUG`: Detailed internal flow (DB polling, Kafka setup, validation attempts).
+- `INFO`: General scenario progress and operational status.
+- `WARN`: Unexpected but recoverable situations (e.g., connector not ready yet).
+- `ERROR`: Failures that don’t stop the test runner.
+- `FATAL`: Critical errors that require immediate termination.
+
+> ℹ️ Note: Log level names in `.env` follow platform conventions (`WARN`, `FATAL`), but are internally mapped to standard Python logging levels.
+
+To enable `DEBUG` logs, set this in your `.env` file:
+
+```
+KAFNUS_TESTS_LOG_LEVEL=DEBUG
+```
+
+Logs are printed to standard output in the following format:
+
+```
+time=2025-07-16 14:26:55,580 | lvl=DEBUG | comp=KAFNUS-TESTS | op=kafnus-tests:postgis_validator.py[50]:_query_table | msg=📦 Rows found in test.simple_sensor_mutable: 1
+time=2025-07-16 14:26:55,581 | lvl=DEBUG | comp=KAFNUS-TESTS | op=kafnus-tests:postgis_validator.py[67]:validate | msg=✅ Validation successful: all expected data found in test.simple_sensor_mutable
+time=2025-07-16 14:26:55,581 | lvl=DEBUG | comp=KAFNUS-TESTS | op=kafnus-tests:test_pipeline.py[115]:test_e2e_pipeline | msg=✅ Table test.simple_sensor_mutable validated successfully
+time=2025-07-16 14:26:55,581 | lvl=INFO | comp=KAFNUS-TESTS | op=kafnus-tests:test_pipeline.py[118]:test_e2e_pipeline | msg=✅ Scenario 000A_simple passed successfully.
+```
+
+If no log level is defined, the default is `INFO`.
+
 ## ▶️ Optional Manual Inspection Pause
 
 For manual inspection before test containers shut down, enable the `KAFNUS_TESTS_E2E_MANUAL_INSPECTION` flag in your `.env` file:

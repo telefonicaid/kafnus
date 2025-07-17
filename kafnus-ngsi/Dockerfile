@@ -37,4 +37,4 @@ COPY /src/requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # Command that starts the process
-CMD ["faust", "-A", "stream_processor", "worker", "-l", "info"]
+CMD ["faust", "-A", "stream_processor", "worker"]

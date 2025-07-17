@@ -23,13 +23,15 @@
 # criminal actions it may exercise to protect its rights.
 
 import faust
-from app.config import KAFKA_BROKER
+from app.config import KAFNUS_NGSI_KAFKA_BROKER
+from app.config import get_logging_config
 
 app = faust.App(
     'ngsi-processor',
-    broker=KAFKA_BROKER,
+    broker=KAFNUS_NGSI_KAFKA_BROKER,
     value_serializer='raw',
-    topic_allow_declare=True
+    topic_allow_declare=True,
+    logging_config=get_logging_config()
 )
 
 # Input Topics for faust (created by service create-topics)

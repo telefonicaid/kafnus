@@ -38,6 +38,7 @@ import time
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+from config import logger
 from config import KAFNUS_TESTS_KAFNUS_CONNECT_URL
 
 def wait_for_kafnus_connect(url=KAFNUS_TESTS_KAFNUS_CONNECT_URL, timeout=60):
@@ -54,13 +55,13 @@ def wait_for_kafnus_connect(url=KAFNUS_TESTS_KAFNUS_CONNECT_URL, timeout=60):
         try:
             res = requests.get(url)
             if res.ok:
-                print("✅ Kafnus Connect is available.")
+                logger.info("✅ Kafnus Connect is available..")
                 return
         except requests.exceptions.RequestException:
             pass
-        print("⏳ Waiting for Kafnus Connect...")
+        logger.debug("⏳ Waiting for Kafnus Connect...")
         time.sleep(2)
-    raise RuntimeError("❌ Kafnus Connect did not respond within the expected time.")
+    logger.fatal(f"❌ Kafnus Connect did not respond within {timeout} seconds")
 
 def wait_for_connector(name="mosquitto-source-connector", url=KAFNUS_TESTS_KAFNUS_CONNECT_URL):
     """
@@ -71,16 +72,17 @@ def wait_for_connector(name="mosquitto-source-connector", url=KAFNUS_TESTS_KAFNU
     - name: Name of the Kafnus Connect connector.
     - url: Kafnus Connect REST endpoint.
     """
-    print(f"⏳ Waiting for connector {name} to be RUNNING...")
+    logger.info(f"⏳ Waiting for connector {name} to reach RUNNING state...")
     for _ in range(30):
         try:
             r = requests.get(f"{url}/connectors/{name}/status")
             if r.status_code == 200 and r.json().get("connector", {}).get("state") == "RUNNING":
-                print(f"✅ Conector {name} is in RUNNING state.")
+                logger.info(f"✅ Connector {name} is RUNNING")
                 return
         except Exception as e:
-            print(f"Error querying connector status: {e}")
+            logger.warning(f"⚠️ Error querying connector status: {str(e)}")
         time.sleep(2)
+    logger.fatal(f"❌ Connector {name} did not reach RUNNING state")
     raise RuntimeError(f"❌ Connector {name} did not reach RUNNING state")
 
 def wait_for_postgres(host, port, timeout=60):
@@ -97,11 +99,12 @@ def wait_for_postgres(host, port, timeout=60):
     while time.time() - start < timeout:
         try:
             with socket.create_connection((host, port), timeout=2):
-                print("✅ Postgres is up!")
+                logger.info(f"✅ Postgres is up at: {host}:{port}")
                 return
         except OSError:
-            print("⏳ Waiting for Postgres to be ready...")
+            logger.debug(f"⏳ Waiting for Postgres to be ready at: {host}:{port}...")
             time.sleep(2)
+    logger.fatal("❌ Postgres did not become available in time")
     raise RuntimeError("Postgres did not become available in time")
 
 # ──────────────────────────────
@@ -138,6 +141,8 @@ def ensure_postgis_db_ready(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT, KAFNUS_T
     - KAFNUS_TESTS_PG_PASSWORD (str): PostgreSQL password
     - db_name (str): Name of the database to create/use
     """
+    logger.info(f"🔧 Preparing PostGIS database: {db_name}")
+
     # Connect to default postgres DB to create target DB if it does not exist
     admin_conn = psycopg2.connect(
         dbname='postgres',
@@ -152,10 +157,10 @@ def ensure_postgis_db_ready(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT, KAFNUS_T
     admin_cur.execute(f"SELECT 1 FROM pg_database WHERE datname = '{db_name}';")
     exists = admin_cur.fetchone()
     if not exists:
-        print(f"⚙️ Creating database {db_name}")
+        logger.debug(f"⚙️ Creating database {db_name}")
         admin_cur.execute(f'CREATE DATABASE {db_name};')
     else:
-        print(f"✅ Database {db_name} already exists")
+        logger.debug(f"✅ Database {db_name} already exists")
 
     admin_cur.close()
     admin_conn.close()
@@ -174,10 +179,10 @@ def ensure_postgis_db_ready(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT, KAFNUS_T
     sql_file_path = Path(__file__).parent / "setup_tests.sql"
     with open(sql_file_path, 'r') as f:
         sql_commands = f.read()
-    print("⚙️ Applying PostGIS setup from SQL file")
+    logger.debug("📥 Applying PostGIS setup from SQL file")
     db_cur.execute(sql_commands)
 
-    print("✅ Database setup complete")
+    logger.debug(f"✅ Database setup complete for {db_name}")
     db_cur.close()
     db_conn.close()
 
@@ -322,9 +327,11 @@ def multiservice_stack():
         kafnus_connect_host = compose.get_service_host("kafnus-connect", 8083)
         kafnus_connect_port = compose.get_service_port("kafnus-connect", 8083)
 
+        logger.info("✅ Services successfully deployed")
+
         sinks_dir = Path(__file__).resolve().parent.parent.parent / "sinks"
-        print(f"📂 sinks_dir path: {sinks_dir}")
-        print(f"📁 Files found: {[f.name for f in sinks_dir.glob('*')]}")
+        logger.debug(f"📂 sinks_dir path: {sinks_dir}")
+        logger.debug(f"📁 Files found: {[f.name for f in sinks_dir.glob('*')]}")
 
         # Setup PostgreSQL DB with PostGIS extension
         KAFNUS_TESTS_PG_HOST = os.getenv("KAFNUS_TESTS_PG_HOST", "localhost")
@@ -336,9 +343,8 @@ def multiservice_stack():
         ensure_postgis_db_ready(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT, KAFNUS_TESTS_PG_USER, KAFNUS_TESTS_PG_PASSWORD)
         
         wait_for_kafnus_connect()
-        print("🚀 Deployings sinks...")
+        logger.info("🚀 Deployings sinks...")
         deploy_all_sinks(sinks_dir)
-        print("⏳ Waiting for MQTT subscription...")
         wait_for_connector()
         time.sleep(1)
 
@@ -354,10 +360,10 @@ def multiservice_stack():
         # If the KAFNUS_TESTS_E2E_MANUAL_INSPECTION env var is set to "true", the test will pause
         # before stopping containers, to allow manual inspection.
         if os.getenv("KAFNUS_TESTS_E2E_MANUAL_INSPECTION", "false").lower() == "true":
-            print("🧪 Pausing for manual inspection. Ctrl+C to terminate.")
+            logger.info("🧪 Pausing for manual inspection. Ctrl+C to terminate.")
             time.sleep(3600)
     
-    print("\nServices successfully deployed")
+    logger.info("✅ Tests have finished")
 
 
 # ──────────────────────────────
@@ -429,7 +435,7 @@ class OrionAdapter:
                 data=json.dumps(data),
                 headers=headers_
             )
-            print(f"[Orion update] {response.status_code} {response.content}")
+            logger.debug(f"[Orion update] {response.status_code} {response.content}")
             assert response.status_code in [201, 204]
 
 
