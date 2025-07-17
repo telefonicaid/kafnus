@@ -15,8 +15,9 @@ jobs:
     env:
       KAFNUS_TESTS_USE_EXTERNAL_POSTGIS: "false"
       KAFNUS_TESTS_E2E_MANUAL_INSPECTION: "false"
-      DBPATH_POSTGIS: /data/postgis
-      KAFNUS_TESTS_POSTGIS_IMAGE: postgis/postgis:15-3.3
+      KAFNUS_TESTS_LOG_LEVEL=INFO
+      KAFNUS_DBPATH_POSTGIS: /data/postgis
+      KAFNUS_POSTGIS_IMAGE: postgis/postgis:15-3.3
 
     steps:
       - name: Checkout code
@@ -59,9 +60,3 @@ jobs:
         run: |
           source .venv/bin/activate
           pytest -s test_pipeline.py
-
-      - name: Print Docker Compose logs on failure
-        if: failure()
-        run: |
-          docker ps -a
-          docker-compose -f docker/docker-compose.kafka.yml -f docker/docker-compose.orion.yml -f docker/docker-compose.faust.yml -f docker/docker-compose.postgis.yml logs

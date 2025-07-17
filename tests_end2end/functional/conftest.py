@@ -24,5 +24,15 @@
 
 from common_test import multiservice_stack
 
-from dotenv import load_dotenv
+import os
+from dotenv import load_dotenv, dotenv_values
+
 load_dotenv()
+
+# Load .env, used inside tests
+env = dotenv_values()
+# Load specific .env values outside tests (for dokcer-compose.postgis.yml),
+# only if not already set in the environment
+for var in ["KAFNUS_POSTGIS_IMAGE", "KAFNUS_DBPATH_POSTGIS"]:
+    if var in env and var not in os.environ:
+        os.environ[var] = env[var]

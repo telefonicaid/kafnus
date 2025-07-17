@@ -130,16 +130,16 @@ docker network connect kafka-postgis-net your-postgis-container-name
 
 > Replace `your-postgis-container-name` with the actual container name.
 
-You must also define the `DBPATH_POSTGIS` environment variable, pointing to the host directory where your external PostGIS instance stores data:
+You must also define the `KAFNUS_DBPATH_POSTGIS` environment variable, pointing to the host directory where your external PostGIS instance stores data:
 
 ```bash
-export DBPATH_POSTGIS=/data/postgis
+export KAFNUS_DBPATH_POSTGIS=/data/postgis
 ```
 
 > ⚠️ **IMPORTANT**: Ensure this directory exists and is owned by UID 999 and GID 999 (commonly used by PostGIS). Otherwise, the container may fail to start:
 
 ```bash
-sudo chown -R 999:999 ${DBPATH_POSTGIS}
+sudo chown -R 999:999 ${KAFNUS_DBPATH_POSTGIS}
 ```
 
 
@@ -150,14 +150,24 @@ Uncomment the relevant line in `docker-up.sh` to include the internal PostGIS co
 Also define the same environment variable:
 
 ```bash
-export DBPATH_POSTGIS=/data/postgis
+export KAFNUS_DBPATH_POSTGIS=/data/postgis
 ```
 
 Ensure that the directory exists and is writable by the container (UID/GID 999):
 
 ```bash
-sudo chown -R 999:999 ${DBPATH_POSTGIS}
+sudo chown -R 999:999 ${KAFNUS_DBPATH_POSTGIS}
 ```
+
+> 💡 You can also override the default PostGIS image using the `KAFNUS_POSTGIS_IMAGE` environment variable.
+> 
+> By default, the system uses `postgis/postgis:15-3.3`, a public image suitable for open source development.
+> 
+> If you're working in an internal Telefónica environment and need to use the private `telefonicaiot/iotp-postgis` image, set:
+> 
+> ```bash
+> export KAFNUS_POSTGIS_IMAGE=telefonicaiot/iotp-postgis:12.14-3.3.2-2
+> ```
 
 ---
 
