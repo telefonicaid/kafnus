@@ -24,10 +24,7 @@
 
 import psycopg2
 import time
-import logging
-
-#logging.basicConfig(level=logging.DEBUG)
-
+from config import logger
 
 class PostgisValidator:
     def __init__(self, db_config):
@@ -43,16 +40,14 @@ class PostgisValidator:
         )
 
     def _query_table(self, table):
-        #logging.debug(f"🔍 Executing SELECT * FROM {table}")
+        logger.debug(f"🔍 Executing SELECT * FROM {table}")
         with self._connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(f"SELECT * FROM {table}")
                 rows = cursor.fetchall()
                 colnames = [desc[0] for desc in cursor.description]
-                result = []
-                for row in rows:
-                    result.append(dict(zip(colnames, row)))
-                #logging.debug(f"📦 Rows found in {table}: {len(result)}")
+                result = [dict(zip(colnames, row)) for row in rows]
+                logger.debug(f"📦 Rows found in {table}: {len(result)}")
                 return result
 
     def validate(self, table, expected_rows, timeout=10, poll_interval=0.5):
@@ -62,19 +57,19 @@ class PostgisValidator:
         - `expected_rows`: list of dicts with keys that must match in each row.
         - Repeats until all expected rows appear in the table, or the timeout is reached.
         """
+        logger.info(f"✅ Validating table {table} with timeout={timeout}")
         start = time.time()
+
         while time.time() - start < timeout:
             actual = self._query_table(table)
 
             if self._contains_expected_rows(actual, expected_rows):
-                #logging.info(f"✅ Validation successful: all expected data found in {table}")
+                logger.debug(f"✅ Validation successful: all expected data found in {table}")
                 return True
 
             time.sleep(poll_interval)
 
-        #logging.error(f"❌ Timeout: Expected data not found in {table}")
-        #logging.debug(f"Expected: {expected_rows}")
-        #logging.debug(f"Actual: {actual}")
+        logger.error(f"❌ Timeout: Expected data not found in {table}")
         return False
 
     def _contains_expected_rows(self, actual_rows, expected_rows):
@@ -84,7 +79,7 @@ class PostgisValidator:
         """
         for expected in expected_rows:
             if not any(self._row_matches(expected, actual) for actual in actual_rows):
-                #logging.debug(f"🚫 Expected row not found: {expected}")
+                logger.debug(f"🚫 Expected row not found: {expected}")
                 return False
         return True
 
@@ -93,9 +88,7 @@ class PostgisValidator:
             actual_value = actual.get(key)
             if isinstance(expected_value, float) and isinstance(actual_value, float):
                 if abs(expected_value - actual_value) > 0.001:
-                    #logging.debug(f"⚠️ Float mismatch '{key}': expected={expected_value}, actual={actual_value}")
                     return False
             elif expected_value != actual_value:
-                #logging.debug(f"❗ Mismatch '{key}': espeexpectedrado={expected_value}, actual={actual_value}")
                 return False
         return True

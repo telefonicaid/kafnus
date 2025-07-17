@@ -49,12 +49,12 @@ services:
     networks:
       - kafka-postgis-net
       
-  faust-stream:
-    container_name: faust-stream
+  kafnus-ngsi:
+    container_name: kafnus-ngsi
     build:
-      context: ../kafka-ngsi-stream
+      context: ../kafnus-ngsi
       dockerfile: Dockerfile
-    image: faust-stream
+    image: kafnus-ngsi
     depends_on:
       kafka:
         condition: service_healthy
@@ -62,13 +62,17 @@ services:
         condition: service_completed_successfully
     environment:
       - FAUST_BROKER=kafka://kafka:9092
+      - KAFNUS_NGSI_KAFKA_BROKER=kafka://kafka:9092
+      - KAFNUS_NGSI_METRICS_PORT=8000
+      - KAFNUS_NGSI_DEFAULT_TZ=Europe/Madrid
+      - KAFNUS_NGSI_LOG_LEVEL=INFO
     networks:
       - kafka-postgis-net
     ports:
       - "6066:6066"  # Faust web
       # Monitoring
       - "8000:8000"  # Prometheus
-    command: faust -A stream_processor worker -l info
+    command: sh -c "faust -A stream_processor worker -l ${KAFNUS_NGSI_LOG_LEVEL:-info}"
 
 networks:
   kafka-postgis-net:

@@ -11,16 +11,16 @@ It processes NGSI notifications from the Context Broker (CB) and stores them in 
 - 🧭 **Mosquitto + MQTT Kafka Connector**  
   Temporary entry point for CB notifications (to be removed once CB supports native Kafka output).
 
-- ⚙️ **Faust Stream Processor**  
-  Transforms raw notifications into structured events. Each data flow (historic, lastdata, mutable, etc.) is handled by an independent agent.
+- ⚙️ **Kafnus NGSI**  
+  Using **Faust** library, transforms raw notifications into structured events. Each data flow (historic, lastdata, mutable, etc.) is handled by an independent agent.
 
-- 🔄 **Kafka Connect**  
-  Persists processed messages to:
+- 🔄 **Kafnus Connect**  
+  Custom image of Kafka Connect with plugins integrated. Persists processed messages to:
   - **PostGIS**, via a modified JDBC connector and custom SMT.
   - **MongoDB**, via the official MongoDB connector.
 
 - 📊 **Monitoring**  
-  Integrated with Prometheus and Grafana to expose metrics from Kafka, Connect, and Faust.
+  Integrated with Prometheus and Grafana to expose metrics from Kafka, Kafnus Connect, and Kafnus NGSI.
 
 - 🧪 **End-to-End Testing**  
   Functional tests implemented in Python using Pytest and Testcontainers.
@@ -44,8 +44,8 @@ Complete documentation is available in the [`doc/`](./doc) directory:
 - [`02_architecture.md`](./doc/02_architecture.md) – System architecture
 - [`03_operational_guide.md`](./doc/03_operational_guide.md) – Operational guide
 - [`04_docker.md`](./doc/04_docker.md) – Docker details
-- [`05_faust.md`](./doc/05_faust.md) – Faust stream processor
-- [`06_kafka_connect.md`](./doc/06_kafka_connect.md) – Kafka Connect and sinks details
+- [`05_kafnus_ngsi.md`](./doc/05_kafnus_ngsi.md) – Kafnus NGSI stream processor
+- [`06_kafnus_connect.md`](./doc/06_kafnus_connect.md) – Kafnus Connect and sinks details
 - [`07_monitoring.md`](./doc/07_monitoring.md) – Metrics & observability
 - [`08_testing.md`](./doc/08_testing.md) – Test structure
 

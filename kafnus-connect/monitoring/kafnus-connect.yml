@@ -22,8 +22,24 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-import os
-
-KAFKA_BROKER = os.getenv("KAFKA_BROKER", "kafka://kafka:9092")
-METRICS_PORT = int(os.getenv("METRICS_PORT", "8000"))
-TIMEZONE = os.getenv("DEFAULT_TZ", "Europe/Madrid")
+startDelaySeconds: 0
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+rules:
+  - pattern: 'kafka.connect<type=connector-metrics, connector=(.+)><>status'
+    name: 'kafnus_connect_connector_status'
+    labels:
+      connector: "$1"
+    type: GAUGE
+  - pattern: 'kafka.connect<type=connector-task-metrics, connector=(.+), task=(\d+)><>status'
+    name: 'kafnus_connect_task_status'
+    labels:
+      connector: "$1"
+      task: "$2"
+    type: GAUGE
+  - pattern: 'kafka.connect<type=connector-task-metrics, connector=(.+), task=(\d+)><>put-batch-time-avg'
+    name: 'kafnus_connect_put_batch_time_avg'
+    labels:
+      connector: "$1"
+      task: "$2"
+    type: GAUGE

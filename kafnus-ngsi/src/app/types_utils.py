@@ -30,11 +30,13 @@ from shapely.geometry import shape # https://shapely.readthedocs.io/en/stable/ma
 import base64
 from datetime import datetime, timezone
 
+import logging
+logger = logging.getLogger(__name__)
 
 def to_wkb_struct_from_wkt(wkt_str, field_name, srid=4326):
     """
     Converts a WKT geometry string to a Debezium-compatible WKB struct with schema and base64-encoded payload.
-    Used for sending geo attributes in Kafka Connect format.
+    Used for sending geo attributes in Kafnus Connect format.
     """
     try:
         geom = wkt.loads(wkt_str)
@@ -57,7 +59,7 @@ def to_wkb_struct_from_wkt(wkt_str, field_name, srid=4326):
             }
         }
     except Exception as e:
-        print(f"❌ Error generating WKB from WKT: {e}")
+        logger.error(f"❌ Error generating WKB from WKT: {e}")
         return None
 
 
@@ -82,7 +84,7 @@ def to_wkt_geometry(attr_type, attr_value):
             geom = shape(attr_value)
             return geom.wkt
     except Exception as e:
-        print(f"❌ Error generating WKT ({attr_type}): {e}")
+        logger.error(f"❌ Error generating WKT from type '{attr_type}': {e}")
     return None
 
 
@@ -113,7 +115,7 @@ def sanitize_topic(name):
 
 def infer_field_type(name, value, attr_type=None):
     """
-    Infers Kafka Connect field type from NGSI attrType or Python native type.
+    Infers Kafnus Connect field type from NGSI attrType or Python native type.
     Also transforms the value if needed (e.g. formatting dates, serializing JSON).
     Returns a tuple (field_type, processed_value).
     """
@@ -125,7 +127,7 @@ def infer_field_type(name, value, attr_type=None):
                 dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
                 value = format_timestamp(dt, tz='Europe/Madrid')
             except Exception as e:
-                print(f"⚠️ Error formatting DateTime for '{name}': {e}")
+                logger.warning(f"⚠️ Error formatting DateTime for '{name}': {e}")
             return "string", value
         elif attr_type == "Number":
             return "float", value
@@ -137,7 +139,7 @@ def infer_field_type(name, value, attr_type=None):
             try:
                 return "string", json.dumps(value, ensure_ascii=False)
             except Exception as e:
-                print(f"⚠️ Error serializing {name} as JSON: {e}")
+                logger.warning(f"⚠️ Error serializing '{name}' as JSON: {e}")
                 return "string", str(value)
         elif attr_type == "Text":
             return "string", value
@@ -155,7 +157,7 @@ def infer_field_type(name, value, attr_type=None):
             dt = dt.astimezone(pytz.timezone('Europe/Madrid'))
             value = format_timestamp(dt, tz='Europe/Madrid')
         except Exception as e:
-            print(f"⚠️ Error formatting timeinstant: {e}")
+            logger.warning(f"⚠️ Error formatting timeinstant: {e}")
         return "string", value
     else:
         return "string", value

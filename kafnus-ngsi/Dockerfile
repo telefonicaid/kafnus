@@ -22,41 +22,19 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-import json
-import requests
-from pathlib import Path
+FROM python:3.9-slim
 
-from config import KAFNUS_TESTS_KAFKA_CONNECT_URL
+WORKDIR /app
 
-def deploy_all_sinks(sinks_dir: Path, kafka_connect_url: str = KAFNUS_TESTS_KAFKA_CONNECT_URL):
-    """
-    Deploys all Kafka Connect sink connectors defined as JSON files in the given directory.
+# Install the dependencies required for compilation
+RUN apt-get update && apt-get install -y gcc build-essential
 
-    For each JSON file:
-    - Loads the configuration.
-    - Extracts the connector name.
-    - Sends a POST request to Kafka Connect to deploy the connector.
+# Copy full code
+COPY /src/ /app
+COPY /src/requirements.txt .
 
-    Parameters:
-    - sinks_dir: Path to the directory containing JSON sink connector definitions.
-    - kafka_connect_url: URL to the Kafka Connect REST API (defaults to KAFNUS_TESTS_KAFKA_CONNECT_URL).
-    """
-    for file in sinks_dir.glob("*.json"):
-        with file.open("r", encoding="utf-8") as f:
-            config = json.load(f)
-        name = config.get("name")
-        if not name:
-            print(f"⚠️  File {file} does not have 'name', skipping.")
-            continue
-        try:
-            res = requests.post(
-                f"{kafka_connect_url}/connectors",
-                headers={"Content-Type": "application/json"},
-                json=config
-            )
-            if res.status_code in [200, 201, 409]:
-                print(f"✅ Sink {name} deployed.")
-            else:
-                print(f"❌ Error deploying {name}: {res.status_code}, {res.text}")
-        except Exception as e:
-            print(f"❌ Connection error with Kafka Connect: {e}")
+# Install dependencies
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+# Command that starts the process
+CMD ["faust", "-A", "stream_processor", "worker"]

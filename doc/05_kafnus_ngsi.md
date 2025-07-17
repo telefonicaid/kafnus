@@ -1,6 +1,6 @@
-# ⚙️ Faust Stream Processor
+# ⚙️ Kafnus NGSI Stream Processor
 
-This document explains the role of the Faust application in Kafnus: how it transforms NGSIv2 notifications from Kafka into structured messages ready to be persisted via Kafka Connect.
+This document explains the role of the Kafnus NGSI application in Kafnus: how it transforms NGSIv2 notifications from Kafka into structured messages ready to be persisted via Kafnus Connect.
 
 ---
 
@@ -11,7 +11,7 @@ Faust is a Python stream processing library, similar to Kafka Streams but async/
 - Decode and process NGSIv2 notifications.
 - Add metadata like `recvtime`.
 - Transform geo attributes into PostGIS-compatible WKB.
-- Build Kafka Connect-compatible records with key/schema/payload.
+- Build Kafnus Connect-compatible records with key/schema/payload.
 - Set headers like `target_table` to control downstream routing via SMT.
 
 ---
@@ -33,10 +33,30 @@ faust -A stream_processor worker -l info
 
 ### Build command:
 
-From `/kafka-ngsi-stream` directory:
+From `/kafnus-ngsi` directory:
 
 ```bash
-docker build --no-cache -t faust-stream .
+docker build --no-cache -t kafnus-ngsi .
+```
+
+### **Logging**
+
+The Faust processor uses structured logging to track processing flow, entity transformations, and message routing.
+
+**Supported log levels:**
+
+- `DEBUG`: Detailed internals (entity parsing, Kafka key/schema generation).
+- `INFO`: Normal operation (successful sends to topics, startup lifecycle).
+- `WARN`: Recoverable issues (e.g., invalid geo formats).
+- `ERROR`: Parsing failures or bad input payloads.
+
+ℹ️ The environment variable `KAFNUS_NGSI_LOG_LEVEL` controls the verbosity, set the variable in [`/docker/docker-compose.faust.yml`](/docker/docker-compose.faust.yml).  
+Defaults to `INFO` if not set.
+
+Example log output:
+
+```
+time=2025-07-15 10:04:31,786 | lvl=INFO | comp=KAFNUS-NGSI | op=app.agents.process:entity_handler.py[219]:handle_entity_cb | msg=✅ [mutable] Sent to topic 'test_mutable' (table: 'lighting_streetlight_mutable'): ENT-LUM-001
 ```
 
 ---
@@ -72,14 +92,14 @@ The core function is `handle_entity()`:
 1. Parse the input notification.
 2. Add `recvtime`.
 3. Convert `geo:*` attributes to WKB.
-4. Build Kafka Connect schema and payload.
+4. Build Kafnus Connect schema and payload.
 5. Send to output topic.
 6. Set header: `target_table = table_name`.
 
 ```python
 async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity-type-database", suffix="", include_timeinstant=True, key_fields=None):
     """
-    Consumes NGSI notifications coming via FIWARE Context Broker, processes and transforms them into Kafka Connect format.
+    Consumes NGSI notifications coming via FIWARE Context Broker, processes and transforms them into Kafnus Connect format.
     Assumes raw_value is a JSON string with a payload field containing another JSON string with 'data' array.
     """
     ...
@@ -97,7 +117,7 @@ Example:
 def to_wkb_struct_from_wkt(wkt_str, field_name, srid=4326):
     """
     Converts a WKT geometry string to a Debezium-compatible WKB struct with schema and base64-encoded payload.
-    Used for sending geo attributes in Kafka Connect format.
+    Used for sending geo attributes in Kafnus Connect format.
     """
     ...
 
@@ -109,7 +129,7 @@ def to_wkt_geometry(attr_type, attr_value):
     ...
 ```
 
-The resulting field is base64-encoded and embedded in the Kafka Connect payload.
+The resulting field is base64-encoded and embedded in the Kafnus Connect payload.
 
 ---
 
@@ -121,7 +141,7 @@ Each record includes a structured key, depending on the flow:
 def build_kafka_key(entity: dict, key_fields: list, include_timeinstant=False):
     """
     Builds the Kafka message key with schema based on key_fields and optionally timeinstant.
-    This key is used for Kafka Connect upsert mode or primary key definition.
+    This key is used for Kafnus Connect upsert mode or primary key definition.
     """
     ...
 ```
@@ -153,14 +173,14 @@ Useful for upsert operations in JDBC sinks (`lastdata`, `mutable`).
 
 ## 🚨 DLQ Handling (`raw_errors`)
 
-Faust parses Kafka Connect DLQ messages and reconstructs error logs:
+Kafnus NGSI parses Kafnus Connect DLQ messages and reconstructs error logs:
 
 ```python
 # Errors Agent
 @app.agent(raw_errors_topic)
 async def process_errors(stream):
     """
-    Processes Kafka Connect error messages from the 'raw_errors' topic.
+    Processes Kafnus Connect error messages from the 'raw_errors' topic.
     Parses failed inserts or connector issues, extracts the relevant SQL error message and context,
     and emits a structured error log message to a per-tenant error topic (e.g., 'clientname_error_log').
     """
@@ -183,7 +203,7 @@ These are published to topics like `<dbname>_error_log`.
 
 ## 🧪 Testing
 
-Use `tests_end2end/` and `kafka-ngsi-stream/tests/postgis/` to simulate notification input and verify Faust behavior.
+Use `tests_end2end/` and `kafnus-ngsi/tests/postgis/` to simulate notification input and verify Kafnus NGSI behavior.
 
 Producer example:
 
@@ -191,7 +211,7 @@ Producer example:
 python producer.py tests/postgis/003_geometries/parking_zone_notification.json
 ```
 
-Expected Faust log output:
+Expected Kafnus NGSI log output:
 
 ```bash
 [INFO] ✅ [_lastdata] Sent to topic 'tests_lastdata': NPO-101
@@ -203,4 +223,4 @@ Expected Faust log output:
 
 - [⬅️ Previous: ](/doc/04_docker.md)
 - [🏠 Main index](../README.md#documentation)
-- [➡️ Next: Kafka-Connect](/doc/06_kafka_connect.md)
+- [➡️ Next: Kafnus-Connect](/doc/06_kafnus_connect.md)

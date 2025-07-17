@@ -2,14 +2,14 @@
 
 This guide helps you get Kafnus up and running locally.
 
-All required plugins, connectors, and monitoring tools are now automatically built and included via the custom **Kafka Connect Dockerfile**.  
+All required plugins, connectors, and monitoring tools are now automatically built and included via the **Kafnus Connect Dockerfile**.  
 You don’t need to manually download or compile any JARs—everything is handled during the Docker build.
 
 ---
 
-## 1. 📦 Kafka Connect Plugins Setup
+## 1. 📦 Kafnus Connect Plugins Setup
 
-Kafka Connect uses a **custom Docker image** that already includes:
+Kafnus Connect uses a **custom Docker image** that already includes:
 
 - All required connectors (JDBC, MongoDB, MQTT)
 - Custom SMTs like the `HeaderRouter`
@@ -23,23 +23,23 @@ This image is automatically built the first time you run:
 ```
 
 > ⚠️ Note about Docker images  
-> The `docker-compose.*.yml` files specify the `image:` option for Faust and custom Kafka Connect.  
+> The `docker-compose.*.yml` files specify the `image:` option for Kafnus NGSI and Kafnus Connect.  
 > If the image is not present locally, Docker Compose will try to pull it from the registry (Docker Hub by default) and will show a warning if the image is not found.  
 > For now, this warning is expected and does not affect test execution, as images are built dynamically or local images are used depending on the environment.
 
 You can still inspect or modify the plugin structure by looking inside:
 
 ```
-kafka-connect-custom/plugins/
+kafnus-connect/plugins/
 ```
 
-This directory is automatically populated during the image build, based on the logic in the [Dockerfile](/kafka-connect-custom/Dockerfile).
+This directory is automatically populated during the image build, based on the logic in the [Dockerfile](/kafnus-connect/Dockerfile).
 
 ---
 
-## 2. ⚙️ Faust Worker Image
+## 2. ⚙️ Kafnus NGSI Worker Image
 
-The **Faust stream processor** is also containerized and automatically built during `docker-up.sh` execution. This ensures the worker is:
+The **Kafnus NGSI stream processor** is also containerized and automatically built during `docker-up.sh` execution. This ensures the worker is:
 
 - Compiled with the correct Python version and dependencies
 - Isolated from the host system
@@ -52,11 +52,11 @@ faust -A stream_processor worker -l info
 The source code lives in:
 
 ```
-faust-worker/src/
+kafnus-ngsi/src/
 ```
 
 
-The build process for Faust is defined in the [Dockerfile](/kafka-ngsi-stream/Dockerfile), which installs all dependencies and starts the worker.
+The build process for Kafnus NGSI is defined in the [Dockerfile](/kafnus-ngsi/Dockerfile), which installs all dependencies and starts the worker.
 
 > ℹ️ No additional setup is required—this container is fully managed within the `docker compose` environment.
 
@@ -189,9 +189,9 @@ docker ps
 You should see at least:
 
 ```plaintext
-faust-stream
+kafnus-ngsi
 orion
-kafka-connect
+kafnus-connect
 kafka
 iot-postgis
 mongo
@@ -201,7 +201,7 @@ mosquitto
 
 ---
 
-## 5. 🔌 Check Kafka Connect Plugins
+## 5. 🔌 Check Kafnus Connect Plugins
 
 ```bash
 curl -s http://localhost:8083/connector-plugins | jq
@@ -345,7 +345,7 @@ At this point, you should have:
 
 - All required `.jar` plugins correctly built and placed
 - Docker services up and running
-- Kafka Connect plugins verified
+- Kafnus Connect plugins verified
 - Manual end-to-end flow from Orion to PostGIS working
 - Python tooling installed for further testing
 

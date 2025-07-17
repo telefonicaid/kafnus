@@ -31,8 +31,7 @@ load_dotenv()
 
 # Load .env, used inside tests
 env = dotenv_values()
-# Load specific .env values outside tests (for dokcer-compose.postgis.yml),
-# only if not already set in the environment
+# Load specific .env values outside tests (for dokcer-compose.postgis.yml)
 for var in ["KAFNUS_POSTGIS_IMAGE", "KAFNUS_DBPATH_POSTGIS"]:
-    if var in env and var not in os.environ:
+    if var in env:
         os.environ[var] = env[var]

@@ -23,12 +23,11 @@
 # criminal actions it may exercise to protect its rights.
 
 import json
-from app.kafka_utils import to_kafka_connect_schema, build_kafka_key
+from app.kafka_utils import to_kafnus_connect_schema, build_kafka_key
 from app.types_utils import sanitize_topic, to_wkb_struct_from_wkt, to_wkt_geometry
+
 import logging
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
-
 
 def build_target_table(datamodel, service, servicepath, entityid, entitytype, suffix):
     """
@@ -46,7 +45,7 @@ def build_target_table(datamodel, service, servicepath, entityid, entitytype, su
 
 async def handle_entity(app, raw_value, datamodel="dm-by-entity-type-database", suffix="", include_timeinstant=True, key_fields=None):
     """
-    Consumes raw NGSI notifications, processes and transforms them into Kafka Connect format.
+    Consumes raw NGSI notifications, processes and transforms them into Kafnus Connect format.
     key_fields allows configuring which fields to use as primary key for upsert.
     """
     event = json.loads(raw_value)
@@ -88,7 +87,7 @@ async def handle_entity(app, raw_value, datamodel="dm-by-entity-type-database", 
             try:
                 value = json.dumps(value, ensure_ascii=False)
             except Exception as e:
-                print(f"⚠️ Error serializing field {name} as JSON string: {e}")
+                logger.warning(f"⚠️ Error serializing field '{name}' as JSON string: {e}")
                 value = str(value)
 
         attributes[name] = value
@@ -98,7 +97,7 @@ async def handle_entity(app, raw_value, datamodel="dm-by-entity-type-database", 
     if key_fields is None:
         key_fields = ["entityid"]
 
-    kafka_message = to_kafka_connect_schema(entity, schema_overrides)
+    kafka_message = to_kafnus_connect_schema(entity, schema_overrides)
     kafka_key = build_kafka_key(entity, key_fields=key_fields, include_timeinstant=include_timeinstant)
 
     await output_topic.send(
@@ -107,24 +106,24 @@ async def handle_entity(app, raw_value, datamodel="dm-by-entity-type-database", 
         headers=[("target_table", target_table.encode())]
     )
 
-    print(f"✅ [{suffix.lstrip('_') or 'historic'}] Sent to topic '{topic_name}' (table: '{target_table}'): {entity.get('entityid')}")
+    logger.info(f"✅ [{suffix.lstrip('_') or 'historic'}] Sent to topic '{topic_name}' (table: '{target_table}'): {entity.get('entityid')}")
 
 
 async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity-type-database", suffix="", include_timeinstant=True, key_fields=None):
     """
-    Consumes NGSI notifications coming via FIWARE Context Broker, processes and transforms them into Kafka Connect format.
+    Consumes NGSI notifications coming via FIWARE Context Broker, processes and transforms them into Kafnus Connect format.
     Assumes raw_value is a JSON string with a payload field containing another JSON string with 'data' array.
     """
     event = json.loads(raw_value)
     payload_str = event.get("payload")
     if not payload_str:
-        print("⚠️ No payload found in message")
+        logger.warning("⚠️ No payload found in message")
         return
 
     try:
         payload = json.loads(payload_str)
     except Exception as e:
-        print(f"❌ Error parsing payload: {e}")
+        logger.error(f"❌ Error parsing payload: {e}")
         return
 
     if headers:
@@ -180,7 +179,7 @@ async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity
                 try:
                     value = json.dumps(value, ensure_ascii=False)
                 except Exception as e:
-                    print(f"⚠️ Error serializing field {attr_name} as JSON string: {e}")
+                    logger.warning(f"⚠️ Error serializing field '{attr_name}' as JSON string: {e}")
                     value = str(value)
 
             attributes[attr_name] = value
@@ -190,7 +189,7 @@ async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity
         if key_fields is None:
             key_fields = ["entityid"]
 
-        kafka_message = to_kafka_connect_schema(entity, schema_overrides)
+        kafka_message = to_kafnus_connect_schema(entity, schema_overrides)
         kafka_key = build_kafka_key(entity, key_fields=key_fields, include_timeinstant=include_timeinstant)
 
         await output_topic.send(
@@ -199,5 +198,5 @@ async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity
             headers=[("target_table", target_table.encode())]
         )
 
-        print(f"✅ [{suffix.lstrip('_') or 'historic'}] Sent to topic '{topic_name}' (table: '{target_table}'): {entity.get('entityid')}")
+        logger.info(f"✅ [{suffix.lstrip('_') or 'historic'}] Sent to topic '{topic_name}' (table: '{target_table}'): {entity.get('entityid')}")
 

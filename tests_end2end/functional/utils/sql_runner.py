@@ -22,6 +22,7 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
+from config import logger
 import psycopg2
 
 def execute_sql_file(sql_path, db_config):
@@ -38,29 +39,23 @@ def execute_sql_file(sql_path, db_config):
     Raises:
     - Exception if SQL execution or database connection fails.
     """
-    print(f"📄 Executing SQL from: {sql_path}")
-    print(f"🔗 Connecting to DB: {db_config['host']}:{db_config['port']}, DB: {db_config['dbname']}")
+    logger.debug(f"📄 Executing SQL from: {sql_path}")
+    logger.debug(f"🔗 Connecting to DB: {db_config['host']}:{db_config['port']}, DB: {db_config['dbname']}")
 
     with open(sql_path, "r", encoding="utf-8") as f:
         sql = f.read()
 
     try:
-        conn = psycopg2.connect(
-            dbname=db_config["dbname"],
-            user=db_config["user"],
-            password=db_config["password"],
-            host=db_config["host"],
-            port=db_config["port"]
-        )
-        print("✅ Connection established")
+        conn = psycopg2.connect(**db_config)
+        logger.debug("✅ Connection established")
 
         with conn:
             with conn.cursor() as cursor:
                 cursor.execute(sql)
-                print("✅ SQL executed successfully")
+                logger.info("✅ SQL executed successfully")
     except Exception as e:
-        print(f"❌ Error executing SQL: {e}")
+        logger.error(f"❌ Error executing SQL from {sql_path}: {e}")
         raise
     finally:
         conn.close()
-        print("🔌 Connection closed")
+        logger.debug("🔌 Connection closed")
