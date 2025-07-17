@@ -15,7 +15,7 @@ jobs:
     env:
       KAFNUS_TESTS_USE_EXTERNAL_POSTGIS: "false"
       KAFNUS_TESTS_E2E_MANUAL_INSPECTION: "false"
-      KAFNUS_TESTS_LOG_LEVEL=INFO
+      KAFNUS_TESTS_LOG_LEVEL: INFO
       KAFNUS_DBPATH_POSTGIS: /data/postgis
       KAFNUS_POSTGIS_IMAGE: postgis/postgis:15-3.3
 
