@@ -16,16 +16,11 @@ Kafnus Connect uses a **custom Docker image** that already includes:
 - Dependencies (e.g., PostgreSQL and MongoDB drivers)
 - JMX Prometheus Java Agent for monitoring
 
-This image is automatically built the first time you run:
+This image can be build the first time you run from `/kafnus-connect` directory, if not it will be gotten from docker hub:
 
 ```
-./docker-up.sh
+docker build --no-cache -t kafnus-connect .
 ```
-
-> ⚠️ Note about Docker images  
-> The `docker-compose.*.yml` files specify the `image:` option for Kafnus NGSI and Kafnus Connect.  
-> If the image is not present locally, Docker Compose will try to pull it from the registry (Docker Hub by default) and will show a warning if the image is not found.  
-> For now, this warning is expected and does not affect test execution, as images are built dynamically or local images are used depending on the environment.
 
 You can still inspect or modify the plugin structure by looking inside:
 
