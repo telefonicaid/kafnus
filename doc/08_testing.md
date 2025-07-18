@@ -96,8 +96,8 @@ KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=false  # to run PostGIS container
 KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=true   # to use an external PostGIS instance
 ```
 
-> 📝 Note: `KAFNUS_DBPATH_POSTGIS` is included in the `.env.example` file.  
-> You can simply copy `.env.example` to `.env` and adjust the value there if needed.
+> 📝 Note: `KAFNUS_DBPATH_POSTGIS` and `KAFNUS_POSTGIS_IMAGE` are included in the `.env.example` file.  
+> You have to adjust the values in `.env` file, or default values will be used.
 >
 > 💡 If using the internal PostGIS container, you can override the image via the `KAFNUS_POSTGIS_IMAGE` environment variable (also defined in `.env.example`):
 >

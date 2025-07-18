@@ -22,16 +22,7 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
+from dotenv import load_dotenv
+load_dotenv(override=True)
+
 from common_test import multiservice_stack
-
-import os
-from dotenv import load_dotenv, dotenv_values
-
-load_dotenv()
-
-# Load .env, used inside tests
-env = dotenv_values()
-# Load specific .env values outside tests (for dokcer-compose.postgis.yml)
-for var in ["KAFNUS_POSTGIS_IMAGE", "KAFNUS_DBPATH_POSTGIS"]:
-    if var in env:
-        os.environ[var] = env[var]

@@ -26,9 +26,6 @@ import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Import env variables
-load_dotenv()
-
 # Directory where all scenario test cases are stored
 SCENARIOS_DIR = Path(__file__).parent / "cases"
 
