@@ -16,16 +16,11 @@ Kafnus Connect uses a **custom Docker image** that already includes:
 - Dependencies (e.g., PostgreSQL and MongoDB drivers)
 - JMX Prometheus Java Agent for monitoring
 
-This image is automatically built the first time you run:
+This image can be build the first time you run from `/kafnus-connect` directory, if not it will be gotten from docker hub:
 
 ```
-./docker-up.sh
+docker build --no-cache -t kafnus-connect .
 ```
-
-> ⚠️ Note about Docker images  
-> The `docker-compose.*.yml` files specify the `image:` option for Kafnus NGSI and Kafnus Connect.  
-> If the image is not present locally, Docker Compose will try to pull it from the registry (Docker Hub by default) and will show a warning if the image is not found.  
-> For now, this warning is expected and does not affect test execution, as images are built dynamically or local images are used depending on the environment.
 
 You can still inspect or modify the plugin structure by looking inside:
 
@@ -130,16 +125,16 @@ docker network connect kafka-postgis-net your-postgis-container-name
 
 > Replace `your-postgis-container-name` with the actual container name.
 
-You must also define the `DBPATH_POSTGIS` environment variable, pointing to the host directory where your external PostGIS instance stores data:
+You must also define the `KAFNUS_DBPATH_POSTGIS` environment variable, pointing to the host directory where your external PostGIS instance stores data:
 
 ```bash
-export DBPATH_POSTGIS=/data/postgis
+export KAFNUS_DBPATH_POSTGIS=/data/postgis
 ```
 
 > ⚠️ **IMPORTANT**: Ensure this directory exists and is owned by UID 999 and GID 999 (commonly used by PostGIS). Otherwise, the container may fail to start:
 
 ```bash
-sudo chown -R 999:999 ${DBPATH_POSTGIS}
+sudo chown -R 999:999 ${KAFNUS_DBPATH_POSTGIS}
 ```
 
 
@@ -150,14 +145,24 @@ Uncomment the relevant line in `docker-up.sh` to include the internal PostGIS co
 Also define the same environment variable:
 
 ```bash
-export DBPATH_POSTGIS=/data/postgis
+export KAFNUS_DBPATH_POSTGIS=/data/postgis
 ```
 
 Ensure that the directory exists and is writable by the container (UID/GID 999):
 
 ```bash
-sudo chown -R 999:999 ${DBPATH_POSTGIS}
+sudo chown -R 999:999 ${KAFNUS_DBPATH_POSTGIS}
 ```
+
+> 💡 You can also override the default PostGIS image using the `KAFNUS_POSTGIS_IMAGE` environment variable.
+> 
+> By default, the system uses `postgis/postgis:15-3.3`, a public image suitable for open source development.
+> 
+> If you're working in an internal Telefónica environment and need to use the private `telefonicaiot/iotp-postgis` image, set:
+> 
+> ```bash
+> export KAFNUS_POSTGIS_IMAGE=telefonicaiot/iotp-postgis:12.14-3.3.2-2
+> ```
 
 ---
 

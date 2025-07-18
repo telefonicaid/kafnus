@@ -22,4 +22,7 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
+from dotenv import load_dotenv
+load_dotenv(override=True)
+
 from common_test import multiservice_stack

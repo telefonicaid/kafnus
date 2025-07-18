@@ -96,26 +96,36 @@ KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=false  # to run PostGIS container
 KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=true   # to use an external PostGIS instance
 ```
 
+> 📝 Note: `KAFNUS_DBPATH_POSTGIS` and `KAFNUS_POSTGIS_IMAGE` are included in the `.env.example` file.  
+> You have to adjust the values in `.env` file, or default values will be used.
+>
+> 💡 If using the internal PostGIS container, you can override the image via the `KAFNUS_POSTGIS_IMAGE` environment variable (also defined in `.env.example`):
+>
+> ```env
+> POSTGIS_IMAGE=postgis/postgis:15-3.3        # Default public image
+> # or
+> POSTGIS_IMAGE=telefonicaiot/iotp-postgis:12.14-3.3.2-2  # Internal Telefónica image
+> ```
+>
+
 ---
 
 ## ▶️ Running the Tests
 
-To run **all scenarios** with a container-managed PostGIS:
+To run **all scenarios**:
 
 ```bash
 pytest -s test_pipeline.py
 ```
 
-To run specific scenarios with an **already-running PostGIS**:
+You can filter scenarios using `-k` and their directory names or tags. To run specific scenarios:
 
 ```bash
 pytest -s test_pipeline.py -k "000A or 000B"
 ```
 
-You can filter scenarios using `-k` and their directory names or tags.
 
-
-> ⚠️ Remember that a warning will be displayed if the images have not been built.
+> ⚠️ Remember that a warning could be displayed if the images have not been built.
 
 ## 🐞 Debugging & Logging
 

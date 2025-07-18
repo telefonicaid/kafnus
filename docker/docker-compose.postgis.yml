@@ -26,9 +26,9 @@ services:
   iot-postgis:
     container_name: iot-postgis
     hostname: iot-postgis
-    image: telefonicaiot/iotp-postgis:12.14-3.3.2-2
+    image: ${KAFNUS_POSTGIS_IMAGE:-postgis/postgis:15-3.3}
     volumes:
-      - ${DBPATH_POSTGIS}:/var/lib/postgresql/data
+      - ${KAFNUS_DBPATH_POSTGIS:-/data/postgis}:/var/lib/postgresql/data
     expose:
       - "5432"
     ports:

@@ -56,10 +56,7 @@ services:
 
   kafnus-connect:
     container_name: kafnus-connect
-    build:
-      context: ../kafnus-connect
-      dockerfile: Dockerfile
-    image: kafnus-connect
+    image: telefonicaiot/kafnus-connect
     ports:
       - "8083:8083"
       - "9100:9100"
