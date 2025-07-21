@@ -1,75 +1,1162 @@
-[{
+[
+{
   "table": "test.lighting_streetlight",
   "rows": [
     {
       "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:15:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350063,
+          1.054448
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
       "illuminancelevel": 0.5,
       "enablehistoriccommand": true,
+      "variables": {
+        "duration": "20 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "high-efficiency",
+          "dynamic-color"
+        ],
+        "sensors": {
+          "motion": true,
+          "ambient_light": false
+        },
+        "zigbee_channel": 25
+      },
+      "maintaineremail": "@correo.com",
       "lumensadjustment": 15,
-      "address": "Calle X, X. XXXX X, X"
+      "fixturemodelid": 1,
+      "colortempkelvin": 4000.1234,
+      "beamangle": 30.75,
+      "luminousefficacy": 6.5e6,
+      "installationid": 10001,
+      "compatiblefixtures": [
+        "STL-Gamma",
+        "STL-Omega",
+        "STL-Nova"
+      ],
+      "dimminglevels": [
+        10,
+        25,
+        50,
+        75,
+        100
+      ],
+      "temperaturerangek": [
+        2700,
+        3000,
+        4000,
+        5000,
+        6500
+      ]
     },
     {
       "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:20:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -0.350163,
+          40.054548
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
       "illuminancelevel": 0.6,
       "enablehistoriccommand": false,
+      "variables": {
+        "duration": "21 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "high-efficiency",
+          "dynamic-color",
+          "eco-mode"
+        ],
+        "sensors": {
+          "motion": false,
+          "ambient_light": true
+        },
+        "zigbee_channel": 26
+      },
+      "maintaineremail": "soporte_tecnico@correo.com",
       "lumensadjustment": 16,
-      "address": "Calle X, X. XXXX X, X"
+      "fixturemodelid": 12,
+      "colortempkelvin": 4100.1234,
+      "beamangle": 31.75,
+      "luminousefficacy": 6.6e6,
+      "installationid": 10002,
+      "compatiblefixtures": [
+        "STL-Gamma",
+        "STL-Omega",
+        "STL-Nova",
+        "STL-Quantum"
+      ],
+      "dimminglevels": [
+        15,
+        30,
+        55,
+        80,
+        100
+      ],
+      "temperaturerangek": [
+        2750,
+        3100,
+        4100,
+        5100,
+        6600
+      ]
     },
     {
       "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:25:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350263,
+          1.054648
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
       "illuminancelevel": 0.7,
       "enablehistoriccommand": true,
+      "variables": {
+        "duration": "22 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "high-efficiency"
+        ],
+        "sensors": {
+          "motion": true,
+          "ambient_light": false
+        },
+        "zigbee_channel": 27
+      },
+      "maintaineremail": "asistencia@correo.com",
       "lumensadjustment": 17,
-      "address": "Calle X, X. XXXX X, X"
+      "fixturemodelid": 123,
+      "colortempkelvin": 4200.1234,
+      "beamangle": 32.75,
+      "luminousefficacy": 6.7e6,
+      "installationid": 10003,
+      "compatiblefixtures": [
+        "STL-Gamma",
+        "STL-Omega"
+      ],
+      "dimminglevels": [
+        20,
+        35,
+        60,
+        85,
+        100
+      ],
+      "temperaturerangek": [
+        2800,
+        3200,
+        4200,
+        5200,
+        6700
+      ]
     },
     {
       "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:30:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350363,
+          1.054748
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
       "illuminancelevel": 0.8,
       "enablehistoriccommand": false,
+      "variables": {
+        "duration": "23 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "dynamic-color"
+        ],
+        "sensors": {
+          "motion": false,
+          "ambient_light": true
+        },
+        "zigbee_channel": 28
+      },
+      "maintaineremail": "soporte@correo.com",
       "lumensadjustment": 18,
-      "address": "Calle X, X. XXXX X, X"
+      "fixturemodelid": 1234,
+      "colortempkelvin": 4300.1234,
+      "beamangle": 33.75,
+      "luminousefficacy": 6.8e6,
+      "installationid": 10004,
+      "compatiblefixtures": [
+        "STL-Nova",
+        "STL-Quantum"
+      ],
+      "dimminglevels": [
+        25,
+        40,
+        65,
+        90,
+        100
+      ],
+      "temperaturerangek": [
+        2850,
+        3300,
+        4300,
+        5300,
+        6800
+      ]
     },
     {
       "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:35:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350463,
+          1.054848
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
       "illuminancelevel": 0.9,
       "enablehistoriccommand": true,
+      "variables": {
+        "duration": "24 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "high-efficiency",
+          "eco-mode"
+        ],
+        "sensors": {
+          "motion": true,
+          "ambient_light": true
+        },
+        "zigbee_channel": 29
+      },
+      "maintaineremail": "tecnico@correo.com",
       "lumensadjustment": 19,
-      "address": "Calle X, X. XXXX X, X"
+      "fixturemodelid": 12345,
+      "colortempkelvin": 4400.1234,
+      "beamangle": 34.75,
+      "luminousefficacy": 6.9e6,
+      "installationid": 10005,
+      "compatiblefixtures": [
+        "STL-Omega",
+        "STL-Nova"
+      ],
+      "dimminglevels": [
+        30,
+        45,
+        70,
+        95,
+        100
+      ],
+      "temperaturerangek": [
+        2900,
+        3400,
+        4400,
+        5400,
+        6900
+      ]
     },
     {
       "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:40:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350563,
+          1.054948
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
       "illuminancelevel": 1.0,
       "enablehistoriccommand": false,
+      "variables": {
+        "duration": "25 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "dynamic-color",
+          "eco-mode"
+        ],
+        "sensors": {
+          "motion": false,
+          "ambient_light": false
+        },
+        "zigbee_channel": 30
+      },
+      "maintaineremail": "asistencia_tecnica@correo.com",
       "lumensadjustment": 20,
-      "address": "Calle X, X. XXXX X, X"
+      "fixturemodelid": 123456,
+      "colortempkelvin": 4500.1234,
+      "beamangle": 35.75,
+      "luminousefficacy": 7.0e6,
+      "installationid": 10006,
+      "compatiblefixtures": [
+        "STL-Gamma",
+        "STL-Quantum"
+      ],
+      "dimminglevels": [
+        35,
+        50,
+        75,
+        100
+      ],
+      "temperaturerangek": [
+        2950,
+        3500,
+        4500,
+        5500,
+        7000
+      ]
     },
     {
       "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:45:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350663,
+          1.055048
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
       "illuminancelevel": 0.4,
       "enablehistoriccommand": true,
+      "variables": {
+        "duration": "26 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "high-efficiency"
+        ],
+        "sensors": {
+          "motion": true,
+          "ambient_light": true
+        },
+        "zigbee_channel": 31
+      },
+      "maintaineremail": "soporte_luminica@correo.com",
       "lumensadjustment": 21,
-      "address": "Calle X, X. XXXX X, X"
+      "fixturemodelid": 1234567,
+      "colortempkelvin": 4600.1234,
+      "beamangle": 36.75,
+      "luminousefficacy": 7.1e6,
+      "installationid": 10007,
+      "compatiblefixtures": [
+        "STL-Omega",
+        "STL-Quantum"
+      ],
+      "dimminglevels": [
+        40,
+        55,
+        80,
+        100
+      ],
+      "temperaturerangek": [
+        3000,
+        3600,
+        4600,
+        5600,
+        7100
+      ]
     },
     {
       "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:50:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350763,
+          1.055148
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
       "illuminancelevel": 0.3,
       "enablehistoriccommand": false,
+      "variables": {
+        "duration": "27 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "dynamic-color"
+        ],
+        "sensors": {
+          "motion": false,
+          "ambient_light": false
+        },
+        "zigbee_channel": 32
+      },
+      "maintaineremail": "mantenimiento@correo.com",
       "lumensadjustment": 22,
-      "address": "Calle X, X. XXXX X, X"
+      "fixturemodelid": 12345678,
+      "colortempkelvin": 4700.1234,
+      "beamangle": 37.75,
+      "luminousefficacy": 7.2e6,
+      "installationid": 10008,
+      "compatiblefixtures": [
+        "STL-Nova"
+      ],
+      "dimminglevels": [
+        45,
+        60,
+        85,
+        100
+      ],
+      "temperaturerangek": [
+        3050,
+        3700,
+        4700,
+        5700,
+        7200
+      ]
     },
     {
       "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:55:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350863,
+          1.055248
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
       "illuminancelevel": 0.2,
       "enablehistoriccommand": true,
+      "variables": {
+        "duration": "28 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "eco-mode"
+        ],
+        "sensors": {
+          "motion": true,
+          "ambient_light": false
+        },
+        "zigbee_channel": 33
+      },
+      "maintaineremail": "soporte_iluminacion@correo.com",
       "lumensadjustment": 23,
-      "address": "Calle X, X. XXXX X, X"
+      "fixturemodelid": 123456789,
+      "colortempkelvin": 4800.1234,
+      "beamangle": 38.75,
+      "luminousefficacy": 7.3e6,
+      "installationid": 10009,
+      "compatiblefixtures": [
+        "STL-Gamma",
+        "STL-Omega",
+        "STL-Nova",
+        "STL-Quantum",
+        "STL-Alpha"
+      ],
+      "dimminglevels": [
+        50,
+        65,
+        90,
+        100
+      ],
+      "temperaturerangek": [
+        3100,
+        3800,
+        4800,
+        5800,
+        7300
+      ]
     },
     {
       "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T06:00:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350963,
+          1.055348
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
       "illuminancelevel": 0.1,
       "enablehistoriccommand": false,
+      "variables": {
+        "duration": "29 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "high-efficiency",
+          "dynamic-color",
+          "eco-mode"
+        ],
+        "sensors": {
+          "motion": false,
+          "ambient_light": true
+        },
+        "zigbee_channel": 34
+      },
+      "maintaineremail": "ayuda@correo.com",
       "lumensadjustment": 24,
-      "address": "Calle X, X. XXXX X, X"
+      "fixturemodelid": 1234567890,
+      "colortempkelvin": 4900.1234,
+      "beamangle": 39.75,
+      "luminousefficacy": 7.4e6,
+      "installationid": 10010,
+      "compatiblefixtures": [
+        "STL-Quantum"
+      ],
+      "dimminglevels": [
+        55,
+        70,
+        95,
+        100
+      ],
+      "temperaturerangek": [
+        3150,
+        3900,
+        4900,
+        5900,
+        7400
+      ]
+    }
+  ]
+},
+{
+  "table": "test.lighting_streetlight_lastdata",
+   "rows": [
+    {
+      "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T06:00:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350963,
+          1.055348
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
+      "illuminancelevel": 0.1,
+      "enablehistoriccommand": false,
+      "variables": {
+        "duration": "29 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "high-efficiency",
+          "dynamic-color",
+          "eco-mode"
+        ],
+        "sensors": {
+          "motion": false,
+          "ambient_light": true
+        },
+        "zigbee_channel": 34
+      },
+      "maintaineremail": "ayuda@correo.com",
+      "lumensadjustment": 24,
+      "fixturemodelid": 1234567890,
+      "colortempkelvin": 4900.1234,
+      "beamangle": 39.75,
+      "luminousefficacy": 7.4e6,
+      "installationid": 10010,
+      "compatiblefixtures": [
+        "STL-Quantum"
+      ],
+      "dimminglevels": [
+        55,
+        70,
+        95,
+        100
+      ],
+      "temperaturerangek": [
+        3150,
+        3900,
+        4900,
+        5900,
+        7400
+      ]
+    }
+  ]
+},
+{
+  "table": "test.lighting_streetlight_mutable",
+  "rows": [
+    {
+      "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:15:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350063,
+          1.054448
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
+      "illuminancelevel": 0.5,
+      "enablehistoriccommand": true,
+      "variables": {
+        "duration": "20 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "high-efficiency",
+          "dynamic-color"
+        ],
+        "sensors": {
+          "motion": true,
+          "ambient_light": false
+        },
+        "zigbee_channel": 25
+      },
+      "maintaineremail": "@correo.com",
+      "lumensadjustment": 15,
+      "fixturemodelid": 1,
+      "colortempkelvin": 4000.1234,
+      "beamangle": 30.75,
+      "luminousefficacy": 6.5e6,
+      "installationid": 10001,
+      "compatiblefixtures": [
+        "STL-Gamma",
+        "STL-Omega",
+        "STL-Nova"
+      ],
+      "dimminglevels": [
+        10,
+        25,
+        50,
+        75,
+        100
+      ],
+      "temperaturerangek": [
+        2700,
+        3000,
+        4000,
+        5000,
+        6500
+      ]
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:20:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -0.350163,
+          40.054548
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
+      "illuminancelevel": 0.6,
+      "enablehistoriccommand": false,
+      "variables": {
+        "duration": "21 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "high-efficiency",
+          "dynamic-color",
+          "eco-mode"
+        ],
+        "sensors": {
+          "motion": false,
+          "ambient_light": true
+        },
+        "zigbee_channel": 26
+      },
+      "maintaineremail": "soporte_tecnico@correo.com",
+      "lumensadjustment": 16,
+      "fixturemodelid": 12,
+      "colortempkelvin": 4100.1234,
+      "beamangle": 31.75,
+      "luminousefficacy": 6.6e6,
+      "installationid": 10002,
+      "compatiblefixtures": [
+        "STL-Gamma",
+        "STL-Omega",
+        "STL-Nova",
+        "STL-Quantum"
+      ],
+      "dimminglevels": [
+        15,
+        30,
+        55,
+        80,
+        100
+      ],
+      "temperaturerangek": [
+        2750,
+        3100,
+        4100,
+        5100,
+        6600
+      ]
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:25:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350263,
+          1.054648
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
+      "illuminancelevel": 0.7,
+      "enablehistoriccommand": true,
+      "variables": {
+        "duration": "22 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "high-efficiency"
+        ],
+        "sensors": {
+          "motion": true,
+          "ambient_light": false
+        },
+        "zigbee_channel": 27
+      },
+      "maintaineremail": "asistencia@correo.com",
+      "lumensadjustment": 17,
+      "fixturemodelid": 123,
+      "colortempkelvin": 4200.1234,
+      "beamangle": 32.75,
+      "luminousefficacy": 6.7e6,
+      "installationid": 10003,
+      "compatiblefixtures": [
+        "STL-Gamma",
+        "STL-Omega"
+      ],
+      "dimminglevels": [
+        20,
+        35,
+        60,
+        85,
+        100
+      ],
+      "temperaturerangek": [
+        2800,
+        3200,
+        4200,
+        5200,
+        6700
+      ]
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:30:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350363,
+          1.054748
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
+      "illuminancelevel": 0.8,
+      "enablehistoriccommand": false,
+      "variables": {
+        "duration": "23 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "dynamic-color"
+        ],
+        "sensors": {
+          "motion": false,
+          "ambient_light": true
+        },
+        "zigbee_channel": 28
+      },
+      "maintaineremail": "soporte@correo.com",
+      "lumensadjustment": 18,
+      "fixturemodelid": 1234,
+      "colortempkelvin": 4300.1234,
+      "beamangle": 33.75,
+      "luminousefficacy": 6.8e6,
+      "installationid": 10004,
+      "compatiblefixtures": [
+        "STL-Nova",
+        "STL-Quantum"
+      ],
+      "dimminglevels": [
+        25,
+        40,
+        65,
+        90,
+        100
+      ],
+      "temperaturerangek": [
+        2850,
+        3300,
+        4300,
+        5300,
+        6800
+      ]
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:35:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350463,
+          1.054848
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
+      "illuminancelevel": 0.9,
+      "enablehistoriccommand": true,
+      "variables": {
+        "duration": "24 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "high-efficiency",
+          "eco-mode"
+        ],
+        "sensors": {
+          "motion": true,
+          "ambient_light": true
+        },
+        "zigbee_channel": 29
+      },
+      "maintaineremail": "tecnico@correo.com",
+      "lumensadjustment": 19,
+      "fixturemodelid": 12345,
+      "colortempkelvin": 4400.1234,
+      "beamangle": 34.75,
+      "luminousefficacy": 6.9e6,
+      "installationid": 10005,
+      "compatiblefixtures": [
+        "STL-Omega",
+        "STL-Nova"
+      ],
+      "dimminglevels": [
+        30,
+        45,
+        70,
+        95,
+        100
+      ],
+      "temperaturerangek": [
+        2900,
+        3400,
+        4400,
+        5400,
+        6900
+      ]
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:40:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350563,
+          1.054948
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
+      "illuminancelevel": 1.0,
+      "enablehistoriccommand": false,
+      "variables": {
+        "duration": "25 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "dynamic-color",
+          "eco-mode"
+        ],
+        "sensors": {
+          "motion": false,
+          "ambient_light": false
+        },
+        "zigbee_channel": 30
+      },
+      "maintaineremail": "asistencia_tecnica@correo.com",
+      "lumensadjustment": 20,
+      "fixturemodelid": 123456,
+      "colortempkelvin": 4500.1234,
+      "beamangle": 35.75,
+      "luminousefficacy": 7.0e6,
+      "installationid": 10006,
+      "compatiblefixtures": [
+        "STL-Gamma",
+        "STL-Quantum"
+      ],
+      "dimminglevels": [
+        35,
+        50,
+        75,
+        100
+      ],
+      "temperaturerangek": [
+        2950,
+        3500,
+        4500,
+        5500,
+        7000
+      ]
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:45:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350663,
+          1.055048
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
+      "illuminancelevel": 0.4,
+      "enablehistoriccommand": true,
+      "variables": {
+        "duration": "26 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "high-efficiency"
+        ],
+        "sensors": {
+          "motion": true,
+          "ambient_light": true
+        },
+        "zigbee_channel": 31
+      },
+      "maintaineremail": "soporte_luminica@correo.com",
+      "lumensadjustment": 21,
+      "fixturemodelid": 1234567,
+      "colortempkelvin": 4600.1234,
+      "beamangle": 36.75,
+      "luminousefficacy": 7.1e6,
+      "installationid": 10007,
+      "compatiblefixtures": [
+        "STL-Omega",
+        "STL-Quantum"
+      ],
+      "dimminglevels": [
+        40,
+        55,
+        80,
+        100
+      ],
+      "temperaturerangek": [
+        3000,
+        3600,
+        4600,
+        5600,
+        7100
+      ]
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:50:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350763,
+          1.055148
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
+      "illuminancelevel": 0.3,
+      "enablehistoriccommand": false,
+      "variables": {
+        "duration": "27 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "dynamic-color"
+        ],
+        "sensors": {
+          "motion": false,
+          "ambient_light": false
+        },
+        "zigbee_channel": 32
+      },
+      "maintaineremail": "mantenimiento@correo.com",
+      "lumensadjustment": 22,
+      "fixturemodelid": 12345678,
+      "colortempkelvin": 4700.1234,
+      "beamangle": 37.75,
+      "luminousefficacy": 7.2e6,
+      "installationid": 10008,
+      "compatiblefixtures": [
+        "STL-Nova"
+      ],
+      "dimminglevels": [
+        45,
+        60,
+        85,
+        100
+      ],
+      "temperaturerangek": [
+        3050,
+        3700,
+        4700,
+        5700,
+        7200
+      ]
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T05:55:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350863,
+          1.055248
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
+      "illuminancelevel": 0.2,
+      "enablehistoriccommand": true,
+      "variables": {
+        "duration": "28 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "eco-mode"
+        ],
+        "sensors": {
+          "motion": true,
+          "ambient_light": false
+        },
+        "zigbee_channel": 33
+      },
+      "maintaineremail": "soporte_iluminacion@correo.com",
+      "lumensadjustment": 23,
+      "fixturemodelid": 123456789,
+      "colortempkelvin": 4800.1234,
+      "beamangle": 38.75,
+      "luminousefficacy": 7.3e6,
+      "installationid": 10009,
+      "compatiblefixtures": [
+        "STL-Gamma",
+        "STL-Omega",
+        "STL-Nova",
+        "STL-Quantum",
+        "STL-Alpha"
+      ],
+      "dimminglevels": [
+        50,
+        65,
+        90,
+        100
+      ],
+      "temperaturerangek": [
+        3100,
+        3800,
+        4800,
+        5800,
+        7300
+      ]
+    },
+    {
+      "entityid": "ENT-LUM-001",
+      "entitytype": "Streetlight",
+      "fiwareservicepath": "lighting",
+      "timeinstant": "2025-01-01T06:00:00.000Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -1.350963,
+          1.055348
+        ]
+      },
+      "address": "Calle X, X. XXXX X, X",
+      "illuminancelevel": 0.1,
+      "enablehistoriccommand": false,
+      "variables": {
+        "duration": "29 days"
+      },
+      "fixtureconfiguration": {
+        "modes": [
+          "high-efficiency",
+          "dynamic-color",
+          "eco-mode"
+        ],
+        "sensors": {
+          "motion": false,
+          "ambient_light": true
+        },
+        "zigbee_channel": 34
+      },
+      "maintaineremail": "ayuda@correo.com",
+      "lumensadjustment": 24,
+      "fixturemodelid": 1234567890,
+      "colortempkelvin": 4900.1234,
+      "beamangle": 39.75,
+      "luminousefficacy": 7.4e6,
+      "installationid": 10010,
+      "compatiblefixtures": [
+        "STL-Quantum"
+      ],
+      "dimminglevels": [
+        55,
+        70,
+        95,
+        100
+      ],
+      "temperaturerangek": [
+        3150,
+        3900,
+        4900,
+        5900,
+        7400
+      ]
     }
   ]
 }

@@ -23,8 +23,18 @@
 # criminal actions it may exercise to protect its rights.
 
 import psycopg2
+from dateutil import parser as dateparser
+import json
+import datetime
 import time
 from config import logger
+import math
+from shapely.wkb import loads as load_wkb
+from shapely.wkt import loads as load_wkt
+from shapely.geometry import shape
+import binascii
+
+
 
 class PostgisValidator:
     def __init__(self, db_config):
@@ -86,9 +96,104 @@ class PostgisValidator:
     def _row_matches(self, expected, actual):
         for key, expected_value in expected.items():
             actual_value = actual.get(key)
-            if isinstance(expected_value, float) and isinstance(actual_value, float):
-                if abs(expected_value - actual_value) > 0.001:
-                    return False
-            elif expected_value != actual_value:
+
+            # Skip key if it's not in the actual row
+            if key not in actual:
                 return False
+
+            # Geometry comparison
+            if self._is_geojson(expected_value) and isinstance(actual_value, str):
+                try:
+                    expected_geom = shape(expected_value)
+
+                    # Detect if actual_value is WKB hex (only hex chars, even length, starts with '01' or '00')
+                    is_wkb_hex = all(c in "0123456789ABCDEFabcdef" for c in actual_value) and len(actual_value) % 2 == 0
+
+                    if is_wkb_hex:
+                        actual_geom = load_wkb(binascii.unhexlify(actual_value))
+                    else:
+                        actual_geom = load_wkt(actual_value)
+
+                    if not expected_geom.equals(actual_geom):
+                        return False
+                    continue
+                except Exception as e:
+                    logger.warning(f"❌ Error comparing geometry for key '{key}': {e}")
+                    return False
+
+            # Timestamp normalization
+            if key in ("timeinstant", "recvtime") and isinstance(expected_value, str):
+                try:
+                    expected_value = dateparser.isoparse(expected_value)
+                    if expected_value.tzinfo is None:
+                        expected_value = expected_value.replace(tzinfo=datetime.timezone.utc)
+                    if isinstance(actual_value, datetime.datetime):
+                        actual_value = actual_value.astimezone(datetime.timezone.utc)
+                except Exception as e:
+                    logger.warning(f"❌ Error parsing timestamp for key '{key}': {e}")
+                    return False
+
+            # Normalize float to int if needed
+            if isinstance(expected_value, int) and isinstance(actual_value, float):
+                actual_value = int(actual_value)
+
+            # Comparison with operators (gte, lt, etc.)
+            if isinstance(expected_value, dict):
+                for op, val in expected_value.items():
+                    if op == "gte" and not (actual_value >= val):
+                        return False
+                    elif op == "lte" and not (actual_value <= val):
+                        return False
+                    elif op == "gt" and not (actual_value > val):
+                        return False
+                    elif op == "lt" and not (actual_value < val):
+                        return False
+                    elif op == "eq" and actual_value != val:
+                        return False
+
+            else:
+                # Try parse expected as JSON
+                if isinstance(expected_value, str):
+                    try:
+                        parsed = json.loads(expected_value)
+                        expected_value = parsed
+                    except Exception:
+                        pass
+
+                # Try parse actual as JSON
+                if isinstance(actual_value, str):
+                    try:
+                        parsed = json.loads(actual_value)
+                        actual_value = parsed
+                    except Exception:
+                        pass
+
+                # Normalize types before comparing
+                if isinstance(expected_value, (int, float)) and isinstance(actual_value, str):
+                    try:
+                        actual_value = float(actual_value)
+                    except Exception:
+                        pass
+                if isinstance(expected_value, str) and isinstance(actual_value, (int, float)):
+                    expected_value = str(expected_value)
+
+                # Normalize None/empty string
+                if expected_value in ("", None) and actual_value in ("", None):
+                    continue
+
+                # Final equality check (with float tolerance)
+                if isinstance(expected_value, float) and isinstance(actual_value, float):
+                    if not math.isclose(expected_value, actual_value, rel_tol=1e-6, abs_tol=1e-6):
+                        return False
+                elif actual_value != expected_value:
+                    return False
         return True
+
+    def _is_geojson(self, value):
+        return (
+            isinstance(value, dict)
+            and "type" in value
+            and "coordinates" in value
+            and isinstance(value["coordinates"], (list, tuple))
+        )
+

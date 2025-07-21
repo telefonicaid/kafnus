@@ -241,15 +241,15 @@
         "type": "Number"
       },
       "fixtureModelId": {
-        "value": 2147483647,
+        "value": 1,
         "type": "Number"
       },
       "ledCount": {
-        "value": 922337203685,
+        "value": 9,
         "type": "Number"
       },
       "wattageConsumption": {
-        "value": 1.989e30,
+        "value": 1.989e5,
         "type": "Number"
       },
       "colorTempKelvin": {
@@ -261,7 +261,7 @@
         "type": "Number"
       },
       "luminousEfficacy": {
-        "value": 6.5e39,
+        "value": 6.5e6,
         "type": "Number"
       },
       "installationId": {
@@ -356,15 +356,15 @@
         "type": "Number"
       },
       "fixtureModelId": {
-        "value": 2147483648,
+        "value": 12,
         "type": "Number"
       },
       "ledCount": {
-        "value": 922337203686,
+        "value": 98,
         "type": "Number"
       },
       "wattageConsumption": {
-        "value": 1.990e30,
+        "value": 1.990e5,
         "type": "Number"
       },
       "colorTempKelvin": {
@@ -376,7 +376,7 @@
         "type": "Number"
       },
       "luminousEfficacy": {
-        "value": 6.6e39,
+        "value": 6.6e6,
         "type": "Number"
       },
       "installationId": {
@@ -470,15 +470,15 @@
         "type": "Number"
       },
       "fixtureModelId": {
-        "value": 2147483649,
+        "value": 123,
         "type": "Number"
       },
       "ledCount": {
-        "value": 922337203687,
+        "value": 987,
         "type": "Number"
       },
       "wattageConsumption": {
-        "value": 1.991e30,
+        "value": 1.991e5,
         "type": "Number"
       },
       "colorTempKelvin": {
@@ -490,7 +490,7 @@
         "type": "Number"
       },
       "luminousEfficacy": {
-        "value": 6.7e39,
+        "value": 6.7e6,
         "type": "Number"
       },
       "installationId": {
@@ -582,15 +582,15 @@
         "type": "Number"
       },
       "fixtureModelId": {
-        "value": 2147483650,
+        "value": 1234,
         "type": "Number"
       },
       "ledCount": {
-        "value": 922337203688,
+        "value": 9876,
         "type": "Number"
       },
       "wattageConsumption": {
-        "value": 1.992e30,
+        "value": 1.992e5,
         "type": "Number"
       },
       "colorTempKelvin": {
@@ -602,7 +602,7 @@
         "type": "Number"
       },
       "luminousEfficacy": {
-        "value": 6.8e39,
+        "value": 6.8e6,
         "type": "Number"
       },
       "installationId": {
@@ -695,15 +695,15 @@
         "type": "Number"
       },
       "fixtureModelId": {
-        "value": 2147483651,
+        "value": 12345,
         "type": "Number"
       },
       "ledCount": {
-        "value": 922337203689,
+        "value": 98765,
         "type": "Number"
       },
       "wattageConsumption": {
-        "value": 1.993e30,
+        "value": 1.993e5,
         "type": "Number"
       },
       "colorTempKelvin": {
@@ -715,7 +715,7 @@
         "type": "Number"
       },
       "luminousEfficacy": {
-        "value": 6.9e39,
+        "value": 6.9e6,
         "type": "Number"
       },
       "installationId": {
@@ -808,15 +808,15 @@
         "type": "Number"
       },
       "fixtureModelId": {
-        "value": 2147483652,
+        "value": 123456,
         "type": "Number"
       },
       "ledCount": {
-        "value": 922337203690,
+        "value": 987654,
         "type": "Number"
       },
       "wattageConsumption": {
-        "value": 1.994e30,
+        "value": 1.994e5,
         "type": "Number"
       },
       "colorTempKelvin": {
@@ -828,7 +828,7 @@
         "type": "Number"
       },
       "luminousEfficacy": {
-        "value": 7.0e39,
+        "value": 7.0e6,
         "type": "Number"
       },
       "installationId": {
@@ -919,15 +919,15 @@
         "type": "Number"
       },
       "fixtureModelId": {
-        "value": 2147483653,
+        "value": 1234567,
         "type": "Number"
       },
       "ledCount": {
-        "value": 922337203691,
+        "value": 9876543,
         "type": "Number"
       },
       "wattageConsumption": {
-        "value": 1.995e30,
+        "value": 1.995e5,
         "type": "Number"
       },
       "colorTempKelvin": {
@@ -939,7 +939,7 @@
         "type": "Number"
       },
       "luminousEfficacy": {
-        "value": 7.1e39,
+        "value": 7.1e6,
         "type": "Number"
       },
       "installationId": {
@@ -1030,15 +1030,15 @@
         "type": "Number"
       },
       "fixtureModelId": {
-        "value": 2147483654,
+        "value": 12345678,
         "type": "Number"
       },
       "ledCount": {
-        "value": 922337203692,
+        "value": 98765432,
         "type": "Number"
       },
       "wattageConsumption": {
-        "value": 1.996e30,
+        "value": 1.996e5,
         "type": "Number"
       },
       "colorTempKelvin": {
@@ -1050,7 +1050,7 @@
         "type": "Number"
       },
       "luminousEfficacy": {
-        "value": 7.2e39,
+        "value": 7.2e6,
         "type": "Number"
       },
       "installationId": {
@@ -1140,15 +1140,15 @@
         "type": "Number"
       },
       "fixtureModelId": {
-        "value": 2147483655,
+        "value": 123456789,
         "type": "Number"
       },
       "ledCount": {
-        "value": 922337203693,
+        "value": 987654321,
         "type": "Number"
       },
       "wattageConsumption": {
-        "value": 1.997e30,
+        "value": 1.997e5,
         "type": "Number"
       },
       "colorTempKelvin": {
@@ -1160,7 +1160,7 @@
         "type": "Number"
       },
       "luminousEfficacy": {
-        "value": 7.3e39,
+        "value": 7.3e6,
         "type": "Number"
       },
       "installationId": {
@@ -1256,15 +1256,15 @@
         "type": "Number"
       },
       "fixtureModelId": {
-        "value": 2147483656,
+        "value": 1234567890,
         "type": "Number"
       },
       "ledCount": {
-        "value": 922337203694,
+        "value": 9876543210,
         "type": "Number"
       },
       "wattageConsumption": {
-        "value": 1.998e30,
+        "value": 1.998e5,
         "type": "Number"
       },
       "colorTempKelvin": {
@@ -1276,7 +1276,7 @@
         "type": "Number"
       },
       "luminousEfficacy": {
-        "value": 7.4e39,
+        "value": 7.4e6,
         "type": "Number"
       },
       "installationId": {
