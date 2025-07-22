@@ -148,8 +148,7 @@
           ],
           "alterationTypes": [
             "entityUpdate",
-            "entityCreate",
-            "entityDelete"
+            "entityCreate"
           ]
         }
       },

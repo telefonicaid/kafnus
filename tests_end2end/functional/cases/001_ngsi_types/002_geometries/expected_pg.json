@@ -1,0 +1,82 @@
+[
+  {
+  "table": "test.parking_zone",
+  "rows": [
+    {
+      "entityid": "Zone-Point",
+      "entitytype": "Zone",
+      "fiwareservicepath": "/parking",
+      "name": "Zona Punto",
+      "timeinstant": "2025-05-15T12:00:00Z",
+      "location": "POINT (-1.7038 1.4168)"
+    },
+    {
+      "entityid": "Zone-Polygon",
+      "entitytype": "Zone",
+      "fiwareservicepath": "/parking",
+      "name": "Zona Poligono",
+      "timeinstant": "2025-05-15T13:00:00Z",
+      "polygon": "POLYGON ((-1.704 1.4168, -1.703 1.4175, -1.702 1.4162, -1.704 1.4168))"
+    },
+    {
+      "entityid": "Zone-Point",
+      "entitytype": "Zone",
+      "fiwareservicepath": "/parking",
+      "name": "Zona Punto",
+      "timeinstant": "2025-05-15T12:30:00Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [-2.7038, 2.4168]
+      }
+    },
+    {
+      "entityid": "Zone-Polygon",
+      "entitytype": "Zone",
+      "fiwareservicepath": "/parking",
+      "name": "Zona Poligono",
+      "timeinstant": "2025-05-15T13:30:00Z",
+      "polygon": {
+        "type": "Polygon",
+          "coordinates": [[
+            [-2.7040, 2.4168],
+            [-2.7030, 2.4175],
+            [-2.7020, 2.4162],
+            [-2.7040, 2.4168]
+          ]]
+      }
+    }
+  ]
+  },
+  {
+  "table": "test.parking_zone_lastdata",
+  "rows": [
+    {
+      "entityid": "Zone-Point",
+      "entitytype": "Zone",
+      "fiwareservicepath": "/parking",
+      "name": "Zona Punto",
+      "timeinstant": "2025-05-15T12:30:00Z",
+      "location": {
+        "type": "Point",
+        "coordinates": [-2.7038, 2.4168]
+      }
+    },
+    {
+      "entityid": "Zone-Polygon",
+      "entitytype": "Zone",
+      "fiwareservicepath": "/parking",
+      "name": "Zona Poligono",
+      "timeinstant": "2025-05-15T13:30:00Z",
+      "polygon": {
+        "type": "Polygon",
+          "coordinates": [[
+            [-2.7040, 2.4168],
+            [-2.7030, 2.4175],
+            [-2.7020, 2.4162],
+            [-2.7040, 2.4168]
+          ]]
+      }
+    }
+  ]
+  }
+]

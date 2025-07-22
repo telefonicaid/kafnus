@@ -102,17 +102,18 @@ class PostgisValidator:
                 return False
 
             # Geometry comparison
-            if self._is_geojson(expected_value) and isinstance(actual_value, str):
+            if (self._is_geojson(expected_value) or self._is_wkt(expected_value)) and isinstance(actual_value, str):
                 try:
-                    expected_geom = shape(expected_value)
+                    expected_geom = (
+                        shape(expected_value) if self._is_geojson(expected_value) else load_wkt(expected_value)
+                    )
 
-                    # Detect if actual_value is WKB hex (only hex chars, even length, starts with '01' or '00')
+                    # # Detect if actual_value is WKB hex (only hex chars, even length, starts with '01' or '00')
                     is_wkb_hex = all(c in "0123456789ABCDEFabcdef" for c in actual_value) and len(actual_value) % 2 == 0
 
-                    if is_wkb_hex:
-                        actual_geom = load_wkb(binascii.unhexlify(actual_value))
-                    else:
-                        actual_geom = load_wkt(actual_value)
+                    actual_geom = (
+                        load_wkb(binascii.unhexlify(actual_value)) if is_wkb_hex else load_wkt(actual_value)
+                    )
 
                     if not expected_geom.equals(actual_geom):
                         return False
@@ -196,4 +197,8 @@ class PostgisValidator:
             and "coordinates" in value
             and isinstance(value["coordinates"], (list, tuple))
         )
-
+    
+    def _is_wkt(self, value):
+        return isinstance(value, str) and any(
+            value.strip().upper().startswith(t) for t in ["POINT", "LINESTRING", "POLYGON", "MULTIPOINT", "MULTILINESTRING", "MULTIPOLYGON"]
+        )

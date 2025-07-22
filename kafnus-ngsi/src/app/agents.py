@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 
 from app.types_utils import sanitize_topic, extract_timestamp, format_timestamp, encode_mongo
 from app.kafka_utils import build_kafka_key
-from app.entity_handler import handle_entity, build_target_table, handle_entity_cb
+from app.entity_handler import build_target_table, handle_entity_cb
 from app.metrics import start_metrics_server, messages_processed, processing_time
 from app.faust_app import app, raw_historic_topic, raw_lastdata_topic, raw_mutable_topic, raw_errors_topic, mongo_output_topic, mongo_topic
 

@@ -5,7 +5,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:15:00.000Z",
       "location": {
         "type": "Point",
@@ -61,7 +61,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:20:00.000Z",
       "location": {
         "type": "Point",
@@ -119,7 +119,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:25:00.000Z",
       "location": {
         "type": "Point",
@@ -173,7 +173,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:30:00.000Z",
       "location": {
         "type": "Point",
@@ -227,7 +227,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:35:00.000Z",
       "location": {
         "type": "Point",
@@ -282,7 +282,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:40:00.000Z",
       "location": {
         "type": "Point",
@@ -336,7 +336,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:45:00.000Z",
       "location": {
         "type": "Point",
@@ -389,7 +389,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:50:00.000Z",
       "location": {
         "type": "Point",
@@ -441,7 +441,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:55:00.000Z",
       "location": {
         "type": "Point",
@@ -497,7 +497,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T06:00:00.000Z",
       "location": {
         "type": "Point",
@@ -556,7 +556,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T06:00:00.000Z",
       "location": {
         "type": "Point",
@@ -615,7 +615,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:15:00.000Z",
       "location": {
         "type": "Point",
@@ -671,7 +671,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:20:00.000Z",
       "location": {
         "type": "Point",
@@ -729,7 +729,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:25:00.000Z",
       "location": {
         "type": "Point",
@@ -783,7 +783,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:30:00.000Z",
       "location": {
         "type": "Point",
@@ -837,7 +837,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:35:00.000Z",
       "location": {
         "type": "Point",
@@ -892,7 +892,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:40:00.000Z",
       "location": {
         "type": "Point",
@@ -946,7 +946,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:45:00.000Z",
       "location": {
         "type": "Point",
@@ -999,7 +999,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:50:00.000Z",
       "location": {
         "type": "Point",
@@ -1051,7 +1051,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T05:55:00.000Z",
       "location": {
         "type": "Point",
@@ -1107,7 +1107,7 @@
     {
       "entityid": "ENT-LUM-001",
       "entitytype": "Streetlight",
-      "fiwareservicepath": "lighting",
+      "fiwareservicepath": "/lighting",
       "timeinstant": "2025-01-01T06:00:00.000Z",
       "location": {
         "type": "Point",

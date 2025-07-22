@@ -27,42 +27,45 @@ from utils.scenario_loader import load_scenario
 from utils.postgis_validator import PostgisValidator
 from utils.sql_runner import execute_sql_file
 from config import logger
+import os
 
 from config import SCENARIOS_DIR, DEFAULT_DB_CONFIG
 
+from pathlib import Path
+
 def discover_scenarios():
     """
-    Discovers all test scenarios by scanning the 'cases' directory.
-    Returns a list of tuples containing:
-    - scenario name
+    Recursively discovers all test scenarios by scanning the SCENARIOS_DIR.
+    Returns a list of tuples:
+    - scenario name (relative path from SCENARIOS_DIR)
     - path to input.json
     - path to expected_pg.json
     - optional path to setup.sql if it exists
     """
-    logger.debug(f"🔍 Scanning for test scenarios in: {SCENARIOS_DIR}")
+    logger.debug(f"🔍 Recursively scanning for test scenarios in: {SCENARIOS_DIR}")
     cases = []
 
-    for test_dir in sorted(SCENARIOS_DIR.iterdir()):
-        if not test_dir.is_dir():
-            logger.debug(f"⏭️ Skipping non-directory: {test_dir}")
-            continue
-
-        input_json = test_dir / "input.json"
-        expected_json = test_dir / "expected_pg.json"
-        setup_sql = test_dir / "setup.sql"
+    for dirpath, _, filenames in os.walk(SCENARIOS_DIR):
+        dir_path = Path(dirpath)
+        input_json = dir_path / "input.json"
+        expected_json = dir_path / "expected_pg.json"
+        setup_sql = dir_path / "setup.sql"
 
         if input_json.exists() and expected_json.exists():
-            logger.debug(f"✅ Found scenario: {test_dir.name}")
+            relative_name = str(dir_path.relative_to(SCENARIOS_DIR))
+            logger.debug(f"✅ Found scenario: {relative_name}")
             if setup_sql.exists():
                 logger.debug(f"↪️ Includes setup SQL: {setup_sql.name}")
             else:
-                logger.debug(f"↪️ No setup SQL for: {test_dir.name}")
-            cases.append((test_dir.name, input_json, expected_json, setup_sql if setup_sql.exists() else None))
+                logger.debug(f"↪️ No setup SQL for: {relative_name}")
+            cases.append((relative_name, input_json, expected_json, setup_sql if setup_sql.exists() else None))
         else:
-            logger.debug(f"❌ Incomplete scenario in: {test_dir} (missing input.json or expected_pg.json)")
+            if "input.json" in filenames or "expected_pg.json" in filenames:
+                logger.warning(f"⚠️ Partial scenario in: {dir_path} (missing input.json or expected_pg.json)")
 
     logger.debug(f"🔢 Total scenarios discovered: {len(cases)}")
     return cases
+
 
 @pytest.mark.parametrize("scenario_name, input_json, expected_json, setup_sql", discover_scenarios())
 def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multiservice_stack):

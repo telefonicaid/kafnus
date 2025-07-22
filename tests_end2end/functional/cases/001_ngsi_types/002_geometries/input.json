@@ -1,0 +1,191 @@
+{
+  "name": "geometries_test",
+  "fiware-service": "test",
+  "fiware-servicepath": "/parking",
+  "subscriptions": {
+    "historic": {
+      "description": "Zone:HISTORIC:parking:historic",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Zone"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_historic"
+        },
+        "attrs": [
+          "name",
+          "TimeInstant",
+          "location",
+          "polygon"
+        ]
+      }
+    },
+    "lastdata": {
+      "description": "Zone:LASTDATA:parking:lastdata",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Zone"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "name",
+            "TimeInstant"
+          ],
+          "alterationTypes": [
+            "entityUpdate",
+            "entityCreate",
+            "entityDelete"
+          ]
+        }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_lastdata"
+        },
+        "attrs": [
+          "name",
+          "TimeInstant",
+          "location",
+          "polygon"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "Zone-Point",
+      "type": "Zone",
+      "name": {
+        "value": "Zona Punto",
+        "type": "Text"
+      },
+      "TimeInstant": {
+        "value": "2025-05-15T12:00:00Z",
+        "type": "DateTime"
+      },
+      "location": {
+        "value": {
+          "type": "Point",
+          "coordinates": [-1.7038, 1.4168]
+        },
+        "type": "geo:json"
+      },
+      "zone": {
+        "value": "Zone-Point",
+        "type": "Text"
+      },
+      "zip": {
+        "value": "12345",
+        "type": "Text"
+      }
+    },
+    {
+      "id": "Zone-Polygon",
+      "type": "Zone",
+      "name": {
+        "value": "Zona Poligono",
+        "type": "Text"
+      },
+      "TimeInstant": {
+        "value": "2025-05-15T13:00:00Z",
+        "type": "DateTime"
+      },
+      "polygon": {
+        "value": {
+          "type": "Polygon",
+          "coordinates": [[
+            [-1.7040, 1.4168],
+            [-1.7030, 1.4175],
+            [-1.7020, 1.4162],
+            [-1.7040, 1.4168]
+          ]]
+        },
+        "type": "geo:json"
+      },
+      "zone": {
+        "value": "Zone-Polygon",
+        "type": "Text"
+      },
+      "zip": {
+        "value": "12345",
+        "type": "Text"
+      }
+    },
+    {
+      "id": "Zone-Point",
+      "type": "Zone",
+      "name": {
+        "value": "Zona Punto",
+        "type": "Text"
+      },
+      "TimeInstant": {
+        "value": "2025-05-15T12:30:00Z",
+        "type": "DateTime"
+      },
+      "location": {
+        "value": {
+          "type": "Point",
+          "coordinates": [-2.7038, 2.4168]
+        },
+        "type": "geo:json"
+      },
+      "zone": {
+        "value": "Zone-Point",
+        "type": "Text"
+      },
+      "zip": {
+        "value": "12345",
+        "type": "Text"
+      }
+    },
+    {
+      "id": "Zone-Polygon",
+      "type": "Zone",
+      "name": {
+        "value": "Zona Poligono",
+        "type": "Text"
+      },
+      "TimeInstant": {
+        "value": "2025-05-15T13:30:00Z",
+        "type": "DateTime"
+      },
+      "polygon": {
+        "value": {
+          "type": "Polygon",
+          "coordinates": [[
+            [-2.7040, 2.4168],
+            [-2.7030, 2.4175],
+            [-2.7020, 2.4162],
+            [-2.7040, 2.4168]
+          ]]
+        },
+        "type": "geo:json"
+      },
+      "zone": {
+        "value": "Zone-Polygon",
+        "type": "Text"
+      },
+      "zip": {
+        "value": "12345",
+        "type": "Text"
+      }
+    }
+  ]
+}
