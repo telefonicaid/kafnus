@@ -28,7 +28,16 @@
           "name",
           "TimeInstant",
           "location",
-          "polygon"
+          "polygon",
+          "linestring",
+          "multipoint",
+          "multilinestring",
+          "multipolygon",
+          "feature",
+          "featurecollection",
+          "zoneignored",
+          "zone",
+          "zip"
         ]
       }
     },
@@ -44,7 +53,6 @@
         ],
         "condition": {
           "attrs": [
-            "name",
             "TimeInstant"
           ],
           "alterationTypes": [
@@ -63,7 +71,16 @@
           "name",
           "TimeInstant",
           "location",
-          "polygon"
+          "polygon",
+          "linestring",
+          "multipoint",
+          "multilinestring",
+          "multipolygon",
+          "feature",
+          "featurecollection",
+          "zoneignored",
+          "zone",
+          "zip"
         ]
       }
     }
@@ -73,7 +90,7 @@
       "id": "Zone-Point",
       "type": "Zone",
       "name": {
-        "value": "Zona Punto",
+        "value": "Zone Point",
         "type": "Text"
       },
       "TimeInstant": {
@@ -100,7 +117,7 @@
       "id": "Zone-Polygon",
       "type": "Zone",
       "name": {
-        "value": "Zona Poligono",
+        "value": "Zone Polygon",
         "type": "Text"
       },
       "TimeInstant": {
@@ -129,10 +146,140 @@
       }
     },
     {
+      "id": "Zone-LineString",
+      "type": "Zone",
+      "name": {
+        "value": "Zone LineString",
+        "type": "Text"
+      },
+      "TimeInstant": {
+        "value": "2025-05-15T14:00:00Z",
+        "type": "DateTime"
+      },
+      "linestring": {
+        "value": {
+          "type": "LineString",
+          "coordinates": [
+            [-1.7038, 1.4168],
+            [-1.7028, 1.4178]
+          ]
+        },
+        "type": "geo:json"
+      },
+      "zone": {
+        "value": "Zone-LineString",
+        "type": "Text"
+      },
+      "zip": {
+        "value": "12345",
+        "type": "Text"
+      }
+    },
+    {
+      "id": "Zone-MultiPoint",
+      "type": "Zone",
+      "name": {
+        "value": "Zone MultiPoint",
+        "type": "Text"
+      },
+      "TimeInstant": {
+        "value": "2025-05-15T15:00:00Z",
+        "type": "DateTime"
+      },
+      "multipoint": {
+        "value": {
+          "type": "MultiPoint",
+          "coordinates": [
+            [-1.7038, 1.4168],
+            [-1.7028, 1.4178]
+          ]
+        },
+        "type": "geo:json"
+      },
+      "zone": {
+        "value": "Zone-MultiPoint",
+        "type": "Text"
+      },
+      "zip": {
+        "value": "12345",
+        "type": "Text"
+      }
+    },
+    {
+      "id": "Zone-MultiLineString",
+      "type": "Zone",
+      "name": {
+        "value": "Zone MultiLineString",
+        "type": "Text"
+      },
+      "TimeInstant": {
+        "value": "2025-05-15T16:00:00Z",
+        "type": "DateTime"
+      },
+      "multilinestring": {
+        "value": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [-1.7038, 1.4168],
+              [-1.7028, 1.4178]
+            ],
+            [
+              [-1.7018, 1.4188],
+              [-1.7008, 1.4198]
+            ]
+          ]
+        },
+        "type": "geo:json"
+      },
+      "zone": {
+        "value": "Zone-MultiLineString",
+        "type": "Text"
+      },
+      "zip": {
+        "value": "12345",
+        "type": "Text"
+      }
+    },
+    {
+      "id": "Zone-MultiPolygon",
+      "type": "Zone",
+      "name": {
+        "value": "Zone MultiPolygon",
+        "type": "Text"
+      },
+      "TimeInstant": {
+        "value": "2025-05-15T17:00:00Z",
+        "type": "DateTime"
+      },
+      "multipolygon": {
+        "value": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [[-1.7040, 1.4168], [-1.7030, 1.4175], [-1.7020, 1.4162], [-1.7040, 1.4168]]
+            ],
+            [
+              [[-1.7140, 1.4268], [-1.7130, 1.4275], [-1.7120, 1.4262], [-1.7140, 1.4268]]
+            ]
+          ]
+        },
+        "type": "geo:json"
+      },
+      "zone": {
+        "value": "Zone-MultiPolygon",
+        "type": "Text"
+      },
+      "zip": {
+        "value": "12345",
+        "type": "Text"
+      }
+    },
+    {
       "id": "Zone-Point",
       "type": "Zone",
       "name": {
-        "value": "Zona Punto",
+        "value": "Zone Point",
         "type": "Text"
       },
       "TimeInstant": {
@@ -159,7 +306,7 @@
       "id": "Zone-Polygon",
       "type": "Zone",
       "name": {
-        "value": "Zona Poligono",
+        "value": "Zone Polygon",
         "type": "Text"
       },
       "TimeInstant": {
@@ -186,6 +333,257 @@
         "value": "12345",
         "type": "Text"
       }
+    },
+    {
+    "id": "Zone-LineString",
+    "type": "Zone",
+    "name": {
+      "value": "Zone LineString",
+      "type": "Text"
+    },
+    "TimeInstant": {
+      "value": "2025-05-15T14:30:00Z",
+      "type": "DateTime"
+    },
+    "linestring": {
+      "value": {
+        "type": "LineString",
+        "coordinates": [
+          [-2.7038, 2.4168],
+          [-2.7028, 2.4178]
+        ]
+      },
+      "type": "geo:json"
+    },
+    "zone": {
+      "value": "Zone-LineString",
+      "type": "Text"
+    },
+    "zip": {
+      "value": "12345",
+      "type": "Text"
     }
+  },
+  {
+    "id": "Zone-MultiPoint",
+    "type": "Zone",
+    "name": {
+      "value": "Zone MultiPoint",
+      "type": "Text"
+    },
+    "TimeInstant": {
+      "value": "2025-05-15T15:30:00Z",
+      "type": "DateTime"
+    },
+    "multipoint": {
+      "value": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [-2.7038, 2.4168],
+          [-2.7028, 2.4178]
+        ]
+      },
+      "type": "geo:json"
+    },
+    "zone": {
+      "value": "Zone-MultiPoint",
+      "type": "Text"
+    },
+    "zip": {
+      "value": "12345",
+      "type": "Text"
+    }
+  },
+  {
+    "id": "Zone-MultiLineString",
+    "type": "Zone",
+    "name": {
+      "value": "Zone MultiLineString",
+      "type": "Text"
+    },
+    "TimeInstant": {
+      "value": "2025-05-15T16:30:00Z",
+      "type": "DateTime"
+    },
+    "multilinestring": {
+      "value": {
+        "type": "MultiLineString",
+        "coordinates": [
+          [
+            [-2.7038, 2.4168],
+            [-2.7028, 2.4178]
+          ],
+          [
+            [-2.7018, 2.4188],
+            [-2.7008, 2.4198]
+          ]
+        ]
+      },
+      "type": "geo:json"
+    },
+    "zone": {
+      "value": "Zone-MultiLineString",
+      "type": "Text"
+    },
+    "zip": {
+      "value": "12345",
+      "type": "Text"
+    }
+  },
+  {
+    "id": "Zone-MultiPolygon",
+    "type": "Zone",
+    "name": {
+      "value": "Zone MultiPolygon",
+      "type": "Text"
+    },
+    "TimeInstant": {
+      "value": "2025-05-15T17:30:00Z",
+      "type": "DateTime"
+    },
+    "multipolygon": {
+      "value": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [[-2.7040, -2.4168], [-2.7030, -2.4175], [-2.7020, -2.4162], [-2.7040, -2.4168]]
+          ],
+          [
+            [[-2.7140, -2.4268], [-2.7130, -2.4275], [-2.7120, -2.4262], [-2.7140, -2.4268]]
+          ]
+        ]
+      },
+      "type": "geo:json"
+    },
+    "zone": {
+      "value": "Zone-MultiPolygon",
+      "type": "Text"
+    },
+    "zip": {
+      "value": "12345",
+      "type": "Text"
+    }
+  },
+  {
+    "id": "Zone-Feature",
+    "type": "Zone",
+    "name": {
+      "value": "Zone Feature",
+      "type": "Text"
+    },
+    "TimeInstant": {
+      "value": "2025-05-15T18:00:00Z",
+      "type": "DateTime"
+    },
+    "feature": {
+      "value": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [-3.7038, 3.4168]
+        },
+        "properties": {
+          "info": "main point"
+        }
+      },
+      "type": "geo:json"
+    },
+    "zone": {
+      "value": "Zone-Feature",
+      "type": "Text"
+    },
+    "zip": {
+      "value": "12345",
+      "type": "Text"
+    }
+  },
+  {
+    "id": "Zone-FeatureCollection",
+    "type": "Zone",
+    "name": {
+      "value": "Zone FeatureCollection",
+      "type": "Text"
+    },
+    "TimeInstant": {
+      "value": "2025-05-15T19:00:00Z",
+      "type": "DateTime"
+    },
+    "featurecollection": {
+      "value": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [[
+                [-3.7040, 3.4168],
+                [-3.7030, 3.4175],
+                [-3.7020, 3.4162],
+                [-3.7040, 3.4168]
+              ]]
+            },
+            "properties": {
+              "level": "A"
+            }
+          }
+        ]
+      },
+      "type": "geo:json"
+    },
+    "zone": {
+      "value": "Zone-FeatureCollection",
+      "type": "Text"
+    },
+    "zip": {
+      "value": "12345",
+      "type": "Text"
+    }
+  },
+  {
+    "id": "Zone-Ignored",
+    "type": "Zone",
+    "name": {
+      "value": "Zone Ignored",
+      "type": "Text"
+    },
+    "TimeInstant": {
+      "value": "2025-05-15T20:00:00Z",
+      "type": "DateTime"
+    },
+    "location": {
+      "value": {
+        "type": "Point",
+        "coordinates": [-4.7038, 4.4168]
+      },
+      "type": "geo:json"
+    },
+    "zoneignored": {
+      "value": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-4.7040, 4.4168],
+          [-4.7030, 4.4175],
+          [-4.7020, 4.4162],
+          [-4.7040, 4.4168]
+        ]]
+      },
+      "type": "geo:json",
+      "metadata": {
+        "ignoreType": {
+          "value": true,
+          "type": "Boolean"
+        }
+      }
+    },
+    "zone": {
+      "value": "Zone-Ignored",
+      "type": "Text"
+    },
+    "zip": {
+      "value": "12345",
+      "type": "Text"
+    }
+  }
   ]
 }
