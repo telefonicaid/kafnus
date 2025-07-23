@@ -23,7 +23,8 @@
 # criminal actions it may exercise to protect its rights.
 
 import json
-from app.types_utils import infer_field_type, format_timestamp
+from app.types_utils import infer_field_type
+from app.datetime_helpers import format_datetime_iso
 
 def to_kafnus_connect_schema(entity: dict, schema_overrides: dict = None):
     """
@@ -52,7 +53,7 @@ def to_kafnus_connect_schema(entity: dict, schema_overrides: dict = None):
         payload[k] = v
 
     # Add processing timestamp field
-    recvtime = format_timestamp(tz='Europe/Madrid')
+    recvtime = format_datetime_iso(tz='UTC')
 
     schema_fields.append({
         "field": "recvtime",

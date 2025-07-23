@@ -28,7 +28,7 @@ import re
 from shapely import wkt
 from shapely.geometry import shape # https://shapely.readthedocs.io/en/stable/manual.html#shapely.geometry.shape
 import base64
-from datetime import datetime, timezone
+from app.datetime_helpers import normalize_datetime_string, is_possible_datetime
 
 import logging
 logger = logging.getLogger(__name__)
@@ -87,25 +87,6 @@ def to_wkt_geometry(attr_type, attr_value):
         logger.error(f"❌ Error generating WKT from type '{attr_type}': {e}")
     return None
 
-
-def format_timestamp(dt=None, tz='UTC'):
-    tz_obj = pytz.timezone(tz)
-    if dt is None:
-        dt = datetime.now(tz_obj)
-    else:
-        dt = dt.astimezone(tz_obj)
-    return dt.isoformat(timespec='milliseconds')
-
-def extract_timestamp(entity: dict) -> float:
-    """
-    Extract and transform to epoch seconds
-    """
-    ts = entity.get("TimeInstant") or entity.get("timestamp")
-    if ts:
-        dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-        return dt.timestamp()
-    return 0.0
-
 def sanitize_topic(name):
     """
     Sanitizes a string to be a valid Kafka topic name by replacing disallowed characters with underscores.
@@ -122,13 +103,13 @@ def infer_field_type(name, value, attr_type=None):
     if attr_type:
         if attr_type.startswith("geo:"):
             return "geometry", value  # handled externally
-        elif attr_type == "DateTime":
+        if attr_type == "DateTime" or is_possible_datetime(value):
             try:
-                dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
-                value = format_timestamp(dt, tz='Europe/Madrid')
-            except Exception as e:
-                logger.warning(f"⚠️ Error formatting DateTime for '{name}': {e}")
-            return "string", value
+                value = normalize_datetime_string(value)
+                return "string", value
+            except Exception:
+                logger.warning(f"⚠️ Error formatting timeinstant: {e}")
+                return "string", value
         elif attr_type == "Number":
             return "float", value
         elif attr_type == "Integer":
@@ -151,14 +132,13 @@ def infer_field_type(name, value, attr_type=None):
         return "int32", value
     elif isinstance(value, float):
         return "float", value
-    elif name.lower() == "timeinstant":
+    elif name.lower() == "timeinstant" or is_possible_datetime(value):
         try:
-            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
-            dt = dt.astimezone(pytz.timezone('Europe/Madrid'))
-            value = format_timestamp(dt, tz='Europe/Madrid')
-        except Exception as e:
+            value = normalize_datetime_string(value)
+            return "string", value
+        except Exception:
             logger.warning(f"⚠️ Error formatting timeinstant: {e}")
-        return "string", value
+            return "string", value
     else:
         return "string", value
     

@@ -27,7 +27,8 @@ import json
 import re
 from datetime import datetime, timezone
 
-from app.types_utils import sanitize_topic, extract_timestamp, format_timestamp, encode_mongo
+from app.types_utils import encode_mongo
+from app.datetime_helpers import format_datetime_iso, extract_timeinstant_epoch
 from app.kafka_utils import build_kafka_key
 from app.entity_handler import build_target_table, handle_entity_cb
 from app.metrics import start_metrics_server, messages_processed, processing_time
@@ -128,8 +129,8 @@ async def process_lastdata(stream):
                 continue
 
             # Check previous timestamp
-            current_ts = extract_timestamp(body)
-            last_ts = last_seen_timestamps[entity_id]
+            current_ts = extract_timeinstant_epoch(body)
+            last_ts = last_seen_timestamps.get(entity_id, 0.0)
 
             if current_ts >= last_ts:
                 # Normal update
@@ -211,7 +212,7 @@ async def process_errors(stream):
             full_error_msg += f"\nCaused by: {cause_msg}"
         
         # Get timestamp
-        timestamp = format_timestamp(tz='Europe/Madrid')
+        timestamp = format_datetime_iso(tz='UTC')
         
         # Get database name
         db_name = headers.get("__connect.errors.topic", "")
