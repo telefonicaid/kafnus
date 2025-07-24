@@ -33,7 +33,7 @@ from shapely.wkb import loads as load_wkb
 from shapely.wkt import loads as load_wkt
 from shapely.geometry import shape
 import binascii
-
+import re
 
 
 class PostgisValidator:
@@ -156,6 +156,14 @@ class PostgisValidator:
                             return False
                         if val not in actual_value:
                             return False
+                    elif op == "regex":
+                        if not (isinstance(actual_value, str) and isinstance(val, str)):
+                            return False
+                        try:
+                            if not re.search(val, actual_value):
+                                return False
+                        except re.error as e:
+                            print(f"⚠️ Invalid regex: {val} – {e}")
 
             else:
                 # Try parse expected as JSON

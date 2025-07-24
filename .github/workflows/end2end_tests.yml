@@ -15,7 +15,7 @@ jobs:
     env:
       KAFNUS_TESTS_USE_EXTERNAL_POSTGIS: "false"
       KAFNUS_TESTS_E2E_MANUAL_INSPECTION: "false"
-      KAFNUS_TESTS_LOG_LEVEL: DEBUG
+      KAFNUS_TESTS_LOG_LEVEL: INFO
       KAFNUS_DBPATH_POSTGIS: /data/postgis
       KAFNUS_POSTGIS_IMAGE: postgis/postgis:15-3.3
 
@@ -59,4 +59,4 @@ jobs:
         working-directory: tests_end2end/functional
         run: |
           source .venv/bin/activate
-          pytest -s test_pipeline.py -k "003_errors"
+          pytest -s test_pipeline.py
