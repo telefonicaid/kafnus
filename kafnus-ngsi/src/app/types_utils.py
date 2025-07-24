@@ -116,13 +116,13 @@ def infer_field_type(name, value, attr_type=None):
             return "int32", value
         elif attr_type == "Boolean":
             return "boolean", value
-        elif attr_type == "json":
+        elif attr_type in {"json", "StructuredValue"}:
             try:
                 return "string", json.dumps(value, ensure_ascii=False)
             except Exception as e:
                 logger.warning(f"⚠️ Error serializing '{name}' as JSON: {e}")
                 return "string", str(value)
-        elif attr_type == "Text":
+        else: # attr_type == "Text":
             return "string", value
 
     # Fallback to Python type inference
@@ -132,6 +132,13 @@ def infer_field_type(name, value, attr_type=None):
         return "int32", value
     elif isinstance(value, float):
         return "float", value
+    elif isinstance(value, (list, dict)):
+        # Catch StructuredValues without attr_type
+        try:
+            return "string", json.dumps(value, ensure_ascii=False)
+        except Exception as e:
+            logger.warning(f"⚠️ Error serializing '{name}' as JSON: {e}")
+            return "string", str(value)
     elif name.lower() == "timeinstant" or is_possible_datetime(value):
         try:
             value = normalize_datetime_string(value)
