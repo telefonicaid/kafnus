@@ -1,0 +1,44 @@
+[ 
+  {
+    "table": "test.access_errors",
+    "rows": [
+      {
+      "entityid": "NPO-test",
+      "entitytype": "Errors",
+      "timeinstant": "2025-05-05T11:35:00Z",
+      "averagestay": 15
+     },
+     {
+      "entityid": "NPO-test",
+      "entitytype": "Errors",
+      "timeinstant": { "type": "DateTime", "value": "2025-05-05T11:50:00Z" },
+      "bool_col": { "type": "Boolean", "value": true },
+      "text_col": { "type": "Number", "value": "{ \"a\": 1, \"b\": 2 }" },
+      "not_null_col": { "type": "Text", "value": "not_null" },
+      "int_col": { "type": "Number", "value": 1 },
+      "averagestay": { "type": "Number", "value": 17 }
+     }
+    ]
+  },
+  {
+    "table": "test.test_error_log",
+    "rows": [
+      {
+        "query": { "contains": "INSERT INTO \"test\".\"access_errors\"" },
+        "error": { "contains": "ERROR: column \"bool_col\" is of type boolean but expression is of type integer"}
+      },
+      {
+        "query": { "contains": "INSERT INTO \"test\".\"access_errors\"" },
+        "error": { "contains": "ERROR: null value in column \"not_null_col\" violates not-null constraint" }
+      },
+      {
+        "query": { "contains": "INSERT INTO \"test\".\"access_errors\"" },
+        "error": { "contains": "ERROR: column \"int_col\" is of type integer but expression is of type character varying" }
+      },
+      {
+        "query": { "contains": "INSERT INTO \"test\".\"access_errors\"" },
+        "error": { "contains": "ERROR: duplicate key value violates unique constraint \"access_errors_pkey\"" }
+      }
+    ]
+  }
+]

@@ -151,6 +151,11 @@ class PostgisValidator:
                         return False
                     elif op == "eq" and actual_value != val:
                         return False
+                    elif op == "contains":
+                        if not (isinstance(actual_value, str) and isinstance(val, str)):
+                            return False
+                        if val not in actual_value:
+                            return False
 
             else:
                 # Try parse expected as JSON
