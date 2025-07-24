@@ -27,45 +27,9 @@ from utils.scenario_loader import load_scenario
 from utils.postgis_validator import PostgisValidator
 from utils.sql_runner import execute_sql_file
 from config import logger
-import os
+from utils.scenario_loader import discover_scenarios, load_description
 
-from config import SCENARIOS_DIR, DEFAULT_DB_CONFIG
-
-from pathlib import Path
-
-def discover_scenarios():
-    """
-    Recursively discovers all test scenarios by scanning the SCENARIOS_DIR.
-    Returns a list of tuples:
-    - scenario name (relative path from SCENARIOS_DIR)
-    - path to input.json
-    - path to expected_pg.json
-    - optional path to setup.sql if it exists
-    """
-    logger.debug(f"🔍 Recursively scanning for test scenarios in: {SCENARIOS_DIR}")
-    cases = []
-
-    for dirpath, _, filenames in os.walk(SCENARIOS_DIR):
-        dir_path = Path(dirpath)
-        input_json = dir_path / "input.json"
-        expected_json = dir_path / "expected_pg.json"
-        setup_sql = dir_path / "setup.sql"
-
-        if input_json.exists() and expected_json.exists():
-            relative_name = str(dir_path.relative_to(SCENARIOS_DIR))
-            logger.debug(f"✅ Found scenario: {relative_name}")
-            if setup_sql.exists():
-                logger.debug(f"↪️ Includes setup SQL: {setup_sql.name}")
-            else:
-                logger.debug(f"↪️ No setup SQL for: {relative_name}")
-            cases.append((relative_name, input_json, expected_json, setup_sql if setup_sql.exists() else None))
-        else:
-            if "input.json" in filenames or "expected_pg.json" in filenames:
-                logger.warning(f"⚠️ Partial scenario in: {dir_path} (missing input.json or expected_pg.json)")
-
-    logger.debug(f"🔢 Total scenarios discovered: {len(cases)}")
-    return cases
-
+from config import DEFAULT_DB_CONFIG
 
 @pytest.mark.parametrize("scenario_name, input_json, expected_json, setup_sql", discover_scenarios())
 def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multiservice_stack):
@@ -83,6 +47,12 @@ def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multi
     - multiservice_stack: Pytest fixture providing connection info to deployed services.
     """
     logger.info(f"🧪 Running scenario: {scenario_name}")
+
+    # Step 0: Load scenario description if available
+    scenario_dir = input_json.parent
+    desc = load_description(scenario_dir)
+    if desc:
+        logger.info(f"0. Description: {desc}")
 
     # Step 1: Execute setup SQL
     if setup_sql:
