@@ -108,7 +108,7 @@ class PostgisValidator:
                         shape(expected_value) if self._is_geojson(expected_value) else load_wkt(expected_value)
                     )
 
-                    # # Detect if actual_value is WKB hex (only hex chars, even length, starts with '01' or '00')
+                    # Detect if actual_value is WKB hex (only hex chars, even length, starts with '01' or '00')
                     is_wkb_hex = all(c in "0123456789ABCDEFabcdef" for c in actual_value) and len(actual_value) % 2 == 0
 
                     actual_geom = (
