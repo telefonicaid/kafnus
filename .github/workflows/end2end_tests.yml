@@ -61,7 +61,7 @@ jobs:
           docker pull confluentinc/cp-kafka:7.9.0
           docker pull telefonicaiot/fiware-orion
           docker pull mongo:8.0
-          docker eclipse-mosquitto:latest
+          docker pull eclipse-mosquitto:latest
           docker pull telefonicaiot/kafnus-connect
 
       - name: Build kafnus-ngsi image
