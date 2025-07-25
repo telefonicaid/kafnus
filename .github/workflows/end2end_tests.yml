@@ -65,7 +65,7 @@ jobs:
           docker pull telefonicaiot/kafnus-connect
 
       - name: Build kafnus-ngsi image
-        working-directory: ../../kafnus-ngsi
+        working-directory: kafnus-ngsi
         run: |
           docker build --no-cache -t kafnus-ngsi .
       
