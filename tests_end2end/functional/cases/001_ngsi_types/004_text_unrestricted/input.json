@@ -1,0 +1,64 @@
+
+{
+  "name": "text_unrestricted_test",
+  "fiware-service": "test",
+  "fiware-servicepath": "/unrestricted",
+  "subscriptions": {
+    "historic": {
+      "description": "Zone:HISTORIC:unrestricted:historic",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Zone"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_historic"
+        },
+        "attrs": [
+          "name",
+          "TimeInstant",
+          "dangerousAttr",
+          "zone",
+          "zip"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+    "id": "Zone-Unrestricted",
+    "type": "Zone",
+    "name": {
+        "value": "Normal Name",
+        "type": "Text"
+    },
+    "dangerousAttr": {
+        "type": "TextUnrestricted",
+        "value": "<script>alert('xss');</script> = 'foo'; (test)"
+    },
+    "TimeInstant": {
+        "value": "2025-07-23T12:00:00Z",
+        "type": "DateTime"
+    },
+    "zone": {
+        "value": "Zone-Unrestricted",
+        "type": "Text"
+    },
+    "zip": {
+        "value": "12345",
+        "type": "Text"
+    }
+    }
+]
+}

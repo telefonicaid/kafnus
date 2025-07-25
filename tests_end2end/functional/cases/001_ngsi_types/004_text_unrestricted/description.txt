@@ -1,0 +1,1 @@
+Verifies the behavior of the 'Text' type in unrestricted mode, allowing flexible input without strict schema enforcement.

@@ -94,6 +94,15 @@
         "value": "2025-06-26T11:00:00Z"
       },
       "temperature": {"value": 25.0, "type": "Float"}
+    },
+    {
+      "id": "Sensor1",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:00:00Z"
+      },
+      "temperature": {"value": 26.0, "type": "Float"}
     }
   ]
 }

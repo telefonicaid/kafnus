@@ -436,6 +436,9 @@ class OrionAdapter:
                 headers=headers_
             )
             logger.debug(f"[Orion update] {response.status_code} {response.content}")
+            if response.status_code == 413:
+                logger.error("❌ Request too large, please check the input data size.")
+
             assert response.status_code in [201, 204]
 
 

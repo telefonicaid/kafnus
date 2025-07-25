@@ -1,0 +1,22 @@
+[
+{
+  "table": "test.simple_sensor",
+  "rows": [
+    {"entityid": "Sensor1", "entitytype": "Sensor", "temperature": 25.0, "fiwareservicepath": "/simple"},
+    {"entityid": "Sensor1", "entitytype": "Sensor", "temperature": 26.0, "fiwareservicepath": "/simple"}
+  ]
+},
+{
+  "table": "test.simple_sensor_mutable",
+  "rows": [
+    {"entityid": "Sensor1", "entitytype": "Sensor", "timeinstant": "2025-06-26T11:00:00Z", "temperature": 25.0, "fiwareservicepath": "/simple"},
+    {"entityid": "Sensor1", "entitytype": "Sensor", "timeinstant": "2025-06-26T12:00:00Z", "temperature": 26.0, "fiwareservicepath": "/simple"}
+  ]
+},
+{
+  "table": "test.simple_sensor_lastdata",
+  "rows": [
+    {"entityid": "Sensor1", "entitytype": "Sensor", "timeinstant": "2025-06-26T12:00:00Z", "temperature": 26.0, "fiwareservicepath": "/simple"}
+  ]
+}
+]

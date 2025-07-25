@@ -7,7 +7,7 @@ CREATE SCHEMA IF NOT EXISTS test;
 DROP TABLE IF EXISTS test.test_error_log;
 
 CREATE TABLE test.test_error_log (
-    "timestamp" TIMESTAMP NOT NULL,
+    "timestamp" TIMESTAMPTZ NOT NULL,
     error TEXT NOT NULL,
     query TEXT NULL
 );

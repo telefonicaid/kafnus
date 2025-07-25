@@ -1,0 +1,1 @@
+Tests correct handling and storage of various GeoJSON types: Point, Polygon, LineString, MultiPoint, MultiLineString, MultiPolygon, Feature, FeatureCollection, and ZoneIgnored.

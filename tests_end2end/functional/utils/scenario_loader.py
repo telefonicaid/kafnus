@@ -25,6 +25,45 @@
 import json
 from common_test import OrionRequestData
 from config import logger
+from typing import Optional
+from pathlib import Path
+import os
+
+from config import SCENARIOS_DIR
+
+def discover_scenarios():
+    """
+    Recursively discovers all test scenarios by scanning the SCENARIOS_DIR.
+    Returns a list of tuples:
+    - scenario name (relative path from SCENARIOS_DIR)
+    - path to input.json
+    - path to expected_pg.json
+    - optional path to setup.sql if it exists
+    """
+    logger.debug(f"🔍 Recursively scanning for test scenarios in: {SCENARIOS_DIR}")
+    cases = []
+
+    for dirpath, _, filenames in os.walk(SCENARIOS_DIR):
+        dir_path = Path(dirpath)
+        input_json = dir_path / "input.json"
+        expected_json = dir_path / "expected_pg.json"
+        setup_sql = dir_path / "setup.sql"
+
+        if input_json.exists() and expected_json.exists():
+            relative_name = str(dir_path.relative_to(SCENARIOS_DIR))
+            logger.debug(f"✅ Found scenario: {relative_name}")
+            if setup_sql.exists():
+                logger.debug(f"↪️ Includes setup SQL: {setup_sql.name}")
+            else:
+                logger.debug(f"↪️ No setup SQL for: {relative_name}")
+            cases.append((relative_name, input_json, expected_json, setup_sql if setup_sql.exists() else None))
+        else:
+            if "input.json" in filenames or "expected_pg.json" in filenames:
+                logger.warning(f"⚠️ Partial scenario in: {dir_path} (missing input.json or expected_pg.json)")
+
+    cases.sort(key=lambda c: c[0])  # Sort by scenario name (relative path)
+    logger.debug(f"🔢 Total scenarios discovered: {len(cases)}")
+    return cases
 
 def load_scenario(json_path, as_expected=False):
     """
@@ -57,3 +96,18 @@ def load_scenario(json_path, as_expected=False):
             subscriptions=data["subscriptions"],
             updateEntities=data["updateEntities"]
         )
+
+def load_description(scenario_dir: Path) -> Optional[str]:
+    """
+    Loads a human-readable description from a scenario's description.txt file, if present.
+
+    Parameters:
+    - scenario_dir: Path to the scenario directory
+
+    Returns:
+    - Description string or None if not found
+    """
+    desc_path = scenario_dir / "description.txt"
+    if desc_path.exists():
+        return desc_path.read_text(encoding="utf-8").strip()
+    return None

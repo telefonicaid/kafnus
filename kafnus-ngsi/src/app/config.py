@@ -26,7 +26,7 @@ import os
 
 KAFNUS_NGSI_KAFKA_BROKER = os.getenv("KAFNUS_NGSI_KAFKA_BROKER", "kafka://kafka:9092")
 KAFNUS_NGSI_METRICS_PORT = int(os.getenv("KAFNUS_NGSI_METRICS_PORT", "8000"))
-TIMEZONE = os.getenv("KAFNUS_NGSI_DEFAULT_TZ", "Europe/Madrid")
+TIMEZONE = os.getenv("KAFNUS_NGSI_DEFAULT_TZ", "UTC")
 
 def get_logging_config():
     """
