@@ -1,0 +1,326 @@
+[
+  {
+    "table": "test.parking_zone",
+    "rows": [
+      {
+        "entityid": "Zone-Point",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone Point",
+        "timeinstant": "2025-05-15T12:00:00Z",
+        "location": "POINT (-1.7038 1.4168)",
+        "zone": "Zone-Point",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-Polygon",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone Polygon",
+        "timeinstant": "2025-05-15T13:00:00Z",
+        "polygon": "POLYGON ((-1.704 1.4168, -1.703 1.4175, -1.702 1.4162, -1.704 1.4168))",
+        "zone": "Zone-Polygon",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-LineString",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone LineString",
+        "timeinstant": "2025-05-15T14:00:00Z",
+        "linestring": "LINESTRING (-1.7038 1.4168, -1.7028 1.4178)",
+        "zone": "Zone-LineString",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-MultiPoint",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone MultiPoint",
+        "timeinstant": "2025-05-15T15:00:00Z",
+        "multipoint": "MULTIPOINT ((-1.7038 1.4168), (-1.7028 1.4178))",
+        "zone": "Zone-MultiPoint",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-MultiLineString",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone MultiLineString",
+        "timeinstant": "2025-05-15T16:00:00Z",
+        "multilinestring": "MULTILINESTRING ((-1.7038 1.4168, -1.7028 1.4178), (-1.7018 1.4188, -1.7008 1.4198))",
+        "zone": "Zone-MultiLineString",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-MultiPolygon",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone MultiPolygon",
+        "timeinstant": "2025-05-15T17:00:00Z",
+        "multipolygon": "MULTIPOLYGON (((-1.704 1.4168, -1.703 1.4175, -1.702 1.4162, -1.704 1.4168)), ((-1.714 1.4268, -1.713 1.4275, -1.712 1.4262, -1.714 1.4268)))",
+        "zone": "Zone-MultiPolygon",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-Point",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone Point",
+        "timeinstant": "2025-05-15T12:30:00Z",
+        "location": {
+          "type": "Point",
+          "coordinates": [-2.7038, 2.4168]
+        },
+        "zone": "Zone-Point",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-Polygon",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone Polygon",
+        "timeinstant": "2025-05-15T13:30:00Z",
+        "polygon": {
+          "type": "Polygon",
+          "coordinates": [[
+            [-2.7040, 2.4168],
+            [-2.7030, 2.4175],
+            [-2.7020, 2.4162],
+            [-2.7040, 2.4168]
+          ]]
+        },
+        "zone": "Zone-Polygon",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-LineString",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone LineString",
+        "timeinstant": "2025-05-15T14:30:00Z",
+        "linestring": {
+          "type": "LineString",
+          "coordinates": [
+            [-2.7038, 2.4168],
+            [-2.7028, 2.4178]
+          ]
+        },
+        "zone": "Zone-LineString",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-MultiPoint",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone MultiPoint",
+        "timeinstant": "2025-05-15T15:30:00Z",
+        "multipoint": {
+          "type": "MultiPoint",
+          "coordinates": [
+            [-2.7038, 2.4168],
+            [-2.7028, 2.4178]
+          ]
+        },
+        "zone": "Zone-MultiPoint",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-MultiLineString",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone MultiLineString",
+        "timeinstant": "2025-05-15T16:30:00Z",
+        "multilinestring": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [-2.7038, 2.4168],
+              [-2.7028, 2.4178]
+            ],
+            [
+              [-2.7018, 2.4188],
+              [-2.7008, 2.4198]
+            ]
+          ]
+        },
+        "zone": "Zone-MultiLineString",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-MultiPolygon",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone MultiPolygon",
+        "timeinstant": "2025-05-15T17:30:00Z",
+        "multipolygon": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [[-2.7040, -2.4168], [-2.7030, -2.4175], [-2.7020, -2.4162], [-2.7040, -2.4168]]
+            ],
+            [
+              [[-2.7140, -2.4268], [-2.7130, -2.4275], [-2.7120, -2.4262], [-2.7140, -2.4268]]
+            ]
+          ]
+        },
+        "zone": "Zone-MultiPolygon",
+        "zip": "12345"
+      }
+    ]
+  },
+  {
+    "table": "test.parking_zone_lastdata",
+    "rows": [
+      {
+        "entityid": "Zone-Point",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone Point",
+        "timeinstant": "2025-05-15T12:30:00Z",
+        "location": {
+          "type": "Point",
+          "coordinates": [-2.7038, 2.4168]
+        },
+        "zone": "Zone-Point",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-Polygon",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone Polygon",
+        "timeinstant": "2025-05-15T13:30:00Z",
+        "polygon": {
+          "type": "Polygon",
+          "coordinates": [[
+            [-2.7040, 2.4168],
+            [-2.7030, 2.4175],
+            [-2.7020, 2.4162],
+            [-2.7040, 2.4168]
+          ]]
+        },
+        "zone": "Zone-Polygon",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-LineString",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone LineString",
+        "timeinstant": "2025-05-15T14:30:00Z",
+        "linestring": {
+          "type": "LineString",
+          "coordinates": [
+            [-2.7038, 2.4168],
+            [-2.7028, 2.4178]
+          ]
+        },
+        "zone": "Zone-LineString",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-MultiPoint",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone MultiPoint",
+        "timeinstant": "2025-05-15T15:30:00Z",
+        "multipoint": {
+          "type": "MultiPoint",
+          "coordinates": [
+            [-2.7038, 2.4168],
+            [-2.7028, 2.4178]
+          ]
+        },
+        "zone": "Zone-MultiPoint",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-MultiLineString",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone MultiLineString",
+        "timeinstant": "2025-05-15T16:30:00Z",
+        "multilinestring": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [-2.7038, 2.4168],
+              [-2.7028, 2.4178]
+            ],
+            [
+              [-2.7018, 2.4188],
+              [-2.7008, 2.4198]
+            ]
+          ]
+        },
+        "zone": "Zone-MultiLineString",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-MultiPolygon",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone MultiPolygon",
+        "timeinstant": "2025-05-15T17:30:00Z",
+        "multipolygon": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [[-2.7040, -2.4168], [-2.7030, -2.4175], [-2.7020, -2.4162], [-2.7040, -2.4168]]
+            ],
+            [
+              [[-2.7140, -2.4268], [-2.7130, -2.4275], [-2.7120, -2.4262], [-2.7140, -2.4268]]
+            ]
+          ]
+        },
+        "zone": "Zone-MultiPolygon",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-Feature",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone Feature",
+        "timeinstant": "2025-05-15T18:00:00Z",
+        "location": {
+          "type": "Point",
+          "coordinates": [-3.7038, 3.4168]
+        },
+        "zone": "Zone-Feature",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-FeatureCollection",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone FeatureCollection",
+        "timeinstant": "2025-05-15T19:00:00Z",
+        "location": {
+          "type": "Polygon",
+          "coordinates": [[
+            [-3.7040, 3.4168],
+            [-3.7030, 3.4175],
+            [-3.7020, 3.4162],
+            [-3.7040, 3.4168]
+          ]]
+        },
+        "zone": "Zone-FeatureCollection",
+        "zip": "12345"
+      },
+      {
+        "entityid": "Zone-Ignored",
+        "entitytype": "Zone",
+        "fiwareservicepath": "/parking",
+        "name": "Zone Ignored",
+        "timeinstant": "2025-05-15T20:00:00Z",
+        "location":{
+          "type": "Point",
+          "coordinates": [-4.7038, 4.4168]
+        },
+        "zone": "Zone-Ignored",
+        "zip": "12345"
+      }
+    ]
+  }
+]

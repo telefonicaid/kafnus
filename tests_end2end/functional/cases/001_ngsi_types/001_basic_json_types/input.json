@@ -1,0 +1,43 @@
+{
+  "name": "json_native_types_test",
+  "fiware-service": "test",
+  "fiware-servicepath": "/types",
+  "subscriptions": {
+    "historic": {
+      "description": "Zone:HISTORIC:types_zone",
+      "status": "active",
+      "subject": {
+        "entities": [{ "idPattern": ".*", "type": "Zone" }],
+        "condition": { "attrs": ["TimeInstant"] }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_historic"
+        },
+        "attrs": [
+          "TimeInstant",
+          "str_col",
+          "number_col",
+          "bool_col",
+          "null_col",
+          "obj_col",
+          "array_col"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "ZoneJsonTypes",
+      "type": "Zone",
+      "TimeInstant": { "type": "DateTime", "value": "2025-07-23T14:00:00Z" },
+      "str_col": { "type": "Text", "value": "hello world" },
+      "number_col": { "type": "Number", "value": 123.456 },
+      "bool_col": { "type": "Boolean", "value": true },
+      "null_col": { "type": "Text", "value": null },
+      "obj_col": { "type": "StructuredValue", "value": { "a": 1, "b": "two" } },
+      "array_col": { "type": "StructuredValue", "value": [1, "two", false] }
+    }
+  ]
+}

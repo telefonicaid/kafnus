@@ -31,6 +31,7 @@ tests_end2end/functional/
 │   ├── 000A_simple/
 │   │   ├── input.json
 │   │   ├── expected_pg.json
+│   │   ├── description.txt
 │   │   └── setup.sql
 │   ├── ...
 ├── test_pipeline.py
@@ -49,6 +50,7 @@ Each test case directory under `cases/` includes:
 - `input.json`: CB subscriptions and update entities
 - `expected_pg.json`: Expected DB rows after processing
 - `setup.sql`: (optional) SQL schema/tables setup
+- `description.txt`: (optional) Human-readable test description shown in logs
 
 ---
 
@@ -58,6 +60,7 @@ Each test case directory under `cases/` includes:
 2. Each case is parametrized into a Pytest test.
 3. When launched:
    - A full test environment is deployed using **Testcontainers**
+   - Optional `description.txt` is displayed
    - Optional `setup.sql` is applied to create schemas/tables
    - `input.json` is parsed to send CB subscriptions and entity updates
    - The resulting DB state is validated against `expected_pg.json`

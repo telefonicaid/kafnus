@@ -27,42 +27,9 @@ from utils.scenario_loader import load_scenario
 from utils.postgis_validator import PostgisValidator
 from utils.sql_runner import execute_sql_file
 from config import logger
+from utils.scenario_loader import discover_scenarios, load_description
 
-from config import SCENARIOS_DIR, DEFAULT_DB_CONFIG
-
-def discover_scenarios():
-    """
-    Discovers all test scenarios by scanning the 'cases' directory.
-    Returns a list of tuples containing:
-    - scenario name
-    - path to input.json
-    - path to expected_pg.json
-    - optional path to setup.sql if it exists
-    """
-    logger.debug(f"🔍 Scanning for test scenarios in: {SCENARIOS_DIR}")
-    cases = []
-
-    for test_dir in sorted(SCENARIOS_DIR.iterdir()):
-        if not test_dir.is_dir():
-            logger.debug(f"⏭️ Skipping non-directory: {test_dir}")
-            continue
-
-        input_json = test_dir / "input.json"
-        expected_json = test_dir / "expected_pg.json"
-        setup_sql = test_dir / "setup.sql"
-
-        if input_json.exists() and expected_json.exists():
-            logger.debug(f"✅ Found scenario: {test_dir.name}")
-            if setup_sql.exists():
-                logger.debug(f"↪️ Includes setup SQL: {setup_sql.name}")
-            else:
-                logger.debug(f"↪️ No setup SQL for: {test_dir.name}")
-            cases.append((test_dir.name, input_json, expected_json, setup_sql if setup_sql.exists() else None))
-        else:
-            logger.debug(f"❌ Incomplete scenario in: {test_dir} (missing input.json or expected_pg.json)")
-
-    logger.debug(f"🔢 Total scenarios discovered: {len(cases)}")
-    return cases
+from config import DEFAULT_DB_CONFIG
 
 @pytest.mark.parametrize("scenario_name, input_json, expected_json, setup_sql", discover_scenarios())
 def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multiservice_stack):
@@ -80,6 +47,12 @@ def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multi
     - multiservice_stack: Pytest fixture providing connection info to deployed services.
     """
     logger.info(f"🧪 Running scenario: {scenario_name}")
+
+    # Step 0: Load scenario description if available
+    scenario_dir = input_json.parent
+    desc = load_description(scenario_dir)
+    if desc:
+        logger.info(f"0. Description: {desc}")
 
     # Step 1: Execute setup SQL
     if setup_sql:

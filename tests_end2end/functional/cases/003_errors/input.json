@@ -1,0 +1,77 @@
+{
+  "name": "access_type_mismatch_test",
+  "fiware-service": "test",
+  "fiware-servicepath": "/access",
+  "subscriptions": {
+    "historic": {
+      "description": "Access:HISTORIC:errors:historic",
+      "int_col": "active",
+      "subject": {
+        "entities": [{ "idPattern": ".*", "type": "Errors" }],
+        "condition": { "attrs": ["timeinstant"] }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_historic"
+        },
+        "attrs": [
+          "timeinstant",
+          "bool_col",
+          "text_col",
+          "not_null_col",
+          "int_col",
+          "averagestay"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "NPO-test",
+      "type": "Errors",
+      "timeinstant": { "type": "DateTime", "value": "2025-05-05T11:35:00Z" },
+      "averagestay": { "type": "Number", "value": 15 },
+      "not_null_col": { "type": "Text", "value": "not_null" }
+    },
+    {
+      "id": "NPO-test",
+      "type": "Errors",
+      "timeinstant": { "type": "DateTime", "value": "2025-05-05T11:40:00Z" },
+      "bool_col": { "type": "Number", "value": 67 }
+    },
+    {
+      "id": "NPO-test",
+      "type": "Errors",
+      "timeinstant": { "type": "DateTime", "value": "2025-05-05T11:45:00Z" },
+      "bool_col": { "type": "Boolean", "value": true },
+      "text_col": { "type": "Text", "value": { "a": 1, "b": 2 } },
+      "not_null_col": { "type": "Text", "value": null }
+    },
+    {
+      "id": "NPO-test",
+      "type": "Errors",
+      "timeinstant": { "type": "DateTime", "value": "2025-05-05T11:50:00Z" },
+      "bool_col": { "type": "Boolean", "value": true },
+      "text_col": { "type": "Text", "value": { "a": 1, "b": 2 } },
+      "not_null_col": { "type": "Text", "value": "not_null" },
+      "int_col": { "type": "Text", "value": "abierto" }
+    },
+    {
+      "id": "NPO-test",
+      "type": "Errors",
+      "timeinstant": { "type": "DateTime", "value": "2025-05-05T11:55:00Z" },
+      "bool_col": { "type": "Boolean", "value": true },
+      "text_col": { "type": "Number", "value": { "a": 1, "b": 2 } },
+      "not_null_col": { "type": "Text", "value": "not_null" },
+      "int_col": { "type": "Number", "value": 1 },
+      "averagestay": { "type": "Number", "value": 17 }
+    },
+    {
+      "id": "NPO-test",
+      "type": "Errors",
+      "timeinstant": { "type": "DateTime", "value": "2025-05-05T11:35:00Z" },
+      "averagestay": { "type": "Number", "value": 16 }
+    }
+  ]
+}

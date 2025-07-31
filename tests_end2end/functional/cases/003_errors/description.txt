@@ -1,0 +1,5 @@
+Validates handling of non-transient errors during database insertion. Covers:
+- Type mismatch: inserting an integer into a boolean column.
+- Null constraint violation.
+- Type mismatch: inserting a string into an integer column.
+- Primary key constraint violation (duplicate keys).

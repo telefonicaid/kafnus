@@ -6,7 +6,7 @@
   },
   "body": {
     "entityId": "PZ-123",
-    "entityType": "zone",
+    "entityType": "Zone",
     "attributes": [
       {
         "attrName": "name",
