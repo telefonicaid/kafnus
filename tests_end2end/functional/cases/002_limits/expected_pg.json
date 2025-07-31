@@ -1,0 +1,17 @@
+[
+{
+  "table": "test.limit_sensor",
+  "rows": [
+  ]
+},
+{
+  "table": "test.limit_sensor_mutable",
+  "rows": [
+  ]
+},
+{
+  "table": "test.limit_sensor_lastdata",
+  "rows": [
+  ]
+}
+]

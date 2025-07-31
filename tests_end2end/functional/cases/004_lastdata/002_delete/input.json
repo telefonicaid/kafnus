@@ -1,0 +1,44 @@
+{
+  "name": "delete_test_case",
+  "fiware-service": "test",
+  "fiware-servicepath": "/delete",
+  "subscriptions": {
+    "lastdata": {
+      "description": "Sensor:LASTDATA:delete:lastdata",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_lastdata"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature"
+        ]
+      }
+    },
+  "updateEntities": [
+    {
+      "id": "Sensor1",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:00:00Z"
+      }
+    }
+  ]
+}
+}
