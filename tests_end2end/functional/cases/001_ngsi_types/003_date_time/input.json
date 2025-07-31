@@ -1,0 +1,358 @@
+{
+  "name": "datetime_test",
+  "fiware-service": "test",
+  "fiware-servicepath": "/date",
+  "subscriptions": {
+    "historic": {
+      "description": "Zone:HISTORIC:date:historic",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Zone"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_historic"
+        },
+        "attrs": [
+          "name",
+          "TimeInstant",
+          "timeinstant_tz",
+          "timeinstant_no_tz",
+          "timeinstant_wo_tz"
+        ]
+      }
+    },
+    "lastdata": {
+      "description": "Zone:LASTDATA:date:lastdata",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Zone"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ],
+          "alterationTypes": [
+            "entityUpdate",
+            "entityCreate",
+            "entityDelete"
+          ]
+        }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_lastdata"
+        },
+        "attrs": [
+          "name",
+          "TimeInstant",
+          "timeinstant_tz",
+          "timeinstant_no_tz",
+          "timeinstant_wo_tz"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "Zone-DateOnly",
+      "type": "Zone",
+      "TimeInstant": {
+        "value": "2025-05-15",
+        "type": "DateTime"
+      },
+      "timeinstant_tz": {
+        "value": "2025-05-15",
+        "type": "DateTime"
+      },
+      "timeinstant_no_tz": {
+        "value": "2025-05-15",
+        "type": "DateTime"
+      },
+      "timeinstant_wo_tz": {
+        "value": "2025-05-15",
+        "type": "DateTime"
+      }
+    },
+    {
+      "id": "Zone-DateTimeNoTz",
+      "type": "Zone",
+      "TimeInstant": {
+        "value": "2025-05-15T12:00:01",
+        "type": "DateTime"
+      },
+      "timeinstant_tz": {
+        "value": "2025-05-15T12:00:01",
+        "type": "DateTime"
+      },
+      "timeinstant_no_tz": {
+        "value": "2025-05-15T12:00:01",
+        "type": "DateTime"
+      },
+      "timeinstant_wo_tz": {
+        "value": "2025-05-15T12:00:01",
+        "type": "DateTime"
+      }
+    },
+    {
+      "id": "Zone-DateTimeMillisZ",
+      "type": "Zone",
+      "TimeInstant": {
+        "value": "2025-05-15T12:00:02.123Z",
+        "type": "DateTime"
+      },
+      "timeinstant_tz": {
+        "value": "2025-05-15T12:00:02.123Z",
+        "type": "DateTime"
+      },
+      "timeinstant_no_tz": {
+        "value": "2025-05-15T12:00:02.123Z",
+        "type": "DateTime"
+      },
+      "timeinstant_wo_tz": {
+        "value": "2025-05-15T12:00:02.123Z",
+        "type": "DateTime"
+      }
+    },
+    {
+      "id": "Zone-DateTimeMillisOffset",
+      "type": "Zone",
+      "TimeInstant": {
+        "value": "2025-05-15T12:00:03.123+02:00",
+        "type": "DateTime"
+      },
+      "timeinstant_tz": {
+        "value": "2025-05-15T12:00:03.123+02:00",
+        "type": "DateTime"
+      },
+      "timeinstant_no_tz": {
+        "value": "2025-05-15T12:00:03.123+02:00",
+        "type": "DateTime"
+      },
+      "timeinstant_wo_tz": {
+        "value": "2025-05-15T12:00:03.123+02:00",
+        "type": "DateTime"
+      }
+    },
+    {
+      "id": "Zone-DateTimeShortTz",
+      "type": "Zone",
+      "TimeInstant": {
+        "value": "2025-05-15T12:00:04+02",
+        "type": "DateTime"
+      },
+      "timeinstant_tz": {
+        "value": "2025-05-15T12:00:04+02",
+        "type": "DateTime"
+      },
+      "timeinstant_no_tz": {
+        "value": "2025-05-15T12:00:04+02",
+        "type": "DateTime"
+      },
+      "timeinstant_wo_tz": {
+        "value": "2025-05-15T12:00:04+02",
+        "type": "DateTime"
+      }
+    },
+    {
+      "id": "Zone-DateTimeShortTzNoColon",
+      "type": "Zone",
+      "TimeInstant": {
+        "value": "2025-05-15T12:00:05+0200",
+        "type": "DateTime"
+      },
+      "timeinstant_tz": {
+        "value": "2025-05-15T12:00:05+0200",
+        "type": "DateTime"
+      },
+      "timeinstant_no_tz": {
+        "value": "2025-05-15T12:00:05+0200",
+        "type": "DateTime"
+      },
+      "timeinstant_wo_tz": {
+        "value": "2025-05-15T12:00:05+0200",
+        "type": "DateTime"
+      }
+    },
+    {
+      "id": "Zone-DateTimeNoSeconds",
+      "type": "Zone",
+      "TimeInstant": {
+        "value": "2025-05-15T12:01Z",
+        "type": "DateTime"
+      },
+      "timeinstant_tz": {
+        "value": "2025-05-15T12:01Z",
+        "type": "DateTime"
+      },
+      "timeinstant_no_tz": {
+        "value": "2025-05-15T12:01Z",
+        "type": "DateTime"
+      },
+      "timeinstant_wo_tz": {
+        "value": "2025-05-15T12:01Z",
+        "type": "DateTime"
+      }
+    },
+    {
+      "id": "Zone-DateTimeNoSecondsNoTz",
+      "type": "Zone",
+      "TimeInstant": {
+        "value": "2025-05-15T12:02",
+        "type": "DateTime"
+      },
+      "timeinstant_tz": {
+        "value": "2025-05-15T12:02",
+        "type": "DateTime"
+      },
+      "timeinstant_no_tz": {
+        "value": "2025-05-15T12:02",
+        "type": "DateTime"
+      },
+      "timeinstant_wo_tz": {
+        "value": "2025-05-15T12:02",
+        "type": "DateTime"
+      }
+    },
+    {
+      "id": "Zone-DateTimeHourOnly",
+      "type": "Zone",
+      "TimeInstant": {
+        "value": "2025-05-15T13",
+        "type": "DateTime"
+      },
+      "timeinstant_tz": {
+        "value": "2025-05-15T13",
+        "type": "DateTime"
+      },
+      "timeinstant_no_tz": {
+        "value": "2025-05-15T13",
+        "type": "DateTime"
+      },
+      "timeinstant_wo_tz": {
+        "value": "2025-05-15T13",
+        "type": "DateTime"
+      }
+    },
+    {
+      "id": "Zone-DateTimeISO8601Type",
+      "type": "Zone",
+      "TimeInstant": {
+        "value": "2025-05-15T14:00:00Z",
+        "type": "ISO8601"
+      },
+      "timeinstant_tz": {
+        "value": "2025-05-15T14:00:00Z",
+        "type": "ISO8601"
+      },
+      "timeinstant_no_tz": {
+        "value": "2025-05-15T14:00:00Z",
+        "type": "ISO8601"
+      },
+      "timeinstant_wo_tz": {
+        "value": "2025-05-15T14:00:00Z",
+        "type": "ISO8601"
+      }
+    },
+    {
+      "id": "Zone-DateTimeNull",
+      "type": "Zone",
+      "TimeInstant": {
+        "value": "2025-05-15T15:00:00Z",
+        "type": "DateTime"
+      },
+      "timeinstant_tz": {
+        "value": null,
+        "type": "DateTime"
+      },
+      "timeinstant_no_tz": {
+        "value": null,
+        "type": "DateTime"
+      },
+      "timeinstant_wo_tz": {
+        "value": null,
+        "type": "DateTime"
+      }
+    },
+    {
+      "id": "Zone-DateTimeMetadata",
+      "type": "Zone",
+      "timestamp": {
+        "value": "2025-05-15T16:00:00.000Z",
+        "type": "Text",
+        "metadata": {
+          "dateCreated": {
+            "value": "2025-05-15T16:00:00.000Z",
+            "type": "DateTime"
+          }
+        }
+      },
+      "timeinstant_tz": {
+        "value": "2025-05-15T16:00:00.000Z",
+        "type": "DateTime",
+        "metadata": {
+          "dateCreated": {
+            "value": "2025-05-15T16:00:00.000Z",
+            "type": "DateTime"
+          }
+        }
+      },
+      "timeinstant_no_tz": {
+        "value": "2025-05-15T16:00:00.000Z",
+        "type": "DateTime",
+        "metadata": {
+          "dateCreated": {
+            "value": "2025-05-15T16:00:00.000Z",
+            "type": "DateTime"
+          }
+        }
+      },
+      "timeinstant_wo_tz": {
+        "value": "2025-05-15T16:00:00.000Z",
+        "type": "DateTime",
+        "metadata": {
+          "dateCreated": {
+            "value": "2025-05-15T16:00:00.000Z",
+            "type": "DateTime"
+          }
+        }
+      }
+    },
+    {
+      "id": "Zone-DateTime",
+      "type": "Zone",
+      "TimeInstant": {
+        "value": "2025-05-15T12:00:00Z",
+        "type": "DateTime"
+      },
+      "timeinstant_tz": {
+        "value": "2025-05-15T12:00:00+00:00",
+        "type": "DateTime"
+      },
+      "timeinstant_no_tz": {
+        "value": "2025-05-15T12:00:00",
+        "type": "DateTime"
+      },
+      "timeinstant_wo_tz": {
+        "value": "2025-05-15T12:00:00",
+        "type": "DateTime"
+      }
+    }
+  ]
+}

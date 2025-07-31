@@ -28,7 +28,7 @@ import re
 from shapely import wkt
 from shapely.geometry import shape # https://shapely.readthedocs.io/en/stable/manual.html#shapely.geometry.shape
 import base64
-from app.datetime_helpers import normalize_datetime_string, is_possible_datetime
+from app.datetime_helpers import normalize_datetime_string, is_possible_datetime, to_epoch_millis
 
 import logging
 logger = logging.getLogger(__name__)
@@ -105,11 +105,14 @@ def infer_field_type(name, value, attr_type=None):
             return "geometry", value  # handled externally
         if attr_type == "DateTime" or is_possible_datetime(value):
             try:
-                value = normalize_datetime_string(value)
-                return "string", value
-            except Exception:
-                logger.warning(f"⚠️ Error formatting timeinstant: {e}")
-                return "string", value
+                epoch_ms = to_epoch_millis(value)
+                return {
+                    "type": "int64",
+                    "name": "org.apache.kafka.connect.data.Timestamp"
+                }, epoch_ms
+            except Exception as e:
+                logger.warning(f"⚠️ Error parsing datetime for field '{name}': {e}")
+                return "string", str(value)
         elif attr_type == "Number":
             return "float", value
         elif attr_type == "Integer":
@@ -141,11 +144,14 @@ def infer_field_type(name, value, attr_type=None):
             return "string", str(value)
     elif name.lower() == "timeinstant" or is_possible_datetime(value):
         try:
-            value = normalize_datetime_string(value)
-            return "string", value
-        except Exception:
-            logger.warning(f"⚠️ Error formatting timeinstant: {e}")
-            return "string", value
+            epoch_ms = to_epoch_millis(value)
+            return {
+                "type": "int64",
+                "name": "org.apache.kafka.connect.data.Timestamp"
+            }, epoch_ms
+        except Exception as e:
+            logger.warning(f"⚠️ Error parsing datetime for field '{name}': {e}")
+            return "string", str(value)
     else:
         return "string", value
     
