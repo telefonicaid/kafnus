@@ -1,3 +1,8 @@
 [
-    
+    {
+    "table": "test.delete_sensor_lastdata",
+    "rows": [
+        {"entityid": "Sensor2", "entitytype": "Sensor", "temperature": 22.0, "fiwareservicepath": "/delete"}
+    ]
+    }
 ]

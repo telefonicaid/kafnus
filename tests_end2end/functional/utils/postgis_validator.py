@@ -215,3 +215,36 @@ class PostgisValidator:
         return isinstance(value, str) and any(
             value.strip().upper().startswith(t) for t in ["POINT", "LINESTRING", "POLYGON", "MULTIPOINT", "MULTILINESTRING", "MULTIPOLYGON"]
         )
+    
+    def validate_absent(self, table, forbidden_rows, timeout=10, poll_interval=0.5):
+        """
+        Validates that the specified rows are NOT present in the table.
+
+        - `forbidden_rows`: list of dicts that must NOT appear in the table.
+        - Repeats until all forbidden rows are gone, or timeout is reached.
+        """
+        logger.info(f"🚫 Validating ABSENCE from table {table} with timeout={timeout}")
+        start = time.time()
+
+        while time.time() - start < timeout:
+            actual = self._query_table(table)
+
+            if self._none_of_forbidden_rows(actual, forbidden_rows):
+                logger.debug(f"✅ Validation successful: forbidden rows absent from {table}")
+                return True
+
+            time.sleep(poll_interval)
+
+        logger.error(f"❌ Timeout: Forbidden data still present in {table}")
+        return False
+
+
+    def _none_of_forbidden_rows(self, actual_rows, forbidden_rows):
+        """
+        Returns True if none of the forbidden rows is found in the actual rows.
+        """
+        for forbidden in forbidden_rows:
+            if any(self._row_matches(forbidden, actual) for actual in actual_rows):
+                logger.debug(f"🚫 Forbidden row still present: {forbidden}")
+                return False
+        return True

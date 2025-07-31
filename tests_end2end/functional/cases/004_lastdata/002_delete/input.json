@@ -27,18 +27,43 @@
         "attrs": [
           "TimeInstant",
           "temperature"
+        ],
+        "alterationTypes": [
+          "entityUpdate",
+          "entityCreate",
+          "entityDelete"
         ]
       }
-    },
+    }
+  },
   "updateEntities": [
     {
       "id": "Sensor1",
       "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
-        "value": "2025-06-26T12:00:00Z"
+        "value": "2025-06-26T11:00:00Z"
+      },
+      "temperature": {"value": 21.0, "type": "Float"},
+      "dateExpires": {
+        "type": "DateTime",
+        "value": "2025-06-26T11:00:00Z"
       }
+    },
+    {
+      "id": "Sensor2",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:00:00Z"
+      },
+      "temperature": {"value": 22.0, "type": "Float"}
+    }
+  ],
+  "deleteEntities": [
+    {
+      "id": "Sensor1",
+      "type": "Sensor"
     }
   ]
-}
 }
