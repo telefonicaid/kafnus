@@ -54,7 +54,7 @@ services:
     build:
       context: ../kafnus-ngsi
       dockerfile: Dockerfile
-    image: kafnus-ngsi
+    image: kafnus-ngsi # telefonicaiot/kafnus-ngsi
     depends_on:
       kafka:
         condition: service_healthy
