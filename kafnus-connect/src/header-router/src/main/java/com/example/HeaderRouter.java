@@ -60,7 +60,7 @@
 
 
 
-package com.example;
+package com.telefonica;
 
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.ConnectRecord;

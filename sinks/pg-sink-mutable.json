@@ -21,7 +21,7 @@
     
     "transforms": "HeaderRouter,convertTimestamp,convertRecvTime",
 
-    "transforms.HeaderRouter.type": "com.example.HeaderRouter",
+    "transforms.HeaderRouter.type": "com.telefonica.HeaderRouter",
     "transforms.HeaderRouter.header.key": "target_table",
 
     "transforms.convertTimestamp.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
