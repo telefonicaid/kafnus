@@ -78,14 +78,25 @@ def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multi
 
     for table_data in expected_data:
         table = table_data["table"]
-        rows = table_data["rows"]
-        result = validator.validate(table, rows)
-        if result is not True:
-            logger.error(f"❌ Validation failed in table: {table}")
-            all_valid = False
-            errors.append(f"❌ Error in table: {table}")
-        else:
-            logger.debug(f"✅ Table {table} validated successfully")
+        if "rows" in table_data:
+            rows = table_data["rows"]
+            result = validator.validate(table, rows)
+            if result is not True:
+                logger.error(f"❌ Validation failed in table: {table}")
+                all_valid = False
+                errors.append(f"❌ Error in table: {table} (present rows)")
+            else:
+                logger.debug(f"✅ Table {table} validated successfully (present rows)")
+
+        if "absent" in table_data:
+            forbidden_rows = table_data["absent"]
+            result = validator.validate_absent(table, forbidden_rows)
+            if result is not True:
+                logger.error(f"❌ Forbidden rows found in table: {table}")
+                all_valid = False
+                errors.append(f"❌ Error in table: {table} (forbidden rows)")
+            else:
+                logger.debug(f"✅ Table {table} validated successfully (forbidden rows absent)")
 
     if all_valid:
         logger.info(f"✅ Scenario {scenario_name} passed successfully.")
