@@ -75,16 +75,23 @@ def is_possible_datetime(value: str) -> bool:
     except Exception:
         return False
 
-def to_epoch_seconds(value: str) -> float:
+def to_epoch_millis(value: str) -> int:
     """
-    Converts an ISO8601 string to epoch seconds (UTC).
+    Converts an ISO8601 string to epoch milliseconds (UTC).
     """
     try:
         dt = parser.isoparse(value.replace("Z", "+00:00"))
-        return dt.timestamp()
+        return int(dt.timestamp() * 1000)
     except Exception as e:
-        logger.warning(f"⚠️ Could not convert '{value}' to epoch seconds: {e}")
-        return 0.0
+        logger.warning(f"⚠️ Could not convert '{value}' to epoch millis: {e}")
+        return 0
+
+def current_epoch_millis():
+    """
+    Returns the current UTC time as milliseconds since Unix epoch.
+    Compatible with Kafka Connect 'Timestamp' schema type.
+    """
+    return int(datetime.now(tz=pytz.UTC).timestamp() * 1000)
 
 def extract_timeinstant_epoch(entity: dict) -> float:
     """
@@ -97,7 +104,7 @@ def extract_timeinstant_epoch(entity: dict) -> float:
             ts = entity.get("timestamp")
 
         if ts:
-            return to_epoch_seconds(ts)
+            return to_epoch_millis(ts)
     except Exception as e:
         logger.warning(f"⚠️ Failed to extract timestamp: {e}")
     return 0.0

@@ -28,7 +28,7 @@ import re
 from datetime import datetime, timezone
 
 from app.types_utils import encode_mongo
-from app.datetime_helpers import format_datetime_iso, extract_timeinstant_epoch
+from app.datetime_helpers import format_datetime_iso, extract_timeinstant_epoch, current_epoch_millis
 from app.kafka_utils import build_kafka_key
 from app.entity_handler import build_target_table, handle_entity_cb
 from app.metrics import start_metrics_server, messages_processed, processing_time
@@ -212,7 +212,7 @@ async def process_errors(stream):
             full_error_msg += f"\nCaused by: {cause_msg}"
         
         # Get timestamp
-        timestamp = format_datetime_iso(tz='UTC')
+        timestamp = current_epoch_millis()
         
         # Get database name
         db_name = headers.get("__connect.errors.topic", "")
@@ -270,7 +270,7 @@ async def process_errors(stream):
             "schema": {
                 "type": "struct",
                 "fields": [
-                    {"field": "timestamp", "type": "string", "optional": False},
+                    {"field": "timestamp", "type": "int64", "name": "org.apache.kafka.connect.data.Timestamp", "optional": False},
                     {"field": "error", "type": "string", "optional": False},
                     {"field": "query", "type": "string", "optional": True}
                 ],
