@@ -4,5 +4,11 @@
     "rows": [
         {"entityid": "Sensor2", "entitytype": "Sensor", "temperature": 22.0, "fiwareservicepath": "/delete"}
     ]
+    },
+    {
+    "table": "test.delete_sensor_lastdata",
+    "absent": [
+        {"entityid": "Sensor1"}
+    ]
     }
 ]
