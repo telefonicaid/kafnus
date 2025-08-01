@@ -208,7 +208,7 @@
       "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
-        "value": "2025-07-31T10:09:00Z"
+        "value": "2025-07-31T10:10:00Z"
       },
       "geom_polygon": {
         "type": "geo:json",
@@ -231,7 +231,7 @@
       "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
-        "value": "2025-07-31T10:10:00Z"
+        "value": "2025-07-31T10:11:00Z"
       },
       "value_real": {
         "type": "Number",
@@ -243,7 +243,7 @@
       "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
-        "value": "2025-07-31T10:11:00Z"
+        "value": "2025-07-31T10:12:00Z"
       },
       "value_numeric": {
         "type": "Number",

@@ -1,17 +1,96 @@
 [
-{
-  "table": "test.limit_sensor",
-  "rows": [
-  ]
-},
-{
-  "table": "test.limit_sensor_mutable",
-  "rows": [
-  ]
-},
-{
-  "table": "test.limit_sensor_lastdata",
-  "rows": [
-  ]
-}
+  {
+    "table": "test.limit_sensor",
+    "rows": [
+      {
+        "entityid": "Sensor:LimitTest:01",
+        "entitytype": "Sensor",
+        "timeinstant": "2025-07-31T10:00:00Z",
+        "value_real": 3.4028235e+38
+      },
+      {
+        "entityid": "Sensor:LimitTest:02",
+        "entitytype": "Sensor",
+        "timeinstant": "2025-07-31T10:01:00Z"
+      },
+      {
+        "entityid": "Sensor:LimitTest:03",
+        "entitytype": "Sensor",
+        "timeinstant": "2025-07-31T10:02:00Z"
+      },
+      {
+        "entityid": "Sensor:LimitTest:04",
+        "entitytype": "Sensor",
+        "timeinstant": "2025-07-31T10:03:00Z",
+        "value_smallint": 32767
+      },
+      {
+        "entityid": "Sensor:LimitTest:05",
+        "entitytype": "Sensor",
+        "timeinstant": "2025-07-31T10:04:00Z",
+        "value_integer": 2147483647
+      },
+      {
+        "entityid": "Sensor:LimitTest:07",
+        "entitytype": "Sensor",
+        "timeinstant": "2025-07-31T10:06:00Z",
+        "geom_point": "POINT (180 90)"
+      },
+      {
+        "entityid": "Sensor:LimitTest:08",
+        "entitytype": "Sensor",
+        "timeinstant": "2025-07-31T10:07:00Z",
+        "geom_point": "POINT (-180 -90)"
+      },
+      {
+        "entityid": "Sensor:LimitTest:10",
+        "entitytype": "Sensor",
+        "timeinstant": "2025-07-31T10:10:00Z",
+        "geom_polygon": {
+          "type": "Polygon",
+          "coordinates": [[
+            [0, 0],
+            [0, 1],
+            [1, 1],
+            [1, 0],
+            [0, 0]
+          ]]
+        }
+      },
+      {
+        "entityid": "Sensor:LimitTest:11",
+        "entitytype": "Sensor",
+        "timeinstant": "2025-07-31T10:11:00Z"
+      }
+    ]
+  },
+  {
+    "table": "test.limit_sensor_lastdata",
+    "rows": [
+      
+    ]
+  },
+  {
+    "table": "test.limit_sensor_mutable",
+    "rows": [
+      
+    ]
+  },
+  {
+    "table": "test.test_error_log",
+    "rows": [
+      {
+        "query": { "contains": "INSERT INTO \"test\".\"limit_sensor\"" },
+        "error": { "contains": "ERROR: bigint out of range"}
+      },
+      {
+        "query": { "contains": "INSERT INTO \"test\".\"limit_sensor_lastdata\"" },
+        "error": { "contains": "ERROR: bigint out of range"}
+      },
+      {
+        "query": { "contains": "INSERT INTO \"test\".\"limit_sensor_mutable\"" },
+        "error": { "contains": "ERROR: bigint out of range"}
+      }
+    ]
+  }
 ]
