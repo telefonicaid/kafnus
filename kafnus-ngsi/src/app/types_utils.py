@@ -100,10 +100,16 @@ def infer_field_type(name, value, attr_type=None):
     Also transforms the value if needed (e.g. formatting dates, serializing JSON).
     Returns a tuple (field_type, processed_value).
     """
+    name_lc = name.lower()
+
     if attr_type:
         if attr_type.startswith("geo:"):
             return "geometry", value  # handled externally
-        if attr_type == "DateTime" or is_possible_datetime(value):
+
+        if attr_type == "DateTime":
+            if name_lc in {"timeinstant", "recvtime"}:
+                # Keep as ISO string for known fields
+                return "string", str(value)
             try:
                 epoch_ms = to_epoch_millis(value)
                 return {
@@ -125,10 +131,24 @@ def infer_field_type(name, value, attr_type=None):
             except Exception as e:
                 logger.warning(f"⚠️ Error serializing '{name}' as JSON: {e}")
                 return "string", str(value)
-        else: # attr_type == "Text":
+        else:  # attr_type == "Text", or unknown
             return "string", value
 
-    # Fallback to Python type inference
+    # Fallback to guessing by name/value
+    if name_lc in {"timeinstant", "recvtime"}:
+        return "string", str(value)
+
+    if is_possible_datetime(value):
+        try:
+            epoch_ms = to_epoch_millis(value)
+            return {
+                "type": "int64",
+                "name": "org.apache.kafka.connect.data.Timestamp"
+            }, epoch_ms
+        except Exception as e:
+            logger.warning(f"⚠️ Error parsing datetime for field '{name}': {e}")
+            return "string", str(value)
+
     if isinstance(value, bool):
         return "boolean", value
     elif isinstance(value, int):
@@ -141,16 +161,6 @@ def infer_field_type(name, value, attr_type=None):
             return "string", json.dumps(value, ensure_ascii=False)
         except Exception as e:
             logger.warning(f"⚠️ Error serializing '{name}' as JSON: {e}")
-            return "string", str(value)
-    elif name.lower() == "timeinstant" or is_possible_datetime(value):
-        try:
-            epoch_ms = to_epoch_millis(value)
-            return {
-                "type": "int64",
-                "name": "org.apache.kafka.connect.data.Timestamp"
-            }, epoch_ms
-        except Exception as e:
-            logger.warning(f"⚠️ Error parsing datetime for field '{name}': {e}")
             return "string", str(value)
     else:
         return "string", value

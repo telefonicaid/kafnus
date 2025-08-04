@@ -24,7 +24,7 @@
 
 import json
 from app.types_utils import infer_field_type
-from app.datetime_helpers import current_epoch_millis
+from app.datetime_helpers import format_datetime_iso
 
 def to_kafnus_connect_schema(entity: dict, schema_overrides: dict = None):
     """
@@ -41,6 +41,18 @@ def to_kafnus_connect_schema(entity: dict, schema_overrides: dict = None):
         if k in schema_overrides:
             schema_fields.append(schema_overrides[k])
             payload[k] = v
+            continue
+
+        # Treat 'timeinstant' and 'recvtime' as ISO strings, always
+        if k.lower() in {"timeinstant", "recvtime"}:
+            field_type = "string"
+            is_optional = v is None
+            schema_fields.append({
+                "field": k,
+                "type": field_type,
+                "optional": is_optional
+            })
+            payload[k] = str(v)
             continue
 
         field_type, v = infer_field_type(k, v)
@@ -62,14 +74,13 @@ def to_kafnus_connect_schema(entity: dict, schema_overrides: dict = None):
         schema_fields.append(schema_field)
         payload[k] = v
 
-    # Add recvtime in Kafka Connect Timestamp format
+    # Add recvtime (current timestamp) explicitly
     schema_fields.append({
         "field": "recvtime",
-        "type": "int64",
-        "name": "org.apache.kafka.connect.data.Timestamp",
+        "type": "string",
         "optional": False
     })
-    payload["recvtime"] = current_epoch_millis()
+    payload["recvtime"] = format_datetime_iso(tz='UTC')
 
     return {
         "schema": {

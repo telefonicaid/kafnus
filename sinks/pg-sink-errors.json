@@ -17,6 +17,12 @@
     "value.converter.schemas.enable": true,
     "key.converter": "org.apache.kafka.connect.json.JsonConverter",
 
+    "transforms": "convertTimestamp",
+    "transforms.convertTimestamp.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
+    "transforms.convertTimestamp.target.type": "Timestamp",
+    "transforms.convertTimestamp.field": "timestamp",
+    "transforms.convertTimestamp.format": "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+
     "errors.tolerance": "all",
     "errors.log.enable": true,
     "errors.log.include.messages": true
