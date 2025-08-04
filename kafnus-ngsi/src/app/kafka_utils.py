@@ -29,7 +29,7 @@ from app.datetime_helpers import format_datetime_iso
 def to_kafnus_connect_schema(entity: dict, schema_overrides: dict = None):
     """
     Builds a Kafnus Connect compatible schema and payload dict from the entity dict.
-    Allows overriding field schemas (used mainly for geo attributes).
+    Allows overriding field schemas (used mainly for geo or datetime attributes).
     """
     schema_fields = []
     payload = {}
@@ -42,26 +42,45 @@ def to_kafnus_connect_schema(entity: dict, schema_overrides: dict = None):
             schema_fields.append(schema_overrides[k])
             payload[k] = v
             continue
-        
-        field_type, v = infer_field_type(k, v)
 
+        # Treat 'timeinstant' and 'recvtime' as ISO strings, always
+        if k.lower() in {"timeinstant", "recvtime"}:
+            field_type = "string"
+            is_optional = v is None
+            schema_fields.append({
+                "field": k,
+                "type": field_type,
+                "optional": is_optional
+            })
+            payload[k] = str(v)
+            continue
+
+        field_type, v = infer_field_type(k, v)
         is_optional = v is None
-        schema_fields.append({
-            "field": k,
-            "type": field_type,
-            "optional": is_optional
-        })
+
+        if isinstance(field_type, dict):
+            schema_field = {
+                "field": k,
+                **field_type,
+                "optional": is_optional
+            }
+        else:
+            schema_field = {
+                "field": k,
+                "type": field_type,
+                "optional": is_optional
+            }
+
+        schema_fields.append(schema_field)
         payload[k] = v
 
-    # Add processing timestamp field
-    recvtime = format_datetime_iso(tz='UTC')
-
+    # Add recvtime (current timestamp) explicitly
     schema_fields.append({
         "field": "recvtime",
         "type": "string",
         "optional": False
     })
-    payload["recvtime"] = recvtime
+    payload["recvtime"] = format_datetime_iso(tz='UTC')
 
     return {
         "schema": {

@@ -28,7 +28,7 @@ import re
 from datetime import datetime, timezone
 
 from app.types_utils import encode_mongo
-from app.datetime_helpers import format_datetime_iso, extract_timeinstant_epoch
+from app.datetime_helpers import format_datetime_iso, extract_timeinstant_epoch, current_epoch_millis
 from app.kafka_utils import build_kafka_key
 from app.entity_handler import build_target_table, handle_entity_cb
 from app.metrics import start_metrics_server, messages_processed, processing_time
