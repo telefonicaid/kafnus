@@ -212,7 +212,7 @@ async def process_errors(stream):
             full_error_msg += f"\nCaused by: {cause_msg}"
         
         # Get timestamp
-        timestamp = current_epoch_millis()
+        timestamp = format_datetime_iso(tz='UTC')
         
         # Get database name
         db_name = headers.get("__connect.errors.topic", "")
@@ -270,7 +270,7 @@ async def process_errors(stream):
             "schema": {
                 "type": "struct",
                 "fields": [
-                    {"field": "timestamp", "type": "int64", "name": "org.apache.kafka.connect.data.Timestamp", "optional": False},
+                    {"field": "timestamp", "type": "string", "optional": False},
                     {"field": "error", "type": "string", "optional": False},
                     {"field": "query", "type": "string", "optional": True}
                 ],
