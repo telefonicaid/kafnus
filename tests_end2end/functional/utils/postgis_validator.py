@@ -123,16 +123,14 @@ class PostgisValidator:
                     return False
 
             # Timestamp normalization
-            if key in ("timeinstant", "recvtime") and isinstance(expected_value, str):
-                try:
-                    expected_value = dateparser.isoparse(expected_value)
-                    if expected_value.tzinfo is None:
-                        expected_value = expected_value.replace(tzinfo=datetime.timezone.utc)
-                    if isinstance(actual_value, datetime.datetime):
-                        actual_value = actual_value.astimezone(datetime.timezone.utc)
-                except Exception as e:
-                    logger.warning(f"❌ Error parsing timestamp for key '{key}': {e}")
-                    return False
+            if self._looks_like_datetime(expected_value) or self._looks_like_datetime(actual_value):
+                expected_dt = self._normalize_datetime(expected_value)
+                actual_dt = self._normalize_datetime(actual_value)
+
+                if isinstance(expected_dt, datetime.datetime) and isinstance(actual_dt, datetime.datetime):
+                    if abs((expected_dt - actual_dt).total_seconds()) > 0.001:
+                        return False
+                    continue
 
             # Normalize float to int if needed
             if isinstance(expected_value, int) and isinstance(actual_value, float):
@@ -248,3 +246,33 @@ class PostgisValidator:
                 logger.debug(f"🚫 Forbidden row still present: {forbidden}")
                 return False
         return True
+
+    def _looks_like_datetime(self, value):
+        if isinstance(value, datetime.datetime):
+            return True
+        if isinstance(value, str):
+            try:
+                dateparser.parse(value)
+                return True
+            except (ValueError, TypeError):
+                return False
+        return False
+
+    def _normalize_datetime(self, value):
+        if isinstance(value, datetime.datetime):
+            dt = value
+        elif isinstance(value, str):
+            try:
+                dt = dateparser.parse(value)
+            except Exception:
+                return value
+        else:
+            return value
+
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=datetime.timezone.utc)
+        else:
+            dt = dt.astimezone(datetime.timezone.utc)
+
+        return dt
+
