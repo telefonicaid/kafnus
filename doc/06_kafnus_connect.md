@@ -61,7 +61,7 @@ A Java-based Single Message Transform (SMT) implemented in `HeaderRouter.java`. 
 
 ```json
 "transforms": "HeaderRouter",
-"transforms.HeaderRouter.type": "com.example.HeaderRouter",
+"transforms.HeaderRouter.type": "com.telefonica.HeaderRouter",
 "transforms.HeaderRouter.header.key": "target_table"
 ```
 
