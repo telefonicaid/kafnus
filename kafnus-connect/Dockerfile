@@ -72,17 +72,15 @@ RUN cd /tmp/mqtt-kafka-connect && \
     cp target/mqtt-kafka-connect-1.0-jar-with-dependencies.jar /usr/local/share/kafnus-connect/plugins/mqtt-kafka-connect/
 
 # -----------------------------
-# Build JDBC Connector with PostGIS patch
+# Build JDBC Connector from PostGIS fork
 # -----------------------------
-COPY src/own-jdbc-connector/postgis-support.patch /tmp/postgis-support.patch
 RUN cd /tmp && \
-    git clone https://github.com/confluentinc/kafka-connect-jdbc.git && \
+    git clone https://github.com/confluentinc/kafka-connect-jdbc-postgis.git && \
     cd kafka-connect-jdbc && \
-    git checkout v10.7.0 && \
-    git apply /tmp/postgis-support.patch && \
+    git checkout task/add_postgis && \
     mvn clean package -DskipTests -Dcheckstyle.skip=true && \
     mkdir -p /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc && \
-    cp target/kafka-connect-jdbc-10.7.0.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
+    cp target/kafka-connect-jdbc-10.9.0.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
 
 # PostgreSQL JDBC Driver
 RUN wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -P /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
