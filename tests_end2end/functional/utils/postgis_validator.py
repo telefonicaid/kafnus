@@ -34,6 +34,7 @@ from shapely.wkt import loads as load_wkt
 from shapely.geometry import shape
 import binascii
 import re
+from decimal import Decimal, InvalidOperation
 
 
 class PostgisValidator:
@@ -180,25 +181,34 @@ class PostgisValidator:
                     except Exception:
                         pass
 
-                # Normalize types before comparing
-                if isinstance(expected_value, (int, float)) and isinstance(actual_value, str):
-                    try:
-                        actual_value = float(actual_value)
-                    except Exception:
-                        pass
-                if isinstance(expected_value, str) and isinstance(actual_value, (int, float)):
-                    expected_value = str(expected_value)
-
                 # Normalize None/empty string
                 if expected_value in ("", None) and actual_value in ("", None):
                     continue
 
-                # Final equality check (with float tolerance)
-                if isinstance(expected_value, float) and isinstance(actual_value, float):
+                # Normalize types before comparing
+                # Force Decimal conversion if both are numeric
+                numeric_types = (int, float, Decimal)
+                if isinstance(expected_value, numeric_types) and isinstance(actual_value, numeric_types):
+                    try:
+                        expected_value = Decimal(str(expected_value))
+                        actual_value = Decimal(str(actual_value))
+                    except InvalidOperation:
+                        pass  # fallback below if needed
+
+                # Final equality check for Decimal
+                if isinstance(expected_value, Decimal) and isinstance(actual_value, Decimal):
+                    if expected_value.normalize() != actual_value.normalize():
+                        return False
+
+                # Final equality check for float
+                elif isinstance(expected_value, float) and isinstance(actual_value, float):
                     if not math.isclose(expected_value, actual_value, rel_tol=1e-6, abs_tol=1e-6):
                         return False
+
+                # Fallback equality
                 elif actual_value != expected_value:
                     return False
+        # All keys matched successfully
         return True
 
     def _is_geojson(self, value):

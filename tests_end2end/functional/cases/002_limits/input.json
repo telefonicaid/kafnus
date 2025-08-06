@@ -112,42 +112,6 @@
       "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
-        "value": "2025-07-31T10:00:00Z"
-      },
-      "value_real": {
-        "type": "Number",
-        "value": 3.4028235e+38
-      }
-    },
-    {
-      "id": "Sensor:LimitTest:02",
-      "type": "Sensor",
-      "TimeInstant": {
-        "type": "DateTime",
-        "value": "2025-07-31T10:01:00Z"
-      },
-      "value_double": {
-        "type": "Number",
-        "value": 1.7976931348623157e+308
-      }
-    },
-    {
-      "id": "Sensor:LimitTest:03",
-      "type": "Sensor",
-      "TimeInstant": {
-        "type": "DateTime",
-        "value": "2025-07-31T10:02:00Z"
-      },
-      "value_numeric": {
-        "type": "Number",
-        "value": 999999999999999.999999999999999
-      }
-    },
-    {
-      "id": "Sensor:LimitTest:04",
-      "type": "Sensor",
-      "TimeInstant": {
-        "type": "DateTime",
         "value": "2025-07-31T10:03:00Z"
       },
       "value_smallint": {
@@ -156,7 +120,19 @@
       }
     },
     {
-      "id": "Sensor:LimitTest:05",
+      "id": "Sensor:LimitTest:01",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:03:30Z"
+      },
+      "value_smallint": {
+        "type": "Number",
+        "value": -32768
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:02",
       "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
@@ -168,7 +144,19 @@
       }
     },
     {
-      "id": "Sensor:LimitTest:06",
+      "id": "Sensor:LimitTest:02",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:04:30Z"
+      },
+      "value_integer": {
+        "type": "Number",
+        "value": -2147483648
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:03",
       "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
@@ -176,7 +164,67 @@
       },
       "value_bigint": {
         "type": "Number",
-        "value": 9223372036854775807
+        "value": 9223372030000000000
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:03",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:05:30Z"
+      },
+      "value_bigint": {
+        "type": "Number",
+        "value": -9223372030000000000
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:03",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:05:31Z"
+      },
+      "value_bigint": {
+        "type": "Number",
+        "value": 9223372036854775808
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:04",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:00:00Z"
+      },
+      "value_real": {
+        "type": "Number",
+        "value": 3.4028235e+38
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:05",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:01:00Z"
+      },
+      "value_double": {
+        "type": "Number",
+        "value": 0.000000001
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:06",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:02:00Z"
+      },
+      "value_numeric": {
+        "type": "Number",
+        "value": 99.99999999
       }
     },
     {
@@ -217,9 +265,25 @@
           "coordinates": [
             [
               [0, 0],
-              [0, 1],
-              [1, 1],
-              [1, 0],
+              [0, 2],
+              [0, 4],
+              [0, 6],
+              [0, 8],
+              [0, 10],
+              [2, 10],
+              [4, 10],
+              [6, 10],
+              [8, 10],
+              [10, 10],
+              [10, 8],
+              [10, 6],
+              [10, 4],
+              [10, 2],
+              [10, 0],
+              [8, 0],
+              [6, 0],
+              [4, 0],
+              [2, 0],
               [0, 0]
             ]
           ]
@@ -235,7 +299,7 @@
       },
       "value_real": {
         "type": "Number",
-        "value": 1e-38
+        "value": 0.000000001
       }
     },
     {
@@ -247,7 +311,7 @@
       },
       "value_numeric": {
         "type": "Number",
-        "value": 0.000000000000001
+        "value": 0.00000001
       }
     }
   ]

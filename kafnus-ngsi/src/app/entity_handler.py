@@ -92,6 +92,7 @@ async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity
 
             attributes = {}
             schema_overrides = {}
+            attributes_types = {}
 
             for attr_name, attr_data in sorted(ngsi_entity.items()):
                 attr_name = attr_name.lower()
@@ -107,6 +108,7 @@ async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity
                         wkb_struct = to_wkb_struct_from_wkt(wkt_str, attr_name)
                         if wkb_struct:
                             attributes[attr_name] = wkb_struct["payload"]
+                            attributes_types[attr_name] = attr_type
                             schema_overrides[attr_name] = wkb_struct["schema"]
                             continue
                 elif attr_type in ["json", "jsonb"]:
@@ -117,12 +119,13 @@ async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity
                         value = str(value)
 
                 attributes[attr_name] = value
+                attributes_types[attr_name] = attr_type
 
             entity.update(attributes)
             if key_fields is None:
                 key_fields = ["entityid"]
 
-            kafka_message = to_kafnus_connect_schema(entity, schema_overrides)
+            kafka_message = to_kafnus_connect_schema(entity, schema_overrides, attributes_types)
             kafka_key = build_kafka_key(entity, key_fields=key_fields, include_timeinstant=include_timeinstant)
 
             await output_topic.send(

@@ -45,24 +45,31 @@
       "type": "Errors",
       "timeinstant": { "type": "DateTime", "value": "2025-05-05T11:45:00Z" },
       "bool_col": { "type": "Boolean", "value": true },
-      "text_col": { "type": "Text", "value": { "a": 1, "b": 2 } },
-      "not_null_col": { "type": "Text", "value": null }
+      "text_col": { "type": "Text", "value": { "a": 1, "b": 2 } }
     },
     {
       "id": "NPO-test",
       "type": "Errors",
       "timeinstant": { "type": "DateTime", "value": "2025-05-05T11:50:00Z" },
       "bool_col": { "type": "Boolean", "value": true },
-      "text_col": { "type": "Text", "value": { "a": 1, "b": 2 } },
-      "not_null_col": { "type": "Text", "value": "not_null" },
-      "int_col": { "type": "Text", "value": "abierto" }
+      "text_col": { "type": "Text", "value": "text" },
+      "not_null_col": { "type": "Text", "value": null }
     },
     {
       "id": "NPO-test",
       "type": "Errors",
       "timeinstant": { "type": "DateTime", "value": "2025-05-05T11:55:00Z" },
       "bool_col": { "type": "Boolean", "value": true },
-      "text_col": { "type": "Number", "value": { "a": 1, "b": 2 } },
+      "text_col": { "type": "Text", "value": "text" },
+      "not_null_col": { "type": "Text", "value": "not_null" },
+      "int_col": { "type": "Text", "value": "abierto" }
+    },
+    {
+      "id": "NPO-test",
+      "type": "Errors",
+      "timeinstant": { "type": "DateTime", "value": "2025-05-05T12:00:00Z" },
+      "bool_col": { "type": "Boolean", "value": true },
+      "text_col": { "type": "Text", "value": "text" },
       "not_null_col": { "type": "Text", "value": "not_null" },
       "int_col": { "type": "Number", "value": 1 },
       "averagestay": { "type": "Number", "value": 17 }
