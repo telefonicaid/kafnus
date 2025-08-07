@@ -4,7 +4,7 @@
     "fiware-service": "tests",
     "fiware-servicepath": "/accesscount"
   },
-  "body": {
+  "payload": {
     "entityId": "NPO-102",
     "entityType": "Access",
     "attributes": [

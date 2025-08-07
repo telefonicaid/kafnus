@@ -4,7 +4,7 @@
       "fiware-service": "tests",
       "fiware-servicepath": "/routes"
     },
-    "body": {
+    "payload": {
       "entityId": "STOP-001",
       "entityType": "Stop",
       "attributes": [
