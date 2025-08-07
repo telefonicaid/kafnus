@@ -93,31 +93,48 @@ async def process_lastdata(stream):
             raw_value = event.value
             headers = event.message.headers
             header_dict = {k: v.decode() for k, v in headers}
-
-            event_data = json.loads(raw_value)
-            body = event_data.get("body", {})
-            entity_id = body.get("id", "unknown")
-            # IMPORTANT: THIS PART NEEDS TO BE CHECK ACCORDING TO CB NOTIFICATIONS
-            alteration_type = event_data.get("alterationType")
-
-            if not entity_id:
-                continue
-            
             service = header_dict.get("fiware-service", "default").lower()
             servicepath = header_dict.get("fiware-servicepath", "/")
-            entity_type = body.get("type", "unknown").lower()
 
-            if alteration_type == "entityDelete":
+            event_data = json.loads(raw_value)
+            payload_str = event_data.get("payload")
+            if not payload_str:
+                logger.warning("⚠️ No payload in raw_value")
+                continue
+
+            payload = json.loads(payload_str)
+            data_list = payload.get("data", [])
+            if not data_list:
+                logger.warning("⚠️ No data in payload")
+                continue
+
+            entity_raw = data_list[0]
+            entity_id = entity_raw.get("id")
+            entity_type = entity_raw.get("type", "unknown").lower()
+            alteration = entity_raw.get("alterationType", {})
+            if isinstance(alteration, dict):
+                alteration_type = alteration.get("value", "entityupdate").lower()
+            else:
+                alteration_type = str(alteration).lower()
+
+            if not entity_id:
+                logger.warning("⚠️ No entity ID found")
+                continue
+
+            if alteration_type == "entitydelete":
                 delete_entity = {
                     "entityid": entity_id,
                     "entitytype": entity_type,
                     "fiwareservicepath": servicepath
                 }
 
-                target_table = build_target_table(service, servicepath, entity_id, entity_type, suffix="_lastdata", datamodel=DATAMODEL)
+                target_table = build_target_table(
+                    DATAMODEL, service, servicepath,
+                    entity_id, entity_type, suffix="_lastdata"
+                )
                 topic_name = f"{service}_lastdata"
                 output_topic = app.topic(topic_name)
-                kafka_key = build_kafka_key(delete_entity, include_timeinstant=False)
+                kafka_key = build_kafka_key(delete_entity, key_fields=["entityid"], include_timeinstant=False)
 
                 await output_topic.send(
                     key=kafka_key,
@@ -129,7 +146,7 @@ async def process_lastdata(stream):
                 continue
 
             # Check previous timestamp
-            current_ts = extract_timeinstant_epoch(body)
+            current_ts = extract_timeinstant_epoch(entity_raw)
             last_ts = last_seen_timestamps.get(entity_id, 0.0)
 
             if current_ts >= last_ts:

@@ -106,11 +106,13 @@ def infer_field_type(name, value, attr_type=None):
         if attr_type.startswith("geo:"):
             return "geometry", value  # handled externally
 
-        if attr_type == "DateTime":
+        if attr_type == "DateTime" or attr_type == "ISO8601":
             if name_lc in {"timeinstant", "recvtime"}:
                 # Keep as ISO string for known fields
                 return "string", str(value)
             try:
+                if value is None:
+                    return "string", None
                 epoch_ms = to_epoch_millis(value)
                 return {
                     "type": "int64",
@@ -119,10 +121,27 @@ def infer_field_type(name, value, attr_type=None):
             except Exception as e:
                 logger.warning(f"⚠️ Error parsing datetime for field '{name}': {e}")
                 return "string", str(value)
+        elif attr_type == "Float":
+            return "float", float(value)
         elif attr_type == "Number":
-            return "float", value
-        elif attr_type == "Integer":
-            return "int32", value
+            # Handle Number type with specific ranges
+            if isinstance(value, int):
+                if -(2**31) <= value <= 2**31 - 1:
+                    return "int32", value
+                elif -(2**63) <= value <= 2**63 - 1:
+                    return "int64", value
+                else:
+                    logger.warning(f"⚠️ Integer fuera de rango BIGINT: {value}")
+                    return "string", str(value)  # Fallback
+            elif isinstance(value, float):
+                return "double", value
+            else:
+                try:
+                    value = float(value)
+                    return "double", value
+                except:
+                    return "string", str(value)
+
         elif attr_type == "Boolean":
             return "boolean", value
         elif attr_type in {"json", "StructuredValue"}:
@@ -151,10 +170,16 @@ def infer_field_type(name, value, attr_type=None):
 
     if isinstance(value, bool):
         return "boolean", value
-    elif isinstance(value, int):
-        return "int32", value
+    if isinstance(value, int):
+        if -(2**31) <= value <= 2**31 - 1:
+            return "int32", value
+        elif -(2**63) <= value <= 2**63 - 1:
+            return "int64", value
+        else:
+            logger.warning(f"⚠️ Integer fuera de rango BIGINT: {value}")
+            return "string", str(value)  # Fallback
     elif isinstance(value, float):
-        return "float", value
+        return "double", value
     elif isinstance(value, (list, dict)):
         # Catch StructuredValues without attr_type
         try:

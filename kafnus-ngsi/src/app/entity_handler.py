@@ -47,94 +47,98 @@ async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity
     Consumes NGSI notifications coming via FIWARE Context Broker, processes and transforms them into Kafnus Connect format.
     Assumes raw_value is a JSON string with a payload field containing another JSON string with 'data' array.
     """
-    event = json.loads(raw_value)
-    payload_str = event.get("payload")
-    if not payload_str:
-        logger.warning("⚠️ No payload found in message")
-        return
+    def get_fiware_context(headers, fallback_event):
+        if headers:
+            hdict = {k: v.decode() for k, v in headers}
+            service = hdict.get("fiware-service", "default").lower()
+            servicepath = hdict.get("fiware-servicepath", "/").lower()
+        else:
+            service = fallback_event.get("fiware-service", "default").lower()
+            servicepath = fallback_event.get("fiware-servicepath", "/").lower()
+        if not servicepath.startswith("/"):
+            servicepath = "/" + servicepath
+        return service, servicepath
 
     try:
+        message = json.loads(raw_value)
+        payload_str = message.get("payload")
+        if not payload_str:
+            logger.warning("⚠️ No payload found in message")
+            return
+
         payload = json.loads(payload_str)
+        entities = payload.get("data", [])
+        if not entities:
+            logger.warning("⚠️ No entities found in payload")
+            return
+
+        service, servicepath = get_fiware_context(headers, message)
+
+        for ngsi_entity in entities:
+            entity_id = ngsi_entity.get("id", "unknown")
+            entity_type = ngsi_entity.get("type", "unknown")
+
+            target_table = build_target_table(
+                datamodel, service, servicepath, entity_id, entity_type, suffix
+            )
+            topic_name = f"{service}{suffix}"
+            output_topic = app.topic(topic_name)
+
+            entity = {
+                "entityid": entity_id,
+                "entitytype": entity_type,
+                "fiwareservicepath": servicepath
+            }
+
+            attributes = {}
+            schema_overrides = {}
+            attributes_types = {}
+
+            for attr_name, attr_data in sorted(ngsi_entity.items()):
+                attr_name = attr_name.lower()
+                if attr_name in ["id", "type", "alterationtype", "fiware-service", "fiware-servicepath"]:
+                    continue
+
+                value = attr_data.get("value")
+                attr_type = attr_data.get("type", "")
+
+                if attr_type.startswith("geo:"):
+                    wkt_str = to_wkt_geometry(attr_type, value)
+                    if wkt_str:
+                        wkb_struct = to_wkb_struct_from_wkt(wkt_str, attr_name)
+                        if wkb_struct:
+                            attributes[attr_name] = wkb_struct["payload"]
+                            attributes_types[attr_name] = attr_type
+                            schema_overrides[attr_name] = wkb_struct["schema"]
+                            continue
+                elif attr_type in ["json", "jsonb"]:
+                    try:
+                        value = json.dumps(value, ensure_ascii=False)
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error serializing field '{attr_name}' as JSON: {e}")
+                        value = str(value)
+
+                attributes[attr_name] = value
+                attributes_types[attr_name] = attr_type
+
+            entity.update(attributes)
+            if key_fields is None:
+                key_fields = ["entityid"]
+
+            kafka_message = to_kafnus_connect_schema(entity, schema_overrides, attributes_types)
+            kafka_key = build_kafka_key(entity, key_fields=key_fields, include_timeinstant=include_timeinstant)
+
+            await output_topic.send(
+                key=kafka_key,
+                value=json.dumps(kafka_message).encode("utf-8"),
+                headers=[("target_table", target_table.encode())]
+            )
+
+            logger.info(
+                f"✅ [{suffix.lstrip('_') or 'historic'}] Sent to topic '{topic_name}' "
+                f"(table: '{target_table}'): {entity.get('entityid')}"
+            )
+
     except Exception as e:
-        logger.error(f"❌ Error parsing payload: {e}")
-        return
-
-    if headers:
-        header_dict = {k: v.decode() for k, v in headers}
-        service = header_dict.get("fiware-service", "default").lower()
-        servicepath = header_dict.get("fiware-servicepath", "/").lower()
-        if not servicepath.startswith("/"):
-            servicepath = "/" + servicepath
-
-    else:
-        service = event.get("fiware-service", "default").lower()
-        servicepath = event.get("fiware-servicepath", "/").lower()
-        if not servicepath.startswith("/"):
-            servicepath = "/" + servicepath
-
-    #logger.info("HEADERS (service+servicepath):")
-    #logger.info(service)
-    #logger.info(servicepath)
-
-    for entity_raw in payload.get("data", []):
-        entity_id = entity_raw.get("id", "unknown")
-        entity_type = entity_raw.get("type", "unknown")
-
-        #logger.info("ENTIDAD (id+type)")
-        #logger.info(entity_id)
-        #logger.info(entity_type)
-
-        target_table = build_target_table(datamodel, service, servicepath, entity_id, entity_type, suffix)
-        topic_name = f"{service}{suffix}"
-        output_topic = app.topic(topic_name)
-
-        entity = {
-            "entityid": entity_id,
-            "entitytype": entity_type,
-            "fiwareservicepath": servicepath
-        }
-
-        attributes = {}
-        schema_overrides = {}
-
-        for attr_name, attr_data in sorted(entity_raw.items()):
-            attr_name = attr_name.lower()
-            if attr_name in ["id", "type"]:
-                continue
-
-            value = attr_data.get("value")
-            attr_type = attr_data.get("type", "")
-
-            if attr_type.startswith("geo:"):
-                wkt_str = to_wkt_geometry(attr_type, value)
-                if wkt_str:
-                    wkb_struct = to_wkb_struct_from_wkt(wkt_str, attr_name)
-                    if wkb_struct:
-                        attributes[attr_name] = wkb_struct["payload"]
-                        schema_overrides[attr_name] = wkb_struct["schema"]
-                        continue
-            elif attr_type in ["json", "jsonb"]:
-                try:
-                    value = json.dumps(value, ensure_ascii=False)
-                except Exception as e:
-                    logger.warning(f"⚠️ Error serializing field '{attr_name}' as JSON string: {e}")
-                    value = str(value)
-
-            attributes[attr_name] = value
-
-        entity.update(attributes)
-
-        if key_fields is None:
-            key_fields = ["entityid"]
-
-        kafka_message = to_kafnus_connect_schema(entity, schema_overrides)
-        kafka_key = build_kafka_key(entity, key_fields=key_fields, include_timeinstant=include_timeinstant)
-
-        await output_topic.send(
-            key=kafka_key,
-            value=json.dumps(kafka_message).encode("utf-8"),
-            headers=[("target_table", target_table.encode())]
-        )
-
-        logger.info(f"✅ [{suffix.lstrip('_') or 'historic'}] Sent to topic '{topic_name}' (table: '{target_table}'): {entity.get('entityid')}")
+        logger.error(f"❌ Error in handle_entity_cb: {e}")
 

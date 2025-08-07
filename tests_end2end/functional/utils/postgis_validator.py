@@ -34,6 +34,7 @@ from shapely.wkt import loads as load_wkt
 from shapely.geometry import shape
 import binascii
 import re
+from decimal import Decimal, InvalidOperation
 
 
 class PostgisValidator:
@@ -180,25 +181,34 @@ class PostgisValidator:
                     except Exception:
                         pass
 
-                # Normalize types before comparing
-                if isinstance(expected_value, (int, float)) and isinstance(actual_value, str):
-                    try:
-                        actual_value = float(actual_value)
-                    except Exception:
-                        pass
-                if isinstance(expected_value, str) and isinstance(actual_value, (int, float)):
-                    expected_value = str(expected_value)
-
                 # Normalize None/empty string
                 if expected_value in ("", None) and actual_value in ("", None):
                     continue
 
-                # Final equality check (with float tolerance)
-                if isinstance(expected_value, float) and isinstance(actual_value, float):
+                # Normalize types before comparing
+                # Force Decimal conversion if both are numeric
+                numeric_types = (int, float, Decimal)
+                if isinstance(expected_value, numeric_types) and isinstance(actual_value, numeric_types):
+                    try:
+                        expected_value = Decimal(str(expected_value))
+                        actual_value = Decimal(str(actual_value))
+                    except InvalidOperation:
+                        pass  # fallback below if needed
+
+                # Final equality check for Decimal
+                if isinstance(expected_value, Decimal) and isinstance(actual_value, Decimal):
+                    if expected_value.normalize() != actual_value.normalize():
+                        return False
+
+                # Final equality check for float
+                elif isinstance(expected_value, float) and isinstance(actual_value, float):
                     if not math.isclose(expected_value, actual_value, rel_tol=1e-6, abs_tol=1e-6):
                         return False
+
+                # Fallback equality
                 elif actual_value != expected_value:
                     return False
+        # All keys matched successfully
         return True
 
     def _is_geojson(self, value):
@@ -213,6 +223,39 @@ class PostgisValidator:
         return isinstance(value, str) and any(
             value.strip().upper().startswith(t) for t in ["POINT", "LINESTRING", "POLYGON", "MULTIPOINT", "MULTILINESTRING", "MULTIPOLYGON"]
         )
+    
+    def validate_absent(self, table, forbidden_rows, timeout=10, poll_interval=0.5):
+        """
+        Validates that the specified rows are NOT present in the table.
+
+        - `forbidden_rows`: list of dicts that must NOT appear in the table.
+        - Repeats until all forbidden rows are gone, or timeout is reached.
+        """
+        logger.info(f"🚫 Validating ABSENCE from table {table} with timeout={timeout}")
+        start = time.time()
+
+        while time.time() - start < timeout:
+            actual = self._query_table(table)
+
+            if self._none_of_forbidden_rows(actual, forbidden_rows):
+                logger.debug(f"✅ Validation successful: forbidden rows absent from {table}")
+                return True
+
+            time.sleep(poll_interval)
+
+        logger.error(f"❌ Timeout: Forbidden data still present in {table}")
+        return False
+
+
+    def _none_of_forbidden_rows(self, actual_rows, forbidden_rows):
+        """
+        Returns True if none of the forbidden rows is found in the actual rows.
+        """
+        for forbidden in forbidden_rows:
+            if any(self._row_matches(forbidden, actual) for actual in actual_rows):
+                logger.debug(f"🚫 Forbidden row still present: {forbidden}")
+                return False
+        return True
 
     def _looks_like_datetime(self, value):
         if isinstance(value, datetime.datetime):

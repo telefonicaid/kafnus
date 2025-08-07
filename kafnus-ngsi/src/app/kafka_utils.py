@@ -26,7 +26,7 @@ import json
 from app.types_utils import infer_field_type
 from app.datetime_helpers import format_datetime_iso
 
-def to_kafnus_connect_schema(entity: dict, schema_overrides: dict = None):
+def to_kafnus_connect_schema(entity: dict, schema_overrides: dict = None, attribute_types: dict = None):
     """
     Builds a Kafnus Connect compatible schema and payload dict from the entity dict.
     Allows overriding field schemas (used mainly for geo or datetime attributes).
@@ -55,7 +55,8 @@ def to_kafnus_connect_schema(entity: dict, schema_overrides: dict = None):
             payload[k] = str(v)
             continue
 
-        field_type, v = infer_field_type(k, v)
+        attr_type = attribute_types.get(k) if attribute_types else None
+        field_type, v = infer_field_type(k, v, attr_type=attr_type)
         is_optional = v is None
 
         if isinstance(field_type, dict):

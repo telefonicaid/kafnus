@@ -1,0 +1,318 @@
+{
+  "name": "limit_test_case",
+  "fiware-service": "test",
+  "fiware-servicepath": "/limit",
+  "subscriptions": {
+    "historic": {
+      "description": "Sensor:HISTORIC:limit:historic",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_historic"
+        },
+        "attrs": [
+          "TimeInstant",
+          "value_real",
+          "value_double",
+          "value_numeric",
+          "value_smallint",
+          "value_integer",
+          "value_bigint",
+          "geom_point",
+          "geom_polygon"
+        ]
+      }
+    },
+    "lastdata": {
+      "description": "Sensor:LASTDATA:limit:lastdata",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_lastdata"
+        },
+        "attrs": [
+          "TimeInstant",
+          "value_real",
+          "value_double",
+          "value_numeric",
+          "value_smallint",
+          "value_integer",
+          "value_bigint",
+          "geom_point",
+          "geom_polygon"
+        ]
+      }
+    },
+    "mutable": {
+      "description": "Sensor:mutable:limit:mutable",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_mutable"
+        },
+        "attrs": [
+          "TimeInstant",
+          "value_real",
+          "value_double",
+          "value_numeric",
+          "value_smallint",
+          "value_integer",
+          "value_bigint",
+          "geom_point",
+          "geom_polygon"
+        ]
+      }
+    }
+    },
+  "updateEntities": [
+    {
+      "id": "Sensor:LimitTest:01",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:03:00Z"
+      },
+      "value_smallint": {
+        "type": "Number",
+        "value": 32767
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:01",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:03:30Z"
+      },
+      "value_smallint": {
+        "type": "Number",
+        "value": -32768
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:02",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:04:00Z"
+      },
+      "value_integer": {
+        "type": "Number",
+        "value": 2147483647
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:02",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:04:30Z"
+      },
+      "value_integer": {
+        "type": "Number",
+        "value": -2147483648
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:03",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:05:00Z"
+      },
+      "value_bigint": {
+        "type": "Number",
+        "value": 9223372030000000000
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:03",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:05:30Z"
+      },
+      "value_bigint": {
+        "type": "Number",
+        "value": -9223372030000000000
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:03",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:05:31Z"
+      },
+      "value_bigint": {
+        "type": "Number",
+        "value": 9223372036854775808
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:04",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:00:00Z"
+      },
+      "value_real": {
+        "type": "Number",
+        "value": 3.4028235e+38
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:05",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:01:00Z"
+      },
+      "value_double": {
+        "type": "Number",
+        "value": 0.000000001
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:06",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:02:00Z"
+      },
+      "value_numeric": {
+        "type": "Number",
+        "value": 99.99999999
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:07",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:06:00Z"
+      },
+      "geom_point": {
+        "type": "geo:point",
+        "value": "90.0,180.0"
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:08",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:07:00Z"
+      },
+      "geom_point": {
+        "type": "geo:point",
+        "value": "-90.0,-180.0"
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:10",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:10:00Z"
+      },
+      "geom_polygon": {
+        "type": "geo:json",
+        "value": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [0, 0],
+              [0, 2],
+              [0, 4],
+              [0, 6],
+              [0, 8],
+              [0, 10],
+              [2, 10],
+              [4, 10],
+              [6, 10],
+              [8, 10],
+              [10, 10],
+              [10, 8],
+              [10, 6],
+              [10, 4],
+              [10, 2],
+              [10, 0],
+              [8, 0],
+              [6, 0],
+              [4, 0],
+              [2, 0],
+              [0, 0]
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:11",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:11:00Z"
+      },
+      "value_real": {
+        "type": "Number",
+        "value": 0.000000001
+      }
+    },
+    {
+      "id": "Sensor:LimitTest:12",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-07-31T10:12:00Z"
+      },
+      "value_numeric": {
+        "type": "Number",
+        "value": 0.00000001
+      }
+    }
+  ]
+}

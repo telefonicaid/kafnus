@@ -40,6 +40,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from config import logger
 from config import KAFNUS_TESTS_KAFNUS_CONNECT_URL
+from typing import Optional
 
 def wait_for_kafnus_connect(url=KAFNUS_TESTS_KAFNUS_CONNECT_URL, timeout=60):
     """
@@ -207,6 +208,7 @@ class OrionRequestData:
     subservice: str
     subscriptions: dict
     updateEntities: list
+    deleteEntities: Optional[list] = None
 
 
 @dataclass
@@ -441,6 +443,39 @@ class OrionAdapter:
 
             assert response.status_code in [201, 204]
 
+    def delete_entities(self):
+        """
+        Deletes entities from the Orion Context Broker as defined in each
+        OrionRequestData object.
+        """
+        for generator in self.generators:
+            if not generator.deleteEntities:
+                continue
+
+            # Copy headers and delete Content-Type
+            headers_ = {k: v for k, v in self.headers[generator.name].items() if k.lower() != "content-type"}
+
+            for entity in generator.deleteEntities:
+                entity_id = entity["id"]
+                entity_type = entity.get("type")
+                params = {"type": entity_type} if entity_type else {}
+
+                response = requests.delete(
+                    f"{self.baseUrl}/entities/{entity_id}",
+                    headers=headers_,
+                    params=params
+                )
+
+                if response.status_code == 404:
+                    logger.warning(f"⚠️ Entity not found: {entity_id}")
+                elif response.status_code != 204:
+                    logger.error(f"❌ Error deleting {entity_id}: {response.status_code} {response.content}")
+                    assert False, f"Failed to delete entity {entity_id}"
+                else:
+                    logger.debug(f"[Orion delete] {response.status_code} {response.content}")
+                assert response.status_code in [204], f"Failed to delete entity {entity_id}: {response.content}"
+
+
 
 # ──────────────────────────────
 # Service Operations
@@ -479,3 +514,4 @@ class ServiceOperations:
         )
         orion_adapter.create_subscriptions()
         orion_adapter.update_entities()
+        orion_adapter.delete_entities()

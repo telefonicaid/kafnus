@@ -13,7 +13,7 @@
       "entitytype": "Errors",
       "timeinstant": { "type": "DateTime", "value": "2025-05-05T11:50:00Z" },
       "bool_col": { "type": "Boolean", "value": true },
-      "text_col": { "type": "Number", "value": "{ \"a\": 1, \"b\": 2 }" },
+      "text_col": { "type": "Number", "value": "text" },
       "not_null_col": { "type": "Text", "value": "not_null" },
       "int_col": { "type": "Number", "value": 1 },
       "averagestay": { "type": "Number", "value": 17 }
@@ -26,6 +26,10 @@
       {
         "query": { "contains": "INSERT INTO \"test\".\"access_errors\"" },
         "error": { "contains": "ERROR: column \"bool_col\" is of type boolean but expression is of type integer"}
+      },
+      {
+        "query": { "contains": "INSERT INTO \"test\".\"access_errors\"" },
+        "error": { "contains": "Invalid value: null used for required field: \"text_col\""}
       },
       {
         "query": { "contains": "INSERT INTO \"test\".\"access_errors\"" },
