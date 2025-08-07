@@ -1,0 +1,19 @@
+This test validates the correct handling of the boundaries of various PostgreSQL numeric and geometry types:
+
+- **SMALLINT (16-bit)**: Tests boundary values (32767, -32768).
+- **INTEGER (32-bit)**: Tests upper and lower limits (2147483647, -2147483648).
+- **BIGINT (64-bit)**: Tests values within the valid range (±9223372030000000000) and one value exceeding the limit (9223372036854775808), which should produce an error.
+- **REAL (~7 digits of precision)**: Inserts a high value (3.4028235e+38) and a very small value (0.000000001) to test extremes.
+- **DOUBLE PRECISION (~15 digits of precision)**: Verifies that values with many decimal places (e.g., 0.000000001) are accepted.
+- **NUMERIC(30,15)**: Checks that high-precision decimal values (e.g., 99.99999999, 0.00000001) are accepted, though some may be rounded or truncated due to upstream limitations.
+- **geo:point**: Inserts boundary points at the edges of the WGS84 coordinate system: `(90.0, 180.0)` and `(-90.0, -180.0)`.
+- **geo:polygon**: Inserts a polygon consisting of 21 coordinates.
+
+Additionally, the test confirms:
+- Valid data is successfully inserted into the `test.limit_sensor` table.
+- Out-of-range values (such as a `BIGINT` overflow) are properly logged in the `test_error_log` table.
+
+**Note:**  
+This test is subject to certain limitations caused by the Context Broker or MQTT transport. For example, `BIGINT` values and decimal precision may be affected before reaching the database.
+
+This test ensures the system is robust and behaves predictably when handling extreme or edge-case values in both numeric and geometry fields.
