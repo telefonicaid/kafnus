@@ -4,7 +4,7 @@
     "fiware-service": "tests",
     "fiware-servicepath": "/tourismvf"
   },
-  "body": {
+  "payload": {
     "entityId": "VF_44046_NA",
     "entityType": "TouristDestinationVF",
     "attributes": [
