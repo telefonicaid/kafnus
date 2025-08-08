@@ -4,15 +4,6 @@
     "fiware-service": "tests",
     "fiware-servicepath": "/accesscount"
   },
-  "payload": {
-    "entityId": "NPO-101",
-    "entityType": "Access",
-    "attributes": [
-      {"attrName": "timeinstant", "attrValue": "2025-05-05T11:35:00Z"},
-      {"attrName": "numberofincoming", "attrValue": 67},
-      {"attrName": "numberofoutgoing", "attrValue": 45},
-      {"attrName": "status", "attrValue": "abierto"},
-      {"attrName": "averagestay", "attrValue": 15}
-    ]
-  }
+  "schema": {"type": "string", "optional": false},
+  "payload": "{\"subscriptionId\": \"6895adbe6eab6b403605331a\", \"data\":[{\"id\":\"NPO-101\",\"type\":\"Access\",\"TimeInstant\": {\"type\": \"DateTime\", \"value\": \"2025-06-26T12:00:00.000Z\"}, \"numberofincoming\": {\"type\": \"Number\", \"value\": 67}, \"numberofoutgoing\": {\"type\": \"Number\", \"value\": 45}, \"status\": {\"type\": \"Text\", \"value\": \"abierto\"}, \"averagestay\": {\"type\": \"Number\", \"value\": 15}  }]}"
 }
