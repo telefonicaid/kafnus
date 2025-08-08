@@ -43,7 +43,7 @@ The system supports multiple data flows (`historic`, `lastdata`, `mutable`) and 
 
 This image shows the core data path for a single flow:
 
-![Simplified Architecture](../doc/SimplifiedSchema.png)
+![Simplified Architecture](../doc/images/SimplifiedSchema.png)
 
 > 📝 **Edit source**: You can view and modify the diagram using [Excalidraw](https://excalidraw.com/#room=e06782c4fdd1d900246a,f_sdKK90w0FsFWKnDWsYmw).
 
@@ -52,7 +52,7 @@ This image shows the core data path for a single flow:
 
 Detailed diagram showing all services and flows in the PostGIS variant:
 
-![Full Architecture](../doc/FullSchema.png)
+![Full Architecture](../doc/images/FullSchema.png)
 
 > 📝 **Edit source**: You can view and modify the diagram using [Excalidraw](https://excalidraw.com/#room=e06782c4fdd1d900246a,f_sdKK90w0FsFWKnDWsYmw).
 
@@ -100,7 +100,7 @@ Kafnus Connect configurations are defined in JSON files under `sinks/`.
 
 ---
 
-## Navegación
+## 🧭 Navigation
 
 - [⬅️ Previous: Installation](/doc/01_installation.md)
 - [🏠 Main index](../README.md#documentation)

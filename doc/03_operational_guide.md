@@ -189,7 +189,7 @@ Still in progress...
 
 ## 🧭 Navigation
 
-- [⬅️ Previous: Architecture](./02_architecture.md)
+- [⬅️ Previous: Architecture](/02_architecture.md)
 - [🏠 Main index](../README.md#documentation)
-- [➡️ Next: Docker Details](./04_docker.md)
+- [➡️ Next: Docker Details](/04_docker.md)
 

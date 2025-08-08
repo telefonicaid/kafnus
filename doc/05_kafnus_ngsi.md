@@ -107,6 +107,82 @@ async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity
 
 ---
 
+## 🧬 Field Type Inference
+
+The function [`infer_field_type()`](/kafnus-ngsi/src/app/types_utils.py) is responsible for converting NGSIv2 attributes (including their optional `attrType`) into Kafka Connect-compatible field types and processed values.
+
+This function returns a tuple:
+
+```python
+(field_type, processed_value) = infer_field_type(name, value, attr_type)
+```
+
+### 🔍 Behavior by NGSI `attrType`:
+
+| NGSI Type         | Kafka Connect Type                   | Notes                                                                 |
+|-------------------|---------------------------------------|-----------------------------------------------------------------------|
+| `geo:*`           | `"geometry"`                         | Processed as PostGIS-compatible WKB.                                  |
+| `DateTime`        | Kafka `Timestamp` schema (`int64`)   | Converted to epoch millis unless it's a special field (see below).    |
+| `Float`           | `"float"`                            | Parsed as 32-bit float.                                               |
+| `Number`          | `"int32"`, `"int64"`, or `"double"`  | Chooses the narrowest numeric type based on value range.              |
+| `Boolean`         | `"boolean"`                          |                                                                       |
+| `Text`, Unknown   | `"string"`                           | Default type when `attrType` is missing or unrecognized.             |
+| `StructuredValue` | `"string"` (JSON)                    | Serialized to string for simplicity.                                  |
+
+### ⚠️ Fallbacks
+
+If `attrType` is missing, the type is inferred using Python-native heuristics:
+
+- Timestamps are recognized by pattern.
+- Integers are scaled to fit the smallest Connect type.
+- Dicts/lists are serialized to JSON strings.
+- Values exceeding the `BIGINT` range fallback to string and are logged.
+
+### ⚠️ Known Limitations
+
+- Attributes with more than **9 decimal places** may lose precision if received as **strings via Context Broker**.
+- Extremely large numbers (e.g., above `9223372036854775807`) are **not representable** as integers and are **downgraded to strings**.
+- Errors during type inference (e.g., **invalid dates** or **malformed JSON**) are **logged and gracefully handled**.
+
+---
+
+## 🕒 DateTime Handling
+
+Special treatment is applied to datetime fields to ensure compatibility and clarity across the entire data pipeline.
+
+### ✅ `timeinstant` and `recvtime`
+
+The fields `timeinstant` and `recvtime` are **always sent as ISO 8601 strings**.
+
+- This keeps logs, metrics, and downstream queries human-readable.
+- Transformation into proper timestamp columns is handled by the Kafka Connect JDBC Sink.
+
+This decision simplifies validation, debugging, and filtering across tools like PostGIS and Prometheus.
+
+Example:
+
+```json
+"timeinstant": "2025-07-31T10:12:00Z"
+```
+
+### 🧪 Other `DateTime` fields
+
+For all other datetime attributes, values are converted to **epoch milliseconds** and wrapped in a Kafka Connect timestamp schema:
+
+```python
+epoch_ms = to_epoch_millis(value)
+return {
+    "type": "int64",
+    "name": "org.apache.kafka.connect.data.Timestamp"
+}, epoch_ms
+```
+
+This allows the timestamp to be interpreted natively by sinks like JDBC without requiring connector configuration.
+
+The datetime parsing logic can be found in [`datetime_utils.py`](/kafnus-ngsi/src/app/datetime_helpers.py).
+
+---
+
 ## 🌍 Geometry Transformation
 
 Geo attributes like `geo:point`, `geo:polygon`, and `geo:json` are converted to **WKB** for PostGIS. The logic uses Shapely, GeoJSON and WKT/WKB translation. This has been implemented thanks to this [PR](https://github.com/confluentinc/kafka-connect-jdbc/pull/1048).
@@ -219,7 +295,7 @@ Expected Kafnus NGSI log output:
 
 ---
 
-## Navegación
+## 🧭 Navigation
 
 - [⬅️ Previous: ](/doc/04_docker.md)
 - [🏠 Main index](../README.md#documentation)
