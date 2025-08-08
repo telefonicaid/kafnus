@@ -184,6 +184,8 @@ When all pods share the **same `group.id`**, Kafka distributes topic partitions 
 
 ![Scaling with Kubernetes](../doc/images/ScalingKubernetes.png)
 
+> 📝 **Edit source**: You can view and modify the diagram using [Excalidraw](https://excalidraw.com/#room=e06782c4fdd1d900246a,f_sdKK90w0FsFWKnDWsYmw).
+
 - **Same group ID ➔ cooperative consumers**  
   All pods act as a single consumer group, so **each partition is assigned to only one pod at a time**. This prevents duplicate processing.
 
