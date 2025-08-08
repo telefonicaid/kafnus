@@ -353,6 +353,6 @@ At this point, you should have:
 
 ## 🧭 Navigation
 
-- [⬅️ Previous: Overview](./doc/00_overview.md)
+- [⬅️ Previous: Overview](/doc/00_overview.md)
 - [🏠 Main index](../README.md#documentation)
-- [➡️ Next: Architecture](./doc/02_architecture.md)
+- [➡️ Next: Architecture](/doc/02_architecture.md)

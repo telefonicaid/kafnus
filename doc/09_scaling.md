@@ -89,6 +89,8 @@ In the context of Kafnus:
 
 ![Distributing messages by key](../doc/images/ProducerKeyKafka.png)
 
+Another useful example can be found [here](../doc/images/ProducerMesssageKeys.png).
+
 ---
 
 ### 🧠 Multi-Agent Stream Processing in Kafnus
@@ -278,5 +280,5 @@ spec:
 
 ## 🧭 Navigation
 
-- [⬅️ Previous: Testing](./doc/08_testing.md)
+- [⬅️ Previous: Testing](/doc/08_testing.md)
 - [🏠 Main index](../README.md#documentation)
