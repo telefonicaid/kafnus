@@ -75,7 +75,7 @@ RUN cd /tmp/mqtt-kafka-connect && \
 # Build JDBC Connector from PostGIS fork
 # -----------------------------
 RUN cd /tmp && \
-    git clone https://github.com/confluentinc/kafka-connect-jdbc-postgis.git && \
+    git clone https://github.com/telefonicaid/kafka-connect-jdbc-postgis.git && \
     cd kafka-connect-jdbc && \
     git checkout task/add_postgis && \
     mvn clean package -DskipTests -Dcheckstyle.skip=true && \
