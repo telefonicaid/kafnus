@@ -77,10 +77,10 @@ RUN cd /tmp/mqtt-kafka-connect && \
 RUN cd /tmp && \
     git clone https://github.com/telefonicaid/kafka-connect-jdbc-postgis.git && \
     cd kafka-connect-jdbc-postgis && \
-    git checkout task/add_postgis && \
+    git checkout task/add_postgis_10_7_0 && \
     mvn clean package -DskipTests -Dcheckstyle.skip=true && \
     mkdir -p /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc && \
-    cp target/kafka-connect-jdbc-10.8.5-SNAPSHOT.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
+    cp target/kafka-connect-jdbc-10.7.0.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
 
 # PostgreSQL JDBC Driver
 RUN wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -P /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
