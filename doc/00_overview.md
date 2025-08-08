@@ -33,7 +33,7 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 4. **Kafnus NGSI → Kafka processed topics**  
 5. **Kafka → Kafnus Connect → PostGIS / MongoDB**
 
-![Simplified Temporal Schema with Mosquitto](/doc/SimplifiedTemporalSchema.png)
+![Simplified Temporal Schema with Mosquitto](/doc/images/SimplifiedTemporalSchema.png)
 
 ---
 
@@ -76,7 +76,7 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
   - `src/header-router/`: Custom Single Message Transform (SMT) implementation  
   - `src/own-jdbc-connector/`: Contains patch needed for building own JDBC custom connector  
 
-## Navegación
+## 🧭 Navigation
 
 - [🏠 Main index](../README.md#documentation)
 - [➡️ Next: Installation](/doc/01_installation.md)

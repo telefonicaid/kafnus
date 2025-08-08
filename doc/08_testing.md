@@ -255,7 +255,8 @@ def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multi
 - Logs show useful debug output at each step.
 - TestContainers ensures full isolation and cleanup.
 
-## Navegación
+## 🧭 Navigation
 
 - [⬅️ Previous: Monitoring](/doc/07_monitoring.md)
 - [🏠 Main index](../README.md#documentation)
+- [➡️ Next: Scaling](/doc/09_scaling.md)

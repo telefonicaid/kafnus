@@ -119,7 +119,7 @@ command: faust -A stream_processor worker -l info
 - Kafnus NGSI metrics are **custom-coded**, giving more flexibility than the default web server.
 - The system can be extended to include **alerts**, **dashboards per client**, or **anomaly detection** using **Prometheus alert rules** or **Grafana annotations**.
 
-## Navegación
+## 🧭 Navigation
 
 - [⬅️ Previous: Kafnus-Connect](/doc/06_kafnus_connect.md)
 - [🏠 Main index](../README.md#documentation)
