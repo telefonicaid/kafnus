@@ -76,7 +76,7 @@ RUN cd /tmp/mqtt-kafka-connect && \
 # -----------------------------
 RUN cd /tmp && \
     git clone https://github.com/telefonicaid/kafka-connect-jdbc-postgis.git && \
-    cd kafka-connect-jdbc && \
+    cd kafka-connect-jdbc-postgis && \
     git checkout task/add_postgis && \
     mvn clean package -DskipTests -Dcheckstyle.skip=true && \
     mkdir -p /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc && \
