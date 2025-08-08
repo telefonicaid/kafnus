@@ -189,7 +189,7 @@ docker exec -it kafka kafka-console-consumer \
 
 To confirm persistence, check tables in PostGIS or MongoDB after running the corresponding test input.
 
-## Navegación
+## 🧭 Navigation
 
 - [⬅️ Previous: Kafnus NGSI](/doc/05_kafnus_ngsi.md)
 - [🏠 Main index](../README.md#documentation)

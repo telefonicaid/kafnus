@@ -48,6 +48,7 @@ Complete documentation is available in the [`doc/`](./doc) directory:
 - [`06_kafnus_connect.md`](./doc/06_kafnus_connect.md) – Kafnus Connect and sinks details
 - [`07_monitoring.md`](./doc/07_monitoring.md) – Metrics & observability
 - [`08_testing.md`](./doc/08_testing.md) – Test structure
+- [`09_scaling.md`](./doc/09_scaling.md) – Scaling Kafka and Kafnus NGSI
 
 ---
 

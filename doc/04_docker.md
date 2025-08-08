@@ -200,7 +200,7 @@ The test suite can also dynamically start these containers via **Testcontainers*
 
 ---
 
-## Navegación
+## 🧭 Navigation
 
 - [⬅️ Previous: Operational-Guide](/doc/03_operational_guide.md)
 - [🏠 Main index](../README.md#documentation)

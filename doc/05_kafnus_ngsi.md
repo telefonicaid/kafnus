@@ -219,7 +219,7 @@ Expected Kafnus NGSI log output:
 
 ---
 
-## Navegación
+## 🧭 Navigation
 
 - [⬅️ Previous: ](/doc/04_docker.md)
 - [🏠 Main index](../README.md#documentation)
