@@ -1,5 +1,6 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { info } = require('../utils/logger');
+const { info, error } = require('../utils/logger');
+const handleEntityCb = require('../utils/handleEntityCb');
 
 async function startHistoricConsumerAgent() {
   const topic = 'raw_historic';
@@ -8,21 +9,33 @@ async function startHistoricConsumerAgent() {
   const consumer = await createConsumerAgent({
     groupId,
     topic,
-    onData: ({ key, value }) => {
+     onData: async ({ key, value, headers }) => {
+      const start = Date.now();
+      const k = key?.toString() || '';
+      const v = value?.toString() || '';
+      console.log(`[raw_historic] Key: ${k}, Value: ${v}`);
+         
       try {
-        const k = key ? key.toString() : null;
-        const v = value ? value.toString() : null; // value_serializer='raw' -> manejado como buffer/str
-        info(`[historic] key=${k} value=${v}`);          
-        // TBD: logic
-
-          
+          //const rawValue = value ? value.toString() : null;
+          info(`rawValue: '${v}'`);              
+        await handleEntityCb(v, {
+          headers,
+          suffix: '',
+          includeTimeinstant: true,
+          keyFields: ['entityid'],
+          datamodel: process.env.DATAMODEL || 'dm-by-entity-type-database'
+        });
       } catch (err) {
-        console.error('Error proccesing historic event:', err);
+        error(` [historic] Error processing event: ${err}`);
       }
+
+      const duration = (Date.now() - start) / 1000;
+      // TBD Metrics
+      // messagesProcessed.labels({ flow: 'historic' }).inc();
+      // processingTime.labels({ flow: 'historic' }).set(duration);
     }
   });
 
-  // devolver el consumer para permitir desconexión centralizada si se desea
   return consumer;
 }
 
