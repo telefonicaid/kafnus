@@ -1,11 +1,11 @@
 // (optional) factory to create consumers
 const Kafka = require('@confluentinc/kafka-javascript');
-const { baseConfig } = require('../kafkaConfig');
+const { baseConfig } = require('../../kafnusConfig');
 const { info, error } = require('../utils/logger');
 
 function createConsumerAgent({ groupId, topic, onData }) {
   const config = { ...baseConfig, 'group.id': groupId };
-  const consumer = new Kafka.KafkaConsumerAgent(config, { 'auto.offset.reset': process.env.AUTO_OFFSET_RESET || 'earliest' });
+  const consumer = new Kafka.KafkaConsumer(config, { 'auto.offset.reset': process.env.AUTO_OFFSET_RESET || 'earliest' });
 
   return new Promise((resolve, reject) => {
     consumer
