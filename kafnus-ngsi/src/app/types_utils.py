@@ -46,7 +46,7 @@ def to_wkb_struct_from_wkt(wkt_str, field_name, srid=4326):
             "schema": {
                 "field": field_name,
                 "type": "struct",
-                "name": "io.debezium.data.geometry.Geometry",
+                "name": "io.confluent.connect.jdbc.data.geometry.Geometry",
                 "fields": [
                     {"field": "wkb", "type": "bytes"},
                     {"field": "srid", "type": "int32"}
