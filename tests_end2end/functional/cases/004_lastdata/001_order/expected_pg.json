@@ -1,0 +1,15 @@
+[
+    {
+    "table": "test.order_sensor_lastdata",
+    "rows": [
+        {"entityid": "Sensor3", "timeinstant": "2025-06-26T12:30:00Z", "entitytype": "Sensor", "temperature": 25.0, "fiwareservicepath": "/order"}
+    ]
+    },
+    {
+    "table": "test.order_sensor_lastdata",
+    "absent": [
+        {"entityid": "Sensor3", "timeinstant": "2025-06-26T12:10:00Z"},
+        {"entityid": "Sensor3", "timeinstant": "2025-06-26T12:20:00Z"}
+    ]
+    }
+]

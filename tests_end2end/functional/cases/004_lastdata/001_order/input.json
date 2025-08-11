@@ -1,0 +1,67 @@
+{
+  "name": "out_of_order_test_case",
+  "fiware-service": "test",
+  "fiware-servicepath": "/order",
+  "subscriptions": {
+    "lastdata": {
+      "description": "Sensor:LASTDATA:order:lastdata:order",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": ["TimeInstant"],
+          "alterationTypes": [
+            "entityUpdate",
+            "entityCreate",
+            "entityDelete"
+          ]
+        }
+      },
+      "notification": {
+        "mqttCustom": {
+          "url": "mqtt://mosquitto:1883",
+          "topic": "kafnus/${service}${servicePath}/raw_lastdata"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature",
+          "alterationType"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "Sensor3",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:30:00Z"
+      },
+      "temperature": {"value": 25.0, "type": "Float"}
+    },
+    {
+      "id": "Sensor3",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:10:00Z"
+      },
+      "temperature": {"value": 23.0, "type": "Float"}
+    },
+    {
+      "id": "Sensor3",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:20:00Z"
+      },
+      "temperature": {"value": 24.0, "type": "Float"}
+    }
+  ]
+}

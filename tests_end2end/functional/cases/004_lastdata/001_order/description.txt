@@ -1,0 +1,1 @@
+Test to verify that when sensor data messages arrive out of chronological order, the system correctly stores only the record with the latest TimeInstant for each entity
