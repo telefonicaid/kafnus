@@ -24,8 +24,6 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-require('dotenv').config();
-
 const baseConfig = {
   'bootstrap.servers': 'localhost:9092',
   // 'sasl.username': process.env.CLUSTER_API_KEY,

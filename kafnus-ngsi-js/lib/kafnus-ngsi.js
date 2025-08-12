@@ -24,7 +24,8 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-require('dotenv').config();
+'use strict';
+
 const { error, info } = require('./utils/logger');
 
 const startHistoricConsumerAgent = require('./consumerAgents/historicConsumerAgent');

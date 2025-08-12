@@ -24,6 +24,8 @@
  * criminal actions it may exercise to protect its rights.
  */
 
+'use strict';
+
 const { Kafka } = require('@confluentinc/kafka-javascript').KafkaJS;
 const { baseConfig } = require('../../kafnusConfig');
 const { info, warn, error } = require('./logger');

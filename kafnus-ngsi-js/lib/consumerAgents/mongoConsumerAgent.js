@@ -24,10 +24,12 @@
  * criminal actions it may exercise to protect its rights.
  */
 
+'use strict';
+
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { encodeMongo } = require('../utils/ngsiUtils');
-const { DateTime } = require('luxon').DateTime;
+const { DateTime } = require('luxon');
 const { info, error } = require('../utils/logger');
 
 async function startMongoConsumerAgent() {

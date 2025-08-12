@@ -24,10 +24,12 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-const wkx = require('wkx');
-const Buffer = require('buffer').Buffer;
-const geoJSONToWkt = require('betterknown').geoJSONToWkt;
-const DateTime = require('luxon').DateTime;
+'use strict';
+
+const { Geometry} = require('wkx');
+const { Buffer } = require('buffer');
+const { geoJSONToWkt } = require('betterknown');
+const { DateTime } = require('luxon');
 const { info, warn, error } = require('./logger');
 
 // -----------------
@@ -35,7 +37,7 @@ const { info, warn, error } = require('./logger');
 // -----------------
 function toWkbStructFromWkt(wktStr, fieldName, srid = 4326) {
   try {
-    const geom = wkx.Geometry.parse(wktStr);
+    const geom = Geometry.parse(wktStr);
     const wkb = geom.toWkb();
     const wkbB64 = Buffer.from(wkb).toString('base64');
 

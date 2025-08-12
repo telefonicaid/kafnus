@@ -24,6 +24,7 @@
  * criminal actions it may exercise to protect its rights.
  */
 
+'use strict';
 
 // Logger simple; TBD
 function info(...args) { console.log('[INFO]', ...args); }

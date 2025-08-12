@@ -24,6 +24,8 @@
  * criminal actions it may exercise to protect its rights.
  */
 
+'use strict';
+
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { info } = require('../utils/logger');
 
