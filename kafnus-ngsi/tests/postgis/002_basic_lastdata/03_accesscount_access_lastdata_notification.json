@@ -5,12 +5,14 @@
     "fiware-servicepath": "/accesscount"
   },
   "payload": {
-    "entityId": "NPO-103",
+    "entityId": "NPO-101",
     "entityType": "Access",
     "attributes": [
-      { "attrName": "name", "attrValue": "Ayuntamiento X" },
-      { "attrName": "timeinstant", "attrValue": "2025-05-20T11:31:43.000Z" },
-      { "attrName": "streetaddress", "attrValue": "Direccion X" }
+      { "attrName": "TimeInstant", "attrValue": "2025-06-26T12:00:00.000Z" },
+      { "attrName": "numberofincoming", "attrValue": 3.0 },
+      { "attrName": "numberofoutgoing", "attrValue": 3.0 },
+      { "attrName": "status", "attrValue": "abierto" },
+      { "attrName": "averagestay", "attrValue": 3 }
     ]
   }
 }

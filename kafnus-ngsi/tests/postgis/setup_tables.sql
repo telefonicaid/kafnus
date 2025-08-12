@@ -2,7 +2,7 @@
 CREATE SCHEMA IF NOT EXISTS test;
 
 -- AccessCount Access
-DROP TABLE IF EXISTS test.accesscount_access CASCADE;
+DROP TABLE IF EXISTS test.accesscount_access;
 CREATE TABLE test.accesscount_access (
 	timeinstant timestamptz NOT NULL,
 	numberofincoming float8 NULL,
@@ -17,7 +17,7 @@ CREATE TABLE test.accesscount_access (
 );
 
 -- AccessCount Lastdata
-DROP TABLE IF EXISTS test.accesscount_access_lastdata CASCADE;
+DROP TABLE IF EXISTS test.accesscount_access_lastdata;
 CREATE TABLE test.accesscount_access_lastdata (
 	timeinstant timestamptz NOT NULL,
 	numberofincoming float8 NULL,
@@ -32,7 +32,7 @@ CREATE TABLE test.accesscount_access_lastdata (
 );
 
 -- Parking Zone
-DROP TABLE IF EXISTS test.parking_zone CASCADE;
+DROP TABLE IF EXISTS test.parking_zone;
 CREATE TABLE test.parking_zone (
 	timeinstant timestamptz NOT NULL,
 	"location" public.geometry(point) NULL,
@@ -59,7 +59,7 @@ CREATE TABLE test.parking_zone (
 );
 
 -- Routes Stop
-DROP TABLE IF EXISTS test.routes_stop CASCADE;
+DROP TABLE IF EXISTS test.routes_stop;
 CREATE TABLE test.routes_stop (
 	timeinstant timestamptz NOT NULL,
 	enabled bool NULL,
@@ -73,7 +73,7 @@ CREATE TABLE test.routes_stop (
 );
 
 -- Routes Stop Lastdata
-DROP TABLE IF EXISTS test.routes_stop_lastdata CASCADE;
+DROP TABLE IF EXISTS test.routes_stop_lastdata;
 CREATE TABLE test.routes_stop_lastdata (
 	timeinstant timestamptz NOT NULL,
 	"location" public.geometry NULL,
@@ -106,7 +106,7 @@ CREATE TABLE test.routes_stop_lastdata (
 );
 
 -- Tourism VF Tourist Destination VF Mutable
-DROP TABLE IF EXISTS test.tourismvf_touristdestinationvf_mutable CASCADE;
+DROP TABLE IF EXISTS test.tourismvf_touristdestinationvf_mutable;
 CREATE TABLE test.tourismvf_touristdestinationvf_mutable (
 	timeinstant timestamptz NOT NULL,
 	"day" text NULL,
@@ -140,8 +140,8 @@ CREATE TABLE test.tourismvf_touristdestinationvf_mutable (
 );
 
 -- Error Log
-DROP TABLE IF EXISTS test.alcobendas_error_log CASCADE;
-CREATE TABLE test.alcobendas_error_log (
+DROP TABLE IF EXISTS test.test_error_log;
+CREATE TABLE test.test_error_log (
 	"timestamp" timestamp NULL,
 	error text NULL,
 	query text NULL

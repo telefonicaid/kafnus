@@ -12,7 +12,7 @@
         "attrName": "name",
         "attrValue": "Zona Centro"
       },
-      {"attrName": "timeinstant", "attrValue": "2025-05-15T12:00:00Z"},
+      {"attrName": "TimeInstant", "attrValue": "2025-05-15T12:00:00Z"},
       {
         "attrName": "location",
         "attrType": "geo:point",
