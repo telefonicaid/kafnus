@@ -27,6 +27,7 @@
 'use strict';
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
+const { createProducer } = require('./sharedProducerFactory');
 const { info, error } = require('../utils/logger');
 const handleEntityCb = require('../utils/handleEntityCb');
 
@@ -34,10 +35,12 @@ async function startHistoricConsumerAgent() {
   const topic = 'raw_historic';
   const groupId = process.env.GROUP_ID || 'ngsi-processor-historic';
 
+  const producer = await createProducer();
+
   const consumer = await createConsumerAgent({
     groupId,
     topic,
-     onData: async ({ key, value, headers }) => {
+    onData: async ({ key, value, headers }) => {
       const start = Date.now();
       const k = key?.toString() || '';
       const v = value?.toString() || '';
@@ -51,7 +54,7 @@ async function startHistoricConsumerAgent() {
           includeTimeinstant: true,
           keyFields: ['entityid'],
           datamodel: process.env.DATAMODEL || 'dm-by-entity-type-database'
-        });
+        }, producer);
       } catch (err) {
         error(` [historic] Error processing event: ${err}`);
       }

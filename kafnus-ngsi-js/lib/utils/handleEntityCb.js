@@ -76,7 +76,8 @@ function getFiwareContext(headers, fallbackEvent) {
 
 async function handleEntityCb(
   rawValue,
-  { headers = [], datamodel = 'dm-by-entity-type-database', suffix = '', includeTimeinstant = true, keyFields = null } = {}
+  { headers = [], datamodel = 'dm-by-entity-type-database', suffix = '', includeTimeinstant = true, keyFields = null } = {},
+  producer
 ) {
   try {
     //info(`rawValue: '${rawValue}'`);
@@ -152,19 +153,13 @@ async function handleEntityCb(
       const kafkaMessage = toKafnusConnectSchema(entity, schemaOverrides, attributesTypes);
       const kafkaKey = buildKafkaKey(entity, keyFields, includeTimeinstant );
 
-      // TODO: use ProducerFactory
-      const producer = new Kafka().producer(baseConfig);
-      await producer.connect();
-      const res = []
-      res.push(producer.send({
-            topic: topicName,
-            messages: [
-                { value: Buffer.from(JSON.stringify(kafkaMessage)),
-                  partition: 0,
-                  key: kafkaKey },
-            ]
-      }));
-      await Promise.all(res);
+      producer.produce(
+          topicName,
+          null, // partition null: kafka decides
+          Buffer.from(JSON.stringify(kafkaMessage)), // message
+          kafkaKey,
+          Date.now()
+      );
         
       info(`[${suffix.replace(/^_/, '') || 'historic'}] Sent to topic '${topicName}' (table: '${targetTable}'): ${entity.entityid}`);
     }

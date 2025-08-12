@@ -75,20 +75,21 @@ async function startMongoConsumerAgent() {
         for (const attr of attributes) {
           doc[attr.attrName] = attr.attrValue;
         }
-
+        info(`[mongo] topic: ${topic}`);
+        info(`[mongo] database: ${mongoDb}`);
+        info(`[mongo] collection: ${mongoCollection}`);
+        info(`[mongo] doc: ${doc}`);
         // Publish in output topic
-        await producer.send({
-          topic: outputTopic,
-          messages: [
-            {
-              key: JSON.stringify({
+        producer.produce(
+            outputTopic,
+            null, // partition null: kafka decides
+            Buffer.from(JSON.stringify(doc)), // message
+            Buffer.from(JSON.stringify({ // key (optional)
                 database: mongoDb,
                 collection: mongoCollection
-              }),
-              value: JSON.stringify(doc)
-            }
-          ]
-        });
+              })),
+            Date.now()
+        );
 
         info(`[mongo] Sent to '${outputTopic}' | DB: ${mongoDb}, Collection: ${mongoCollection}`);
       } catch (err) {

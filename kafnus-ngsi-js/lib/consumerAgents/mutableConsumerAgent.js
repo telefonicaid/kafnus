@@ -27,11 +27,15 @@
 'use strict';
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
+const { createProducer } = require('./sharedProducerFactory');
 const { info, error } = require('../utils/logger');
+const handleEntityCb = require('../utils/handleEntityCb');
 
 async function startMutableConsumerAgent() {
   const topic = 'raw_mutable';
   const groupId = process.env.GROUP_ID || 'ngsi-processor-mutable';
+
+  const producer = await createProducer();
 
   const consumer = await createConsumerAgent({
    groupId,
@@ -50,7 +54,7 @@ async function startMutableConsumerAgent() {
           includeTimeinstant: true,
           keyFields: ['entityid'],
           datamodel: process.env.DATAMODEL || 'dm-by-entity-type-database'
-        });
+        }, producer);
       } catch (err) {
         error(` [mutable] Error processing event: ${err}`);
       }
