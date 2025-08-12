@@ -2,7 +2,7 @@
   "connection": {
     "host": "localhost",
     "port": 5432,
-    "dbname": "test",
+    "dbname": "tests",
     "user": "postgres",
     "password": "postgres"
   },

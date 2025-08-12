@@ -2,7 +2,7 @@
     "connection": {
       "host": "localhost",
       "port": 5432,
-      "dbname": "test",
+      "dbname": "tests",
       "user": "postgres",
       "password": "postgres"
     },
@@ -10,7 +10,7 @@
     "conditions": [
       {
         "entityid": "NPO-101",
-        "timeinstant": "2025-05-05 11:35:00+00",
+        "timeinstant": "2025-06-26T12:00:00.000Z",
         "numberofincoming": 67,
         "numberofoutgoing": 45,
         "status": "abierto",
