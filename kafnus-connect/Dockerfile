@@ -72,14 +72,12 @@ RUN cd /tmp/mqtt-kafka-connect && \
     cp target/mqtt-kafka-connect-1.0-jar-with-dependencies.jar /usr/local/share/kafnus-connect/plugins/mqtt-kafka-connect/
 
 # -----------------------------
-# Build JDBC Connector with PostGIS patch
+# Build JDBC Connector from PostGIS fork
 # -----------------------------
-COPY src/own-jdbc-connector/postgis-support.patch /tmp/postgis-support.patch
 RUN cd /tmp && \
-    git clone https://github.com/confluentinc/kafka-connect-jdbc.git && \
-    cd kafka-connect-jdbc && \
-    git checkout v10.7.0 && \
-    git apply /tmp/postgis-support.patch && \
+    git clone https://github.com/telefonicaid/kafka-connect-jdbc-postgis.git && \
+    cd kafka-connect-jdbc-postgis && \
+    git checkout task/add_postgis_10_7_0 && \
     mvn clean package -DskipTests -Dcheckstyle.skip=true && \
     mkdir -p /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc && \
     cp target/kafka-connect-jdbc-10.7.0.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
