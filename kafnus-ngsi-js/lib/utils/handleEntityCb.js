@@ -54,16 +54,19 @@ function buildTargetTable(datamodel, service, servicepath, entityid, entitytype,
 }
 
 function getFiwareContext(headers, fallbackEvent) {
+  var service = null;
+  var servicepath = null;
   if (headers && headers.length > 0) {
     const hdict = {};
     headers.forEach(([k, v]) => {
       hdict[k] = v.toString();
     });
-    var service = (hdict['fiware-service'] || 'default').toLowerCase();
-    var servicepath = (hdict['fiware-servicepath'] || '/').toLowerCase();
+    service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
+    servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
   } else {
-    var service = (fallbackEvent['fiware-service'] || 'default').toLowerCase();
-    var servicepath = (fallbackEvent['fiware-servicepath'] || '/').toLowerCase();
+    var headers = fallbackEvent['headers'] ? fallbackEvent['headers'] : fallbackEvent;
+    service = (headers['fiware-service'] ? headers['fiware-service'] : 'default').toLowerCase();
+    servicepath = (headers['fiware-servicepath'] ? headers['fiware-servicepath'] : '/').toLowerCase();
   }
   if (!servicepath.startsWith('/')) {
     servicepath = '/' + servicepath;
