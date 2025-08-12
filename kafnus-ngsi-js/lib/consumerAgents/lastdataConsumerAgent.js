@@ -1,5 +1,5 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { info } = require('../utils/logger');
+const { info, error } = require('../utils/logger');
 
 async function startLastdataConsumerAgent() {
   const topic = 'raw_lastdata';
@@ -14,7 +14,7 @@ async function startLastdataConsumerAgent() {
 
         
     } catch (err) {
-      console.error('Error processing lastdata event:', err);
+      error('Error processing lastdata event:', err);
     }
   }});
 

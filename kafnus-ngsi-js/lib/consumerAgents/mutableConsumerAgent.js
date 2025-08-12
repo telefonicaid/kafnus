@@ -1,21 +1,36 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { info } = require('../utils/logger');
+const { info, error } = require('../utils/logger');
 
 async function startMutableConsumerAgent() {
   const topic = 'raw_mutable';
   const groupId = process.env.GROUP_ID || 'ngsi-processor-mutable';
 
-  const consumer = await createConsumerAgent({ groupId, topic, onData: ({ key, value }) => {
-    try {
-      const k = key ? key.toString() : null;
-      const v = value ? value.toString() : null;
-      info(`[mutable] key=${k} value=${v}`);
-      // TBD logic
+  const consumer = await createConsumerAgent({
+   groupId,
+   topic,
+     onData: async ({ key, value, headers }) => {
+      const start = Date.now();
+      const k = key?.toString() || '';
+      const v = value?.toString() || '';
+      info(`[raw_historic] Key: ${k}, Value: ${v}`);
 
-    } catch (err) {
-      console.error('Error proccessing mutable event:', err);
+      try {
+          info(`rawValue: '${v}'`);
+        await handleEntityCb(v, {
+          headers,
+          suffix: '_mutable',
+          includeTimeinstant: true,
+          keyFields: ['entityid'],
+          datamodel: process.env.DATAMODEL || 'dm-by-entity-type-database'
+        });
+      } catch (err) {
+        error(` [mutable] Error processing event: ${err}`);
+      }
+
+      const duration = (Date.now() - start) / 1000;
+      // TBD Metrics
     }
-  }});
+  });
 
   return consumer;
 }

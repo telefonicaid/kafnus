@@ -7,7 +7,7 @@ const {
   toKafnusConnectSchema,
   buildKafkaKey,
   sanitizeTopic
-} = require('./ngsiUtils'); // debes implementar estas funciones
+} = require('./ngsiUtils');
 
 
 function buildTargetTable(datamodel, service, servicepath, entityid, entitytype, suffix) {
@@ -121,6 +121,7 @@ async function handleEntityCb(
       const kafkaMessage = toKafnusConnectSchema(entity, schemaOverrides, attributesTypes);
       const kafkaKey = buildKafkaKey(entity, keyFields, includeTimeinstant );
 
+      // TODO: use ProducerFactory
       const producer = new Kafka().producer(baseConfig);
       await producer.connect();
       const res = []

@@ -13,10 +13,9 @@ async function startHistoricConsumerAgent() {
       const start = Date.now();
       const k = key?.toString() || '';
       const v = value?.toString() || '';
-      console.log(`[raw_historic] Key: ${k}, Value: ${v}`);
+      info(`[raw_historic] Key: ${k}, Value: ${v}`);
          
       try {
-          //const rawValue = value ? value.toString() : null;
           info(`rawValue: '${v}'`);              
         await handleEntityCb(v, {
           headers,

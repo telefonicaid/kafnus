@@ -1,15 +1,8 @@
-// ngsiUtils.js
-//import wkx from 'wkx';
-var wkx = require('wkx');
-//import { Buffer } from 'buffer';
-var Buffer = require('buffer').Buffer;
-//import wellknown from 'wellknown';
-//var wellknown = require('wellknown');
-//import geojsonToWKT from 'geojson-to-wkt';
-//import { geoJSONToWkt } from "betterknown";
-var geoJSONToWkt = require('betterknown').geoJSONToWkt;
-//import { DateTime } from 'luxon';
-var DateTime = require('luxon').DateTime;
+const wkx = require('wkx');
+const Buffer = require('buffer').Buffer;
+const geoJSONToWkt = require('betterknown').geoJSONToWkt;
+const DateTime = require('luxon').DateTime;
+const { info, warn, error } = require('./logger');
 
 // -----------------
 // WKT/WKB conversion
@@ -37,7 +30,7 @@ function toWkbStructFromWkt(wktStr, fieldName, srid = 4326) {
       }
     };
   } catch (err) {
-    console.error(`Error generating WKB from WKT: ${err}`);
+    error(`Error generating WKB from WKT: ${err}`);
     return null;
   }
 }
@@ -56,11 +49,10 @@ function toWktGeometry(attrType, attrValue) {
       });
       return `POLYGON ((${coords.join(', ')}))`;
     } else if (attrType === 'geo:json') {
-      //return geojsonToWKT(attrValue);
       return geoJSONToWkt(attrValue);        
     }
   } catch (err) {
-    console.error(`Error generating WKT from type '${attrType}': ${err}`);
+    error(`Error generating WKT from type '${attrType}': ${err}`);
   }
   return null;
 }
@@ -108,7 +100,7 @@ function inferFieldType(name, value, attrType = null) {
           toEpochMillis(value)
         ];
       } catch (err) {
-        console.warn(`Error parsing datetime for field '${name}': ${err}`);
+        warn(`Error parsing datetime for field '${name}': ${err}`);
         return ['string', String(value)];
       }
     }
@@ -119,7 +111,7 @@ function inferFieldType(name, value, attrType = null) {
       if (Number.isInteger(value)) {
         if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) return ['int32', value];
         if (value >= -(2 ** 63) && value <= 2 ** 63 - 1) return ['int64', value];
-        console.warn(`Integer fuera de rango BIGINT: ${value}`);
+        warn(`Integer out or range BIGINT: ${value}`);
         return ['string', String(value)];
       }
       const numVal = parseFloat(value);
@@ -132,7 +124,7 @@ function inferFieldType(name, value, attrType = null) {
       try {
         return ['string', JSON.stringify(value)];
       } catch (err) {
-        console.warn(`Error serializing '${name}' as JSON: ${err}`);
+        warn(`Error serializing '${name}' as JSON: ${err}`);
         return ['string', String(value)];
       }
     }
@@ -150,7 +142,7 @@ function inferFieldType(name, value, attrType = null) {
         toEpochMillis(value)
       ];
     } catch (err) {
-      console.warn(`Error parsing datetime for field '${name}': ${err}`);
+      warn(`Error parsing datetime for field '${name}': ${err}`);
       return ['string', String(value)];
     }
   }
@@ -159,7 +151,7 @@ function inferFieldType(name, value, attrType = null) {
   if (Number.isInteger(value)) {
     if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) return ['int32', value];
     if (value >= -(2 ** 63) && value <= 2 ** 63 - 1) return ['int64', value];
-    console.warn(`Integer fuera de rango BIGINT: ${value}`);
+    warn(`Integer out of range BIGINT: ${value}`);
     return ['string', String(value)];
   }
   if (typeof value === 'number') return ['double', value];
@@ -167,7 +159,7 @@ function inferFieldType(name, value, attrType = null) {
     try {
       return ['string', JSON.stringify(value)];
     } catch (err) {
-      console.warn(`Error serializing '${name}' as JSON: ${err}`);
+      warn(`Error serializing '${name}' as JSON: ${err}`);
       return ['string', String(value)];
     }
   }
@@ -255,8 +247,9 @@ function encodeMongo(value) {
     .replace(/=/g, 'xffff');
 }
 
-
+exports.toWktGeometry = toWktGeometry;
 exports.toWkbStructFromWkt = toWkbStructFromWkt;
-exports.sanitizeTopic = sanitizeTopic
 exports.toKafnusConnectSchema = toKafnusConnectSchema;
 exports.buildKafkaKey = buildKafkaKey;
+exports.sanitizeTopic = sanitizeTopic;
+exports.encodeMongo = encodeMongo;

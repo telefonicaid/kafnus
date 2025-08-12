@@ -10,7 +10,7 @@ async function startErrorsConsumerAgent() {
       const k = key ? key.toString() : null;
       const v = value ? value.toString() : null;
       info(`[errors] key=${k} value=${v}`);
-
+      // TBD logic
     } catch (err) {
       console.error('Error proccesing event:', err);
     }
