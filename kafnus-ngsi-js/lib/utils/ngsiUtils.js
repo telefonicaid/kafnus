@@ -281,3 +281,4 @@ exports.toKafnusConnectSchema = toKafnusConnectSchema;
 exports.buildKafkaKey = buildKafkaKey;
 exports.sanitizeTopic = sanitizeTopic;
 exports.encodeMongo = encodeMongo;
+exports.formatDatetimeIso = formatDatetimeIso;
