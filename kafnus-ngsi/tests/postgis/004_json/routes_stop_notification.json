@@ -1,7 +1,7 @@
 {
   "flow": "historic",  
   "headers": {
-      "fiware-service": "tests",
+      "fiware-service": "test",
       "fiware-servicepath": "/routes"
     },
     "payload": {

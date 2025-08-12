@@ -2,11 +2,11 @@
     "connection": {
       "host": "localhost",
       "port": 5432,
-      "dbname": "tests",
+      "dbname": "test",
       "user": "postgres",
       "password": "postgres"
     },
-    "table": "tests.accesscount_access",
+    "table": "test.accesscount_access",
     "conditions": [
       {
         "entityid": "NPO-101",

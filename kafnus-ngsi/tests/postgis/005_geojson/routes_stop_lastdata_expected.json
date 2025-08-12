@@ -2,11 +2,11 @@
   "connection": {
     "host": "localhost",
     "port": 5432,
-    "dbname": "tests",
+    "dbname": "test",
     "user": "postgres",
     "password": "postgres"
   },
-  "table": "tests.routes_stop_lastdata",
+  "table": "test.routes_stop_lastdata",
   "conditions": [
     {
 		"timeinstant" : "2025-05-16T07:45:00.000Z",

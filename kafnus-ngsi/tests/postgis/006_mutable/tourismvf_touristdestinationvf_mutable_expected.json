@@ -2,11 +2,11 @@
   "connection": {
     "host": "localhost",
     "port": 5432,
-    "dbname": "tests",
+    "dbname": "test",
     "user": "postgres",
     "password": "postgres"
   },
-  "table": "tests.tourismvf_touristdestinationvf_mutable",
+  "table": "test.tourismvf_touristdestinationvf_mutable",
   "conditions": [
     {
       "entityid": "VF_44046_NA",

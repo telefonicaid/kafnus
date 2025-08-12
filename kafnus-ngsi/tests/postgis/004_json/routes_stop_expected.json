@@ -2,11 +2,11 @@
   "connection": {
     "host": "localhost",
     "port": 5432,
-    "dbname": "tests",
+    "dbname": "test",
     "user": "postgres",
     "password": "postgres"
   },
-  "table": "tests.routes_stop",
+  "table": "test.routes_stop",
   "conditions": [
     {
       "entityid": "STOP-001",

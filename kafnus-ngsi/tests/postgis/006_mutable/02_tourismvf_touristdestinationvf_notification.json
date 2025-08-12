@@ -1,7 +1,7 @@
 {
   "flow": "mutable",
   "headers": {
-    "fiware-service": "tests",
+    "fiware-service": "test",
     "fiware-servicepath": "/tourismvf"
   },
   "payload": {

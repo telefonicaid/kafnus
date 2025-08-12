@@ -2,11 +2,11 @@
   "connection": {
     "host": "localhost",
     "port": 5432,
-    "dbname": "tests",
+    "dbname": "test",
     "user": "postgres",
     "password": "postgres"
   },
-  "table": "tests.parking_zone",
+  "table": "test.parking_zone",
   "conditions": [
     {
       "entityid": "PZ-123",
