@@ -28,7 +28,7 @@
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
-const handleEntityCb = require('../utils/handleEntityCb');
+const { handleEntityCb } = require('../utils/handleEntityCb');
 
 async function startHistoricConsumerAgent(logger) {
   const topic = 'raw_historic';

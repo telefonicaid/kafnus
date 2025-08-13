@@ -32,7 +32,7 @@ const { formatDatetimeIso } = require('../utils/ngsiUtils');
 
 async function startErrorsConsumerAgent(logger) {
   const topic = 'raw_errors';
-  const groupId = process.env.GROUP_ID || 'ngsi-processor-errors';
+  const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-errors';
 
   const producer = await createProducer(logger);
 

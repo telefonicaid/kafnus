@@ -27,23 +27,102 @@
 'use strict';
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
+const { createProducer } = require('./sharedProducerFactory');
+const { getFiwareContext } = require('../utils/handleEntityCb');
+const { buildKafkaKey } = require('../utils/ngsiUtils');
 
 async function startLastdataConsumerAgent(logger) {
   const topic = 'raw_lastdata';
+  const datamodel = 'dm-by-entity-type-database';
+  const suffix = "_lastdata"
   const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-lastdata';
+  const producer = await createProducer(logger);
 
-  const consumer = await createConsumerAgent(logger, { groupId, topic, onData: ({ key, value }) => {
-    try {
+  const consumer = await createConsumerAgent(
+   logger,
+   {
+    groupId,
+    topic,
+    onData: async ({ key, value, headers }) => {
+      const start = Date.now();
       const k = key ? key.toString() : null;
-      const v = value ? value.toString() : null;
-      logger.info(`[lastdata] key=${k} value=${v}`);
-      // TBD logic
+      const rawValue = value ? value.toString() : null;
+      logger.info(`[lastdata] key=${k} value=${rawValue}`);
 
+      try {
+          //logger.info(`rawValue: '${rawValue}'`);
+          const message = JSON.parse(rawValue);
+          //logger.info(`message: '${message}'`);
+          const payloadStr = message.payload;
+          //logger.info(`payloadStr: '${payloadStr}'`);
+          if (!payloadStr) {
+              logger.warn('No payload found in message');
+              return;
+          }
+          const payload = JSON.parse(payloadStr);
+          //logger.info('payload: %j', payload);
+          const dataList = payload.data || [];
+          //logger.info('entities: %j', entities);
+          if (dataList.length === 0) {
+              logger.warn('No data found in payload');
+              return;
+          }
+          const { service, servicepath } = getFiwareContext(headers, message);
+
+          // TBD: check if all entities should be readed with a loop, not just first one
+          const entityRaw = dataList[0];
+          const entityId = entityRaw.id || 'unknown';
+          const entityType = (entityRaw.type || 'unknown').toLowerCase();
+          const alteration = entityRaw.alterationType || {};
+          let altarationType = null;
+          if (alteration && alteration.value) {
+              alterationType = (alteration.value || "entityupdate").toLowerCase();
+          } else {
+              alterationType = alteration.toLowerCase()
+          }
+          if (!entityId) {
+              logger.warn('No entity ID  found');
+              return;
+          }
+          if (alterationType === "entitydelete") {
+              const deleteEntity = {
+                  entityid: entityId,
+                  entitytype: entityType,
+                  fiwareservicepath: servicepath
+              }
+              const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, suffix);
+              const topicName = `${service}${suffix}`;
+              const outputTopic = topicName;
+              if (!keyFields) keyFields = ['entityid'];
+              const kafkaKey = buildKafkaKey(eleteEntity, keyFields, includeTimeinstant );
+              producer.produce(
+                  topicName,
+                  null, // partition null: kafka decides
+                  null, // message
+                  kafkaKey,
+                  Date.now(),
+                  [("target_table", targetTable.encode())], // headers
+              );
+              logger.info(`[${suffix.replace(/^_/, '') || 'lastdata'}] Sent to topic '${topicName}' (table: '${targetTable}'): ${entity.entityid}`);
+              return;
+          }
+
+          await handleEntityCb(logger, v, {
+              headers,
+              suffix: '_lastdata',
+              includeTimeinstant: true,
+              keyFields: ['entityid'],
+              datamodel: /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database'
+          }, producer);
         
-    } catch (err) {
-      logger.error('Error processing lastdata event:', err);
+      } catch (err) {
+          logger.error('[lastdata] Error processing event: %j', err);
+      }
+
+      const duration = (Date.now() - start) / 1000;
+      // TBD Metrics
     }
-  }});
+  });
 
   return consumer;
 }

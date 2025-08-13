@@ -82,7 +82,7 @@ async function handleEntityCb(
   producer
 ) {
   try {
-    logger.info(`rawValue: '${rawValue}'`);
+    //logger.info(`rawValue: '${rawValue}'`);
     const message = JSON.parse(rawValue);
     //logger.info(`message: '${message}'`);
     const payloadStr = message.payload;
@@ -169,4 +169,6 @@ async function handleEntityCb(
   }
 }
 
-module.exports = handleEntityCb;
+module.exports.handleEntityCb = handleEntityCb;
+module.exports.getFiwareContext = getFiwareContext;
+module.exports.buildTargetTable = buildTargetTable;
