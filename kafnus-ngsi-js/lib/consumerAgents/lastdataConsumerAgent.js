@@ -104,17 +104,16 @@ async function startLastdataConsumerAgent(logger) {
                   [("target_table", targetTable.encode())], // headers
               );
               logger.info(`[${suffix.replace(/^_/, '') || 'lastdata'}] Sent to topic '${topicName}' (table: '${targetTable}'): ${entity.entityid}`);
-              return;
-          }
+          } else {
+              await handleEntityCb(logger, rawValue, {
+                  headers,
+                  suffix: '_lastdata',
+                  includeTimeinstant: true,
+                  keyFields: ['entityid'],
+                  datamodel: /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database'
+              }, producer);
 
-          await handleEntityCb(logger, v, {
-              headers,
-              suffix: '_lastdata',
-              includeTimeinstant: true,
-              keyFields: ['entityid'],
-              datamodel: /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database'
-          }, producer);
-        
+          }
       } catch (err) {
           logger.error('[lastdata] Error processing event: %j', err);
       }
