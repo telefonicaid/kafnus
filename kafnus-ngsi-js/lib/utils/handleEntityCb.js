@@ -56,8 +56,11 @@ function getFiwareContext(headers, fallbackEvent) {
   var servicepath = null;
   if (headers && headers.length > 0) {
     const hdict = {};
-    headers.forEach(([k, v]) => {
-      hdict[k] = v.toString();
+    headers.forEach(headerObj => {
+       const headerName = Object.keys(headerObj)[0];
+       const bufferValue = headerObj[headerName];
+       const decodedValue = Buffer.from(bufferValue);
+       hdict[headerName] = decodedValue.toString();
     });
     service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
     servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
@@ -79,7 +82,7 @@ async function handleEntityCb(
   producer
 ) {
   try {
-    //logger.info(`rawValue: '${rawValue}'`);
+    logger.info(`rawValue: '${rawValue}'`);
     const message = JSON.parse(rawValue);
     //logger.info(`message: '${message}'`);
     const payloadStr = message.payload;
@@ -89,7 +92,9 @@ async function handleEntityCb(
       return;
     }
     const payload = JSON.parse(payloadStr);
+    //logger.info('payload: %j', payload);
     const entities = payload.data || [];
+    //logger.info('entities: %j', entities);      
     if (entities.length === 0) {
       logger.warn('No entities found in payload');
       return;
@@ -109,7 +114,6 @@ async function handleEntityCb(
         entitytype: entityType,
         fiwareservicepath: servicepath
       };
-
       const attributes = {};
       const schemaOverrides = {};
       const attributesTypes = {};
@@ -146,12 +150,10 @@ async function handleEntityCb(
         attributes[attrName] = value;
         attributesTypes[attrName] = attrType;
       }
-
       entity.push = { ...entity, ...attributes };
       if (!keyFields) keyFields = ['entityid'];
       const kafkaMessage = toKafnusConnectSchema(entity, schemaOverrides, attributesTypes);
       const kafkaKey = buildKafkaKey(entity, keyFields, includeTimeinstant );
-
       producer.produce(
           topicName,
           null, // partition null: kafka decides
