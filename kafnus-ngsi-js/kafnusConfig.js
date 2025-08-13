@@ -2,8 +2,8 @@
  * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de EspaÒa, S.A.U.
  * PROJECT: Kafnus
  *
- * This software and / or computer program has been developed by Telef√≥nica Soluciones
- * de Inform√°tica y Comunicaciones de Espa√±a, S.A.U (hereinafter TSOL) and is protected
+ * This software and / or computer program has been developed by Telefonica Soluciones
+ * de Informatica y Comunicaciones de EspaÒa, S.A.U (hereinafter TSOL) and is protected
  * as copyright by the applicable legislation on intellectual property.
  *
  * It belongs to TSOL, and / or its licensors, the exclusive rights of reproduction,
@@ -24,13 +24,73 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-const baseConfig = {
-  'bootstrap.servers': 'localhost:9092',
-  // 'sasl.username': process.env.CLUSTER_API_KEY,
-  // 'sasl.password': process.env.CLUSTER_API_SECRET,
-  // 'security.protocol': 'SASL_SSL',
-  //'sasl.mechanisms': 'PLAIN',
-  'group.id': process.env.GROUP_ID || 'ngsi-processor-group'
+'use strict';
+
+
+const _ = require('lodash');
+const Ajv = require('ajv');
+const logger = require('./lib/utils/logger');
+
+// Require and configure dotenv, will load vars in .env in PROCESS.ENV
+require('dotenv').config();
+
+// Define validation for all the env vars
+const ajv = new Ajv({ useDefaults: true, coerceTypes: true });
+
+const envVarsSchema = {
+    type: 'object',
+    properties: {
+        NODE_ENV: {
+            type: 'string',
+            default: 'development',
+            enum: ['development', 'production'],
+        },
+        KAFNUS_NGSI_BOOTSTRAP_SERVERS: {
+            type: 'string',
+            default: 'localhost:9092',
+        },
+        KAFNUS_NGSI_GROUP_ID: {
+            type: 'string',
+            default: 'ngsi-processor-group',
+        },
+        KAFNUS_NGSI_LOG_LEVEL: {
+            type: 'string',
+            default: 'INFO',
+            enum: ['INFO', 'WARN', 'ERROR', 'DEBUG'],
+        },
+        KAFNUS_NGSI_LOG_OB: {
+            type: 'string',
+            default: 'ES',
+        },
+        KAFNUS_NGSI_LOG_COMP: {
+            type: 'string',
+            default: 'Kafnus',
+        },
+    },
 };
 
-module.exports = { baseConfig };
+const envVars = _.clone(process.env);
+const valid = ajv.addSchema(envVarsSchema, 'envVarsSchema').validate('envVarsSchema', envVars);
+
+if (!valid) {
+    logger.getBasicLogger().error(new Error(ajv.errorsText()));
+}
+
+const config = {
+    env: envVars.NODE_ENV,
+    kafka: {
+        'bootstrap.servers': envVars.KAFNUS_NGSI_BOOTSTRAP_SERVERS,
+        // 'sasl.username': envVars.KAFNUS_NGSI_CLUSTER_API_KEY,
+        // 'sasl.password': envVars.KAFNUS_NGSI_CLUSTER_API_SECRET,
+        // 'security.protocol': 'SASL_SSL',
+        // 'sasl.mechanisms': 'PLAIN',
+        'group.id': envVars.KAFNUS_NGSI_GROUP_ID,
+    },
+    logger: {
+        level: envVars.KAFNUS_NGSI_LOG_LEVEL,
+        ob: envVars.KAFNUS_NGSI_LOG_OB,
+        comp: envVars.KAFNUS_NGSI_LOG_COMP,
+    },
+};
+
+module.exports.config = config;

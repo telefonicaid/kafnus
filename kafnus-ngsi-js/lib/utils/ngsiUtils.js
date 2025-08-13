@@ -30,7 +30,7 @@ const { Geometry} = require('wkx');
 const { Buffer } = require('buffer');
 const { geoJSONToWkt } = require('betterknown');
 const { DateTime } = require('luxon');
-const { info, warn, error } = require('./logger');
+const logger = require('./logger');
 
 // -----------------
 // WKT/WKB conversion
@@ -58,7 +58,7 @@ function toWkbStructFromWkt(wktStr, fieldName, srid = 4326) {
       }
     };
   } catch (err) {
-    error(`Error generating WKB from WKT: ${err}`);
+    logger.error(`Error generating WKB from WKT: ${err}`);
     return null;
   }
 }
@@ -80,7 +80,7 @@ function toWktGeometry(attrType, attrValue) {
       return geoJSONToWkt(attrValue);        
     }
   } catch (err) {
-    error(`Error generating WKT from type '${attrType}': ${err}`);
+    logger.error(`Error generating WKT from type '${attrType}': ${err}`);
   }
   return null;
 }
@@ -128,7 +128,7 @@ function inferFieldType(name, value, attrType = null) {
           toEpochMillis(value)
         ];
       } catch (err) {
-        warn(`Error parsing datetime for field '${name}': ${err}`);
+        logger.warn(`Error parsing datetime for field '${name}': ${err}`);
         return ['string', String(value)];
       }
     }
@@ -139,7 +139,7 @@ function inferFieldType(name, value, attrType = null) {
       if (Number.isInteger(value)) {
         if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) return ['int32', value];
         if (value >= -(2 ** 63) && value <= 2 ** 63 - 1) return ['int64', value];
-        warn(`Integer out or range BIGINT: ${value}`);
+        logger.warn(`Integer out or range BIGINT: ${value}`);
         return ['string', String(value)];
       }
       const numVal = parseFloat(value);
@@ -152,7 +152,7 @@ function inferFieldType(name, value, attrType = null) {
       try {
         return ['string', JSON.stringify(value)];
       } catch (err) {
-        warn(`Error serializing '${name}' as JSON: ${err}`);
+        logger.warn(`Error serializing '${name}' as JSON: ${err}`);
         return ['string', String(value)];
       }
     }
@@ -170,7 +170,7 @@ function inferFieldType(name, value, attrType = null) {
         toEpochMillis(value)
       ];
     } catch (err) {
-      warn(`Error parsing datetime for field '${name}': ${err}`);
+      logger.warn(`Error parsing datetime for field '${name}': ${err}`);
       return ['string', String(value)];
     }
   }
@@ -179,7 +179,7 @@ function inferFieldType(name, value, attrType = null) {
   if (Number.isInteger(value)) {
     if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) return ['int32', value];
     if (value >= -(2 ** 63) && value <= 2 ** 63 - 1) return ['int64', value];
-    warn(`Integer out of range BIGINT: ${value}`);
+    logger.warn(`Integer out of range BIGINT: ${value}`);
     return ['string', String(value)];
   }
   if (typeof value === 'number') return ['double', value];
@@ -187,7 +187,7 @@ function inferFieldType(name, value, attrType = null) {
     try {
       return ['string', JSON.stringify(value)];
     } catch (err) {
-      warn(`Error serializing '${name}' as JSON: ${err}`);
+      logger.warn(`Error serializing '${name}' as JSON: ${err}`);
       return ['string', String(value)];
     }
   }

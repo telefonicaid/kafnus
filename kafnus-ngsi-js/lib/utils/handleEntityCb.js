@@ -27,8 +27,6 @@
 'use strict';
 
 const { Kafka } = require('@confluentinc/kafka-javascript').KafkaJS;
-const { baseConfig } = require('../../kafnusConfig');
-const { info, warn, error } = require('./logger');
 const {
   toWktGeometry,
   toWkbStructFromWkt,
@@ -75,24 +73,25 @@ function getFiwareContext(headers, fallbackEvent) {
 }
 
 async function handleEntityCb(
+  logger,
   rawValue,
   { headers = [], datamodel = 'dm-by-entity-type-database', suffix = '', includeTimeinstant = true, keyFields = null } = {},
   producer
 ) {
   try {
-    //info(`rawValue: '${rawValue}'`);
+    //logger.info(`rawValue: '${rawValue}'`);
     const message = JSON.parse(rawValue);
-    //info(`message: '${message}'`);
+    //logger.info(`message: '${message}'`);
     const payloadStr = message.payload;
-    //info(`payloadStr: '${payloadStr}'`);
+    //logger.info(`payloadStr: '${payloadStr}'`);
     if (!payloadStr) {
-      warn('No payload found in message');
+      logger.warn('No payload found in message');
       return;
     }
     const payload = JSON.parse(payloadStr);
     const entities = payload.data || [];
     if (entities.length === 0) {
-      warn('No entities found in payload');
+      logger.warn('No entities found in payload');
       return;
     }
     const { service, servicepath } = getFiwareContext(headers, message);
@@ -139,7 +138,7 @@ async function handleEntityCb(
           try {
             value = JSON.stringify(value);
           } catch (err) {
-            warn(`Error serializing field '${attrName}' as JSON: ${err}`);
+            logger.warn(`Error serializing field '${attrName}' as JSON: ${err}`);
             value = String(value);
           }
         }
@@ -161,10 +160,10 @@ async function handleEntityCb(
           Date.now()
       );
         
-      info(`[${suffix.replace(/^_/, '') || 'historic'}] Sent to topic '${topicName}' (table: '${targetTable}'): ${entity.entityid}`);
+      logger.info(`[${suffix.replace(/^_/, '') || 'historic'}] Sent to topic '${topicName}' (table: '${targetTable}'): ${entity.entityid}`);
     }
   } catch (err) {
-    error(`Error in handleEntityCb: ${err}`);
+    logger.error(`Error in handleEntityCb: ${err}`);
   }
 }
 

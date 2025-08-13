@@ -27,27 +27,28 @@
 'use strict';
 
 const Kafka = require('@confluentinc/kafka-javascript');
-const { baseConfig } = require('../../kafnusConfig');
-const { info, error } = require('../utils/logger');
+const { config } = require('../../kafnusConfig');
 
-function createConsumerAgent({ groupId, topic, onData }) {
-  const config = { ...baseConfig, 'group.id': groupId };
-  const consumer = new Kafka.KafkaConsumer(config, { 'auto.offset.reset': process.env.AUTO_OFFSET_RESET || 'earliest' });
+function createConsumerAgent(logger, { groupId, topic, onData }) {
+  logger.info('config: %j', config);
+  const configKafka = { ...config.kafka, 'group.id': groupId };
+  logger.info('configKafka: %j', configKafka);
+  const consumer = new Kafka.KafkaConsumer(configKafka, { 'auto.offset.reset': /*process.env.AUTO_OFFSET_RESET ||*/ 'earliest' });
 
   return new Promise((resolve, reject) => {
     consumer
       .on('ready', () => {
         consumer.subscribe([topic]);
         consumer.consume();
-        info(`ConsumerAgent ready — topic=${topic} group=${config['group.id']}`);
+        logger.info(`ConsumerAgent ready — topic=${topic} group=${configKafka['group.id']}`);
         resolve(consumer);
       })
       .on('data', onData)
       .on('event.error', (err) => {
-        error(`Event error on topic ${topic}:`, err);
+        logger.error(`Event error on topic ${topic}:`, err);
       })
       .on('disconnected', () => {
-        info(`ConsumerAgent disconnected from topic ${topic}`);
+        logger.info(`ConsumerAgent disconnected from topic ${topic}`);
       });
 
     try {

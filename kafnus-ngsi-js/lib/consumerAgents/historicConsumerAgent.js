@@ -28,35 +28,36 @@
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
-const { info, error } = require('../utils/logger');
 const handleEntityCb = require('../utils/handleEntityCb');
 
-async function startHistoricConsumerAgent() {
+async function startHistoricConsumerAgent(logger) {
   const topic = 'raw_historic';
-  const groupId = process.env.GROUP_ID || 'ngsi-processor-historic';
+  const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-historic';
 
-  const producer = await createProducer();
+  const producer = await createProducer(logger);
 
-  const consumer = await createConsumerAgent({
+  const consumer = await createConsumerAgent(
+   logger,
+   {
     groupId,
     topic,
     onData: async ({ key, value, headers }) => {
       const start = Date.now();
       const k = key?.toString() || '';
       const v = value?.toString() || '';
-      info(`[raw_historic] Key: ${k}, Value: ${v}`);
-         
+      logger.info(`[raw_historic] Key: ${k}, Value: ${v}`);
+
       try {
-          info(`rawValue: '${v}'`);              
-        await handleEntityCb(v, {
+          logger.info(`rawValue: '${v}'`);
+          await handleEntityCb(logger, v, {
           headers,
           suffix: '',
           includeTimeinstant: true,
           keyFields: ['entityid'],
-          datamodel: process.env.DATAMODEL || 'dm-by-entity-type-database'
+          datamodel: /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database'
         }, producer);
       } catch (err) {
-        error(` [historic] Error processing event: ${err}`);
+        logger.error(` [historic] Error processing event: ${err}`);
       }
 
       const duration = (Date.now() - start) / 1000;

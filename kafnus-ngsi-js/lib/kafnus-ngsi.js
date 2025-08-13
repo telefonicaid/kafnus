@@ -26,7 +26,11 @@
 
 'use strict';
 
-const { error, info } = require('./utils/logger');
+
+const { config }  = require('../kafnusConfig');
+const logger = require('./utils/logger');
+
+logger.initLogger(config);
 
 const startHistoricConsumerAgent = require('./consumerAgents/historicConsumerAgent');
 const startLastdataConsumerAgent = require('./consumerAgents/lastdataConsumerAgent');
@@ -35,21 +39,22 @@ const startErrorsConsumerAgent = require('./consumerAgents/errorsConsumerAgent')
 const startMongoConsumerAgent = require('./consumerAgents/mongoConsumerAgent');
 
 async function main() {
-  info('Starting all consumers...');
+  var log = logger.getBasicLogger();
+  log.info('Starting all consumers...');
 
   const started = await Promise.all([
-    startHistoricConsumerAgent(),
-    startLastdataConsumerAgent(),
-    startMutableConsumerAgent(),
-    startErrorsConsumerAgent(),
-    startMongoConsumerAgent()
+    startHistoricConsumerAgent(log),
+    startLastdataConsumerAgent(log),
+    startMutableConsumerAgent(log),
+    startErrorsConsumerAgent(log),
+    startMongoConsumerAgent(log)
   ]);
 
   const consumers = started.filter(Boolean);
 
   // Graceful shutdown
   const shutdown = async () => {
-      info('Shutting down consumers(agents)...');
+    log.info('Shutting down consumers(agents)...');
     await Promise.all(consumers.map(c => new Promise((resolve) => {
       try {
         c.disconnect();
@@ -64,6 +69,6 @@ async function main() {
 }
 
 main().catch(err => {
-  error('Error starting consumers:', err);
+  logger.getBasicLogger().error('Error starting consumers: %j', err);
   process.exit(1);
 });

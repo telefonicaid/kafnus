@@ -27,22 +27,21 @@
 'use strict';
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { info, error } = require('../utils/logger');
 
-async function startLastdataConsumerAgent() {
+async function startLastdataConsumerAgent(logger) {
   const topic = 'raw_lastdata';
-  const groupId = process.env.GROUP_ID || 'ngsi-processor-lastdata';
+  const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-lastdata';
 
-  const consumer = await createConsumerAgent({ groupId, topic, onData: ({ key, value }) => {
+  const consumer = await createConsumerAgent(logger, { groupId, topic, onData: ({ key, value }) => {
     try {
       const k = key ? key.toString() : null;
       const v = value ? value.toString() : null;
-      info(`[lastdata] key=${k} value=${v}`);
+      logger.info(`[lastdata] key=${k} value=${v}`);
       // TBD logic
 
         
     } catch (err) {
-      error('Error processing lastdata event:', err);
+      logger.error('Error processing lastdata event:', err);
     }
   }});
 

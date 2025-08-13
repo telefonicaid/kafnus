@@ -27,30 +27,29 @@
 'use strict';
 
 const Kafka = require('@confluentinc/kafka-javascript');
-const { baseConfig } = require('../../kafnusConfig');
-const { info, error } = require('../utils/logger');
+const { config } = require('../../kafnusConfig');
 
-function createProducer() {
-  const producer = new Kafka.Producer(baseConfig);
+function createProducer(logger) {
+  const producer = new Kafka.Producer(config.kafka);
 
   return new Promise((resolve, reject) => {
     producer
       .on('ready', () => {
-        info('Producer ready');
+        logger.info('Producer ready');
         resolve(producer);
       })
       .on('event.error', (err) => {
-        error('Producer error:', err);
+        logger.error('Producer error: %j', err);
       })
       .on('delivery-report', (err, report) => {
         if (err) {
-          error('Delivery report error:', err);
+          logger.error('Delivery report error: %j', err);
         } else {
-          info(`Message delivered to topic ${report.topic} [${report.partition}] at offset ${report.offset}`);
+          logger.info(`Message delivered to topic ${report.topic} [${report.partition}] at offset ${report.offset}`);
         }
       })
       .on('disconnected', () => {
-        info('Producer disconnected');
+        logger.info('Producer disconnected');
       });
 
     try {

@@ -24,11 +24,52 @@
  * criminal actions it may exercise to protect its rights.
  */
 
+/* eslint-disable no-underscore-dangle */
+
 'use strict';
 
-// Logger simple; TBD
-function info(...args) { console.log('[INFO]', ...args); }
-function warn(...args) { console.warn('[WARN]', ...args); }
-function error(...args) { console.error('[ERROR]', ...args); }
 
-module.exports = { info, warn, error };
+const logger = require('logops');
+const { v4: uuidv4 } = require('uuid');
+const packageInfo = require('../../package.json');
+
+/**
+ *  Initializes the logger
+ */
+function initLogger(config) {
+  logger.format = logger.formatters.pipe;
+  logger.setLevel(config.logger.level);
+
+  logger.getContext = () => ({
+    ver: packageInfo.version,
+    corr: 'n/a',
+    trans: 'n/a',
+    ob: config.logger.ob,
+    comp: config.logger.comp,
+    op: 'n/a',
+  });
+}
+
+/**
+ * Return the basic logger (i.e. not associated to any request). This is used for instance
+ * for startup messages
+ */
+function getBasicLogger() {
+  return logger;
+}
+
+/**
+ * Create a brand new child logger
+ */
+function createChildLogger(config) {
+  const loggerCtx = logger.getContext();
+  return logger.child({
+    op: (config && config.op) || loggerCtx.op,
+    corr: (config && config.corr) || uuidv4(),
+  });
+}
+
+module.exports.createChildLogger = createChildLogger;
+module.exports.initLogger = initLogger;
+module.exports.getBasicLogger = getBasicLogger;
+

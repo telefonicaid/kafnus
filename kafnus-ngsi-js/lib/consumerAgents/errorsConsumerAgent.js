@@ -28,25 +28,24 @@
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
-const { info } = require('../utils/logger');
 const { formatDatetimeIso } = require('../utils/ngsiUtils');
 
-async function startErrorsConsumerAgent() {
+async function startErrorsConsumerAgent(logger) {
   const topic = 'raw_errors';
   const groupId = process.env.GROUP_ID || 'ngsi-processor-errors';
 
-  const producer = await createProducer();
+  const producer = await createProducer(logger);
 
-  const consumer = await createConsumerAgent({ groupId, topic, onData: ({ key, value }) => {
+  const consumer = await createConsumerAgent(logger, { groupId, topic, onData: ({ key, value }) => {
     try {
         const k = key ? key.toString() : null;
         const valueRaw = value ? value.toString() : '';
-        info(`[errors] key=${k} value=${valueRaw}`);
+        logger.info(`[errors] key=${k} value=${valueRaw}`);
         let valueJson;
         try {
           valueJson = JSON.parse(valueRaw);
         } catch (e) {
-          warn(`Could not parse JSON payload: ${e.message}`);
+          logger.warn(`Could not parse JSON payload: ${e.message}`);
           return;
         }
 
@@ -138,10 +137,10 @@ async function startErrorsConsumerAgent() {
             Date.now()
         );
 
-        info(`Logged SQL error to '${errorTopicName}': ${errorMessage}`);
+        logger.info(`Logged SQL error to '${errorTopicName}': ${errorMessage}`);
 
     } catch (err) {
-      error('Error proccesing event:', err);
+      logger.error('Error proccesing event:', err);
     }
   }});
 

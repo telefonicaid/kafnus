@@ -30,16 +30,17 @@ const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { encodeMongo } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
-const { info, error } = require('../utils/logger');
 
-async function startMongoConsumerAgent() {
+async function startMongoConsumerAgent(logger) {
   const topic = 'raw_mongo';
   const outputTopic = 'tests_mongo';
-  const groupId = process.env.GROUP_ID || 'ngsi-processor-mongo';
+  const groupId = /* process.env.GROUP_ID || */ 'ngsi-processor-mongo';
 
-  const producer = await createProducer();
+  const producer = await createProducer(logger);
 
-  const consumer = await createConsumerAgent({
+  const consumer = await createConsumerAgent(
+   logger,
+   {
     groupId,
     topic,
     onData: async ({ key, value }) => {
@@ -47,7 +48,7 @@ async function startMongoConsumerAgent() {
         const rawValue = value ? value.toString() : null;
         if (!rawValue) return;
         const k = key ? key.toString() : null;
-        info(`[mongo] key=${k} value=${rawValue}`);
+        logger.info(`[mongo] key=${k} value=${rawValue}`);
         const data = JSON.parse(rawValue);
         const headers = data.headers || {};
         const body = data.body || {};
@@ -75,10 +76,10 @@ async function startMongoConsumerAgent() {
         for (const attr of attributes) {
           doc[attr.attrName] = attr.attrValue;
         }
-        info(`[mongo] topic: ${topic}`);
-        info(`[mongo] database: ${mongoDb}`);
-        info(`[mongo] collection: ${mongoCollection}`);
-        info(`[mongo] doc: ${doc}`);
+        logger.info(`[mongo] topic: ${topic}`);
+        logger.info(`[mongo] database: ${mongoDb}`);
+        logger.info(`[mongo] collection: ${mongoCollection}`);
+        logger.info(`[mongo] doc: ${doc}`);
         // Publish in output topic
         producer.produce(
             outputTopic,
@@ -91,9 +92,9 @@ async function startMongoConsumerAgent() {
             Date.now()
         );
 
-        info(`[mongo] Sent to '${outputTopic}' | DB: ${mongoDb}, Collection: ${mongoCollection}`);
+        logger.info(`[mongo] Sent to '${outputTopic}' | DB: ${mongoDb}, Collection: ${mongoCollection}`);
       } catch (err) {
-        error(`[mongo] Error processing event: ${err.message}`);
+        logger.error(`[mongo] Error processing event: ${err.message}`);
       }
     }
   });
