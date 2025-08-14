@@ -71,10 +71,10 @@ services:
     networks:
       - kafka-postgis-net
     ports:
-      - "6066:6066"  # Faust web
+    #  - "6066:6066"  # Faust web
       # Monitoring
       - "8000:8000"  # Prometheus
-    command: sh -c "faust -A stream_processor worker -l ${KAFNUS_NGSI_LOG_LEVEL:-info}"
+    #command: sh -c "faust -A stream_processor worker -l ${KAFNUS_NGSI_LOG_LEVEL:-info}"
 
 networks:
   kafka-postgis-net:
