@@ -52,7 +52,8 @@ services:
   kafnus-ngsi:
     container_name: kafnus-ngsi
     build:
-      context: ../kafnus-ngsi
+      context: ../kafnus-ngsi-js
+      #context: ../kafnus-ngsi
       dockerfile: Dockerfile
     image: kafnus-ngsi # telefonicaiot/kafnus-ngsi (at some moment we will use dockerhub image but by the moment kafnus-ngsi is evolving fast so we build in GitAction directly :)
     depends_on:
@@ -62,7 +63,8 @@ services:
         condition: service_completed_successfully
     environment:
       - FAUST_BROKER=kafka://kafka:9092
-      - KAFNUS_NGSI_KAFKA_BROKER=kafka://kafka:9092
+      #- KAFNUS_NGSI_KAFKA_BROKER=kafka://kafka:9092
+      - KAFNUS_NGSI_KAFKA_BROKER=kafka:9092
       - KAFNUS_NGSI_METRICS_PORT=8000
       - KAFNUS_NGSI_DEFAULT_TZ=UTC
       - KAFNUS_NGSI_LOG_LEVEL=INFO

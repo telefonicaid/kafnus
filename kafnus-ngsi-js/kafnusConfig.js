@@ -47,7 +47,7 @@ const envVarsSchema = {
         },
         KAFNUS_NGSI_KAFKA_BROKER: {
             type: 'string',
-            default: 'localhost:9092',
+            default: 'kafka:9092',
         },
         KAFNUS_NGSI_GROUP_ID: {
             type: 'string',
