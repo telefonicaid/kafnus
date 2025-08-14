@@ -1,0 +1,28 @@
+{
+  "name": "kafnus-ngsi",
+  "version": "0.0.1",
+  "description": "kafnus-ngsi based on @confluentinc/kafka-javascript",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }, 
+  "dependencies": {
+    "ajv": "~8.17.1",
+    "ajv-formats": "~3.0.1",
+    "betterknown": "1.0.5",
+    "dotenv": "~16.4.7",
+    "lodash": "~4.17.21",
+    "logops": "~2.1.2",
+    "luxon": "3.7.1",
+    "uuid": "~11.1.0",
+    "wkx": "0.5.0",
+    "@confluentinc/kafka-javascript": "1.4.0"
+  },
+  "devDependencies": {
+    "nodemon": "~3.1.10"
+  }
+}
