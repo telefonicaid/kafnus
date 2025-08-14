@@ -28,7 +28,7 @@
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
-const { getFiwareContext } = require('../utils/handleEntityCb');
+const { getFiwareContext, handleEntityCb } = require('../utils/handleEntityCb');
 const { buildKafkaKey } = require('../utils/ngsiUtils');
 
 async function startLastdataConsumerAgent(logger) {
@@ -68,14 +68,14 @@ async function startLastdataConsumerAgent(logger) {
 
       // TODO: check if all entities should be readed with a loop, not just first one
       const entityRaw = dataList[0];
-      const entityId = entityRaw.id || 'unknown';
-      const entityType = (entityRaw.type || 'unknown').toLowerCase();
-      const alteration = entityRaw.alterationType || {};
-      let altarationType = null;
-      if (alteration && alteration.value) {
-        alterationType = (alteration.value || "entityupdate").toLowerCase();
+      const entityId = entityRaw.id;
+      const entityType = entityRaw.type ? entityRaw.type.toLowerCase() : undefined;
+      const alteration = entityRaw.alterationType;
+      let alterationType = null;
+      if (alteration != undefined) {
+        alterationType = alteration.value ? alteration.value.toLowerCase() : alteration.toLowerCase();
       } else {
-        alterationType = alteration.toLowerCase()
+        alterationType = "entityupdate"
       }
       if (!entityId) {
         logger.warn('No entity ID  found');
@@ -104,11 +104,11 @@ async function startLastdataConsumerAgent(logger) {
       } else {
         await handleEntityCb(
           logger, rawValue, {
-            headers,
-            suffix,
+            headers: headers,
+            suffix: suffix,
             includeTimeinstant: true,
             keyFields: ['entityid'],
-            datamodel
+            datamodel: datamodel
           },
           producer);
       }

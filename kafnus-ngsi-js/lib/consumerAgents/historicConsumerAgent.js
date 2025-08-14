@@ -47,11 +47,11 @@ async function startHistoricConsumerAgent(logger) {
         logger.info(`rawValue: '${v}'`);
         await handleEntityCb(
           logger, v, {
-            headers,
+            headers: headers,
             suffix: '',
             includeTimeinstant: true,
             keyFields: ['entityid'],
-            datamodel
+            datamodel: datamodel
           },
           producer);
       } catch (err) {

@@ -102,8 +102,8 @@ async function handleEntityCb(
     const { service, servicepath } = getFiwareContext(headers, message);
 
     for (const ngsiEntity of entities) {
-      const entityId = ngsiEntity.id || 'unknown';
-      const entityType = ngsiEntity.type || 'unknown';
+      const entityId = ngsiEntity.id;
+      const entityType = ngsiEntity.type;
 
       const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, suffix);
       const topicName = `${service}${suffix}`;
