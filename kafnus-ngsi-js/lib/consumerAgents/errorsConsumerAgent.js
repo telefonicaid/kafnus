@@ -145,7 +145,7 @@ async function startErrorsConsumerAgent(logger) {
         logger.info(`Logged SQL error to '${errorTopicName}': ${errorMessage}`);
 
     } catch (err) {
-      logger.error(' [errors] Error proccesing event:', err);
+      logger.error(' [errors] Error proccesing event: %j', err);
     }
   }});
 

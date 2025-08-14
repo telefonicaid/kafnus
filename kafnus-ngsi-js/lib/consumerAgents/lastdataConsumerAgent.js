@@ -58,9 +58,9 @@ async function startLastdataConsumerAgent(logger) {
       }
       const payload = JSON.parse(payloadStr);
       //logger.info('payload: %j', payload);
-      const dataList = payload.data || [];
+      const dataList = payload.data ? payload.data : [];
       //logger.info('entities: %j', entities);
-      if (dataList.length === 0) {
+      if (dataList && dataList.length === 0) {
         logger.warn('No data found in payload');
         return;
       }
