@@ -45,13 +45,13 @@ const envVarsSchema = {
             default: 'development',
             enum: ['development', 'production'],
         },
-        KAFNUS_NGSI_BOOTSTRAP_SERVERS: {
+        KAFNUS_NGSI_KAFKA_BROKER: {
             type: 'string',
             default: 'localhost:9092',
         },
         KAFNUS_NGSI_GROUP_ID: {
             type: 'string',
-            default: 'ngsi-processor-group',
+            default: 'ngsi-processor',
         },
         KAFNUS_NGSI_LOG_LEVEL: {
             type: 'string',
@@ -79,7 +79,7 @@ if (!valid) {
 const config = {
     env: envVars.NODE_ENV,
     kafka: {
-        'bootstrap.servers': envVars.KAFNUS_NGSI_BOOTSTRAP_SERVERS,
+        'bootstrap.servers': envVars.KAFNUS_NGSI_KAFKA_BROKER,
         // 'sasl.username': envVars.KAFNUS_NGSI_CLUSTER_API_KEY,
         // 'sasl.password': envVars.KAFNUS_NGSI_CLUSTER_API_SECRET,
         // 'security.protocol': 'SASL_SSL',
