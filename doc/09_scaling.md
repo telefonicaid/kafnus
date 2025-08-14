@@ -82,8 +82,10 @@ Kafka distributes incoming messages to topic partitions based on their **key**. 
 In the context of Kafnus:
 
 - Each incoming NGSI notification should ideally use the **entity ID (`entityid`) as the Kafka message key**.
-- This ensures that all updates for a single entity go to the **same partition**, preserving **message ordering** for that entity (**IMPORTANT for lastdata**).
+- This ensures that all updates for a single entity go to the **same partition**, preserving **message ordering** for that entity.
 - Proper partitioning enables **parallel processing across entities**, while maintaining consistency **within** each entity's data stream.
+
+📌 **Important Note**: With upcoming changes to the JDBC connector that will make message ordering irrelevant during processing, strict partitioning by entity ID may become optional. The connector will handle proper sequencing during database insertion regardless of message arrival order.
 
 📌 **If all messages go to the same partition (e.g., due to missing keys)**, no matter how many consumers or pods are deployed, **only one will be active**. This creates a bottleneck.
 
@@ -131,15 +133,17 @@ Each agent encapsulates its transformation logic. For example:
 
 ### ⚠️ Ordering Guarantees in `lastdata`
 
-The `lastdata` agent requires **strict ordering by `TimeInstant`** to ensure only the most recent update is retained. To achieve this:
+The `lastdata` agent currently requires **strict ordering by `TimeInstant`** to ensure only the most recent update is retained. To achieve this:
 
 - All messages for a given entity **must be processed in order**.
 - Kafka guarantees ordering **within a partition** only.
 - Therefore, **all messages for the same entity must land in the same partition**.
 
-✅ This is achieved by **using `entityid` as the Kafka key**.
+✅ This is currently achieved by **using `entityid` as the Kafka key**.
 
-> ❌ If updates for the same entity are spread across partitions, one consumer may process an old timestamp **after** another has already written a newer one — leading to **data inconsistency**.
+> 💡 **Future Consideration**: If the JDBC connector changes eliminate the need for strict ordering, this constraint could be relaxed, potentially improving throughput by allowing more flexible partitioning strategies.
+
+> ❌ Currently, if updates for the same entity are spread across partitions, one consumer may process an old timestamp **after** another has already written a newer one — leading to **data inconsistency**.
 
 ---
 
@@ -247,6 +251,48 @@ spec:
         type: Utilization
         averageUtilization: 70
 ```
+
+---
+
+## ➕ Adding Partitions When Order Doesn't Matter
+
+### Key Facts About Partition Scaling
+
+**When message ordering is not important** (as in your case):
+
+✅ **You can freely increase partitions** when more parallelism is needed  
+✅ **New messages** will distribute across all partitions (existing and new)  
+✅ **Existing messages** remain in their original partitions  
+
+### Important Considerations
+
+1. **Partitions cannot be decreased**  
+   - Kafka only allows increasing partitions, not reducing them  
+   - Plan with reasonable headroom  
+
+2. **Minor Kafka performance impact**  
+   - More partitions = more files for brokers to manage  
+   - Can slightly affect performance if overused  
+   - Recommendation: Avoid creating hundreds of "just in case" partitions  
+
+### When to Increase Partitions
+
+Consider adding partitions when:  
+- You need to scale beyond your current partition count  
+- Pods are consistently at capacity  
+- Persistent consumer lag is observed  
+
+### How to Increase Partitions
+
+```bash
+kafka-topics --alter --topic your_topic \
+  --partitions NEW_COUNT --bootstrap-server kafka:9092
+```
+
+After changing:
+- Kafka will automatically rebalance
+- New messages will use all available partitions
+- You can scale pods to utilize the new partitions
 
 ---
 

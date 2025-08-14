@@ -4,7 +4,7 @@
     "fiware-service": "tests",
     "fiware-servicepath": "/test_parking"
   },
-  "body": {
+  "payload": {
     "entityId": "PZ-123",
     "entityType": "zone",
     "attributes": [

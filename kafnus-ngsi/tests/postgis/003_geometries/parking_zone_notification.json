@@ -1,10 +1,10 @@
 {
   "flow": "historic",
   "headers": {
-    "fiware-service": "tests",
+    "fiware-service": "test",
     "fiware-servicepath": "/parking"
   },
-  "body": {
+  "payload": {
     "entityId": "PZ-123",
     "entityType": "Zone",
     "attributes": [
@@ -12,7 +12,7 @@
         "attrName": "name",
         "attrValue": "Zona Centro"
       },
-      {"attrName": "timeinstant", "attrValue": "2025-05-15T12:00:00Z"},
+      {"attrName": "TimeInstant", "attrValue": "2025-05-15T12:00:00Z"},
       {
         "attrName": "location",
         "attrType": "geo:point",

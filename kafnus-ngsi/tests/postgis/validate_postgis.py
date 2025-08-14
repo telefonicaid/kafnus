@@ -29,36 +29,46 @@ import argparse
 from shapely.wkb import loads as load_wkb
 import binascii
 import ast
+import datetime
 
 def load_test_spec(path):
-    """
-    Loads a JSON test specification from a given file path.
-
-    Args:
-        path (str): Path to the test JSON file.
-
-    Returns:
-        dict: The parsed JSON content with connection info, table name, and expected rows.
-    """
+    """Loads a JSON test specification from a given file path."""
     with open(path) as f:
         return json.load(f)
 
 def convert_row(row, colnames):
-    """
-    Converts a raw database row (tuple) into a dictionary using column names.
+    """Converts a raw database row (tuple) into a dictionary using column names."""
+    return {colnames[i]: value for i, value in enumerate(row)}
 
-    Args:
-        row (tuple): A row returned by psycopg2.
-        colnames (list): List of column names.
+def looks_like_datetime(value):
+    """Check if the value can be parsed as a datetime."""
+    if isinstance(value, datetime.datetime):
+        return True
+    if isinstance(value, str):
+        try:
+            dateparser.parse(value)
+            return True
+        except (ValueError, TypeError):
+            return False
+    return False
 
-    Returns:
-        dict: Mapping of column names to values.
-    """
-    result = {}
-    for i, value in enumerate(row):
-        key = colnames[i]
-        result[key] = value  # We do not convert timestamps to epoch millis
-    return result
+def normalize_datetime(value):
+    """Normalize datetime values to UTC for consistent comparison."""
+    if isinstance(value, datetime.datetime):
+        dt = value
+    elif isinstance(value, str):
+        try:
+            dt = dateparser.parse(value)
+        except Exception:
+            return value
+    else:
+        return value
+
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=datetime.timezone.utc)
+    else:
+        dt = dt.astimezone(datetime.timezone.utc)
+    return dt
 
 def compare_row(expected, actual):
     """
@@ -66,43 +76,40 @@ def compare_row(expected, actual):
 
     Handles:
         - Geometry conversion from WKB to WKT
-        - Timestamp parsing and comparison
-        - JSON string comparison
+        - Datetime normalization and tolerance check
+        - JSON string parsing before comparison
         - Numeric normalization
-        - Support for comparison operators like 'gte', 'lte', etc.
-
-    Args:
-        expected (dict): Expected row with possible operators.
-        actual (dict): Actual row fetched from the database.
-
-    Returns:
-        bool: True if the actual row satisfies the expected conditions.
+        - Comparison operators like gte, lte, etc.
     """
     for key, expected_value in expected.items():
         actual_value = actual.get(key)
-        
-        # Convert binary geometry (WKB) to WKT text if a string like "POINT (...)" is expected
+
+        # Geometry conversion
         if key in ("location", "polygon") and isinstance(expected_value, str):
             try:
                 if actual_value is not None and not isinstance(actual_value, str):
-                    # Just in case, for previous cases
                     actual_geom = load_wkb(bytes(actual_value))
                 else:
-                    # Hex string case
                     actual_geom = load_wkb(binascii.unhexlify(actual_value))
                 actual_value = actual_geom.wkt
             except Exception as e:
                 print(f"⚠️ Error converting '{key}' from WKB to WKT: {e}")
-                return False            
+                return False
 
-        # If it's a timestamp in ISO string format, parse it to datetime
-        if key in ("timeinstant", "recvtime") and isinstance(expected_value, str):
-            expected_value = dateparser.isoparse(expected_value)
+        # Datetime normalization and tolerance (1 ms)
+        if looks_like_datetime(expected_value) or looks_like_datetime(actual_value):
+            expected_dt = normalize_datetime(expected_value)
+            actual_dt = normalize_datetime(actual_value)
+            if isinstance(expected_dt, datetime.datetime) and isinstance(actual_dt, datetime.datetime):
+                if abs((expected_dt - actual_dt).total_seconds()) > 0.001:
+                    return False
+                continue
 
-        # Normalize float to int
+        # Normalize float to int when needed
         if isinstance(expected_value, int) and isinstance(actual_value, float):
             actual_value = int(actual_value)
 
+        # Comparison operators
         if isinstance(expected_value, dict):
             for op, val in expected_value.items():
                 if op == "gte" and not (actual_value >= val):
@@ -116,38 +123,27 @@ def compare_row(expected, actual):
                 elif op == "eq" and actual_value != val:
                     return False
         else:
-            # We need to cover when expected_value is a json
+            # Try parsing JSON in expected value
             if isinstance(expected_value, str):
                 try:
-                    parsed_expected = json.loads(expected_value)
-                    expected_value = parsed_expected
-                except (ValueError, json.JSONDecodeError):
-                    pass  # No json, keep going
-
-            # In case of json, actual_value should already be a dictionary, just in case
-            if isinstance(actual_value, str):
-                try:
-                    parsed_actual = json.loads(actual_value)
-                    actual_value = parsed_actual
+                    expected_value = json.loads(expected_value)
                 except (ValueError, json.JSONDecodeError):
                     pass
 
-            # Final comparation
+            # Try parsing JSON in actual value
+            if isinstance(actual_value, str):
+                try:
+                    actual_value = json.loads(actual_value)
+                except (ValueError, json.JSONDecodeError):
+                    pass
+
+            # Final value comparison
             if actual_value != expected_value:
-                #print(f"🔎 Mismatch in '{key}': expected {expected_value}, got {actual_value}")
                 return False
     return True
 
 def validate_data(test_spec):
-    """
-    Validates PostGIS data against the given test specification.
-
-    Args:
-        test_spec (dict): JSON spec including connection info, target table, and expected rows.
-
-    Prints:
-        Success or failure messages based on the validation results.
-    """
+    """Validates PostGIS data against the given test specification."""
     conn_info = test_spec["connection"]
     table = test_spec["table"]
     conditions = test_spec["conditions"]
@@ -168,13 +164,7 @@ def validate_data(test_spec):
 
     matched = 0
     for expected_row in conditions:
-        match_found = False
-        for row in rows:
-            actual_row = convert_row(row, colnames)
-            if compare_row(expected_row, actual_row):
-                match_found = True
-                break
-        if match_found:
+        if any(compare_row(expected_row, convert_row(row, colnames)) for row in rows):
             matched += 1
         else:
             print(f"❌ No matching row found for: {expected_row}")
@@ -185,14 +175,7 @@ def validate_data(test_spec):
         print(f"⚠️ Only {matched}/{len(conditions)} rows matched the expectations.")
 
 def main():
-    """
-    CLI entry point for validating PostGIS content.
-
-    Expects a --test argument pointing to a JSON file with:
-        - Connection details
-        - Table name
-        - Expected rows to match
-    """
+    """CLI entry point for validating PostGIS content."""
     parser = argparse.ArgumentParser(description="Validate PostGIS content against a JSON test specification.")
     parser.add_argument("--test", required=True, help="JSON file with the test specification.")
     args = parser.parse_args()

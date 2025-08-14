@@ -25,13 +25,56 @@
 import os
 import subprocess
 import time
+import psycopg2
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_DIR = CURRENT_DIR
 
+# DB config from environment variables
+DEFAULT_DB_CONFIG = {
+    "host": "localhost",
+    "port": 5432,
+    "dbname": "tests",
+    "user": "postgres",
+    "password": "postgres",
+}
+
+def execute_sql_file(sql_path, db_config):
+    """
+    Executes the SQL statements in the given file against a PostgreSQL database.
+    """
+    print(f"📄 Executing SQL from: {sql_path}")
+    print(f"🔗 Connecting to DB: {db_config['host']}:{db_config['port']}, DB: {db_config['dbname']}")
+
+    with open(sql_path, "r", encoding="utf-8") as f:
+        sql = f.read()
+
+    try:
+        conn = psycopg2.connect(**db_config)
+        print("✅ Connection established")
+
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(sql)
+                print("✅ SQL executed successfully")
+    except Exception as e:
+        print(f"❌ Error executing SQL from {sql_path}: {e}")
+        raise
+    finally:
+        conn.close()
+        print("🔌 Connection closed")
+
+
 def run_tests():
     for root, dirs, files in sorted(os.walk(TESTS_DIR), key=lambda x: x[0]):
         files = sorted(files)
+
+        # Run setup.sql if present in the test folder
+        setup_sql = [f for f in files if f.lower() == "setup_tables.sql"]
+        if setup_sql:
+            sql_path = os.path.join(root, setup_sql[0])
+            execute_sql_file(sql_path, DEFAULT_DB_CONFIG)
+
         # Group by notification and expected
         notifications = [f for f in files if f.endswith("_notification.json")]
         expecteds = [f for f in files if f.endswith("_expected.json")]
@@ -53,6 +96,7 @@ def run_tests():
             expected_path = os.path.join(root, expected_file)
             print(f"🔍 Validating: {expected_path}")
             subprocess.run(["python3", "validate_postgis.py", "--test", expected_path], check=True)
+
 
 if __name__ == "__main__":
     run_tests()
