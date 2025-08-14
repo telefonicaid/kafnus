@@ -6,11 +6,11 @@
     "user": "postgres",
     "password": "postgres"
   },
-  "table": "tests.tests_error_log",
+  "table": "test.test_error_log",
   "conditions": [
     {
       "error": "'ERROR: duplicate key value violates unique constraint \"accesscount_access_pkey\" - Detail: Key (timeinstant, entityid)=(2025-05-05 11:35:00+00, NPO-test) already exists.  Call getNextException to see other errors in the batch.'",
-      "quey": "'INSERT INTO \"tests\".\"accesscount_access\" (\"entityid\",\"timeinstant\",\"entitytype\",\"fiwareservicepath\",\"averagestay\",\"numberofincoming\",\"numberofoutgoing\",\"status\",\"recvtime\") VALUES (''NPO-test'',''2025-05-05 11:35:00+00'',''Access'',''/accesscount'',15,67,45,''abierto'',''2025-05-23 10:19:10.27+00'')'"
+      "quey": "'INSERT INTO \"test\".\"accesscount_access\" (\"entityid\",\"timeinstant\",\"entitytype\",\"fiwareservicepath\",\"averagestay\",\"numberofincoming\",\"numberofoutgoing\",\"status\",\"recvtime\") VALUES (''NPO-test'',''2025-05-05 11:35:00+00'',''Access'',''/accesscount'',15,67,45,''abierto'',''2025-05-23 10:19:10.27+00'')'"
     }
   ]
 }

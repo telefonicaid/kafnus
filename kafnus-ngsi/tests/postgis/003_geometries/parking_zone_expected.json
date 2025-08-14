@@ -6,7 +6,7 @@
     "user": "postgres",
     "password": "postgres"
   },
-  "table": "tests.parking_zone",
+  "table": "test.parking_zone",
   "conditions": [
     {
       "entityid": "PZ-123",
