@@ -33,29 +33,27 @@ const { handleEntityCb } = require('../utils/handleEntityCb');
 async function startHistoricConsumerAgent(logger) {
   const topic = 'raw_historic';
   const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-historic';
-
+  const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
   const producer = await createProducer(logger);
 
   const consumer = await createConsumerAgent(
-   logger,
-   {
-    groupId,
-    topic,
-    onData: async ({ key, value, headers }) => {
+    logger, { groupId, topic, onData: async ({ key, value, headers }) => {
       const start = Date.now();
       const k = key?.toString() || '';
       const v = value?.toString() || '';
       logger.info(`[raw_historic] Key: ${k}, Value: ${v}`);
 
       try {
-          logger.info(`rawValue: '${v}'`);
-          await handleEntityCb(logger, v, {
-          headers,
-          suffix: '',
-          includeTimeinstant: true,
-          keyFields: ['entityid'],
-          datamodel: /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database'
-        }, producer);
+        logger.info(`rawValue: '${v}'`);
+        await handleEntityCb(
+          logger, v, {
+            headers,
+            suffix: '',
+            includeTimeinstant: true,
+            keyFields: ['entityid'],
+            datamodel
+          },
+          producer);
       } catch (err) {
         logger.error(` [historic] Error processing event: ${err}`);
       }

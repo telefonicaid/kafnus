@@ -36,8 +36,10 @@ async function startErrorsConsumerAgent(logger) {
 
   const producer = await createProducer(logger);
 
-  const consumer = await createConsumerAgent(logger, { groupId, topic, onData: ({ key, value }) => {
+  const consumer = await createConsumerAgent(
+   logger, { groupId, topic, onData: ({ key, value, headers }) => {
     try {
+        const start = Date.now();
         const k = key ? key.toString() : null;
         const valueRaw = value ? value.toString() : '';
         logger.info(`[errors] key=${k} value=${valueRaw}`);
@@ -50,10 +52,13 @@ async function startErrorsConsumerAgent(logger) {
         }
 
         const hdrs = {};
-        if (headers) {
-          for (const [hk, hv] of Object.entries(headers)) {
-            hdrs[hk] = hv.toString();
-          }
+        if (headers && headers.length > 0) {
+            headers.forEach(headerObj => {
+                const headerName = Object.keys(headerObj)[0];
+                const bufferValue = headerObj[headerName];
+                const decodedValue = Buffer.from(bufferValue);
+                hdrs[headerName] = decodedValue.toString();
+            });
         }
 
         let fullErrorMsg = hdrs['__connect.errors.exception.message'] || 'Unknown error';
@@ -132,7 +137,7 @@ async function startErrorsConsumerAgent(logger) {
         producer.produce(
             errorTopicName,
             null, // Partition null: kafka decides
-            JSON.stringify(errorRecord),
+            Buffer.from(JSON.stringify(errorRecord)),
             null, // key optional
             Date.now()
         );
@@ -140,7 +145,7 @@ async function startErrorsConsumerAgent(logger) {
         logger.info(`Logged SQL error to '${errorTopicName}': ${errorMessage}`);
 
     } catch (err) {
-      logger.error('Error proccesing event:', err);
+      logger.error(' [errors] Error proccesing event:', err);
     }
   }});
 

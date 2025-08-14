@@ -52,8 +52,8 @@ function buildTargetTable(datamodel, service, servicepath, entityid, entitytype,
 }
 
 function getFiwareContext(headers, fallbackEvent) {
-  var service = null;
-  var servicepath = null;
+  let service = null;
+  let servicepath = null;
   if (headers && headers.length > 0) {
     const hdict = {};
     headers.forEach(headerObj => {
@@ -65,9 +65,9 @@ function getFiwareContext(headers, fallbackEvent) {
     service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
     servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
   } else {
-    var headers = fallbackEvent['headers'] ? fallbackEvent['headers'] : fallbackEvent;
-    service = (headers['fiware-service'] ? headers['fiware-service'] : 'default').toLowerCase();
-    servicepath = (headers['fiware-servicepath'] ? headers['fiware-servicepath'] : '/').toLowerCase();
+    let hdrs = fallbackEvent['headers'] ? fallbackEvent['headers'] : fallbackEvent;
+    service = (hdrs['fiware-service'] ? hdrs['fiware-service'] : 'default').toLowerCase();
+    servicepath = (hdrs['fiware-servicepath'] ? hdrs['fiware-servicepath'] : '/').toLowerCase();
   }
   if (!servicepath.startsWith('/')) {
     servicepath = '/' + servicepath;
@@ -159,7 +159,8 @@ async function handleEntityCb(
           null, // partition null: kafka decides
           Buffer.from(JSON.stringify(kafkaMessage)), // message
           kafkaKey,
-          Date.now()
+          Date.now(),
+          [("target_table", Buffer.from(targetTable))], // headers
       );
         
       logger.info(`[${suffix.replace(/^_/, '') || 'historic'}] Sent to topic '${topicName}' (table: '${targetTable}'): ${entity.entityid}`);

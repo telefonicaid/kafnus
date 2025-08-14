@@ -33,27 +33,28 @@ const { handleEntityCb } = require('../utils/handleEntityCb');
 async function startMutableConsumerAgent(logger) {
   const topic = 'raw_mutable';
   const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-mutable';
-
+  const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
+  const suffix = '_mutable';
   const producer = await createProducer(logger);
 
-  const consumer = await createConsumerAgent(logger, {
-   groupId,
-   topic,
-     onData: async ({ key, value, headers }) => {
-      const start = Date.now();
-      const k = key?.toString() || '';
-      const v = value?.toString() || '';
-      logger.info(`[raw_historic] Key: ${k}, Value: ${v}`);
+  const consumer = await createConsumerAgent(
+   logger, { groupId, topic,  onData: async ({ key, value, headers }) => {
+     const start = Date.now();
+     const k = key?.toString() || '';
+     const v = value?.toString() || '';
+     logger.info(`[raw_historic] Key: ${k}, Value: ${v}`);
 
-      try {
-        logger.info(`rawValue: '${v}'`);
-        await handleEntityCb(logger, v, {
-          headers,
-          suffix: '_mutable',
-          includeTimeinstant: true,
-          keyFields: ['entityid'],
-          datamodel: /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database'
-        }, producer);
+     try {
+       logger.info(`rawValue: '${v}'`);
+       await handleEntityCb(
+         logger, v, {
+           headers,
+           suffix,
+           includeTimeinstant: true,
+           keyFields: ['entityid'],
+           datamodel
+       },
+       producer);
       } catch (err) {
         logger.error(` [mutable] Error processing event: ${err}`);
       }
