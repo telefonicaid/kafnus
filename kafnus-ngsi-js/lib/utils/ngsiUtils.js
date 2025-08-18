@@ -97,7 +97,8 @@ function sanitizeTopic(name) {
 // -----------------
 function isPossibleDatetime(value) {
   if (!value) return false;
-  return !isNaN(Date.parse(value));
+  //return !isNaN(Date.parse(value)); // TBD: Date.parse("NO-101") is non nan!!!
+  return false;  
 }
 
 function toEpochMillis(value) {

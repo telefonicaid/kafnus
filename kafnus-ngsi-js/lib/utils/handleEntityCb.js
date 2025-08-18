@@ -109,7 +109,7 @@ async function handleEntityCb(
       const topicName = `${service}${suffix}`;
       const outputTopic = topicName;
 
-      const entity = {
+      var entity = {
         entityid: entityId,
         entitytype: entityType,
         fiwareservicepath: servicepath
@@ -150,7 +150,7 @@ async function handleEntityCb(
         attributes[attrName] = value;
         attributesTypes[attrName] = attrType;
       }
-      entity.push = { ...entity, ...attributes };
+      entity = { ...entity, ...attributes };
       if (!keyFields) keyFields = ['entityid'];
       const kafkaMessage = toKafnusConnectSchema(entity, schemaOverrides, attributesTypes);
       const kafkaKey = buildKafkaKey(entity, keyFields, includeTimeinstant );
