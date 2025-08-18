@@ -139,7 +139,7 @@ async function startErrorsConsumerAgent(logger) {
             null, // Partition null: kafka decides
             Buffer.from(JSON.stringify(errorRecord)),
             null, // key optional
-            Date.now()
+            Date.now(),
             null, // opaque
             null, // headers
         );
