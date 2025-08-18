@@ -140,6 +140,8 @@ async function startErrorsConsumerAgent(logger) {
             Buffer.from(JSON.stringify(errorRecord)),
             null, // key optional
             Date.now()
+            null, // opaque
+            null, // headers
         );
 
         logger.info(`Logged SQL error to '${errorTopicName}': ${errorMessage}`);

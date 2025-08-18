@@ -154,13 +154,17 @@ async function handleEntityCb(
       if (!keyFields) keyFields = ['entityid'];
       const kafkaMessage = toKafnusConnectSchema(entity, schemaOverrides, attributesTypes);
       const kafkaKey = buildKafkaKey(entity, keyFields, includeTimeinstant );
+      const headers = [
+            { 'target_table': Buffer.from(targetTable) }
+      ];
       producer.produce(
           topicName,
           null, // partition null: kafka decides
           Buffer.from(JSON.stringify(kafkaMessage)), // message
           kafkaKey,
           Date.now(),
-          [("target_table", Buffer.from(targetTable))], // headers
+          null, // opaque
+          headers
       );
         
       logger.info(`[${suffix.replace(/^_/, '') || 'historic'}] Sent to topic '${topicName}' (table: '${targetTable}'): ${entity.entityid}`);

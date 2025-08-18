@@ -91,13 +91,14 @@ async function startLastdataConsumerAgent(logger) {
         const topicName = `${service}${suffix}`;
         const outputTopic = topicName;
         if (!keyFields) keyFields = ['entityid'];
-        const kafkaKey = buildKafkaKey(eleteEntity, keyFields, includeTimeinstant );
+        const kafkaKey = buildKafkaKey(deleteEntity, keyFields, includeTimeinstant );
         producer.produce(
           topicName,
           null, // partition null: kafka decides
           null, // message
           kafkaKey,
           Date.now(),
+          null, // opaque
           [("target_table", Buffer.from(targetTable))], // headers
         );
         logger.info(`[${suffix.replace(/^_/, '') || 'lastdata'}] Sent to topic '${topicName}' (table: '${targetTable}'): ${entity.entityid}`);
