@@ -9,6 +9,7 @@
     "connection.password": "postgres",
     
     "insert.mode": "upsert",
+    "update.if.newer.field": "timeinstant",
     "pk.mode": "record_key",
     "pk.fields": "entityid",
     "table.name.format": "test.${topic}",

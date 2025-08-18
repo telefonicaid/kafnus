@@ -72,19 +72,12 @@ async def process_historic(stream):
 
 
 
-# Table of last timeinstant for entity
-last_seen_timestamps = app.Table(
-    'lastdata_entity_timeinstant',
-    default=float,
-    partitions=1  # Match the raw_lastdata topic
-)
-
 # Lastdata Agent
 @app.agent(raw_lastdata_topic)
 async def process_lastdata(stream):
     """
-    Consumes NGSI notifications from the 'raw_lastdata' topic and stores the latest timestamp of each entity.
-    If the notification timestamp is more recent than the previously seen one, the entity is updated.
+    Consumes NGSI notifications from the 'raw_lastdata' topic and processes them as lastdata records.
+    Each message is transformed to Kafnus Connect format and forwarded to the corresponding output topic.
     Handles deletion events explicitly by sending a null value with the proper key to trigger deletion in the sink.
     """
     async for event in stream.events():
@@ -141,27 +134,19 @@ async def process_lastdata(stream):
                     value=None,
                     headers=[("target_table", target_table.encode())]
                 )
-                last_seen_timestamps.pop(entity_id, None)
                 logger.info(f"🗑️ [lastdata] Sent delete for entity: {entity_id}")
                 continue
 
-            # Check previous timestamp
-            current_ts = extract_timeinstant_epoch(entity_raw)
-            last_ts = last_seen_timestamps.get(entity_id, 0.0)
 
-            if current_ts >= last_ts:
-                # Normal update
-                last_seen_timestamps[entity_id] = current_ts
-                await handle_entity_cb(
-                    app, raw_value,
-                    headers=headers,
-                    suffix="_lastdata",
-                    include_timeinstant=False,
-                    key_fields=["entityid"],
-                    datamodel=DATAMODEL
-                )
-            else:
-                logger.debug(f"⚠️ Ignored entity '{entity_id}' due to old timestamp ({current_ts} < {last_ts})")
+            # Normal update
+            await handle_entity_cb(
+                app, raw_value,
+                headers=headers,
+                suffix="_lastdata",
+                include_timeinstant=False,
+                key_fields=["entityid"],
+                datamodel=DATAMODEL
+            )
 
         except Exception as e:
             logger.error(f"❌ [lastdata] Error processing event: {e}")
