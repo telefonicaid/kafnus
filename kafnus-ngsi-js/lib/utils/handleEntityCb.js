@@ -149,9 +149,11 @@ async function handleEntityCb(
 
         attributes[attrName] = value;
         attributesTypes[attrName] = attrType;
-      }
+      } // end for
       entity = { ...entity, ...attributes };
-      if (!keyFields) keyFields = ['entityid'];
+      if (!keyFields) {
+            keyFields = ['entityid'];
+      }
       const kafkaMessage = toKafnusConnectSchema(entity, schemaOverrides, attributesTypes);
       const kafkaKey = buildKafkaKey(entity, keyFields, includeTimeinstant );
       const headers = [
