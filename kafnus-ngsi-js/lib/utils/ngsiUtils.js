@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de España, S.A.U.
+ * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de Espaï¿½a, S.A.U.
  * PROJECT: Kafnus
  *
  * This software and / or computer program has been developed by TelefÃ³nica Soluciones
@@ -24,9 +24,7 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-'use strict';
-
-const { Geometry} = require('wkx');
+const { Geometry } = require('wkx');
 const { Buffer } = require('buffer');
 const { geoJSONToWkt } = require('betterknown');
 const { DateTime } = require('luxon');
@@ -36,244 +34,267 @@ const logger = require('./logger');
 // WKT/WKB conversion
 // -----------------
 function toWkbStructFromWkt(wktStr, fieldName, srid = 4326) {
-  try {
-    const geom = Geometry.parse(wktStr);
-    const wkb = geom.toWkb();
-    const wkbB64 = Buffer.from(wkb).toString('base64');
+    try {
+        const geom = Geometry.parse(wktStr);
+        const wkb = geom.toWkb();
+        const wkbB64 = Buffer.from(wkb).toString('base64');
 
-    return {
-      schema: {
-        field: fieldName,
-        type: 'struct',
-        name: 'io.confluent.connect.jdbc.data.geometry.Geometry',
-        fields: [
-          { field: 'wkb', type: 'bytes' },
-          { field: 'srid', type: 'int32' }
-        ],
-        optional: false
-      },
-      payload: {
-        wkb: wkbB64,
-        srid: srid
-      }
-    };
-  } catch (err) {
-    logger.error(`Error generating WKB from WKT: ${err}`);
-    return null;
-  }
+        return {
+            schema: {
+                field: fieldName,
+                type: 'struct',
+                name: 'io.confluent.connect.jdbc.data.geometry.Geometry',
+                fields: [
+                    { field: 'wkb', type: 'bytes' },
+                    { field: 'srid', type: 'int32' }
+                ],
+                optional: false
+            },
+            payload: {
+                wkb: wkbB64,
+                srid
+            }
+        };
+    } catch (err) {
+        logger.error(`Error generating WKB from WKT: ${err}`);
+        return null;
+    }
 }
 
 function toWktGeometry(attrType, attrValue) {
-  try {
-    if (attrType === 'geo:point') {
-      if (typeof attrValue === 'string') {
-        const [lat, lon] = attrValue.split(',').map(Number);
-        return `POINT (${lon} ${lat})`;
-      }
-    } else if (attrType === 'geo:polygon') {
-      const coords = attrValue.map(coordStr => {
-        const [lat, lon] = coordStr.split(',').map(Number);
-        return `${lon} ${lat}`;
-      });
-      return `POLYGON ((${coords.join(', ')}))`;
-    } else if (attrType === 'geo:json') {
-      return geoJSONToWkt(attrValue);        
+    try {
+        if (attrType === 'geo:point') {
+            if (typeof attrValue === 'string') {
+                const [lat, lon] = attrValue.split(',').map(Number);
+                return `POINT (${lon} ${lat})`;
+            }
+        } else if (attrType === 'geo:polygon') {
+            const coords = attrValue.map((coordStr) => {
+                const [lat, lon] = coordStr.split(',').map(Number);
+                return `${lon} ${lat}`;
+            });
+            return `POLYGON ((${coords.join(', ')}))`;
+        } else if (attrType === 'geo:json') {
+            return geoJSONToWkt(attrValue);
+        }
+    } catch (err) {
+        logger.error(`Error generating WKT from type '${attrType}': ${err}`);
     }
-  } catch (err) {
-    logger.error(`Error generating WKT from type '${attrType}': ${err}`);
-  }
-  return null;
+    return null;
 }
 
 // -----------------
 // Topic sanitization
 // -----------------
 function sanitizeTopic(name) {
-  return name.trim().replace(/^\/|\/$/g, '').toLowerCase().replace(/[^a-zA-Z0-9_]/g, '_');
+    return name
+        .trim()
+        .replace(/^\/|\/$/g, '')
+        .toLowerCase()
+        .replace(/[^a-zA-Z0-9_]/g, '_');
 }
 
 // -----------------
 // Datetime helpers
 // -----------------
 function isPossibleDatetime(value) {
-  if (!value) return false;
-  //return !isNaN(Date.parse(value)); // TBD: Date.parse("NO-101") is non nan!!!
-  return false;  
+    if (!value) {
+        return false;
+    }
+    //return !isNaN(Date.parse(value)); // TBD: Date.parse("NO-101") is non nan!!!
+    return false;
 }
 
 function toEpochMillis(value) {
-  return DateTime.fromISO(value, { zone: 'utc' }).toMillis();
+    return DateTime.fromISO(value, { zone: 'utc' }).toMillis();
 }
 
 function formatDatetimeIso(tz = 'UTC') {
-  return DateTime.now().setZone(tz).toISO();
+    return DateTime.now().setZone(tz).toISO();
 }
 
 // -----------------
 // Type inference
 // -----------------
 function inferFieldType(name, value, attrType = null) {
-  const nameLc = name.toLowerCase();
+    const nameLc = name.toLowerCase();
 
-  if (attrType) {
-    if (attrType.startsWith('geo:')) return ['geometry', value];
+    if (attrType) {
+        if (attrType.startsWith('geo:')) {
+            return ['geometry', value];
+        }
 
-    if (attrType === 'DateTime' || attrType === 'ISO8601') {
-      if (['timeinstant', 'recvtime'].includes(nameLc)) {
-        return ['string', String(value)];
-      }
-      try {
-        if (value == null) return ['string', null];
-        return [
-          { type: 'int64', name: 'org.apache.kafka.connect.data.Timestamp' },
-          toEpochMillis(value)
-        ];
-      } catch (err) {
-        logger.warn(`Error parsing datetime for field '${name}': ${err}`);
-        return ['string', String(value)];
-      }
+        if (attrType === 'DateTime' || attrType === 'ISO8601') {
+            if (['timeinstant', 'recvtime'].includes(nameLc)) {
+                return ['string', String(value)];
+            }
+            try {
+                if (value == null) {
+                    return ['string', null];
+                }
+                return [{ type: 'int64', name: 'org.apache.kafka.connect.data.Timestamp' }, toEpochMillis(value)];
+            } catch (err) {
+                logger.warn(`Error parsing datetime for field '${name}': ${err}`);
+                return ['string', String(value)];
+            }
+        }
+
+        if (attrType === 'Float') {
+            return ['float', parseFloat(value)];
+        }
+
+        if (attrType === 'Number') {
+            if (Number.isInteger(value)) {
+                if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) {
+                    return ['int32', value];
+                }
+                if (value >= -(2 ** 63) && value <= 2 ** 63 - 1) {
+                    return ['int64', value];
+                }
+                logger.warn(`Integer out or range BIGINT: ${value}`);
+                return ['string', String(value)];
+            }
+            const numVal = parseFloat(value);
+            return isNaN(numVal) ? ['string', String(value)] : ['double', numVal];
+        }
+
+        if (attrType === 'Boolean') {
+            return ['boolean', value];
+        }
+
+        if (['json', 'StructuredValue'].includes(attrType)) {
+            try {
+                return ['string', JSON.stringify(value)];
+            } catch (err) {
+                logger.warn(`Error serializing '${name}' as JSON: ${err}`);
+                return ['string', String(value)];
+            }
+        }
+
+        return ['string', value];
     }
 
-    if (attrType === 'Float') return ['float', parseFloat(value)];
-
-    if (attrType === 'Number') {
-      if (Number.isInteger(value)) {
-        if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) return ['int32', value];
-        if (value >= -(2 ** 63) && value <= 2 ** 63 - 1) return ['int64', value];
-        logger.warn(`Integer out or range BIGINT: ${value}`);
+    // Fallbacks
+    if (['timeinstant', 'recvtime'].includes(nameLc)) {
         return ['string', String(value)];
-      }
-      const numVal = parseFloat(value);
-      return isNaN(numVal) ? ['string', String(value)] : ['double', numVal];
     }
 
-    if (attrType === 'Boolean') return ['boolean', value];
-
-    if (['json', 'StructuredValue'].includes(attrType)) {
-      try {
-        return ['string', JSON.stringify(value)];
-      } catch (err) {
-        logger.warn(`Error serializing '${name}' as JSON: ${err}`);
-        return ['string', String(value)];
-      }
+    if (isPossibleDatetime(value)) {
+        try {
+            return [{ type: 'int64', name: 'org.apache.kafka.connect.data.Timestamp' }, toEpochMillis(value)];
+        } catch (err) {
+            logger.warn(`Error parsing datetime for field '${name}': ${err}`);
+            return ['string', String(value)];
+        }
     }
 
+    if (typeof value === 'boolean') {
+        return ['boolean', value];
+    }
+    if (Number.isInteger(value)) {
+        if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) {
+            return ['int32', value];
+        }
+        if (value >= -(2 ** 63) && value <= 2 ** 63 - 1) {
+            return ['int64', value];
+        }
+        logger.warn(`Integer out of range BIGINT: ${value}`);
+        return ['string', String(value)];
+    }
+    if (typeof value === 'number') {
+        return ['double', value];
+    }
+    if (typeof value === 'object') {
+        try {
+            return ['string', JSON.stringify(value)];
+        } catch (err) {
+            logger.warn(`Error serializing '${name}' as JSON: ${err}`);
+            return ['string', String(value)];
+        }
+    }
     return ['string', value];
-  }
-
-  // Fallbacks
-  if (['timeinstant', 'recvtime'].includes(nameLc)) return ['string', String(value)];
-
-  if (isPossibleDatetime(value)) {
-    try {
-      return [
-        { type: 'int64', name: 'org.apache.kafka.connect.data.Timestamp' },
-        toEpochMillis(value)
-      ];
-    } catch (err) {
-      logger.warn(`Error parsing datetime for field '${name}': ${err}`);
-      return ['string', String(value)];
-    }
-  }
-
-  if (typeof value === 'boolean') return ['boolean', value];
-  if (Number.isInteger(value)) {
-    if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) return ['int32', value];
-    if (value >= -(2 ** 63) && value <= 2 ** 63 - 1) return ['int64', value];
-    logger.warn(`Integer out of range BIGINT: ${value}`);
-    return ['string', String(value)];
-  }
-  if (typeof value === 'number') return ['double', value];
-  if (typeof value === 'object') {
-    try {
-      return ['string', JSON.stringify(value)];
-    } catch (err) {
-      logger.warn(`Error serializing '${name}' as JSON: ${err}`);
-      return ['string', String(value)];
-    }
-  }
-  return ['string', value];
 }
 
 // -----------------
 // Kafka Schema Builder
 // -----------------
 function toKafnusConnectSchema(entity, schemaOverrides = {}, attributeTypes = {}) {
-  const schemaFields = [];
-  const payload = {};
+    const schemaFields = [];
+    const payload = {};
 
-  for (const [k, vRaw] of Object.entries(entity)) {
-    if (schemaOverrides[k]) {
-      schemaFields.push(schemaOverrides[k]);
-      payload[k] = vRaw;
-      continue;
+    for (const [k, vRaw] of Object.entries(entity)) {
+        if (schemaOverrides[k]) {
+            schemaFields.push(schemaOverrides[k]);
+            payload[k] = vRaw;
+            continue;
+        }
+
+        if (['timeinstant', 'recvtime'].includes(k.toLowerCase())) {
+            schemaFields.push({ field: k, type: 'string', optional: vRaw == null });
+            payload[k] = String(vRaw);
+            continue;
+        }
+
+        const attrType = attributeTypes[k];
+        const [fieldType, v] = inferFieldType(k, vRaw, attrType);
+        const isOptional = v == null;
+
+        if (typeof fieldType === 'object') {
+            schemaFields.push({ field: k, ...fieldType, optional: isOptional });
+        } else {
+            schemaFields.push({ field: k, type: fieldType, optional: isOptional });
+        }
+        payload[k] = v;
     }
 
-    if (['timeinstant', 'recvtime'].includes(k.toLowerCase())) {
-      schemaFields.push({ field: k, type: 'string', optional: vRaw == null });
-      payload[k] = String(vRaw);
-      continue;
-    }
+    schemaFields.push({ field: 'recvtime', type: 'string', optional: false });
+    payload.recvtime = formatDatetimeIso('UTC');
 
-    const attrType = attributeTypes[k];
-    const [fieldType, v] = inferFieldType(k, vRaw, attrType);
-    const isOptional = v == null;
-
-    if (typeof fieldType === 'object') {
-      schemaFields.push({ field: k, ...fieldType, optional: isOptional });
-    } else {
-      schemaFields.push({ field: k, type: fieldType, optional: isOptional });
-    }
-    payload[k] = v;
-  }
-
-  schemaFields.push({ field: 'recvtime', type: 'string', optional: false });
-  payload['recvtime'] = formatDatetimeIso('UTC');
-
-  return {
-    schema: {
-      type: 'struct',
-      fields: schemaFields,
-      optional: false
-    },
-    payload
-  };
+    return {
+        schema: {
+            type: 'struct',
+            fields: schemaFields,
+            optional: false
+        },
+        payload
+    };
 }
 
 function buildKafkaKey(entity, keyFields, includeTimeinstant = false) {
-  const fields = [];
-  const payload = {};
-  keyFields.forEach(k => {
-      fields.push({ field: k, type: 'string', optional: false });
-      payload[k] = entity[k];
-  });
+    const fields = [];
+    const payload = {};
+    keyFields.forEach((k) => {
+        fields.push({ field: k, type: 'string', optional: false });
+        payload[k] = entity[k];
+    });
 
+    if (includeTimeinstant) {
+        fields.push({ field: 'timeinstant', type: 'string', optional: false });
+        payload.timeinstant = entity.timeinstant;
+    }
 
-  if (includeTimeinstant) {
-    fields.push({ field: 'timeinstant', type: 'string', optional: false });
-    payload['timeinstant'] = entity['timeinstant'];
-  }
-
-  return Buffer.from(
-    JSON.stringify({
-      schema: { type: 'struct', fields, optional: false },
-      payload
-    }),
-    'utf-8'
-  );
+    return Buffer.from(
+        JSON.stringify({
+            schema: { type: 'struct', fields, optional: false },
+            payload
+        }),
+        'utf-8'
+    );
 }
 
 // -----------------
 // Mongo field encoding
 // -----------------
 function encodeMongo(value) {
-  if (value === '/') return 'x002f';
-  return value
-    .replace(/\//g, 'x002f')
-    .replace(/\./g, 'x002e')
-    .replace(/\$/g, 'x0024')
-    .replace(/"/g, 'x0022')
-    .replace(/=/g, 'xffff');
+    if (value === '/') {
+        return 'x002f';
+    }
+    return value
+        .replace(/\//g, 'x002f')
+        .replace(/\./g, 'x002e')
+        .replace(/\$/g, 'x0024')
+        .replace(/"/g, 'x0022')
+        .replace(/=/g, 'xffff');
 }
 
 exports.toWktGeometry = toWktGeometry;

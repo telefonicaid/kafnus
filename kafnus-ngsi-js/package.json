@@ -1,16 +1,24 @@
 {
   "name": "kafnus-ngsi",
+  "license": "AGPL-3.0-only",
   "version": "0.0.1",
   "description": "kafnus-ngsi based on @confluentinc/kafka-javascript",
+  "homepage": "https://github.com/telefonicaid/kafnus",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "clean": "rm -rf package-lock.json && rm -rf node_modules",
+    "dev": "nodemon index.js",
+    "lint": "eslint lib/ --cache",
+    "lint:fix": "eslint  lib/ --cache --fix",
+    "prettier": "prettier --config .prettierrc.json --write '**/**/**/**/*.js' '**/**/**/*.js' '**/**/*.js' '**/*.js' '*.js'",      
+    "prepare": "husky install",
+    "start": "node index.js"
   },
   "engines": {
     "node": ">=18"
-  }, 
+  },
   "dependencies": {
+    "@confluentinc/kafka-javascript": "1.4.0",
     "ajv": "~8.17.1",
     "ajv-formats": "~3.0.1",
     "betterknown": "1.0.5",
@@ -19,10 +27,24 @@
     "logops": "~2.1.2",
     "luxon": "3.7.1",
     "uuid": "~11.1.0",
-    "wkx": "0.5.0",
-    "@confluentinc/kafka-javascript": "1.4.0"
+    "wkx": "0.5.0"
   },
   "devDependencies": {
-    "nodemon": "~3.1.10"
+    "eslint": "~8.18.0",
+    "globals": "^16.3.0",
+    "husky": "~9.0.0",
+    "lint-staged": "~12.3.8",
+    "eslint-plugin-prettier": "~4.0.0",
+    "eslint-config-tamia": "~8.0.0",      
+    "nodemon": "~3.1.10",
+    "prettier": "~2.7.1"
+  },
+  "lint-staged": {
+    "*.md": [
+      "prettier --parser markdown --tab-width 4 --print-width 120 --write --prose-wrap always"
+    ],
+    "*.js": [
+      "prettier --config .prettierrc.json --write"
+    ]
   }
 }

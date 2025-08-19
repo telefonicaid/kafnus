@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de España, S.A.U.
+ * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de Espaï¿½a, S.A.U.
  * PROJECT: Kafnus
  *
  * This software and / or computer program has been developed by TelefÃ³nica Soluciones
@@ -24,134 +24,141 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-'use strict';
-
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { formatDatetimeIso } = require('../utils/ngsiUtils');
 
 async function startErrorsConsumerAgent(logger) {
-  const topic = 'raw_errors';
-  const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-errors';
+    const topic = 'raw_errors';
+    const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-errors';
 
-  const producer = await createProducer(logger);
+    const producer = await createProducer(logger);
 
-  const consumer = await createConsumerAgent(
-   logger, { groupId, topic, onData: ({ key, value, headers }) => {
-    try {
-        const start = Date.now();
-        const k = key ? key.toString() : null;
-        const valueRaw = value ? value.toString() : '';
-        logger.info(`[errors] key=${k} value=${valueRaw}`);
-        let valueJson;
-        try {
-          valueJson = JSON.parse(valueRaw);
-        } catch (e) {
-          logger.warn(`Could not parse JSON payload: ${e.message}`);
-          return;
+    const consumer = await createConsumerAgent(logger, {
+        groupId,
+        topic,
+        onData: async ({ key, value, headers }) => {
+            const start = Date.now();
+            const k = key ? key.toString() : null;
+            const valueRaw = value ? value.toString() : '';
+            logger.info(`[errors] key=${k} value=${valueRaw}`);
+
+            try {
+                let valueJson;
+                try {
+                    valueJson = JSON.parse(valueRaw);
+                } catch (e) {
+                    logger.warn(`Could not parse JSON payload: ${e.message}`);
+                    return;
+                }
+
+                const hdrs = {};
+                if (headers && headers.length > 0) {
+                    headers.forEach((headerObj) => {
+                        const headerName = Object.keys(headerObj)[0];
+                        const bufferValue = headerObj[headerName];
+                        const decodedValue = Buffer.from(bufferValue);
+                        hdrs[headerName] = decodedValue.toString();
+                    });
+                }
+
+                let fullErrorMsg = hdrs['__connect.errors.exception.message'] || 'Unknown error';
+                const causeMsg = hdrs['__connect.errors.exception.cause.message'];
+                if (causeMsg && !fullErrorMsg.includes(causeMsg)) {
+                    fullErrorMsg += `\nCaused by: ${causeMsg}`;
+                }
+
+                const timestamp = formatDatetimeIso('UTC');
+
+                let dbName = hdrs['__connect.errors.topic'] || '';
+                if (!dbName) {
+                    const dbMatch = fullErrorMsg.match(/INSERT INTO "([^"]+)"/);
+                    if (dbMatch) {
+                        dbName = dbMatch[1].split('.')[0];
+                    }
+                }
+
+                dbName = dbName.replace(/_(lastdata|mutable)$/, '');
+                const errorTopicName = `${dbName}_error_log`;
+
+                let errorMessage;
+                const errMatch = fullErrorMsg.match(/(ERROR: .+?)(\n|$)/);
+                if (errMatch) {
+                    errorMessage = errMatch[1].trim();
+                    const detailMatch = fullErrorMsg.match(/(Detail: .+?)(\n|$)/);
+                    if (detailMatch) {
+                        errorMessage += ` - ${detailMatch[1].trim()}`;
+                    }
+                } else {
+                    errorMessage = fullErrorMsg;
+                }
+
+                let originalQuery;
+                const queryMatch = fullErrorMsg.match(/(INSERT INTO "[^"]+"[^)]+\)[^)]*\))/);
+                if (queryMatch) {
+                    originalQuery = queryMatch[1];
+                } else {
+                    const payload = valueJson.payload || {};
+                    const table = hdrs.target_table || 'unknown_table';
+                    if (Object.keys(payload).length > 0) {
+                        const columns = Object.keys(payload)
+                            .map((k) => `"${k}"`)
+                            .join(',');
+                        const values = Object.values(payload).map((v) => {
+                            if (typeof v === 'string') {
+                                return `'${v.replace(/'/g, "''")}'`;
+                            } else if (v === null || v === undefined) {
+                                return 'NULL';
+                            }
+                            return v.toString();
+                        });
+                        originalQuery = `INSERT INTO "${dbName}"."${table}" (${columns}) VALUES (${values.join(',')})`;
+                    } else {
+                        originalQuery = '';
+                    }
+                }
+
+                const errorRecord = {
+                    schema: {
+                        type: 'struct',
+                        fields: [
+                            { field: 'timestamp', type: 'string', optional: false },
+                            { field: 'error', type: 'string', optional: false },
+                            { field: 'query', type: 'string', optional: true }
+                        ],
+                        optional: false
+                    },
+                    payload: {
+                        timestamp,
+                        error: errorMessage,
+                        query: originalQuery
+                    }
+                };
+
+                await producer.produce(
+                    errorTopicName,
+                    null, // Partition null: kafka decides
+                    Buffer.from(JSON.stringify(errorRecord)),
+                    null, // key optional
+                    Date.now(),
+                    null, // opaque
+                    null // headers
+                );
+
+                logger.info(`Logged SQL error to '${errorTopicName}': ${errorMessage}`);
+            } catch (err) {
+                logger.error(' [errors] Error proccesing event: %j', err);
+            }
+
+            const duration = (Date.now() - start) / 1000;
+            // TBD Metrics
+            logger.debug(' [errors] duration: %s', duration);
+            // messagesProcessed.labels({ flow: 'errors' }).inc();
+            // processingTime.labels({ flow: 'errors' }).set(duration);
         }
+    });
 
-        const hdrs = {};
-        if (headers && headers.length > 0) {
-            headers.forEach(headerObj => {
-                const headerName = Object.keys(headerObj)[0];
-                const bufferValue = headerObj[headerName];
-                const decodedValue = Buffer.from(bufferValue);
-                hdrs[headerName] = decodedValue.toString();
-            });
-        }
-
-        let fullErrorMsg = hdrs['__connect.errors.exception.message'] || 'Unknown error';
-        const causeMsg = hdrs['__connect.errors.exception.cause.message'];
-        if (causeMsg && !fullErrorMsg.includes(causeMsg)) {
-          fullErrorMsg += `\nCaused by: ${causeMsg}`;
-        }
-
-        const timestamp = formatDatetimeIso('UTC');
-
-        let dbName = hdrs['__connect.errors.topic'] || '';
-        if (!dbName) {
-          const dbMatch = fullErrorMsg.match(/INSERT INTO "([^"]+)"/);
-          if (dbMatch) {
-            dbName = dbMatch[1].split('.')[0];
-          }
-        }
-
-        dbName = dbName.replace(/_(lastdata|mutable)$/, '');
-        const errorTopicName = `${dbName}_error_log`;
-
-        let errorMessage;
-        const errMatch = fullErrorMsg.match(/(ERROR: .+?)(\n|$)/);
-        if (errMatch) {
-          errorMessage = errMatch[1].trim();
-          const detailMatch = fullErrorMsg.match(/(Detail: .+?)(\n|$)/);
-          if (detailMatch) {
-            errorMessage += ` - ${detailMatch[1].trim()}`;
-          }
-        } else {
-          errorMessage = fullErrorMsg;
-        }
-
-        let originalQuery;
-        const queryMatch = fullErrorMsg.match(/(INSERT INTO "[^"]+"[^)]+\)[^)]*\))/);
-        if (queryMatch) {
-          originalQuery = queryMatch[1];
-        } else {
-          const payload = valueJson.payload || {};
-          const table = hdrs['target_table'] || 'unknown_table';
-          if (Object.keys(payload).length > 0) {
-            const columns = Object.keys(payload)
-              .map(k => `"${k}"`)
-              .join(',');
-            const values = Object.values(payload).map(v => {
-              if (typeof v === 'string') {
-                return `'${v.replace(/'/g, "''")}'`;
-              } else if (v === null || v === undefined) {
-                return 'NULL';
-              }
-              return v.toString();
-            });
-            originalQuery = `INSERT INTO "${dbName}"."${table}" (${columns}) VALUES (${values.join(',')})`;
-          } else {
-            originalQuery = '';
-          }
-        }
-
-        const errorRecord = {
-          schema: {
-            type: 'struct',
-            fields: [
-              { field: 'timestamp', type: 'string', optional: false },
-              { field: 'error', type: 'string', optional: false },
-              { field: 'query', type: 'string', optional: true }
-            ],
-            optional: false
-          },
-          payload: {
-            timestamp,
-            error: errorMessage,
-            query: originalQuery
-          }
-        };
-
-        producer.produce(
-            errorTopicName,
-            null, // Partition null: kafka decides
-            Buffer.from(JSON.stringify(errorRecord)),
-            null, // key optional
-            Date.now(),
-            null, // opaque
-            null, // headers
-        );
-
-        logger.info(`Logged SQL error to '${errorTopicName}': ${errorMessage}`);
-
-    } catch (err) {
-      logger.error(' [errors] Error proccesing event: %j', err);
-    }
-  }});
-
-  return consumer;
+    return consumer;
 }
 
 module.exports = startErrorsConsumerAgent;

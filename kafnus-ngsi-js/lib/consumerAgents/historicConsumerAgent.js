@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de España, S.A.U.
+ * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de Espaï¿½a, S.A.U.
  * PROJECT: Kafnus
  *
  * This software and / or computer program has been developed by TelefÃ³nica Soluciones
@@ -24,48 +24,52 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-'use strict';
-
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
 
 async function startHistoricConsumerAgent(logger) {
-  const topic = 'raw_historic';
-  const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-historic';
-  const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
-  const producer = await createProducer(logger);
+    const topic = 'raw_historic';
+    const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-historic';
+    const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
+    const producer = await createProducer(logger);
 
-  const consumer = await createConsumerAgent(
-    logger, { groupId, topic, onData: async ({ key, value, headers }) => {
-      const start = Date.now();
-      const k = key?.toString() || '';
-      const v = value?.toString() || '';
-      logger.info(`[raw_historic] Key: ${k}, Value: ${v}`);
+    const consumer = await createConsumerAgent(logger, {
+        groupId,
+        topic,
+        onData: async ({ key, value, headers }) => {
+            const start = Date.now();
+            const k = key?.toString() || '';
+            const v = value?.toString() || '';
+            logger.info(`[raw_historic] Key: ${k}, Value: ${v}`);
 
-      try {
-        //logger.info(`rawValue: '${v}'`);
-        await handleEntityCb(
-          logger, v, {
-            headers: headers,
-            suffix: '',
-            includeTimeinstant: true,
-            keyFields: ['entityid'],
-            datamodel: datamodel
-          },
-          producer);
-      } catch (err) {
-        logger.error(` [historic] Error processing event: ${err}`);
-      }
+            try {
+                //logger.info(`rawValue: '${v}'`);
+                await handleEntityCb(
+                    logger,
+                    v,
+                    {
+                        headers,
+                        suffix: '',
+                        includeTimeinstant: true,
+                        keyFields: ['entityid'],
+                        datamodel
+                    },
+                    producer
+                );
+            } catch (err) {
+                logger.error(` [historic] Error processing event: ${err}`);
+            }
 
-      const duration = (Date.now() - start) / 1000;
-      // TBD Metrics
-      // messagesProcessed.labels({ flow: 'historic' }).inc();
-      // processingTime.labels({ flow: 'historic' }).set(duration);
-    }
-  });
+            const duration = (Date.now() - start) / 1000;
+            // TBD Metrics
+            logger.debug(' [historic] duration: %s', duration);
+            // messagesProcessed.labels({ flow: 'historic' }).inc();
+            // processingTime.labels({ flow: 'historic' }).set(duration);
+        }
+    });
 
-  return consumer;
+    return consumer;
 }
 
 module.exports = startHistoricConsumerAgent;

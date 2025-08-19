@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de España, S.A.U.
+ * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de Espaï¿½a, S.A.U.
  * PROJECT: Kafnus
  *
  * This software and / or computer program has been developed by TelefÃ³nica Soluciones
@@ -24,103 +24,113 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-'use strict';
-
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
-const { getFiwareContext, handleEntityCb } = require('../utils/handleEntityCb');
+const { buildTargetTable, getFiwareContext, handleEntityCb } = require('../utils/handleEntityCb');
 const { buildKafkaKey } = require('../utils/ngsiUtils');
 
 async function startLastdataConsumerAgent(logger) {
-  const topic = 'raw_lastdata';
-  const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-lastdata';
-  const datamodel = 'dm-by-entity-type-database';
-  const suffix = "_lastdata"
+    const topic = 'raw_lastdata';
+    const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-lastdata';
+    const datamodel = 'dm-by-entity-type-database';
+    const suffix = '_lastdata';
 
-  const producer = await createProducer(logger);
+    const producer = await createProducer(logger);
 
-  const consumer = await createConsumerAgent(
-   logger, { groupId, topic, onData: async ({ key, value, headers }) => {
-    const start = Date.now();
-    const k = key ? key.toString() : null;
-    const rawValue = value ? value.toString() : null;
-    logger.info(`[lastdata] key=${k} value=${rawValue}`);
+    const consumer = await createConsumerAgent(logger, {
+        groupId,
+        topic,
+        onData: async ({ key, value, headers }) => {
+            const start = Date.now();
+            const k = key ? key.toString() : null;
+            const rawValue = value ? value.toString() : null;
+            logger.info(`[lastdata] key=${k} value=${rawValue}`);
 
-    try {
-      //logger.info(`rawValue: '${rawValue}'`);
-      const message = JSON.parse(rawValue);
-      //logger.info(`message: '${message}'`);
-      const payloadStr = message.payload;
-      //logger.info(`payloadStr: '${payloadStr}'`);
-      if (!payloadStr) {
-        logger.warn('No payload found in message');
-        return;
-      }
-      const payload = JSON.parse(payloadStr);
-      //logger.info('payload: %j', payload);
-      const dataList = payload.data ? payload.data : [];
-      //logger.info('entities: %j', entities);
-      if (dataList && dataList.length === 0) {
-        logger.warn('No data found in payload');
-        return;
-      }
-      const { service, servicepath } = getFiwareContext(headers, message);
+            try {
+                //logger.info(`rawValue: '${rawValue}'`);
+                const message = JSON.parse(rawValue);
+                //logger.info(`message: '${message}'`);
+                const payloadStr = message.payload;
+                //logger.info(`payloadStr: '${payloadStr}'`);
+                if (!payloadStr) {
+                    logger.warn('No payload found in message');
+                    return;
+                }
+                const payload = JSON.parse(payloadStr);
+                //logger.info('payload: %j', payload);
+                const dataList = payload.data ? payload.data : [];
+                //logger.info('entities: %j', entities);
+                if (dataList && dataList.length === 0) {
+                    logger.warn('No data found in payload');
+                    return;
+                }
+                const { service, servicepath } = getFiwareContext(headers, message);
 
-      // TODO: check if all entities should be readed with a loop, not just first one
-      const entityRaw = dataList[0];
-      const entityId = entityRaw.id;
-      const entityType = entityRaw.type ? entityRaw.type.toLowerCase() : undefined;
-      const alteration = entityRaw.alterationType;
-      let alterationType = null;
-      if (alteration != undefined) {
-        alterationType = alteration.value ? alteration.value.toLowerCase() : alteration.toLowerCase();
-      } else {
-        alterationType = "entityupdate"
-      }
-      if (!entityId) {
-        logger.warn('No entity ID  found');
-        return;
-      }
-      if (alterationType === "entitydelete") {
-        const deleteEntity = {
-          entityid: entityId,
-          entitytype: entityType,
-          fiwareservicepath: servicepath
+                // TODO: check if all entities should be readed with a loop, not just first one
+                const entityRaw = dataList[0];
+                const entityId = entityRaw.id;
+                const entityType = entityRaw.type ? entityRaw.type.toLowerCase() : undefined;
+                const alteration = entityRaw.alterationType;
+                let alterationType = null;
+                if (alteration !== undefined) {
+                    alterationType = alteration.value ? alteration.value.toLowerCase() : alteration.toLowerCase();
+                } else {
+                    alterationType = 'entityupdate';
+                }
+                if (!entityId) {
+                    logger.warn('No entity ID  found');
+                    return;
+                }
+                if (alterationType === 'entitydelete') {
+                    const deleteEntity = {
+                        entityid: entityId,
+                        entitytype: entityType,
+                        fiwareservicepath: servicepath
+                    };
+                    const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, suffix);
+                    const topicName = `${service}${suffix}`;
+                    const kafkaKey = buildKafkaKey(deleteEntity, ['entityid'], false);
+                    producer.produce(
+                        topicName,
+                        null, // partition null: kafka decides
+                        null, // message
+                        kafkaKey,
+                        null, //Date.now(),
+                        null, // opaque
+                        [('target_table', Buffer.from(targetTable))] // headers
+                    );
+                    logger.info(
+                        `[${
+                            suffix.replace(/^_/, '') || 'lastdata'
+                        }] Sent to topic '${topicName}' (table: '${targetTable}'): ${deleteEntity.entityid}`
+                    );
+                } else {
+                    await handleEntityCb(
+                        logger,
+                        rawValue,
+                        {
+                            headers,
+                            suffix,
+                            includeTimeinstant: false,
+                            keyFields: ['entityid'],
+                            datamodel
+                        },
+                        producer
+                    );
+                }
+            } catch (err) {
+                logger.error('[lastdata] Error processing event: %j', err);
+            }
+
+            const duration = (Date.now() - start) / 1000;
+            // TBD Metrics
+            logger.debug(' [lastdata] duration: %s', duration);
+            // messagesProcessed.labels({ flow: 'lastdata' }).inc();
+            // processingTime.labels({ flow: 'lastdata' }).set(duration);
         }
-        const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, suffix);
-        const topicName = `${service}${suffix}`;
-        const kafkaKey = buildKafkaKey(deleteEntity, ['entityid'], includeTimeinstant );
-        producer.produce(
-          topicName,
-          null, // partition null: kafka decides
-          null, // message
-          kafkaKey,
-          null, //Date.now(),
-          null, // opaque
-          [("target_table", Buffer.from(targetTable))], // headers
-        );
-        logger.info(`[${suffix.replace(/^_/, '') || 'lastdata'}] Sent to topic '${topicName}' (table: '${targetTable}'): ${entity.entityid}`);
-      } else {
-        await handleEntityCb(
-          logger, rawValue, {
-            headers: headers,
-            suffix: suffix,
-            includeTimeinstant: false,
-            keyFields: ['entityid'],
-            datamodel: datamodel
-          },
-          producer);
-      }
-    } catch (err) {
-      logger.error('[lastdata] Error processing event: %j', err);
-    }
+    });
 
-    const duration = (Date.now() - start) / 1000;
-      // TBD Metrics
-    }
-  });
-
-  return consumer;
+    return consumer;
 }
 
 module.exports = startLastdataConsumerAgent;

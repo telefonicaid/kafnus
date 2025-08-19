@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de España, S.A.U.
+ * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de Espaï¿½a, S.A.U.
  * PROJECT: Kafnus
  *
  * This software and / or computer program has been developed by TelefÃ³nica Soluciones
@@ -24,40 +24,40 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-'use strict';
-
 const Kafka = require('@confluentinc/kafka-javascript');
 const { config } = require('../../kafnusConfig');
 
 function createProducer(logger) {
-  const producer = new Kafka.Producer(config.kafka);
+    const producer = new Kafka.Producer(config.kafka);
 
-  return new Promise((resolve, reject) => {
-    producer
-      .on('ready', () => {
-        logger.info('Producer ready');
-        resolve(producer);
-      })
-      .on('event.error', (err) => {
-        logger.error('Producer error: %j', err);
-      })
-      .on('delivery-report', (err, report) => {
-        if (err) {
-          logger.error('Delivery report error: %j', err);
-        } else {
-          logger.info(`Message delivered to topic ${report.topic} [${report.partition}] at offset ${report.offset}`);
+    return new Promise((resolve, reject) => {
+        producer
+            .on('ready', () => {
+                logger.info('Producer ready');
+                resolve(producer);
+            })
+            .on('event.error', (err) => {
+                logger.error('Producer error: %j', err);
+            })
+            .on('delivery-report', (err, report) => {
+                if (err) {
+                    logger.error('Delivery report error: %j', err);
+                } else {
+                    logger.info(
+                        `Message delivered to topic ${report.topic} [${report.partition}] at offset ${report.offset}`
+                    );
+                }
+            })
+            .on('disconnected', () => {
+                logger.info('Producer disconnected');
+            });
+
+        try {
+            producer.connect();
+        } catch (err) {
+            reject(err);
         }
-      })
-      .on('disconnected', () => {
-        logger.info('Producer disconnected');
-      });
-
-    try {
-      producer.connect();
-    } catch (err) {
-      reject(err);
-    }
-  });
+    });
 }
 
 module.exports = { createProducer };

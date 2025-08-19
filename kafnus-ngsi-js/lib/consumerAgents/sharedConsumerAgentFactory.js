@@ -24,37 +24,37 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-'use strict';
-
 const Kafka = require('@confluentinc/kafka-javascript');
 const { config } = require('../../kafnusConfig');
 
 function createConsumerAgent(logger, { groupId, topic, onData }) {
-  const configKafka = { ...config.kafka, 'group.id': groupId };
-  const consumer = new Kafka.KafkaConsumer(configKafka, { 'auto.offset.reset': /*process.env.AUTO_OFFSET_RESET ||*/ 'earliest' });
+    const configKafka = { ...config.kafka, 'group.id': groupId };
+    const consumer = new Kafka.KafkaConsumer(configKafka, {
+        'auto.offset.reset': /*process.env.AUTO_OFFSET_RESET ||*/ 'earliest'
+    });
 
-  return new Promise((resolve, reject) => {
-    consumer
-      .on('ready', () => {
-        consumer.subscribe([topic]);
-        consumer.consume();
-        logger.info(`ConsumerAgent ready — topic=${topic} group=${configKafka['group.id']}`);
-        resolve(consumer);
-      })
-      .on('data', onData)
-      .on('event.error', (err) => {
-        logger.error(`Event error on topic ${topic}:`, err);
-      })
-      .on('disconnected', () => {
-        logger.info(`ConsumerAgent disconnected from topic ${topic}`);
-      });
+    return new Promise((resolve, reject) => {
+        consumer
+            .on('ready', () => {
+                consumer.subscribe([topic]);
+                consumer.consume();
+                logger.info(`ConsumerAgent ready — topic=${topic} group=${configKafka['group.id']}`);
+                resolve(consumer);
+            })
+            .on('data', onData)
+            .on('event.error', (err) => {
+                logger.error(`Event error on topic ${topic}:`, err);
+            })
+            .on('disconnected', () => {
+                logger.info(`ConsumerAgent disconnected from topic ${topic}`);
+            });
 
-    try {
-      consumer.connect();
-    } catch (err) {
-      reject(err);
-    }
-  });
+        try {
+            consumer.connect();
+        } catch (err) {
+            reject(err);
+        }
+    });
 }
 
 module.exports = { createConsumerAgent };

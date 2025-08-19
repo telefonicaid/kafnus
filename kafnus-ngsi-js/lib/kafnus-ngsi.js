@@ -2,8 +2,8 @@
  * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de España, S.A.U.
  * PROJECT: Kafnus
  *
- * This software and / or computer program has been developed by TelefÃ³nica Soluciones
- * de InformÃ¡tica y Comunicaciones de EspaÃ±a, S.A.U (hereinafter TSOL) and is protected
+ * This software and / or computer program has been developed by Telefónica Soluciones
+ * de Informática y Comunicaciones de Españaa, S.A.U (hereinafter TSOL) and is protected
  * as copyright by the applicable legislation on intellectual property.
  *
  * It belongs to TSOL, and / or its licensors, the exclusive rights of reproduction,
@@ -24,10 +24,7 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-'use strict';
-
-
-const { config }  = require('../kafnusConfig');
+const { config } = require('../kafnusConfig');
 const logger = require('./utils/logger');
 
 logger.initLogger(config);
@@ -39,36 +36,43 @@ const startErrorsConsumerAgent = require('./consumerAgents/errorsConsumerAgent')
 const startMongoConsumerAgent = require('./consumerAgents/mongoConsumerAgent');
 
 async function main() {
-  var log = logger.getBasicLogger();
-  log.info('Starting all consumers...');
+    const log = logger.getBasicLogger();
+    log.info('Starting all consumers...');
 
-  const started = await Promise.all([
-    startHistoricConsumerAgent(log),
-    startLastdataConsumerAgent(log),
-    startMutableConsumerAgent(log),
-    startErrorsConsumerAgent(log),
-    startMongoConsumerAgent(log)
-  ]);
+    const started = await Promise.all([
+        startHistoricConsumerAgent(log),
+        startLastdataConsumerAgent(log),
+        startMutableConsumerAgent(log),
+        startErrorsConsumerAgent(log),
+        startMongoConsumerAgent(log)
+    ]);
 
-  const consumers = started.filter(Boolean);
+    const consumers = started.filter(Boolean);
 
-  // Graceful shutdown
-  const shutdown = async () => {
-    log.info('Shutting down consumers(agents)...');
-    await Promise.all(consumers.map(c => new Promise((resolve) => {
-      try {
-        c.disconnect();
-      } catch (err) { /* ignore */ }
-      resolve();
-    })));
-    process.exit(0);
-  };
+    // Graceful shutdown
+    const shutdown = async () => {
+        log.info('Shutting down consumers(agents)...');
+        await Promise.all(
+            consumers.map(
+                (c) =>
+                    new Promise((resolve) => {
+                        try {
+                            c.disconnect();
+                        } catch (err) {
+                            /* ignore */
+                        }
+                        resolve();
+                    })
+            )
+        );
+        process.exit(0);
+    };
 
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
 }
 
-main().catch(err => {
-  logger.getBasicLogger().error('Error starting consumers: %j', err);
-  process.exit(1);
+main().catch((err) => {
+    logger.getBasicLogger().error('Error starting consumers: %j', err);
+    process.exit(1);
 });

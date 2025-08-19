@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de España, S.A.U.
+ * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de Espaï¿½a, S.A.U.
  * PROJECT: Kafnus
  *
  * This software and / or computer program has been developed by TelefÃ³nica Soluciones
@@ -24,156 +24,160 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-'use strict';
-
-const { Kafka } = require('@confluentinc/kafka-javascript').KafkaJS;
+//const { Kafka } = require('@confluentinc/kafka-javascript').KafkaJS;
 const {
-  toWktGeometry,
-  toWkbStructFromWkt,
-  toKafnusConnectSchema,
-  buildKafkaKey,
-  sanitizeTopic
+    toWktGeometry,
+    toWkbStructFromWkt,
+    toKafnusConnectSchema,
+    buildKafkaKey,
+    sanitizeTopic
 } = require('./ngsiUtils');
 
-
 function buildTargetTable(datamodel, service, servicepath, entityid, entitytype, suffix) {
-  /**
-   * Determines the name of the target table based on the chosen datamodel and NGSI metadata 
-   * (service, service path, entity ID, entity type).
-   * It could be studied to move this logic to a custom SMT.
-   */
-  if (datamodel === 'dm-by-entity-type-database') {
-    return sanitizeTopic(`${servicepath}_${entitytype}${suffix}`);
-  } else if (datamodel === 'dm-by-fixed-entity-type-database-schema') {
-    return sanitizeTopic(`${entitytype}${suffix}`);
-  } else {
-    throw new Error(`Unsupported datamodel: ${datamodel}`);
-  }
+    /**
+     * Determines the name of the target table based on the chosen datamodel and NGSI metadata
+     * (service, service path, entity ID, entity type).
+     * It could be studied to move this logic to a custom SMT.
+     */
+    if (datamodel === 'dm-by-entity-type-database') {
+        return sanitizeTopic(`${servicepath}_${entitytype}${suffix}`);
+    } else if (datamodel === 'dm-by-fixed-entity-type-database-schema') {
+        return sanitizeTopic(`${entitytype}${suffix}`);
+    } else {
+        throw new Error(`Unsupported datamodel: ${datamodel}`);
+    }
 }
 
 function getFiwareContext(headers, fallbackEvent) {
-  let service = null;
-  let servicepath = null;
-  if (headers && headers.length > 0) {
-    const hdict = {};
-    headers.forEach(headerObj => {
-       const headerName = Object.keys(headerObj)[0];
-       const bufferValue = headerObj[headerName];
-       const decodedValue = Buffer.from(bufferValue);
-       hdict[headerName] = decodedValue.toString();
-    });
-    service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
-    servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
-  } else {
-    let hdrs = fallbackEvent['headers'] ? fallbackEvent['headers'] : fallbackEvent;
-    service = (hdrs['fiware-service'] ? hdrs['fiware-service'] : 'default').toLowerCase();
-    servicepath = (hdrs['fiware-servicepath'] ? hdrs['fiware-servicepath'] : '/').toLowerCase();
-  }
-  if (!servicepath.startsWith('/')) {
-    servicepath = '/' + servicepath;
-  }
-  return { service, servicepath };
+    let service = null;
+    let servicepath = null;
+    if (headers && headers.length > 0) {
+        const hdict = {};
+        headers.forEach((headerObj) => {
+            const headerName = Object.keys(headerObj)[0];
+            const bufferValue = headerObj[headerName];
+            const decodedValue = Buffer.from(bufferValue);
+            hdict[headerName] = decodedValue.toString();
+        });
+        service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
+        servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
+    } else {
+        const hdrs = fallbackEvent.headers ? fallbackEvent.headers : fallbackEvent;
+        service = (hdrs['fiware-service'] ? hdrs['fiware-service'] : 'default').toLowerCase();
+        servicepath = (hdrs['fiware-servicepath'] ? hdrs['fiware-servicepath'] : '/').toLowerCase();
+    }
+    if (!servicepath.startsWith('/')) {
+        servicepath = '/' + servicepath;
+    }
+    return { service, servicepath };
 }
 
 async function handleEntityCb(
-  logger,
-  rawValue,
-  { headers = [], datamodel = 'dm-by-entity-type-database', suffix = '', includeTimeinstant = true, keyFields = null } = {},
-  producer
+    logger,
+    rawValue,
+    {
+        headers = [],
+        datamodel = 'dm-by-entity-type-database',
+        suffix = '',
+        includeTimeinstant = true,
+        keyFields = null
+    } = {},
+    producer
 ) {
-  try {
-    //logger.info(`rawValue: '${rawValue}'`);
-    const message = JSON.parse(rawValue);
-    //logger.info(`message: '${message}'`);
-    const payloadStr = message.payload;
-    //logger.info(`payloadStr: '${payloadStr}'`);
-    if (!payloadStr) {
-      logger.warn('No payload found in message');
-      return;
-    }
-    const payload = JSON.parse(payloadStr);
-    //logger.info('payload: %j', payload);
-    const entities = payload.data || [];
-    //logger.info('entities: %j', entities);      
-    if (entities.length === 0) {
-      logger.warn('No entities found in payload');
-      return;
-    }
-    const { service, servicepath } = getFiwareContext(headers, message);
-
-    for (const ngsiEntity of entities) {
-      const entityId = ngsiEntity.id;
-      const entityType = ngsiEntity.type;
-
-      const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, suffix);
-      const topicName = `${service}${suffix}`;
-      const outputTopic = topicName;
-
-      var entity = {
-        entityid: entityId,
-        entitytype: entityType,
-        fiwareservicepath: servicepath
-      };
-      const attributes = {};
-      const schemaOverrides = {};
-      const attributesTypes = {};
-
-      for (const [attrNameRaw, attrData] of Object.entries(ngsiEntity).sort()) {
-        let attrName = attrNameRaw.toLowerCase();
-        if (['id', 'type', 'alterationtype', 'fiware-service', 'fiware-servicepath'].includes(attrName)) {
-          continue;
+    try {
+        //logger.info(`rawValue: '${rawValue}'`);
+        const message = JSON.parse(rawValue);
+        //logger.info(`message: '${message}'`);
+        const payloadStr = message.payload;
+        //logger.info(`payloadStr: '${payloadStr}'`);
+        if (!payloadStr) {
+            logger.warn('No payload found in message');
+            return;
         }
+        const payload = JSON.parse(payloadStr);
+        //logger.info('payload: %j', payload);
+        const entities = payload.data || [];
+        //logger.info('entities: %j', entities);
+        if (entities.length === 0) {
+            logger.warn('No entities found in payload');
+            return;
+        }
+        const { service, servicepath } = getFiwareContext(headers, message);
 
-        let value = attrData?.value;
-        const attrType = attrData?.type || '';
+        for (const ngsiEntity of entities) {
+            const entityId = ngsiEntity.id;
+            const entityType = ngsiEntity.type;
 
-        if (attrType.startsWith('geo:')) {
-          const wktStr = toWktGeometry(attrType, value);
-          if (wktStr) {
-            const wkbStruct = toWkbStructFromWkt(wktStr, attrName);
-            if (wkbStruct) {
-              attributes[attrName] = wkbStruct.payload;
-              attributesTypes[attrName] = attrType;
-              schemaOverrides[attrName] = wkbStruct.schema;
-              continue;
+            const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, suffix);
+            const topicName = `${service}${suffix}`;
+
+            let entity = {
+                entityid: entityId,
+                entitytype: entityType,
+                fiwareservicepath: servicepath
+            };
+            const attributes = {};
+            const schemaOverrides = {};
+            const attributesTypes = {};
+
+            for (const [attrNameRaw, attrData] of Object.entries(ngsiEntity).sort()) {
+                const attrName = attrNameRaw.toLowerCase();
+                if (['id', 'type', 'alterationtype', 'fiware-service', 'fiware-servicepath'].includes(attrName)) {
+                    continue;
+                }
+
+                let value = attrData?.value;
+                const attrType = attrData?.type || '';
+
+                if (attrType.startsWith('geo:')) {
+                    const wktStr = toWktGeometry(attrType, value);
+                    if (wktStr) {
+                        const wkbStruct = toWkbStructFromWkt(wktStr, attrName);
+                        if (wkbStruct) {
+                            attributes[attrName] = wkbStruct.payload;
+                            attributesTypes[attrName] = attrType;
+                            schemaOverrides[attrName] = wkbStruct.schema;
+                            continue;
+                        }
+                    }
+                } else if (['json', 'jsonb'].includes(attrType)) {
+                    try {
+                        value = JSON.stringify(value);
+                    } catch (err) {
+                        logger.warn(`Error serializing field '${attrName}' as JSON: ${err}`);
+                        value = String(value);
+                    }
+                }
+
+                attributes[attrName] = value;
+                attributesTypes[attrName] = attrType;
+            } // end for
+            entity = { ...entity, ...attributes };
+            if (!keyFields) {
+                keyFields = ['entityid'];
             }
-          }
-        } else if (['json', 'jsonb'].includes(attrType)) {
-          try {
-            value = JSON.stringify(value);
-          } catch (err) {
-            logger.warn(`Error serializing field '${attrName}' as JSON: ${err}`);
-            value = String(value);
-          }
-        }
+            const kafkaMessage = toKafnusConnectSchema(entity, schemaOverrides, attributesTypes);
+            const kafkaKey = buildKafkaKey(entity, keyFields, includeTimeinstant);
+            const headers = [{ target_table: Buffer.from(targetTable) }];
+            await producer.produce(
+                topicName,
+                null, // partition null: kafka decides
+                Buffer.from(JSON.stringify(kafkaMessage)), // message
+                kafkaKey,
+                Date.now(),
+                null, // opaque
+                headers
+            );
 
-        attributes[attrName] = value;
-        attributesTypes[attrName] = attrType;
-      } // end for
-      entity = { ...entity, ...attributes };
-      if (!keyFields) {
-            keyFields = ['entityid'];
-      }
-      const kafkaMessage = toKafnusConnectSchema(entity, schemaOverrides, attributesTypes);
-      const kafkaKey = buildKafkaKey(entity, keyFields, includeTimeinstant );
-      const headers = [
-            { 'target_table': Buffer.from(targetTable) }
-      ];
-      producer.produce(
-          topicName,
-          null, // partition null: kafka decides
-          Buffer.from(JSON.stringify(kafkaMessage)), // message
-          kafkaKey,
-          Date.now(),
-          null, // opaque
-          headers
-      );
-        
-      logger.info(`[${suffix.replace(/^_/, '') || 'historic'}] Sent to topic '${topicName}' (table: '${targetTable}'): ${entity.entityid}`);
+            logger.info(
+                `[${suffix.replace(/^_/, '') || 'historic'}] Sent to topic '${topicName}' (table: '${targetTable}'): ${
+                    entity.entityid
+                }`
+            );
+        }
+    } catch (err) {
+        logger.error(`Error in handleEntityCb: ${err}`);
     }
-  } catch (err) {
-    logger.error(`Error in handleEntityCb: ${err}`);
-  }
 }
 
 module.exports.handleEntityCb = handleEntityCb;

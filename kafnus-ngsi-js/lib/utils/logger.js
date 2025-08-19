@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de España, S.A.U.
+ * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de Espaï¿½a, S.A.U.
  * PROJECT: Kafnus
  *
  * This software and / or computer program has been developed by TelefÃ³nica Soluciones
@@ -26,9 +26,6 @@
 
 /* eslint-disable no-underscore-dangle */
 
-'use strict';
-
-
 const logger = require('logops');
 const { v4: uuidv4 } = require('uuid');
 const packageInfo = require('../../package.json');
@@ -37,17 +34,17 @@ const packageInfo = require('../../package.json');
  *  Initializes the logger
  */
 function initLogger(config) {
-  logger.format = logger.formatters.pipe;
-  logger.setLevel(config.logger.level);
+    logger.format = logger.formatters.pipe;
+    logger.setLevel(config.logger.level);
 
-  logger.getContext = () => ({
-    ver: packageInfo.version,
-    corr: 'n/a',
-    trans: 'n/a',
-    ob: config.logger.ob,
-    comp: config.logger.comp,
-    op: 'n/a',
-  });
+    logger.getContext = () => ({
+        ver: packageInfo.version,
+        corr: 'n/a',
+        trans: 'n/a',
+        ob: config.logger.ob,
+        comp: config.logger.comp,
+        op: 'n/a'
+    });
 }
 
 /**
@@ -55,21 +52,20 @@ function initLogger(config) {
  * for startup messages
  */
 function getBasicLogger() {
-  return logger;
+    return logger;
 }
 
 /**
  * Create a brand new child logger
  */
 function createChildLogger(config) {
-  const loggerCtx = logger.getContext();
-  return logger.child({
-    op: (config && config.op) || loggerCtx.op,
-    corr: (config && config.corr) || uuidv4(),
-  });
+    const loggerCtx = logger.getContext();
+    return logger.child({
+        op: (config && config.op) || loggerCtx.op,
+        corr: (config && config.corr) || uuidv4()
+    });
 }
 
 module.exports.createChildLogger = createChildLogger;
 module.exports.initLogger = initLogger;
 module.exports.getBasicLogger = getBasicLogger;
-
