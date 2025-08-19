@@ -90,14 +90,15 @@ async function startLastdataConsumerAgent(logger) {
                     const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, suffix);
                     const topicName = `${service}${suffix}`;
                     const kafkaKey = buildKafkaKey(deleteEntity, ['entityid'], false);
+                    const headers = [{ target_table: Buffer.from(targetTable) }];
                     producer.produce(
                         topicName,
                         null, // partition null: kafka decides
                         null, // message
                         kafkaKey,
-                        null, //Date.now(),
+                        Date.now(),
                         null, // opaque
-                        [('target_table', Buffer.from(targetTable))] // headers
+                        headers
                     );
                     logger.info(
                         `[${
