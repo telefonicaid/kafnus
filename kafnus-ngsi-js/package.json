@@ -11,7 +11,6 @@
     "lint": "eslint lib/ --cache",
     "lint:fix": "eslint  lib/ --cache --fix",
     "prettier": "prettier --config .prettierrc.json --write '**/**/**/**/*.js' '**/**/**/*.js' '**/**/*.js' '**/*.js' '*.js'",      
-    "prepare": "husky install",
     "start": "node index.js"
   },
   "engines": {
@@ -32,12 +31,17 @@
   "devDependencies": {
     "eslint": "~8.18.0",
     "globals": "^16.3.0",
-    "husky": "~9.0.0",
+    "husky": "~4.2.5",
     "lint-staged": "~12.3.8",
     "eslint-plugin-prettier": "~4.0.0",
     "eslint-config-tamia": "~8.0.0",      
     "nodemon": "~3.1.10",
     "prettier": "~2.7.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "lint-staged": {
     "*.md": [
