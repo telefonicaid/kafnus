@@ -60,18 +60,13 @@ async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity
         return service, servicepath
 
     try:
-        #logger.info(f"⚠️ headers: {headers}")
-        #logger.info(f"⚠️ raw_value: {raw_value}")
         message = json.loads(raw_value)
-        #logger.info(f"⚠️ message: {message}")
         payload_str = message.get("payload")
-        #logger.info(f"⚠️ payload_str: {payload_str}")
         if not payload_str:
             logger.warning(f"⚠️ No payload found in message: {message}")
             return
 
         payload = json.loads(payload_str)
-        #logger.info(f"⚠️ payload: {payload}")
         entities = payload.get("data", [])
         if not entities:
             logger.warning(f"⚠️ No entities found in payload: {payload}")
