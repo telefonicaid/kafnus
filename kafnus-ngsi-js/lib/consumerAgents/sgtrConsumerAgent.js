@@ -61,7 +61,6 @@ async function startSgtrConsumerAgent(logger) {
 
                 // TODO: check if all entities should be readed with a loop, not just first one
                 const entityRaw = dataList[0];
-
                 const attributes = payload.attributes || [];
 
                 const { service, servicepath } = getFiwareContext(headers, payload);
