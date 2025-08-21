@@ -95,6 +95,11 @@ RUN mkdir -p /usr/local/share/kafnus-connect/plugins/mongodb && \
     wget https://repo1.maven.org/maven2/org/mongodb/bson/4.9.1/bson-4.9.1.jar -P /usr/local/share/kafnus-connect/plugins/mongodb/
 
 # -----------------------------
+# Http Kafka Connector
+# -----------------------------
+RUN confluent-hub install --no-prompt confluentinc/kafka-connect-http:1.7.0
+
+# -----------------------------
 # JMX Exporter Agent
 # -----------------------------
 RUN mkdir -p /usr/share/jmx_exporter && \
