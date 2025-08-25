@@ -304,3 +304,5 @@ exports.buildKafkaKey = buildKafkaKey;
 exports.sanitizeTopic = sanitizeTopic;
 exports.encodeMongo = encodeMongo;
 exports.formatDatetimeIso = formatDatetimeIso;
+exports.toEpochMillis = toEpochMillis;
+exports.inferFieldType = inferFieldType;
