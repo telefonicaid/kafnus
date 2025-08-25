@@ -22,7 +22,7 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-FROM confluentinc/cp-kafka-connect:7.9.0
+FROM confluentinc/cp-kafka-connect:7.9.2
 
 USER root
 
@@ -93,6 +93,13 @@ RUN mkdir -p /usr/local/share/kafnus-connect/plugins/mongodb && \
     wget https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-core/4.9.1/mongodb-driver-core-4.9.1.jar -P /usr/local/share/kafnus-connect/plugins/mongodb/ && \
     wget https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-sync/4.9.1/mongodb-driver-sync-4.9.1.jar -P /usr/local/share/kafnus-connect/plugins/mongodb/ && \
     wget https://repo1.maven.org/maven2/org/mongodb/bson/4.9.1/bson-4.9.1.jar -P /usr/local/share/kafnus-connect/plugins/mongodb/
+
+# -----------------------------
+# Http Kafka Connector
+# -----------------------------
+RUN confluent-hub install --no-prompt confluentinc/kafka-connect-http:1.7.0 && \
+    ln -s /usr/share/confluent-hub-components/confluentinc-kafka-connect-http/lib /usr/local/share/kafnus-connect/plugins/http
+
 
 # -----------------------------
 # JMX Exporter Agent
