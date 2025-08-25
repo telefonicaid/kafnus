@@ -22,7 +22,7 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-ARG NODE_VERSION=18-slim
+ARG NODE_VERSION=24-slim
 FROM node:${NODE_VERSION}
 # ARG GITHUB_ACCOUNT=telefonicaid
 # ARG GITHUB_REPOSITORY=kafnus
