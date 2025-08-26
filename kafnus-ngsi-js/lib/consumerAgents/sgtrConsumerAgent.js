@@ -60,45 +60,37 @@ async function startSgtrConsumerAgent(logger) {
                 logger.info('payload: %j', payload);
                 const dataList = payload.data ? payload.data : [];
 
-                // TODO: check if all entities should be readed with a loop, not just first one
-                const entityRaw = dataList[0];
-                const attributes = payload.attributes || [];
-
-                const { service, servicepath } = getFiwareContext(headers, payload);
-                // Encode database and collection
-
-                const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
-                const recvTimeTs = String(timestamp * 1000);
-                const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
-
-                // Final document
-                const doc = {
-                    recvTimeTs,
-                    recvTime,
-                    entityId: entityRaw.id,
-                    entityType: entityRaw.type
-                };
-
-                for (const attr of attributes) {
-                    doc[attr.attrName] = attr.attrValue;
-                }
-                logger.info(`[sgtr] topic: ${topic}`);
-
-                logger.info('[sgtr] doc: %j', doc);
-                const outHeaders = [];
-
-                // Publish in output topic
-                producer.produce(
-                    outputTopic,
-                    null, // partition null: kafka decides
-                    Buffer.from(JSON.stringify(doc)), // message
-                    null, // Key (optional)
-                    Date.now(), // timestamp
-                    null, // Opaque
-                    outHeaders
-                );
-
-                logger.info('[sgtr] Sent to %j | doc %j', outputTopic, doc);
+                for (const entityRaw of dataList) {
+                    const attributes = payload.attributes || [];
+                    const { service, servicepath } = getFiwareContext(headers, payload);
+                    const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
+                    const recvTimeTs = String(timestamp * 1000);
+                    const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
+                    // Final document
+                    const doc = {
+                        recvTimeTs,
+                        recvTime,
+                        entityId: entityRaw.id,
+                        entityType: entityRaw.type
+                    };
+                    for (const attr of attributes) {
+                        doc[attr.attrName] = attr.attrValue;
+                    }
+                    logger.info(`[sgtr] topic: ${topic}`);
+                    logger.info('[sgtr] doc: %j', doc);
+                    const outHeaders = [];
+                    // Publish in output topic
+                    producer.produce(
+                        outputTopic,
+                        null, // partition null: kafka decides
+                        Buffer.from(JSON.stringify(doc)), // message
+                        null, // Key (optional)
+                        Date.now(), // timestamp
+                        null, // Opaque
+                        outHeaders
+                    );
+                    logger.info('[sgtr] Sent to %j | doc %j', outputTopic, doc);
+                } // for loop
             } catch (err) {
                 logger.error(`[sgtr] Error processing event: ${err}`);
             }

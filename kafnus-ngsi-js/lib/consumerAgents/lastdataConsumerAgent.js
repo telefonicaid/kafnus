@@ -67,7 +67,6 @@ async function startLastdataConsumerAgent(logger) {
                 }
                 const { service, servicepath } = getFiwareContext(headers, message);
 
-                // TODO: check if all entities should be readed with a loop, not just first one
                 const entityRaw = dataList[0];
                 const entityId = entityRaw.id;
                 const entityType = entityRaw.type ? entityRaw.type.toLowerCase() : undefined;
@@ -83,6 +82,7 @@ async function startLastdataConsumerAgent(logger) {
                     return;
                 }
                 if (alterationType === 'entitydelete') {
+                    // alterationType = deleteEntity only can include one entity in notif
                     const deleteEntity = {
                         entityid: entityId,
                         entitytype: entityType,
@@ -109,7 +109,7 @@ async function startLastdataConsumerAgent(logger) {
                 } else {
                     await handleEntityCb(
                         logger,
-                        rawValue,
+                        rawValue, // rawValue has all entities, no just first
                         {
                             headers,
                             suffix,
