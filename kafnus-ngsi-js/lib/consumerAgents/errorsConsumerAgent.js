@@ -27,6 +27,7 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { formatDatetimeIso } = require('../utils/ngsiUtils');
+const { messagesProcessed, processingTime } = require('../utils/metrics');
 
 async function startErrorsConsumerAgent(logger) {
     const topic = 'raw_errors';
@@ -48,7 +49,7 @@ async function startErrorsConsumerAgent(logger) {
                 try {
                     valueJson = JSON.parse(valueRaw);
                 } catch (e) {
-                    logger.warn(`Could not parse JSON payload: ${e.message}`);
+                    logger.warn(`[errors] Could not parse JSON payload: ${e.message}`);
                     return;
                 }
 
@@ -145,16 +146,14 @@ async function startErrorsConsumerAgent(logger) {
                     null // headers
                 );
 
-                logger.info(`Logged SQL error to '${errorTopicName}': ${errorMessage}`);
+                logger.info(`[errors] Logged SQL error to '${errorTopicName}': ${errorMessage}`);
             } catch (err) {
                 logger.error(' [errors] Error proccesing event: %j', err);
             }
 
             const duration = (Date.now() - start) / 1000;
-            // TBD Metrics
-            logger.debug(' [errors] duration: %s', duration);
-            // messagesProcessed.labels({ flow: 'errors' }).inc();
-            // processingTime.labels({ flow: 'errors' }).set(duration);
+            messagesProcessed.labels({ flow: 'errors' }).inc();
+            processingTime.labels({ flow: 'errors' }).set(duration);
         }
     });
 

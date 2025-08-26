@@ -28,6 +28,7 @@ const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { encodeMongo } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
+const { messagesProcessed, processingTime } = require('../utils/metrics');
 
 async function startMongoConsumerAgent(logger) {
     const topic = 'raw_mongo';
@@ -40,6 +41,7 @@ async function startMongoConsumerAgent(logger) {
         groupId,
         topic,
         onData: ({ key, value }) => {
+            const start = Date.now();
             try {
                 const rawValue = value ? value.toString() : null;
                 if (!rawValue) {
@@ -97,6 +99,10 @@ async function startMongoConsumerAgent(logger) {
             } catch (err) {
                 logger.error(`[mongo] Error processing event: ${err.message}`);
             }
+
+            const duration = (Date.now() - start) / 1000;
+            messagesProcessed.labels({ flow: 'mongo' }).inc();
+            processingTime.labels({ flow: 'mongo' }).set(duration);
         }
     });
 

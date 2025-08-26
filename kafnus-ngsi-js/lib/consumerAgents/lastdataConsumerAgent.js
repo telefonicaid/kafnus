@@ -28,6 +28,7 @@ const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { buildTargetTable, getFiwareContext, handleEntityCb } = require('../utils/handleEntityCb');
 const { buildKafkaKey } = require('../utils/ngsiUtils');
+const { messagesProcessed, processingTime } = require('../utils/metrics');
 
 async function startLastdataConsumerAgent(logger) {
     const topic = 'raw_lastdata';
@@ -53,7 +54,7 @@ async function startLastdataConsumerAgent(logger) {
                 const payloadStr = message.payload;
                 //logger.info(`payloadStr: '${payloadStr}'`);
                 if (!payloadStr) {
-                    logger.warn('No payload found in message');
+                    logger.warn('[lastdata] No payload found in message');
                     return;
                 }
                 const payload = JSON.parse(payloadStr);
@@ -61,7 +62,7 @@ async function startLastdataConsumerAgent(logger) {
                 const dataList = payload.data ? payload.data : [];
                 //logger.info('entities: %j', entities);
                 if (dataList && dataList.length === 0) {
-                    logger.warn('No data found in payload');
+                    logger.warn('[lastdata] No data found in payload');
                     return;
                 }
                 const { service, servicepath } = getFiwareContext(headers, message);
@@ -78,7 +79,7 @@ async function startLastdataConsumerAgent(logger) {
                     alterationType = 'entityupdate';
                 }
                 if (!entityId) {
-                    logger.warn('No entity ID  found');
+                    logger.warn('[lastdata] No entity ID  found');
                     return;
                 }
                 if (alterationType === 'entitydelete') {
@@ -124,10 +125,8 @@ async function startLastdataConsumerAgent(logger) {
             }
 
             const duration = (Date.now() - start) / 1000;
-            // TBD Metrics
-            logger.debug(' [lastdata] duration: %s', duration);
-            // messagesProcessed.labels({ flow: 'lastdata' }).inc();
-            // processingTime.labels({ flow: 'lastdata' }).set(duration);
+            messagesProcessed.labels({ flow: 'lastdata' }).inc();
+            processingTime.labels({ flow: 'lastdata' }).set(duration);
         }
     });
 

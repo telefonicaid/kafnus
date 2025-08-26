@@ -27,6 +27,7 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
+const { messagesProcessed, processingTime } = require('../utils/metrics');
 
 async function startMutableConsumerAgent(logger) {
     const topic = 'raw_mutable';
@@ -42,7 +43,7 @@ async function startMutableConsumerAgent(logger) {
             const start = Date.now();
             const k = key?.toString() || '';
             const v = value?.toString() || '';
-            logger.info(`[raw_historic] Key: ${k}, Value: ${v}`);
+            logger.info(`[raw_mutable] Key: ${k}, Value: ${v}`);
 
             try {
                 logger.info(`rawValue: '${v}'`);
@@ -63,10 +64,8 @@ async function startMutableConsumerAgent(logger) {
             }
 
             const duration = (Date.now() - start) / 1000;
-            // TBD Metrics
-            logger.debug(' [mutable] duration: %s', duration);
-            // messagesProcessed.labels({ flow: 'mutable' }).inc();
-            // processingTime.labels({ flow: 'mutable' }).set(duration);
+            messagesProcessed.labels({ flow: 'mutable' }).inc();
+            processingTime.labels({ flow: 'mutable' }).set(duration);
         }
     });
 

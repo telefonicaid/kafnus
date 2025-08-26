@@ -29,6 +29,7 @@ const { createProducer } = require('./sharedProducerFactory');
 const { getFiwareContext } = require('../utils/handleEntityCb');
 const { buildKafkaKey } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
+const { messagesProcessed, processingTime } = require('../utils/metrics');
 
 async function startSgtrConsumerAgent(logger) {
     const topic = 'raw_sgtr';
@@ -103,10 +104,8 @@ async function startSgtrConsumerAgent(logger) {
             }
 
             const duration = (Date.now() - start) / 1000;
-            // TBD Metrics
-            logger.debug(' [sgtr] duration: %s', duration);
-            // messagesProcessed.labels({ flow: 'lastdata' }).inc();
-            // processingTime.labels({ flow: 'lastdata' }).set(duration);
+            messagesProcessed.labels({ flow: 'sgtr' }).inc();
+            processingTime.labels({ flow: 'sgtr' }).set(duration);
         }
     });
 

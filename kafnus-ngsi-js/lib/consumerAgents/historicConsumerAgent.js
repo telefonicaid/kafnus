@@ -27,6 +27,7 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
+const { messagesProcessed, processingTime } = require('../utils/metrics');
 
 async function startHistoricConsumerAgent(logger) {
     const topic = 'raw_historic';
@@ -62,10 +63,8 @@ async function startHistoricConsumerAgent(logger) {
             }
 
             const duration = (Date.now() - start) / 1000;
-            // TBD Metrics
-            logger.debug(' [historic] duration: %s', duration);
-            // messagesProcessed.labels({ flow: 'historic' }).inc();
-            // processingTime.labels({ flow: 'historic' }).set(duration);
+            messagesProcessed.labels({ flow: 'historic' }).inc();
+            processingTime.labels({ flow: 'historic' }).set(duration);
         }
     });
 
