@@ -12,11 +12,11 @@
     "key.converter.schemas.enable": false,
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter.schemas.enable": false,
-    "reporter.bootstrap.servers": "iot-kafka:29092",
+    "reporter.bootstrap.servers": "kafka:9092",
     "reporter.error.topic.name": "raw_errors",
     "reporter.result.topic.name": "tests_http_success",      
     "max.retries": "5",
     "retry.backoff.ms": "3000",
-    "confluent.topic.bootstrap.servers": "iot-kafka:29092"
+    "confluent.topic.bootstrap.servers": "kafka:9092"
   }
 }
