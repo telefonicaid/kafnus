@@ -91,7 +91,7 @@ async function handleEntityCb(
         const payloadStr = message.payload;
         //logger.info(`payloadStr: '${payloadStr}'`);
         if (!payloadStr) {
-            logger.warn('No payload found in message');
+            logger.warn(`No payload found in message`);
             return;
         }
         const payload = JSON.parse(payloadStr);
@@ -99,7 +99,7 @@ async function handleEntityCb(
         const entities = payload.data || [];
         //logger.info('entities: %j', entities);
         if (entities.length === 0) {
-            logger.warn('No entities found in payload');
+            logger.warn(`No entities found in payload`);
             return;
         }
         const { service, servicepath } = getFiwareContext(headers, message);

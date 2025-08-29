@@ -56,12 +56,12 @@ services:
       
   kafnus-ngsi:
     container_name: kafnus-ngsi
-    # build:
-    #   context: ../kafnus-ngsi-js
-    #   #context: ../kafnus-ngsi
-    #   dockerfile: Dockerfile
-    # image: kafnus-ngsi # telefonicaiot/kafnus-ngsi (at some moment we will use dockerhub image but by the moment kafnus-ngsi is evolving fast so we build in GitAction directly :)
-    image: telefonicaiot/kafnus-ngsi:js
+    build:
+      context: ../kafnus-ngsi-js
+      #context: ../kafnus-ngsi
+      dockerfile: Dockerfile
+    image: kafnus-ngsi # telefonicaiot/kafnus-ngsi (at some moment we will use dockerhub image but by the moment kafnus-ngsi is evolving fast so we build in GitAction directly :)
+    #image: telefonicaiot/kafnus-ngsi:js
     depends_on:
       kafka:
         condition: service_healthy

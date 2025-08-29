@@ -28,7 +28,10 @@ const { Geometry } = require('wkx');
 const { Buffer } = require('buffer');
 const { geoJSONToWkt } = require('betterknown');
 const { DateTime } = require('luxon');
-const logger = require('./logger');
+
+//const logger = require('./logger');
+const { createChildLogger } = require('./logger');
+const logger = createChildLogger({ op: "myOp" });
 
 // -----------------
 // WKT/WKB conversion
@@ -144,18 +147,26 @@ function inferFieldType(name, value, attrType = null) {
         }
 
         if (attrType === 'Number') {
-            if (Number.isInteger(value)) {
-                if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) {
-                    return ['int32', value];
-                }
-                if (value >= -(2 ** 63) && value <= 2 ** 63 - 1) {
-                    return ['int64', value];
-                }
-                logger.warn(`Integer out or range BIGINT: ${value}`);
+            const numVal = Number(value);
+
+            if (Number.isNaN(numVal)) {
                 return ['string', String(value)];
             }
-            const numVal = parseFloat(value);
-            return isNaN(numVal) ? ['string', String(value)] : ['double', numVal];
+
+            // ¿Integer?
+            if (Number.isInteger(numVal)) {
+                if (numVal >= -(2 ** 31) && numVal <= 2 ** 31 - 1) {
+                    return ['int32', numVal];
+                }
+                if (numVal >= -(2 ** 63) && numVal <= 2 ** 63 - 1) {
+                    return ['int64', numVal];
+                }
+                // If it is too big → double (even for integers)
+                return ['double', numVal];
+            }
+
+            // If not integer → double
+            return ['double', numVal];
         }
 
         if (attrType === 'Boolean') {
