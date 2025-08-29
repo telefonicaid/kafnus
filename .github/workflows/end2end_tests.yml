@@ -66,6 +66,7 @@ jobs:
           docker pull mongo:8.0
           docker pull eclipse-mosquitto:latest
           docker pull telefonicaiot/kafnus-connect
+          docker pull telefonicaiot/kafnus-connect:http
 
       - name: Build kafnus-ngsi image
         working-directory: kafnus-ngsi
