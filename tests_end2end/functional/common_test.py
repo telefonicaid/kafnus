@@ -313,7 +313,7 @@ def multiservice_stack():
     compose_files = [
         "docker-compose.kafka.yml",
         "docker-compose.orion.yml",
-        "docker-compose.faust.yml"
+        "docker-compose.ngsi.yml"
     ]
 
     if not use_external_pg:
