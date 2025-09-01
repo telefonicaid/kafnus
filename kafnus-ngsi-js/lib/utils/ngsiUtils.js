@@ -29,9 +29,8 @@ const { Buffer } = require('buffer');
 const { geoJSONToWkt } = require('betterknown');
 const { DateTime } = require('luxon');
 
-//const logger = require('./logger');
-const { createChildLogger } = require('./logger');
-const logger = createChildLogger({ op: "myOp" });
+const theLogger = require('./logger');
+const logger = theLogger.getBasicLogger();
 
 // -----------------
 // WKT/WKB conversion
