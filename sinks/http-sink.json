@@ -1,0 +1,22 @@
+{
+  "name": "http-sink",
+  "config": {
+    "connector.class": "io.confluent.connect.http.HttpSinkConnector",
+    "tasks.max": "1",
+    "topics": "tests_http",
+    "http.api.url": "http://172.17.0.1:3333",
+    "request.method": "POST",
+    "request.headers": "Content-Type:application/json",
+    "request.body.format": "json",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": false,
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": false,
+    "reporter.bootstrap.servers": "kafka:9092",
+    "reporter.error.topic.name": "raw_errors",
+    "reporter.result.topic.name": "tests_http_success",      
+    "max.retries": "5",
+    "retry.backoff.ms": "3000",
+    "confluent.topic.bootstrap.servers": "kafka:9092"
+  }
+}

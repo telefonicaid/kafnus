@@ -32,6 +32,7 @@ VALID_FLOWS = {
     "mutable": "raw_mutable",
     "errors": "errors",
     "mongo": "raw_mongo",
+    "sgtr": "raw_sgtr"
 }
 
 DEFAULT_SUBSCRIPTION_ID = "DefaultSubscriptionId"
