@@ -62,7 +62,7 @@ services:
     #   context: ../kafnus-connect
     #   dockerfile: Dockerfile
     # image: kafnus-connect
-    image: telefonicaiot/kafnus-connect:http
+    image: telefonicaiot/kafnus-connect:http # FIXME: ¿?
     ports:
       - "8083:8083"
       - "9100:9100"
@@ -89,7 +89,5 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
-      #mosquitto:
-      #  condition: service_healthy
     networks:
       - kafka-postgis-net

@@ -58,6 +58,7 @@ jobs:
           sudo mkdir -p /data/postgis
           sudo chown -R 999:999 /data/postgis
 
+      # FIXME: mosquitto and telefonicaiot/kafnus-connect:http will be removed
       - name: Pre-pull required docker images
         run: |
           docker pull postgis/postgis:15-3.3
