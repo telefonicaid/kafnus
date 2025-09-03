@@ -62,7 +62,7 @@ services:
     #   context: ../kafnus-connect
     #   dockerfile: Dockerfile
     # image: kafnus-connect
-    image: telefonicaiot/kafnus-connect:http # FIXME: ¿?
+    image: telefonicaiot/kafnus-connect
     ports:
       - "8083:8083"
       - "9100:9100"

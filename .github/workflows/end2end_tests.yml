@@ -58,7 +58,7 @@ jobs:
           sudo mkdir -p /data/postgis
           sudo chown -R 999:999 /data/postgis
 
-      # FIXME: mosquitto and telefonicaiot/kafnus-connect:http will be removed
+      # FIXME: mosquitto will be removed
       - name: Pre-pull required docker images
         run: |
           docker pull postgis/postgis:15-3.3
@@ -67,7 +67,6 @@ jobs:
           docker pull mongo:8.0
           docker pull eclipse-mosquitto:latest
           docker pull telefonicaiot/kafnus-connect
-          docker pull telefonicaiot/kafnus-connect:http
 
       - name: Build kafnus-ngsi-js image
         working-directory: kafnus-ngsi-js
