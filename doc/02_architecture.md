@@ -72,7 +72,7 @@ Detailed diagram showing all services and flows in the PostGIS variant:
 
 ### 🧠 Processing – Kafnus NGSI
 
-- Written in Python using [Faust](https://faust.readthedocs.io/)
+- Written in Node.js (previously Python/Faust, now deprecated)
 - Processes raw NGSIv2 notifications
 - Applies logic per flow:
   - `historic`: all events

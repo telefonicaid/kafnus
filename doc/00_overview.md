@@ -16,7 +16,7 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 ### 🧠 Processing Layer
 - **Kafnus NGSI Stream Processor**  
-  A Python-based service that enriches and transforms raw notifications into structured messages. Each flow (e.g., `historic`, `lastdata`, `mutable`) is managed by a dedicated Kafnus NGSI agent.
+  A Node.js-based service that enriches and transforms raw notifications into structured messages. Each flow (e.g., `historic`, `lastdata`, `mutable`) is managed by a dedicated Kafnus NGSI agent.
 
 ### 💾 Persistence Layer
 - **Kafnus Connect (JDBC + MongoDB)**  
@@ -66,7 +66,7 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 ## 📂 Source Structure (simplified)
 
-- `kafnus-ngsi/`: Kafnus NGSI logic and tests  
+- `kafnus-ngsi-js/`: Kafnus NGSI logic and tests  
 - `docker/`: docker-compose files and scripts  
 - `monitoring/`: Prometheus + Grafana setup  
 - `tests_end2end/`: E2E test cases and framework  

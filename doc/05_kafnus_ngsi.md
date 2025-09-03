@@ -1,18 +1,19 @@
-# ⚙️ Kafnus NGSI Stream Processor
 
-This document explains the role of the Kafnus NGSI application in Kafnus: how it transforms NGSIv2 notifications from Kafka into structured messages ready to be persisted via Kafnus Connect.
+# ⚙️ Kafnus NGSI Stream Processor (Node.js)
+
+This document explains the role of the Kafnus NGSI application in Kafnus: how it transforms NGSIv2 notifications from Kafka into structured messages ready to be persisted via Kafnus Connect. As of September 2025, the Node.js implementation is the official and supported version. The previous Python implementation is deprecated and will be removed in a future release.
 
 ---
 
 ## 🧠 Overview
 
-Faust is a Python stream processing library, similar to Kafka Streams but async/await native. In this project, it's used to:
+Kafnus NGSI (Node.js) is a Kafka stream processor that:
 
-- Decode and process NGSIv2 notifications.
-- Add metadata like `recvtime`.
-- Transform geo attributes into PostGIS-compatible WKB.
-- Build Kafnus Connect-compatible records with key/schema/payload.
-- Set headers like `target_table` to control downstream routing via SMT.
+- Decodes and processes NGSIv2 notifications.
+- Adds metadata like `recvtime`.
+- Transforms geo attributes into PostGIS-compatible WKB.
+- Builds Kafnus Connect-compatible records with key/schema/payload.
+- Sets headers like `target_table` to control downstream routing via SMT.
 
 ---
 
@@ -20,28 +21,20 @@ Faust is a Python stream processing library, similar to Kafka Streams but async/
 
 ### Main entry point
 
-- `stream_processor.py` launches the Faust worker
-- App name: `ngsi-processor`
-- Broker: `kafka://kafka:9092`
-- Web port: disabled (metrics exposed via `prometheus_client`)
+- The main entry point is `kafnus-ngsi-js/index.js`.
+- Broker: `kafka:9092`
+- Metrics are exposed via Prometheus-compatible endpoints.
 
 ### Launch command (in Docker):
 
 ```bash
-faust -A stream_processor worker -l info
-```
-
-### Build command:
-
-From `/kafnus-ngsi` directory:
-
-```bash
-docker build --no-cache -t kafnus-ngsi .
+docker build --no-cache -t kafnus-ngsi-js .
+docker run --env-file .env kafnus-ngsi-js
 ```
 
 ### **Logging**
 
-The Faust processor uses structured logging to track processing flow, entity transformations, and message routing.
+The Node.js processor uses structured logging to track processing flow, entity transformations, and message routing.
 
 **Supported log levels:**
 
@@ -56,7 +49,7 @@ Defaults to `INFO` if not set.
 Example log output:
 
 ```
-time=2025-07-15 10:04:31,786 | lvl=INFO | comp=KAFNUS-NGSI | op=app.agents.process:entity_handler.py[219]:handle_entity_cb | msg=✅ [mutable] Sent to topic 'test_mutable' (table: 'lighting_streetlight_mutable'): ENT-LUM-001
+time=2025-09-03T11:38:21.432Z | lvl=INFO | corr=n/a | trans=n/a | op=n/a | ver=0.0.1 | ob=ES | comp=Kafnus | msg=[historic] Sent to topic 'test' (table: 'limit_sensor'): Sensor:LimitTest:12
 ```
 
 ---
@@ -69,7 +62,7 @@ time=2025-07-15 10:04:31,786 | lvl=INFO | comp=KAFNUS-NGSI | op=app.agents.proce
 - `raw_errors`
 - `raw_mongo`
 
-These are populated with NGSIv2 notifications from CB (or simulated with mosquitto or via `producer.py`).
+These are populated with NGSIv2 notifications from CB (or simulated with mosquitto or via a producer script).
 
 ---
 
@@ -87,7 +80,7 @@ Topic names are dynamic, based on Kafka record headers and entity metadata.
 
 ## 🔄 Processing Flow
 
-The core function is `handle_entity()`:
+The core function is `handleEntityCb` in `lib/utils/handleEntityCb.js`:
 
 1. Parse the input notification.
 2. Add `recvtime`.
@@ -96,25 +89,31 @@ The core function is `handle_entity()`:
 5. Send to output topic.
 6. Set header: `target_table = table_name`.
 
-```python
-async def handle_entity_cb(app, raw_value, headers=None, datamodel="dm-by-entity-type-database", suffix="", include_timeinstant=True, key_fields=None):
-    """
-    Consumes NGSI notifications coming via FIWARE Context Broker, processes and transforms them into Kafnus Connect format.
-    Assumes raw_value is a JSON string with a payload field containing another JSON string with 'data' array.
-    """
-    ...
+```js
+async function handleEntityCb(
+    logger,
+    rawValue,
+    {
+        headers = [],
+        datamodel = 'dm-by-entity-type-database',
+        suffix = '',
+        includeTimeinstant = true,
+        keyFields = null
+    } = {},
+    producer
+)
 ```
 
 ---
 
 ## 🧬 Field Type Inference
 
-The function [`infer_field_type()`](/kafnus-ngsi/src/app/types_utils.py) is responsible for converting NGSIv2 attributes (including their optional `attrType`) into Kafka Connect-compatible field types and processed values.
+The function `inferFieldType` (see `lib/utils/ngsiUtils.js`) is responsible for converting NGSIv2 attributes (including their optional `attrType`) into Kafka Connect-compatible field types and processed values.
 
 This function returns a tuple:
 
-```python
-(field_type, processed_value) = infer_field_type(name, value, attr_type)
+```js
+function inferFieldType(name, value, attrType = null)
 ```
 
 ### 🔍 Behavior by NGSI `attrType`:
@@ -131,11 +130,12 @@ This function returns a tuple:
 
 ### ⚠️ Fallbacks
 
-If `attrType` is missing, the type is inferred using Python-native heuristics:
+
+If `attrType` is missing, the type is inferred using JavaScript-native heuristics:
 
 - Timestamps are recognized by pattern.
 - Integers are scaled to fit the smallest Connect type.
-- Dicts/lists are serialized to JSON strings.
+- Objects/arrays are serialized to JSON strings.
 - Values exceeding the `BIGINT` range fallback to string and are logged.
 
 ### ⚠️ Known Limitations
@@ -179,7 +179,7 @@ return {
 
 This allows the timestamp to be interpreted natively by sinks like JDBC without requiring connector configuration.
 
-The datetime parsing logic can be found in [`datetime_utils.py`](/kafnus-ngsi/src/app/datetime_helpers.py).
+The datetime parsing logic can be found in `lib/utils/ngsiUtils.js`.
 
 ---
 

@@ -25,7 +25,7 @@ Custom Dockerfiles are located in their respective component directories:
 kafnus-connect/
 └── Dockerfile
 
-kafnus-ngsi/
+kafnus-ngsi-js/
 └── Dockerfile
 ```
 
@@ -65,7 +65,7 @@ Stops the same services and removes volumes & orphan containers:
 The Docker Compose setup relies on two custom images:
 
 - **Kafnus Connect** is built using `kafnus-connect/Dockerfile`, which includes all required connectors and plugins during the image build process.
-- **Kafnus NGSI** is built using `kafnus-ngsi/Dockerfile`, which includes the stream processing app and all dependencies.
+- **Kafnus NGSI** is built using `kafnus-ngsi-js/Dockerfile`, which includes the Node.js stream processing app and all dependencies.
 
 Both images are automatically built via `docker-up.sh`, so you don't need to build them manually unless debugging or developing.
 
