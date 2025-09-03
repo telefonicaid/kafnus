@@ -87,16 +87,8 @@ async function handleEntityCb(
     try {
         //logger.info(`rawValue: '${rawValue}'`);
         const message = JSON.parse(rawValue);
-        //logger.info(`message: '${message}'`);
-        const payloadStr = message.payload;
-        //logger.info(`payloadStr: '${payloadStr}'`);
-        if (!payloadStr) {
-            logger.warn(`No payload found in message`);
-            return;
-        }
-        const payload = JSON.parse(payloadStr);
-        //logger.info('payload: %j', payload);
-        const entities = payload.data || [];
+        //logger.info('message: %j', message);
+        const entities = message.data || [];
         //logger.info('entities: %j', entities);
         if (entities.length === 0) {
             logger.warn(`No entities found in payload`);
