@@ -68,7 +68,7 @@ jobs:
           docker pull eclipse-mosquitto:latest
           docker pull telefonicaiot/kafnus-connect
 
-      - name: Build kafnus-ngsi-js image
+      - name: Build kafnus-ngsi image
         working-directory: kafnus-ngsi-js
         run: |
           docker build --no-cache -t kafnus-ngsi .

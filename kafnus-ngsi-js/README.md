@@ -1,4 +1,4 @@
-# kafnus-ngsi-js
+# kafnus-ngsi
 
 To use the Node.js version of Kafnus NGSI, copy or rename `.env.example` to `.env` and provide your Kafka credentials. Then install dependencies and start the service:
 

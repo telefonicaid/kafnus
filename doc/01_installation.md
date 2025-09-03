@@ -48,7 +48,7 @@ npm start
 The source code lives in:
 
 ```
-kafnus-ngsi-js/
+kafnus-ngsi/
 ```
 
 The build process for Kafnus NGSI is defined in the [Dockerfile](/kafnus-ngsi/Dockerfile), which installs all dependencies and starts the worker.

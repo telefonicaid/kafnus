@@ -66,7 +66,7 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 ## 📂 Source Structure (simplified)
 
-- `kafnus-ngsi-js/`: Kafnus NGSI logic and tests  
+- `kafnus-ngsi/`: Kafnus NGSI logic and tests  
 - `docker/`: docker-compose files and scripts  
 - `monitoring/`: Prometheus + Grafana setup  
 - `tests_end2end/`: E2E test cases and framework  

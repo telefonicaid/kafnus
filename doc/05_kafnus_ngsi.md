@@ -21,15 +21,15 @@ Kafnus NGSI (Node.js) is a Kafka stream processor that:
 
 ### Main entry point
 
-- The main entry point is `kafnus-ngsi-js/index.js`.
+- The main entry point is `kafnus-ngsi/index.js`.
 - Broker: `kafka:9092`
 - Metrics are exposed via Prometheus-compatible endpoints.
 
 ### Launch command (in Docker):
 
 ```bash
-docker build --no-cache -t kafnus-ngsi-js .
-docker run --env-file .env kafnus-ngsi-js
+docker build --no-cache -t kafnus-ngsi .
+docker run --env-file .env kafnus-ngsi
 ```
 
 ### **Logging**
