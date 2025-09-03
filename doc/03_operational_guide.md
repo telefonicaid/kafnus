@@ -42,7 +42,7 @@ Confirm these are **Up (healthy)**:
 ```plaintext
 kafka           ← Kafka broker
 kafnus-connect  ← Kafnus Connect
-kafnus-ngsi-js     ← Kafnus NGSI (Node.js)
+kafnus-ngsi     ← Kafnus NGSI (Node.js)
 orion           ← Context Broker
 mongo           ← MongoDB
 mosquitto       ← MQTT broker
