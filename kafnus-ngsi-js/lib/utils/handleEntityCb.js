@@ -88,14 +88,13 @@ async function handleEntityCb(
         //logger.info(`rawValue: '${rawValue}'`);
         const message = JSON.parse(rawValue);
         //logger.info('message: %j', message);
-        const payload = message.payload;
-        const entities = payload.data || [];
+        const entities = message.data || [];
         //logger.info('entities: %j', entities);
         if (entities.length === 0) {
             logger.warn(`No entities found in payload`);
             return;
         }
-        const { service, servicepath } = getFiwareContext(headers, payload);
+        const { service, servicepath } = getFiwareContext(headers, message);
 
         for (const ngsiEntity of entities) {
             const entityId = ngsiEntity.id;

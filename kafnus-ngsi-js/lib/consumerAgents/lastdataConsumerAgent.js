@@ -51,14 +51,13 @@ async function startLastdataConsumerAgent(logger) {
                 //logger.info(`rawValue: '${rawValue}'`);
                 const message = JSON.parse(rawValue);
                 //logger.info(`message: '${message}'`);
-                const payload = message.payload;
-                const dataList = payload.data ? payload.data : [];
+                const dataList = message.data ? message.data : [];
                 //logger.info('entities: %j', entities);
                 if (dataList && dataList.length === 0) {
                     logger.warn('[lastdata] No data found in payload');
                     return;
                 }
-                const { service, servicepath } = getFiwareContext(headers, payload);
+                const { service, servicepath } = getFiwareContext(headers, message);
 
                 const entityRaw = dataList[0];
                 const entityId = entityRaw.id;

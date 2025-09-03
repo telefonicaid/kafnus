@@ -87,10 +87,11 @@ def transform_old_to_new(notification):
         "data": [data_item]
     }
 
-    return {
-        "schema": {"type": "string", "optional": False},
-        "payload": json.dumps(payload_obj)
-    }
+    # return {
+    #     "schema": {"type": "string", "optional": False},
+    #     "payload": json.dumps(payload_obj)
+    # }
+    return payload_obj
 
 
 def send_notification():
@@ -128,10 +129,11 @@ def send_notification():
     # Determine value
     if "schema" in notification and "payload" in notification:
         # Already in new format
-        kafka_value = {
-            "schema": notification["schema"],
-            "payload": notification["payload"]
-        }
+        # kafka_value = {
+        #     "schema": notification["schema"],
+        #     "payload": notification["payload"]
+        # }
+        kafka_value = notification["payload"]
     else:
         kafka_value = transform_old_to_new(notification)
 

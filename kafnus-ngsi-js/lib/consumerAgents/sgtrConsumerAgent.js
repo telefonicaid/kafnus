@@ -49,13 +49,12 @@ async function startSgtrConsumerAgent(logger) {
             try {
                 const message = JSON.parse(rawValue);
                 logger.info('[sgtr] message: %j', message);
-                const payload = message.payload;
-                const headers = payload.headers || {};
-                const dataList = payload.data ? payload.data : [];
+                const headers = message.headers || {};
+                const dataList = message.data ? message.data : [];
 
                 for (const entityRaw of dataList) {
-                    const attributes = payload.attributes || [];
-                    const { service, servicepath } = getFiwareContext(headers, payload);
+                    const attributes = message.attributes || []; // ?
+                    const { service, servicepath } = getFiwareContext(headers, message);
                     const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
                     const recvTimeTs = String(timestamp * 1000);
                     const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
