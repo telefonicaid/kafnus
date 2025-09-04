@@ -53,7 +53,7 @@ async function startSgtrConsumerAgent(logger) {
                 const dataList = message.data ? message.data : [];
 
                 for (const entityRaw of dataList) {
-                    const attributes = message.attributes || []; // ?
+                    const attributes = []; // TBD: get attributes from entity in ngsiv2 format
                     const { service, servicepath } = getFiwareContext(headers, message);
                     const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
                     const recvTimeTs = String(timestamp * 1000);
