@@ -12,7 +12,7 @@ It processes NGSI notifications from the Context Broker (CB) and stores them in 
   Temporary entry point for CB notifications (to be removed once CB supports native Kafka output).
 
 - ⚙️ **Kafnus NGSI**  
-  Using **Faust** library, transforms raw notifications into structured events. Each data flow (historic, lastdata, mutable, etc.) is handled by an independent agent.
+  Node.js service that transforms raw notifications into structured events. Each data flow (historic, lastdata, mutable, etc.) is handled by an independent agent.
 
 - 🔄 **Kafnus Connect**  
   Custom image of Kafka Connect with plugins integrated. Persists processed messages to:
@@ -56,5 +56,6 @@ Complete documentation is available in the [`doc/`](./doc) directory:
 
 - Docker + docker compose
 - Java 11+
+- Node.js 20+ (for Kafnus NGSI)
 - Python 3.11+ (for tests)
 - Maven

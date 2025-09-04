@@ -303,7 +303,6 @@ After changing:
 | Component             | Scale Type   | Strategy                            |
 |----------------------|--------------|-------------------------------------|
 | Kafka Topics          | Horizontal   | Increase partitions                 |
-| kafnus-ngsi (Python)  | Horizontal   | More pods (`--concurrency=1`)       |
 | kafnus-ngsi (Node.js) | Horizontal   | More pods, 1 process per partition  |
 | kafnus-ngsi (Java)    | Vertical     | More CPU/RAM per instance, threads  |
 
