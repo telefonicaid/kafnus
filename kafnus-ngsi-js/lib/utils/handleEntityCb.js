@@ -57,7 +57,7 @@ function getFiwareContext(headers, fallbackEvent) {
             const headerName = Object.keys(headerObj)[0];
             const bufferValue = headerObj[headerName];
             const decodedValue = Buffer.from(bufferValue);
-            hdict[headerName] = decodedValue.toString();
+            hdict[headerName.toLowerCase()] = decodedValue.toString();
         });
         service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
         servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
