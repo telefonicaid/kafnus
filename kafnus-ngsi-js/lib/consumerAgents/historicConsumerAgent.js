@@ -45,7 +45,6 @@ async function startHistoricConsumerAgent(logger) {
             logger.info(`[raw_historic] Key: ${k}, Value: ${v}`);
 
             try {
-                //logger.info(`rawValue: '${v}'`);
                 await handleEntityCb(
                     logger,
                     v,

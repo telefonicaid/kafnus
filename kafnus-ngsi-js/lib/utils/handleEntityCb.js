@@ -84,11 +84,8 @@ async function handleEntityCb(
     producer
 ) {
     try {
-        //logger.info(`rawValue: '${rawValue}'`);
         const message = JSON.parse(rawValue);
-        //logger.info('message: %j', message);
         const entities = message.data || [];
-        //logger.info('entities: %j', entities);
         if (entities.length === 0) {
             logger.warn(`No entities found in payload`);
             return;
