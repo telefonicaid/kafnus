@@ -54,6 +54,7 @@ services:
     networks:
       - kafka-postgis-net
 
+  # FIXME: at some point, CB will be capable of notify Kafka directly
   mosquitto:
     image: eclipse-mosquitto:latest
     container_name: mosquitto
