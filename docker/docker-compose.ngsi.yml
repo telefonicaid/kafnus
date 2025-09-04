@@ -24,9 +24,7 @@
 
 services:
   create-topics:
-    image: confluentinc/cp-kafka:7.9.0
-    #image: confluentinc/cp-kafka:8.0.0
-    #image: apache/kafka:4.0.0
+    image: confluentinc/cp-kafka:8.0.0
     container_name: create-topics
     depends_on:
       kafka:
