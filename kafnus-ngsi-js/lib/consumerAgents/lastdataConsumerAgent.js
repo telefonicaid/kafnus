@@ -48,19 +48,14 @@ async function startLastdataConsumerAgent(logger) {
             logger.info(`[lastdata] key=${k} value=${rawValue}`);
 
             try {
-                //logger.info(`rawValue: '${rawValue}'`);
                 const message = JSON.parse(rawValue);
-                //logger.info(`message: '${message}'`);
                 const payloadStr = message.payload;
-                //logger.info(`payloadStr: '${payloadStr}'`);
                 if (!payloadStr) {
                     logger.warn('[lastdata] No payload found in message');
                     return;
                 }
                 const payload = JSON.parse(payloadStr);
-                //logger.info('payload: %j', payload);
                 const dataList = payload.data ? payload.data : [];
-                //logger.info('entities: %j', entities);
                 if (dataList && dataList.length === 0) {
                     logger.warn('[lastdata] No data found in payload');
                     return;

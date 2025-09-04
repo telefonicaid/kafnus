@@ -44,9 +44,5 @@ describe('ngsiUtils.js', () => {
         test('converts ISO 8601 to epoch ms', () => {
             expect(toEpochMillis('2020-01-01T00:00:00Z')).toBe(1577836800000);
         });
-
-        // test("throws error on invalid date", () => {
-        //   expect(() => toEpochMillis("invalid-date")).toThrow();
-        // });
     });
 });
