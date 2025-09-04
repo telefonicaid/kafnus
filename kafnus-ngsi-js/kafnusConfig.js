@@ -1,9 +1,9 @@
 /*
- * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de Espa�a, S.A.U.
+ * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de España, S.A.U.
  * PROJECT: Kafnus
  *
  * This software and / or computer program has been developed by Telefonica Soluciones
- * de Informatica y Comunicaciones de Espa�a, S.A.U (hereinafter TSOL) and is protected
+ * de Informatica y Comunicaciones de España, S.A.U (hereinafter TSOL) and is protected
  * as copyright by the applicable legislation on intellectual property.
  *
  * It belongs to TSOL, and / or its licensors, the exclusive rights of reproduction,
