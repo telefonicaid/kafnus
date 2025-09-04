@@ -24,7 +24,6 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-//const { Kafka } = require('@confluentinc/kafka-javascript').KafkaJS;
 const {
     toWktGeometry,
     toWkbStructFromWkt,
