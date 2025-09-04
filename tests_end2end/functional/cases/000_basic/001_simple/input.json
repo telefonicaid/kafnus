@@ -74,7 +74,7 @@
         }
       },
       "notification": {
-        "kafkaCusto": {
+        "kafkaCustom": {
           "url": "kafka://kafka:9092",
           "topic": "raw_mutable"
         },

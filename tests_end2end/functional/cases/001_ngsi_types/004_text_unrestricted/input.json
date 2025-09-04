@@ -21,7 +21,7 @@
         }
       },
       "notification": {
-        "mqttCustom": {
+        "kafkaCustom": {
           "url": "kafka://kafka:9092",
           "topic": "raw_historic"
         },
