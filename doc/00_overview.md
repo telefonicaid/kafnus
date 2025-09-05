@@ -33,7 +33,7 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 3. **Kafnus NGSI → Kafka processed topics**  
 4. **Kafka → Kafnus Connect → PostGIS / MongoDB**
 
-![Simplified Temporal Schema with Mosquitto](/doc/images/SimplifiedTemporalSchema.png)
+![Simplified Schema](/doc/images/SimplifiedSchema.png)
 
 ---
 

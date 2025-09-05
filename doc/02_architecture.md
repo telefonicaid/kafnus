@@ -51,7 +51,6 @@ This image shows the core data path for a single flow:
 ### Full View (PostGIS)
 
 Detailed diagram showing all services and flows in the PostGIS variant:
-
 ![Full Architecture](../doc/images/FullSchema.png)
 
 > 📝 **Edit source**: You can view and modify the diagram using [Excalidraw](https://excalidraw.com/#room=e06782c4fdd1d900246a,f_sdKK90w0FsFWKnDWsYmw).
