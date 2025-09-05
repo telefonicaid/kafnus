@@ -107,7 +107,7 @@ curl -X POST -H "Content-Type: application/json" \
      http://localhost:8083/connectors
 ```
 
-Repeat for `pg-sink-lastdata.json`, `pg-sink-mutable.json`, `pg-sink-errors.json`, `mqtt-source.json`.
+Repeat for `pg-sink-lastdata.json`, `pg-sink-mutable.json`, `pg-sink-errors.json`, `mdb-sink.json` and `http-sink.json`.
 
 ### 4.2 Update Connector Config
 

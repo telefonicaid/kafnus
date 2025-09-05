@@ -62,7 +62,7 @@ time=2025-09-03T11:38:21.432Z | lvl=INFO | corr=n/a | trans=n/a | op=n/a | ver=0
 - `raw_errors`
 - `raw_mongo`
 
-These are populated with NGSIv2 notifications from CB (or simulated with mosquitto or via a producer script).
+These are populated with NGSIv2 notifications from CB.
 
 ---
 

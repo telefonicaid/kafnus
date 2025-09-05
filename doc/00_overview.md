@@ -71,9 +71,7 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 - `tests_end2end/`: E2E test cases and framework  
 - `sinks/`: Example connectors used for tests  
 - `kafnus-connect/`: Builds image with needed plugins  
-  - `src/mqtt-kafka-connect/`: Source code for temporal mqtt connector  
   - `src/header-router/`: Custom Single Message Transform (SMT) implementation  
-  - `src/own-jdbc-connector/`: Contains patch needed for building own JDBC custom connector  
 
 ## 🧭 Navigation
 

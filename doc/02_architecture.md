@@ -63,12 +63,11 @@ Detailed diagram showing all services and flows in the PostGIS variant:
 
 ### 🚪 Ingestion
 
-- **Mosquitto** (temporary)
-- **mqtt-kafka-connect**: bridges MQTT to Kafka.
+- **Context Broker (CB)**: Directly notifies Kafka with NGSIv2 events.
 - **Input topics**: 
-  - `kafnus/{service}{servicePath}/raw_historic`
-  - `.../raw_lastdata`
-  - `.../raw_mutable`
+   - `raw_historic`
+   - `raw_lastdata`
+   - `raw_mutable`
 
 ### 🧠 Processing – Kafnus NGSI
 

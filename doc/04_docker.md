@@ -184,13 +184,12 @@ docker network create kafka-postgis-net
 
 Kafnus Connect plugins are automatically bundled during image build (inside [`kafnus-connect/Dockerfile`](/kafnus-connect/Dockerfile)).
 
-The plugin directory (`kafnus-connect/plugins/`) contains:
+The plugin directory (`/usr/local/share/kafnus-connect/plugins/`) inside the kafnus-connect image contains:
 
-- `kafnus-connect/plugins/`: contains:
-  - `header-router` (custom SMT)
-  - `kafka-connect-jdbc` (custom connector with geometry support)
-  - `mongodb` connector
-  - `mqtt-kafka-connect` temporal bridge between CB and Kafka
+- `header-router` (custom SMT)
+- `kafka-connect-jdbc` (custom connector with geometry support)
+- `mongodb` connector
+- `http` HTTP sink connector for forwarding Kafka data to external HTTP endpoints
 
 ---
 

@@ -193,8 +193,8 @@ CREATE TABLE test.simple_sensor (
   "subscriptions": {
     "historic": {
       "notification": {
-        "mqttCustom": {
-          "topic": "kafnus/test/simple/raw_historic"
+        "kafkaCustom": {
+          "topic": "kafka://kafka:9092"
         },
         "attrs": ["TimeInstant", "temperature"]
       }
