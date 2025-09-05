@@ -63,15 +63,6 @@ RUN cd /tmp/header-router && \
     cp target/header-router-1.0.0-jar-with-dependencies.jar /usr/local/share/kafnus-connect/plugins/header-router/header-router-1.0.0.jar
 
 # -----------------------------
-# Build MQTT Connector
-# -----------------------------
-COPY src/mqtt-kafka-connect /tmp/mqtt-kafka-connect
-RUN cd /tmp/mqtt-kafka-connect && \
-    mvn clean package && \
-    mkdir -p /usr/local/share/kafnus-connect/plugins/mqtt-kafka-connect && \
-    cp target/mqtt-kafka-connect-1.0-jar-with-dependencies.jar /usr/local/share/kafnus-connect/plugins/mqtt-kafka-connect/
-
-# -----------------------------
 # Build JDBC Connector from PostGIS fork
 # -----------------------------
 RUN cd /tmp && \
