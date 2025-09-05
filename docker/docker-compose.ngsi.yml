@@ -56,7 +56,7 @@ services:
   kafnus-ngsi:
     container_name: kafnus-ngsi
     build:
-      context: ../kafnus-ngsi-js
+      context: ../kafnus-ngsi
       dockerfile: Dockerfile
     image: kafnus-ngsi # FIXME: telefonicaiot/kafnus-ngsi (at some moment we will use dockerhub image but by the moment kafnus-ngsi is evolving fast so we build in GitAction directly :)
     depends_on:
