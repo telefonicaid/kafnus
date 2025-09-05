@@ -22,19 +22,31 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-FROM python:3.9-slim
+ARG NODE_VERSION=24-slim
+FROM node:${NODE_VERSION}
 
-WORKDIR /app
+COPY . /opt/kafnus/kafnus-ngsi
 
-# Install the dependencies required for compilation
-RUN apt-get update && apt-get install -y gcc build-essential
+WORKDIR /opt/kafnus/kafnus-ngsi
+# hadolint ignore=DL3008,DL3009,DL3015
+RUN \
+        # Ensure that Git is installed prior to running npm install.
+        # curl is added here (again) because the RUN ... above is usually
+        # removed for local testing, and and curl is required for
+        # docker health-checks.
+        apt-get update && \
+        apt-get install -y git curl && \
+        echo "INFO: npm install --production..." && \
+        npm install --production && \
+        # Remove Git and clean apt cache
+        apt-get clean && \
+        apt-get remove -y git && \
+        apt-get -y autoremove
 
-# Copy full code
-COPY /src/ /app
-COPY /src/requirements.txt .
+USER node
+ENV NODE_ENV=production
+ENV LOG_LEVEL=INFO
 
-# Install dependencies
-RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Command that starts the process
-CMD ["faust", "-A", "stream_processor", "worker"]
+CMD [ "npm", "start" ]
+
