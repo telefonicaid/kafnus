@@ -24,19 +24,13 @@
 
 services:
   orion:
-    image: telefonicaiot/fiware-orion
+    image: telefonicaiot/fiware-orion:kafka
     container_name: orion
     ports:
       - "1026:1026"
-    environment:
-      - MQTT_SERVER=mosquitto
-      - MQTT_PORT=1883
-      - MQTT_QOS=0
-      - MQTT_RETRIES=3
-      - MQTT_RETRY_DELAY=500
     depends_on:
-      - mosquitto
       - mongo
+      - kafka
     networks:
       - kafka-postgis-net
     command: -dbURI mongodb://mongo:27017
@@ -53,25 +47,6 @@ services:
       - "27017:27017"
     networks:
       - kafka-postgis-net
-
-  mosquitto:
-    image: eclipse-mosquitto:latest
-    container_name: mosquitto
-    ports:
-      - "1883:1883"
-      - "9001:9001"
-    volumes:
-      - ../kafnus-connect/src/mqtt-kafka-connect/mosquitto.conf:/mosquitto/config/mosquitto.conf
-    restart: unless-stopped
-    environment:
-      - ALLOW_ANONYMOUS=true
-    networks:
-      - kafka-postgis-net
-    healthcheck:
-      test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "health", "-m", "ping"]
-      interval: 5s
-      timeout: 2s
-      retries: 5
 
 networks:
   kafka-postgis-net:

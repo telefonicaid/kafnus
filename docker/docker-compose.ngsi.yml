@@ -24,9 +24,7 @@
 
 services:
   create-topics:
-    image: confluentinc/cp-kafka:7.9.0
-    #image: confluentinc/cp-kafka:8.0.0
-    #image: apache/kafka:4.0.0
+    image: confluentinc/cp-kafka:8.0.0
     container_name: create-topics
     depends_on:
       kafka:
@@ -46,10 +44,11 @@ services:
         kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_errors --partitions 1 --replication-factor 1 &&
         echo 'Topic raw_errors created or already created.'
         kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_mongo --partitions 1 --replication-factor 1 &&
+        echo 'Topic raw_mongo created or already created.'
         kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic raw_sgtr --partitions 1 --replication-factor 1 &&
         kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic tests_http_success --partitions 1 --replication-factor 1 &&
         kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic _confluent-command --partitions 1 --replication-factor 1   --config cleanup.policy=compact &&
-        echo 'Topic raw_mongo created or already created.'
+        echo 'Topic raw_sgtr... created or already created.'
       "
     networks:
       - kafka-postgis-net
@@ -58,18 +57,14 @@ services:
     container_name: kafnus-ngsi
     build:
       context: ../kafnus-ngsi-js
-      #context: ../kafnus-ngsi
       dockerfile: Dockerfile
-    image: kafnus-ngsi # telefonicaiot/kafnus-ngsi (at some moment we will use dockerhub image but by the moment kafnus-ngsi is evolving fast so we build in GitAction directly :)
-    #image: telefonicaiot/kafnus-ngsi:js
+    image: kafnus-ngsi # FIXME: telefonicaiot/kafnus-ngsi (at some moment we will use dockerhub image but by the moment kafnus-ngsi is evolving fast so we build in GitAction directly :)
     depends_on:
       kafka:
         condition: service_healthy
       create-topics:
         condition: service_completed_successfully
     environment:
-      - FAUST_BROKER=kafka://kafka:9092
-      #- KAFNUS_NGSI_KAFKA_BROKER=kafka://kafka:9092
       - KAFNUS_NGSI_KAFKA_BROKER=kafka:9092
       - KAFNUS_NGSI_METRICS_PORT=8000
       - KAFNUS_NGSI_DEFAULT_TZ=UTC
@@ -77,10 +72,8 @@ services:
     networks:
       - kafka-postgis-net
     ports:
-    #  - "6066:6066"  # Faust web
       # Monitoring
       - "8000:8000"  # Prometheus
-    #command: sh -c "faust -A stream_processor worker -l ${KAFNUS_NGSI_LOG_LEVEL:-info}"
 
 networks:
   kafka-postgis-net:

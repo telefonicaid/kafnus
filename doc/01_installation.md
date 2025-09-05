@@ -34,22 +34,22 @@ This directory is automatically populated during the image build, based on the l
 
 ## 2. ⚙️ Kafnus NGSI Worker Image
 
-The **Kafnus NGSI stream processor** is also containerized and automatically built during `docker-up.sh` execution. This ensures the worker is:
+The **Kafnus NGSI stream processor** (Node.js version) is also containerized and automatically built during `docker-up.sh` execution. This ensures the worker is:
 
-- Compiled with the correct Python version and dependencies
+- Built with the correct Node.js version and dependencies
 - Isolated from the host system
 - Ready to run with the default command:  
 
 ```bash
-faust -A stream_processor worker -l info
+npm install
+npm start
 ```
 
 The source code lives in:
 
 ```
-kafnus-ngsi/src/
+kafnus-ngsi/
 ```
-
 
 The build process for Kafnus NGSI is defined in the [Dockerfile](/kafnus-ngsi/Dockerfile), which installs all dependencies and starts the worker.
 
@@ -63,7 +63,7 @@ The build process for Kafnus NGSI is defined in the [Dockerfile](/kafnus-ngsi/Do
 
 ---
 
-## 3. 🐍 Python Environment Setup
+## 3. 🐍 Python Environment Setup (for tests)
 
 > ✅ Requires **Python 3.11**
 

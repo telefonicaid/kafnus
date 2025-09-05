@@ -24,7 +24,6 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-//const { Kafka } = require('@confluentinc/kafka-javascript').KafkaJS;
 const {
     toWktGeometry,
     toWkbStructFromWkt,
@@ -57,7 +56,7 @@ function getFiwareContext(headers, fallbackEvent) {
             const headerName = Object.keys(headerObj)[0];
             const bufferValue = headerObj[headerName];
             const decodedValue = Buffer.from(bufferValue);
-            hdict[headerName] = decodedValue.toString();
+            hdict[headerName.toLowerCase()] = decodedValue.toString();
         });
         service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
         servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
@@ -85,19 +84,8 @@ async function handleEntityCb(
     producer
 ) {
     try {
-        //logger.info(`rawValue: '${rawValue}'`);
         const message = JSON.parse(rawValue);
-        //logger.info(`message: '${message}'`);
-        const payloadStr = message.payload;
-        //logger.info(`payloadStr: '${payloadStr}'`);
-        if (!payloadStr) {
-            logger.warn(`No payload found in message`);
-            return;
-        }
-        const payload = JSON.parse(payloadStr);
-        //logger.info('payload: %j', payload);
-        const entities = payload.data || [];
-        //logger.info('entities: %j', entities);
+        const entities = message.data || [];
         if (entities.length === 0) {
             logger.warn(`No entities found in payload`);
             return;
