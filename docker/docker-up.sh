@@ -26,7 +26,7 @@
 
 COMPOSE_FILES=(
   -f docker-compose.kafka.yml
-  -f docker-compose.faust.yml
+  -f docker-compose.ngsi.yml
   -f docker-compose.orion.yml
   # -f docker-compose.monitoring.yml
   # -f docker-compose.postgis.yml

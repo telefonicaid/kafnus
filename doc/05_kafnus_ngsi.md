@@ -43,7 +43,7 @@ The Node.js processor uses structured logging to track processing flow, entity t
 - `WARN`: Recoverable issues (e.g., invalid geo formats).
 - `ERROR`: Parsing failures or bad input payloads.
 
-ℹ️ The environment variable `KAFNUS_NGSI_LOG_LEVEL` controls the verbosity, set the variable in [`/docker/docker-compose.faust.yml`](/docker/docker-compose.faust.yml).  
+ℹ️ The environment variable `KAFNUS_NGSI_LOG_LEVEL` controls the verbosity, set the variable in [`/docker/docker-compose.ngsi.yml`](/docker/docker-compose.ngsi.yml).  
 Defaults to `INFO` if not set.
 
 Example log output:

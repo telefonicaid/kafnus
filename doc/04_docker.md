@@ -11,7 +11,7 @@ Most of Docker-related files are located in the `docker/` directory:
 ```plaintext
 docker/
 ├── docker-compose.kafka.yml
-├── docker-compose.faust.yml
+├── docker-compose.ngsi.yml
 ├── docker-compose.orion.yml
 ├── docker-compose.postgis.yml     # (optional, disabled by default)
 ├── docker-compose.monitoring.yml  # (optional, disabled by default)
@@ -97,7 +97,7 @@ docker build --no-cache -t kafnus-connect .
 
 ---
 
-### `docker-compose.faust.yml`
+### `docker-compose.ngsi.yml`
 
 Defines:
 

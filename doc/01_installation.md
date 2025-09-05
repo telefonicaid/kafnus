@@ -55,7 +55,7 @@ The build process for Kafnus NGSI is defined in the [Dockerfile](/kafnus-ngsi/Do
 
 > ℹ️ No additional setup is required—this container is fully managed within the `docker compose` environment.
 
-> The `docker-compose.faust.yml` files specify the `image:` option for Kafnus NGSI.  
+> The `docker-compose.ngsi.yml` files specify the `image:` option for Kafnus NGSI.  
 >
 > If the image is not present locally (first time), Docker Compose will try to pull it from the registry (Docker Hub by default) and will show a warning if the image is not found.  
 > 

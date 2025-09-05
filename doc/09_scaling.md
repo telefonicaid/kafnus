@@ -160,9 +160,9 @@ When migrating from Python (Faust) to Node.js (`@confluentinc/kafka-javascript`)
 
 ## 🚀 Scaling Strategies
 
-### Python (Faust) and Node.js (`@confluentinc/kafka-javascript`)
+### Node.js (`@confluentinc/kafka-javascript`)
 
-Both the legacy Python version and the new Node.js version support **horizontal scaling**.
+The new Node.js version of Kafnus-NGSI supports **horizontal scaling**.
 
 #### Development Environment (Docker)
 
