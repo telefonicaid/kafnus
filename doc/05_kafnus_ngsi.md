@@ -1,7 +1,7 @@
 
 # ⚙️ Kafnus NGSI Stream Processor (Node.js)
 
-This document explains the role of the Kafnus NGSI application in Kafnus: how it transforms NGSIv2 notifications from Kafka into structured messages ready to be persisted via Kafnus Connect. As of September 2025, the Node.js implementation is the official and supported version. The previous Python implementation is deprecated and will be removed in a future release.
+This document explains the role of the Kafnus NGSI application in Kafnus: how it transforms NGSIv2 notifications from Kafka into structured messages ready to be persisted via Kafnus Connect.
 
 ---
 

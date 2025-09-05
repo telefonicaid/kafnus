@@ -11,8 +11,8 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 ## 🧩 Key Components
 
 ### 🛰️ Input Layer
-- **Mosquitto + MQTT Kafka Connector**  
-  Temporarily receives notifications from the Context Broker.
+- **Context Broker (CB) → Kafka**  
+  The Context Broker directly notifies Kafka topics with NGSI notifications.
 
 ### 🧠 Processing Layer
 - **Kafnus NGSI Stream Processor**  
@@ -27,11 +27,11 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 ## 🔄 Data Flow
 
-1. **CB → MQTT (Mosquitto)**  
-2. **MQTT → Kafka (custom MQTT connector)**  
-3. **Kafka raw topics → Kafnus NGSI agents**  
-4. **Kafnus NGSI → Kafka processed topics**  
-5. **Kafka → Kafnus Connect → PostGIS / MongoDB**
+
+1. **CB → Kafka**  
+2. **Kafka raw topics → Kafnus NGSI agents**  
+3. **Kafnus NGSI → Kafka processed topics**  
+4. **Kafka → Kafnus Connect → PostGIS / MongoDB**
 
 ![Simplified Temporal Schema with Mosquitto](/doc/images/SimplifiedTemporalSchema.png)
 
@@ -57,9 +57,8 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 ## 🛣️ Future Plans
 
-- Remove Mosquitto once CB supports Kafka output natively.
 - Advance Mongo's functionality.
-- Implement HTTP agent.
+- Evolve HTTP agent.
 - Update tests if the testcontainer library adds direct support for Docker Compose V2
 
 ---

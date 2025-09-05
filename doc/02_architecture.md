@@ -20,7 +20,7 @@ The system supports multiple data flows (`historic`, `lastdata`, `mutable`) and 
 ## 🔄 End-to-End Flow Description
 
 1. **CB → Kafka**  
-   NGSIv2 notifications are published to Kafka raw topics. Currently, this is done via a **custom MQTT Kafka connector**, but will eventually be replaced by direct CB-to-Kafka output.
+   NGSIv2 notifications are published directly from the Context Broker to Kafka raw topics.
 
 2. **Kafka → Kafnus NGSI**  
    Kafnus NGSI processor consumes messages from `raw_historic`, `raw_lastdata`, and `raw_mutable`. Each flow is handled by a dedicated agent. Processing includes:

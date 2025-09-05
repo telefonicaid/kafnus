@@ -39,7 +39,7 @@ Starts the default stack, including:
 
 - Kafka + Kafnus Connect
 - Kafnus NGSI
-- Orion + Mongo + Mosquitto
+- Orion + Mongo
 
 PostGIS and Monitoring are commented out by default.
 

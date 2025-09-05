@@ -45,7 +45,6 @@ kafnus-connect  ← Kafnus Connect
 kafnus-ngsi     ← Kafnus NGSI (Node.js)
 orion           ← Context Broker
 mongo           ← MongoDB
-mosquitto       ← MQTT broker
 iot-postgis     ← PostGIS (if internal)
 ```
 
