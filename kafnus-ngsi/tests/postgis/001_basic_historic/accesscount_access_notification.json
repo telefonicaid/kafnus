@@ -5,5 +5,5 @@
     "fiware-servicepath": "/accesscount"
   },
   "schema": {"type": "string", "optional": false},
-  "payload": "{\"subscriptionId\": \"6895adbe6eab6b403605331a\", \"data\":[{\"id\":\"NPO-101\",\"type\":\"Access\",\"TimeInstant\": {\"type\": \"DateTime\", \"value\": \"2025-06-26T12:00:00.000Z\"}, \"numberofincoming\": {\"type\": \"Number\", \"value\": 67}, \"numberofoutgoing\": {\"type\": \"Number\", \"value\": 45}, \"status\": {\"type\": \"Text\", \"value\": \"abierto\"}, \"averagestay\": {\"type\": \"Number\", \"value\": 15}  }]}"
+  "payload": {"subscriptionId": "6895adbe6eab6b403605331a", "data":[{"id":"NPO-101","type":"Access","TimeInstant": {"type": "DateTime", "value": "2025-06-26T12:00:00.000Z"}, "numberofincoming": {"type": "Number", "value": 67}, "numberofoutgoing": {"type": "Number", "value": 45}, "status": {"type": "Text", "value": "abierto"}, "averagestay": {"type": "Number", "value": 15}  }]}
 }

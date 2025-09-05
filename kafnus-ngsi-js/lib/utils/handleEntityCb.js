@@ -24,7 +24,6 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-//const { Kafka } = require('@confluentinc/kafka-javascript').KafkaJS;
 const {
     toWktGeometry,
     toWkbStructFromWkt,
@@ -57,7 +56,7 @@ function getFiwareContext(headers, fallbackEvent) {
             const headerName = Object.keys(headerObj)[0];
             const bufferValue = headerObj[headerName];
             const decodedValue = Buffer.from(bufferValue);
-            hdict[headerName] = decodedValue.toString();
+            hdict[headerName.toLowerCase()] = decodedValue.toString();
         });
         service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
         servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
@@ -86,13 +85,7 @@ async function handleEntityCb(
 ) {
     try {
         const message = JSON.parse(rawValue);
-        const payloadStr = message.payload;
-        if (!payloadStr) {
-            logger.warn(`No payload found in message`);
-            return;
-        }
-        const payload = JSON.parse(payloadStr);
-        const entities = payload.data || [];
+        const entities = message.data || [];
         if (entities.length === 0) {
             logger.warn(`No entities found in payload`);
             return;

@@ -20,9 +20,9 @@
         }
       },
       "notification": {
-        "mqttCustom": {
-          "url": "mqtt://mosquitto:1883",
-          "topic": "kafnus/${service}${servicePath}/raw_historic"
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_historic"
         },
         "attrs": [
           "TimeInstant",
@@ -87,9 +87,9 @@
         }
       },
       "notification": {
-        "mqttCustom": {
-          "url": "mqtt://mosquitto:1883",
-          "topic": "kafnus/${service}${servicePath}/raw_lastdata"
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_lastdata"
         },
         "attrs": [
           "TimeInstant",
@@ -153,9 +153,9 @@
         }
       },
       "notification": {
-        "mqttCustom": {
-          "url": "mqtt://mosquitto:1883",
-          "topic": "kafnus/${service}${servicePath}/raw_mutable"
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_mutable"
         },
         "attrs": [
           "TimeInstant",

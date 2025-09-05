@@ -20,9 +20,9 @@
         }
       },
       "notification": {
-        "mqttCustom": {
-          "url": "mqtt://mosquitto:1883",
-          "topic": "kafnus/${service}${servicePath}/raw_historic"
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_historic"
         },
         "attrs": [
           "name",
@@ -63,9 +63,9 @@
         }
       },
       "notification": {
-        "mqttCustom": {
-          "url": "mqtt://mosquitto:1883",
-          "topic": "kafnus/${service}${servicePath}/raw_lastdata"
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_lastdata"
         },
         "attrs": [
           "name",

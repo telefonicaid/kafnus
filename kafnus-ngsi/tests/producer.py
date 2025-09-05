@@ -41,7 +41,7 @@ DEFAULT_SUBSCRIPTION_ID = "DefaultSubscriptionId"
 def transform_old_to_new(notification):
     """
     Converts old formats (with 'body' or with object 'payload') to the new format:
-    {"schema": {...}, "payload": "<stringified NGSI data>"}
+    < NGSI data>"
     """
 
     # Support body-based format
@@ -86,11 +86,7 @@ def transform_old_to_new(notification):
         "subscriptionId": DEFAULT_SUBSCRIPTION_ID,
         "data": [data_item]
     }
-
-    return {
-        "schema": {"type": "string", "optional": False},
-        "payload": json.dumps(payload_obj)
-    }
+    return payload_obj
 
 
 def send_notification():
@@ -126,12 +122,9 @@ def send_notification():
             kafka_headers.append((hk, str(hv).encode("utf-8")))
 
     # Determine value
-    if "schema" in notification and "payload" in notification:
+    if "payload" in notification:
         # Already in new format
-        kafka_value = {
-            "schema": notification["schema"],
-            "payload": notification["payload"]
-        }
+        kafka_value = notification["payload"]
     else:
         kafka_value = transform_old_to_new(notification)
 
