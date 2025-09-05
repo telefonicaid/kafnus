@@ -25,9 +25,9 @@
 ARG NODE_VERSION=24-slim
 FROM node:${NODE_VERSION}
 
-COPY . /opt/kafnus/kafnus-ngsi-js
+COPY . /opt/kafnus/kafnus-ngsi
 
-WORKDIR /opt/kafnus/kafnus-ngsi-js
+WORKDIR /opt/kafnus/kafnus-ngsi
 # hadolint ignore=DL3008,DL3009,DL3015
 RUN \
         # Ensure that Git is installed prior to running npm install.
