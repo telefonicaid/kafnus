@@ -11,8 +11,8 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 ## 🧩 Key Components
 
 ### 🛰️ Input Layer
-- **Mosquitto + MQTT Kafka Connector**  
-  Temporarily receives notifications from the Context Broker.
+- **Context Broker (CB) → Kafka**  
+  The Context Broker directly notifies Kafka topics with NGSI notifications.
 
 ### 🧠 Processing Layer
 - **Kafnus NGSI Stream Processor**  
@@ -27,13 +27,13 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 ## 🔄 Data Flow
 
-1. **CB → MQTT (Mosquitto)**  
-2. **MQTT → Kafka (custom MQTT connector)**  
-3. **Kafka raw topics → Kafnus NGSI agents**  
-4. **Kafnus NGSI → Kafka processed topics**  
-5. **Kafka → Kafnus Connect → PostGIS / MongoDB**
 
-![Simplified Temporal Schema with Mosquitto](/doc/images/SimplifiedTemporalSchema.png)
+1. **CB → Kafka**  
+2. **Kafka raw topics → Kafnus NGSI agents**  
+3. **Kafnus NGSI → Kafka processed topics**  
+4. **Kafka → Kafnus Connect → PostGIS / MongoDB**
+
+![Simplified Schema](/doc/images/SimplifiedSchema.png)
 
 ---
 
@@ -57,9 +57,8 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 ## 🛣️ Future Plans
 
-- Remove Mosquitto once CB supports Kafka output natively.
 - Advance Mongo's functionality.
-- Implement HTTP agent.
+- Evolve HTTP agent.
 - Update tests if the testcontainer library adds direct support for Docker Compose V2
 
 ---
@@ -72,9 +71,7 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 - `tests_end2end/`: E2E test cases and framework  
 - `sinks/`: Example connectors used for tests  
 - `kafnus-connect/`: Builds image with needed plugins  
-  - `src/mqtt-kafka-connect/`: Source code for temporal mqtt connector  
   - `src/header-router/`: Custom Single Message Transform (SMT) implementation  
-  - `src/own-jdbc-connector/`: Contains patch needed for building own JDBC custom connector  
 
 ## 🧭 Navigation
 

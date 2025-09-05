@@ -105,13 +105,6 @@ cd kafnus-connect/monitoring
 wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.20.0/jmx_prometheus_javaagent-0.20.0.jar -O jmx_prometheus_javaagent.jar
 ```
 
-### Kafnus NGSI Docker command (in docker-compose.faust.yml)
-
-```yaml
-command: faust -A stream_processor worker -l info
-```
-> The Kafnus NGSI app does not use `--web-port`, to avoid port conflicts with `prometheus_client`.
-
 ## 📚 Notes
 
 - All metrics are emitted in **Prometheus format**.

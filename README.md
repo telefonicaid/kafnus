@@ -8,8 +8,8 @@ It processes NGSI notifications from the Context Broker (CB) and stores them in 
 
 ## 📦 Main Components
 
-- 🧭 **Mosquitto + MQTT Kafka Connector**  
-  Temporary entry point for CB notifications (to be removed once CB supports native Kafka output).
+- 🏢 **Context Broker (CB)**  
+  The origin of NGSI notifications. It sends entity updates and context data to Kafka, where Kafnus NGSI listens and processes the incoming information.
 
 - ⚙️ **Kafnus NGSI**  
   Node.js service that transforms raw notifications into structured events. Each data flow (historic, lastdata, mutable, etc.) is handled by an independent agent.

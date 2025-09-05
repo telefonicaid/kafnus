@@ -20,7 +20,7 @@ The system supports multiple data flows (`historic`, `lastdata`, `mutable`) and 
 ## 🔄 End-to-End Flow Description
 
 1. **CB → Kafka**  
-   NGSIv2 notifications are published to Kafka raw topics. Currently, this is done via a **custom MQTT Kafka connector**, but will eventually be replaced by direct CB-to-Kafka output.
+   NGSIv2 notifications are published directly from the Context Broker to Kafka raw topics.
 
 2. **Kafka → Kafnus NGSI**  
    Kafnus NGSI processor consumes messages from `raw_historic`, `raw_lastdata`, and `raw_mutable`. Each flow is handled by a dedicated agent. Processing includes:
@@ -51,7 +51,6 @@ This image shows the core data path for a single flow:
 ### Full View (PostGIS)
 
 Detailed diagram showing all services and flows in the PostGIS variant:
-
 ![Full Architecture](../doc/images/FullSchema.png)
 
 > 📝 **Edit source**: You can view and modify the diagram using [Excalidraw](https://excalidraw.com/#room=e06782c4fdd1d900246a,f_sdKK90w0FsFWKnDWsYmw).
@@ -63,12 +62,11 @@ Detailed diagram showing all services and flows in the PostGIS variant:
 
 ### 🚪 Ingestion
 
-- **Mosquitto** (temporary)
-- **mqtt-kafka-connect**: bridges MQTT to Kafka.
+- **Context Broker (CB)**: Directly notifies Kafka with NGSIv2 events.
 - **Input topics**: 
-  - `kafnus/{service}{servicePath}/raw_historic`
-  - `.../raw_lastdata`
-  - `.../raw_mutable`
+   - `raw_historic`
+   - `raw_lastdata`
+   - `raw_mutable`
 
 ### 🧠 Processing – Kafnus NGSI
 

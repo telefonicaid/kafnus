@@ -11,7 +11,7 @@ You don’t need to manually download or compile any JARs—everything is handle
 
 Kafnus Connect uses a **custom Docker image** that already includes:
 
-- All required connectors (JDBC, MongoDB, MQTT)
+- All required connectors (JDBC, MongoDB, HTTP)
 - Custom SMTs like the `HeaderRouter`
 - Dependencies (e.g., PostgreSQL and MongoDB drivers)
 - JMX Prometheus Java Agent for monitoring
@@ -55,7 +55,7 @@ The build process for Kafnus NGSI is defined in the [Dockerfile](/kafnus-ngsi/Do
 
 > ℹ️ No additional setup is required—this container is fully managed within the `docker compose` environment.
 
-> The `docker-compose.faust.yml` files specify the `image:` option for Kafnus NGSI.  
+> The `docker-compose.ngsi.yml` files specify the `image:` option for Kafnus NGSI.  
 >
 > If the image is not present locally (first time), Docker Compose will try to pull it from the registry (Docker Hub by default) and will show a warning if the image is not found.  
 > 
@@ -189,13 +189,12 @@ docker ps
 You should see at least:
 
 ```plaintext
-kafnus-ngsi
-orion
-kafnus-connect
 kafka
+kafnus-ngsi
+kafnus-connect
+orion
 iot-postgis
 mongo
-mosquitto
 ```
 
 
@@ -209,9 +208,9 @@ curl -s http://localhost:8083/connector-plugins | jq
 
 Look for:
 
-- `com.telefonica.kafnus.mqtt.MqttSourceConnector`
 - `io.confluent.connect.jdbc.JdbcSinkConnector`
 - `com.mongodb.kafka.connect.MongoSinkConnector`
+- `io.confluent.connect.http.HttpSinkConnector`
 
 ---
 
@@ -226,7 +225,8 @@ curl -X POST -H "Content-Type: application/json" --data @pg-sink-historic.json h
 curl -X POST -H "Content-Type: application/json" --data @pg-sink-lastdata.json http://localhost:8083/connectors
 curl -X POST -H "Content-Type: application/json" --data @pg-sink-mutable.json http://localhost:8083/connectors
 curl -X POST -H "Content-Type: application/json" --data @pg-sink-errors.json   http://localhost:8083/connectors
-curl -X POST -H "Content-Type: application/json" --data @mqtt-source.json     http://localhost:8083/connectors
+curl -X POST -H "Content-Type: application/json" --data @mdb-sink.json   http://localhost:8083/connectors
+curl -X POST -H "Content-Type: application/json" --data @http-sink.json   http://localhost:8083/connectors
 ```
 
 Hint: you can check that connectors have been correctly added listing them with:
@@ -273,15 +273,15 @@ curl -X POST http://localhost:1026/v2/subscriptions \
   -H "fiware-service: test" \
   -H "fiware-servicepath: /simple" \
   -d '{
-    "description": "Suscripción MQTT para datos de prueba",
+    "description": "Suscripción HISTORIC para datos de prueba",
     "subject": {
         "entities": [{ "idPattern": ".*", "type": "Sensor" }],
         "condition": { "attrs": [ "TimeInstant" ] }
     },
     "notification": {
-        "mqttCustom": {
-            "url": "mqtt://mosquitto:1883",
-            "topic": "kafnus/test/simple/raw_historic"
+        "kafkaCustom": {
+            "url": "kafka://kafka:9092",
+            "topic": "raw_historic"
         },
         "attrs": ["TimeInstant", "temperature"]
     }

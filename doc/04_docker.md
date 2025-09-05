@@ -11,7 +11,7 @@ Most of Docker-related files are located in the `docker/` directory:
 ```plaintext
 docker/
 ├── docker-compose.kafka.yml
-├── docker-compose.faust.yml
+├── docker-compose.ngsi.yml
 ├── docker-compose.orion.yml
 ├── docker-compose.postgis.yml     # (optional, disabled by default)
 ├── docker-compose.monitoring.yml  # (optional, disabled by default)
@@ -39,7 +39,7 @@ Starts the default stack, including:
 
 - Kafka + Kafnus Connect
 - Kafnus NGSI
-- Orion + Mongo + Mosquitto
+- Orion + Mongo
 
 PostGIS and Monitoring are commented out by default.
 
@@ -97,7 +97,7 @@ docker build --no-cache -t kafnus-connect .
 
 ---
 
-### `docker-compose.faust.yml`
+### `docker-compose.ngsi.yml`
 
 Defines:
 
@@ -184,13 +184,12 @@ docker network create kafka-postgis-net
 
 Kafnus Connect plugins are automatically bundled during image build (inside [`kafnus-connect/Dockerfile`](/kafnus-connect/Dockerfile)).
 
-The plugin directory (`kafnus-connect/plugins/`) contains:
+The plugin directory (`/usr/local/share/kafnus-connect/plugins/`) inside the kafnus-connect image contains:
 
-- `kafnus-connect/plugins/`: contains:
-  - `header-router` (custom SMT)
-  - `kafka-connect-jdbc` (custom connector with geometry support)
-  - `mongodb` connector
-  - `mqtt-kafka-connect` temporal bridge between CB and Kafka
+- `header-router` (custom SMT)
+- `kafka-connect-jdbc` (custom connector with geometry support)
+- `mongodb` connector
+- `http` HTTP sink connector for forwarding Kafka data to external HTTP endpoints
 
 ---
 

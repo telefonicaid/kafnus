@@ -1,7 +1,7 @@
 
 # ⚙️ Kafnus NGSI Stream Processor (Node.js)
 
-This document explains the role of the Kafnus NGSI application in Kafnus: how it transforms NGSIv2 notifications from Kafka into structured messages ready to be persisted via Kafnus Connect. As of September 2025, the Node.js implementation is the official and supported version. The previous Python implementation is deprecated and will be removed in a future release.
+This document explains the role of the Kafnus NGSI application in Kafnus: how it transforms NGSIv2 notifications from Kafka into structured messages ready to be persisted via Kafnus Connect.
 
 ---
 
@@ -43,7 +43,7 @@ The Node.js processor uses structured logging to track processing flow, entity t
 - `WARN`: Recoverable issues (e.g., invalid geo formats).
 - `ERROR`: Parsing failures or bad input payloads.
 
-ℹ️ The environment variable `KAFNUS_NGSI_LOG_LEVEL` controls the verbosity, set the variable in [`/docker/docker-compose.faust.yml`](/docker/docker-compose.faust.yml).  
+ℹ️ The environment variable `KAFNUS_NGSI_LOG_LEVEL` controls the verbosity, set the variable in [`/docker/docker-compose.ngsi.yml`](/docker/docker-compose.ngsi.yml).  
 Defaults to `INFO` if not set.
 
 Example log output:
@@ -62,7 +62,7 @@ time=2025-09-03T11:38:21.432Z | lvl=INFO | corr=n/a | trans=n/a | op=n/a | ver=0
 - `raw_errors`
 - `raw_mongo`
 
-These are populated with NGSIv2 notifications from CB (or simulated with mosquitto or via a producer script).
+These are populated with NGSIv2 notifications from CB.
 
 ---
 

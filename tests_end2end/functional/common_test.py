@@ -39,7 +39,7 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from config import logger
-from config import KAFNUS_TESTS_KAFNUS_CONNECT_URL
+from config import KAFNUS_TESTS_KAFNUS_CONNECT_URL, KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME
 from typing import Optional
 
 def wait_for_kafnus_connect(url=KAFNUS_TESTS_KAFNUS_CONNECT_URL, timeout=60):
@@ -64,7 +64,7 @@ def wait_for_kafnus_connect(url=KAFNUS_TESTS_KAFNUS_CONNECT_URL, timeout=60):
         time.sleep(2)
     logger.fatal(f"❌ Kafnus Connect did not respond within {timeout} seconds")
 
-def wait_for_connector(name="mosquitto-source-connector", url=KAFNUS_TESTS_KAFNUS_CONNECT_URL):
+def wait_for_connector(name=KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME, url=KAFNUS_TESTS_KAFNUS_CONNECT_URL):
     """
     Waits for the specified Kafnus Connect connector to reach the RUNNING state.
     Raises an exception if the connector does not become active after multiple attempts.
