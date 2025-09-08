@@ -45,9 +45,9 @@ services:
         echo 'Topic raw_errors created or already created.'
         kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_mongo --partitions 1 --replication-factor 1 &&
         echo 'Topic raw_mongo created or already created.'
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic raw_sgtr --partitions 1 --replication-factor 1 &&
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic tests_http_success --partitions 1 --replication-factor 1 &&
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic _confluent-command --partitions 1 --replication-factor 1   --config cleanup.policy=compact &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_sgtr --partitions 1 --replication-factor 1 &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic tests_http_success --partitions 1 --replication-factor 1 &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic _confluent-command --partitions 1 --replication-factor 1   --config cleanup.policy=compact &&
         echo 'Topic raw_sgtr... created or already created.'
       "
     networks:
