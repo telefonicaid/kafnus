@@ -61,7 +61,7 @@ jobs:
       - name: Pre-pull required docker images
         run: |
           docker pull postgis/postgis:15-3.3
-          docker pull confluentinc/cp-kafka:7.9.0
+          docker pull confluentinc/cp-kafka:8.0.0
           docker pull telefonicaiot/fiware-orion
           docker pull mongo:8.0
           docker pull telefonicaiot/kafnus-connect
