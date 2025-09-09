@@ -82,7 +82,7 @@ RUN cd /tmp && \
     cp target/kafka-connect-jdbc-10.7.0.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
 
 # PostgreSQL JDBC Driver
-RUN curl -fsSL https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -o /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/kafka-connect-jdbc/postgresql-42.7.1.jar
+RUN curl -fsSL https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -o /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/postgresql-42.7.1.jar
 
 # -----------------------------
 # MongoDB Kafka Connector
