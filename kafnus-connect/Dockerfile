@@ -52,11 +52,6 @@ RUN microdnf install -y curl-minimal && \
     rm /tmp/apache-maven-3.9.7-bin.tar.gz && \
     microdnf clean all
 
-# RUN wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.7/apache-maven-3.9.7-bin.tar.gz -P /tmp && \
-#     tar xf /tmp/apache-maven-3.9.7-bin.tar.gz -C /opt && \
-#     ln -s /opt/apache-maven-3.9.7 /opt/maven && \
-#     rm /tmp/apache-maven-3.9.7-bin.tar.gz
-
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 ENV MAVEN_HOME=/opt/maven
 ENV PATH="${JAVA_HOME}/bin:${MAVEN_HOME}/bin:${PATH}"
