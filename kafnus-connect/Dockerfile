@@ -22,7 +22,7 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-FROM confluentinc/cp-kafka-connect:8.0.0
+FROM confluentinc/cp-kafka-connect:7.9.2
 
 USER root
 
@@ -76,7 +76,7 @@ RUN cd /tmp/header-router && \
 RUN cd /tmp && \
     git clone https://github.com/telefonicaid/kafka-connect-jdbc-postgis.git && \
     cd kafka-connect-jdbc-postgis && \
-    git checkout task/add_postgis_10_7_0 && \
+    git checkout version10.7.0  && \
     mvn clean package -DskipTests -Dcheckstyle.skip=true && \
     mkdir -p /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc && \
     cp target/kafka-connect-jdbc-10.7.0.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
