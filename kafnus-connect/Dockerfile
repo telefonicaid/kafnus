@@ -37,11 +37,20 @@ RUN microdnf install -y \
     gzip \
     && microdnf clean all
 
+# Upgrade certificates
+RUN microdnf update -y && \
+    microdnf install -y ca-certificates wget && \
+    update-ca-trust && \
+    microdnf clean all
+
 # Install Maven 3.9.7
-RUN wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.7/apache-maven-3.9.7-bin.tar.gz -P /tmp && \
+RUN microdnf install -y curl-minimal && \
+    curl -fsSL https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.7/apache-maven-3.9.7-bin.tar.gz \
+    -o /tmp/apache-maven-3.9.7-bin.tar.gz && \
     tar xf /tmp/apache-maven-3.9.7-bin.tar.gz -C /opt && \
     ln -s /opt/apache-maven-3.9.7 /opt/maven && \
-    rm /tmp/apache-maven-3.9.7-bin.tar.gz
+    rm /tmp/apache-maven-3.9.7-bin.tar.gz && \
+    microdnf clean all
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 ENV MAVEN_HOME=/opt/maven
@@ -74,16 +83,16 @@ RUN cd /tmp && \
     cp target/kafka-connect-jdbc-10.7.0.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
 
 # PostgreSQL JDBC Driver
-RUN wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -P /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
+RUN curl -fsSL https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar
 
 # -----------------------------
 # MongoDB Kafka Connector
 # -----------------------------
 RUN mkdir -p /usr/local/share/kafnus-connect/plugins/mongodb && \
-    wget https://repo.maven.apache.org/maven2/org/mongodb/kafka/mongo-kafka-connect/1.10.0/mongo-kafka-connect-1.10.0-confluent.jar -O /usr/local/share/kafnus-connect/plugins/mongodb/mongo-kafka-connect-1.10.0-confluent.jar && \
-    wget https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-core/4.9.1/mongodb-driver-core-4.9.1.jar -P /usr/local/share/kafnus-connect/plugins/mongodb/ && \
-    wget https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-sync/4.9.1/mongodb-driver-sync-4.9.1.jar -P /usr/local/share/kafnus-connect/plugins/mongodb/ && \
-    wget https://repo1.maven.org/maven2/org/mongodb/bson/4.9.1/bson-4.9.1.jar -P /usr/local/share/kafnus-connect/plugins/mongodb/
+    curl -fsSL https://repo.maven.apache.org/maven2/org/mongodb/kafka/mongo-kafka-connect/1.10.0/mongo-kafka-connect-1.10.0-confluent.jar -o /usr/local/share/kafnus-connect/plugins/mongodb/mongo-kafka-connect-1.10.0-confluent.jar && \
+    curl -fsSL https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-core/4.9.1/mongodb-driver-core-4.9.1.jar -o /usr/local/share/kafnus-connect/plugins/mongodb/mongodb-driver-core-4.9.1.jar && \
+    curl -fsSL https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-sync/4.9.1/mongodb-driver-sync-4.9.1.jar -o /usr/local/share/kafnus-connect/plugins/mongodb/mongodb-driver-sync-4.9.1.jar && \
+    curl -fsSL https://repo1.maven.org/maven2/org/mongodb/bson/4.9.1/bson-4.9.1.jar -o /usr/local/share/kafnus-connect/plugins/mongodb/bson-4.9.1.jar
 
 # -----------------------------
 # Http Kafka Connector
@@ -96,7 +105,7 @@ RUN confluent-hub install --no-prompt confluentinc/kafka-connect-http:1.7.0 && \
 # JMX Exporter Agent
 # -----------------------------
 RUN mkdir -p /usr/share/jmx_exporter && \
-    wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.20.0/jmx_prometheus_javaagent-0.20.0.jar -O /usr/share/jmx_exporter/jmx_prometheus_javaagent.jar
+    curl -fsSL https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.20.0/jmx_prometheus_javaagent-0.20.0.jar -o /usr/share/jmx_exporter/jmx_prometheus_javaagent.jar
 
 COPY monitoring/kafnus-connect.yml /usr/share/jmx_exporter/
 
