@@ -38,10 +38,10 @@ RUN microdnf install -y \
     && microdnf clean all
 
 # Upgrade certificates
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates wget gnupg \
-    && apt-get upgrade -y \
-    && rm -rf /var/lib/apt/lists/*
+RUN microdnf update -y && \
+    microdnf install -y ca-certificates wget && \
+    update-ca-trust && \
+    microdnf clean all
     
 # Install Maven 3.9.7
 RUN wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.7/apache-maven-3.9.7-bin.tar.gz -P /tmp && \
