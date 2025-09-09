@@ -42,12 +42,20 @@ RUN microdnf update -y && \
     microdnf install -y ca-certificates wget && \
     update-ca-trust && \
     microdnf clean all
-    
+
 # Install Maven 3.9.7
-RUN wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.7/apache-maven-3.9.7-bin.tar.gz -P /tmp && \
+RUN microdnf install -y curl-minimal && \
+    curl -fsSL https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.7/apache-maven-3.9.7-bin.tar.gz \
+    -o /tmp/apache-maven-3.9.7-bin.tar.gz && \
     tar xf /tmp/apache-maven-3.9.7-bin.tar.gz -C /opt && \
     ln -s /opt/apache-maven-3.9.7 /opt/maven && \
-    rm /tmp/apache-maven-3.9.7-bin.tar.gz
+    rm /tmp/apache-maven-3.9.7-bin.tar.gz && \
+    microdnf clean all
+
+# RUN wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.7/apache-maven-3.9.7-bin.tar.gz -P /tmp && \
+#     tar xf /tmp/apache-maven-3.9.7-bin.tar.gz -C /opt && \
+#     ln -s /opt/apache-maven-3.9.7 /opt/maven && \
+#     rm /tmp/apache-maven-3.9.7-bin.tar.gz
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 ENV MAVEN_HOME=/opt/maven
