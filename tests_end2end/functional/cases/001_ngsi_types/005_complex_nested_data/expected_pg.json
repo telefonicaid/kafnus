@@ -1,0 +1,47 @@
+[
+  {
+    "table": "test.complexdata_device",
+    "rows": [
+      {
+        "entityid": "Device001", 
+        "entitytype": "ComplexDevice",
+        "fiwareservicepath": "/complex",
+        "timeinstant": "2025-06-26T14:15:00Z"
+      },
+      {
+        "entityid": "Device001",
+        "entitytype": "ComplexDevice", 
+        "fiwareservicepath": "/complex",
+        "timeinstant": "2025-06-26T14:20:00Z"
+      }
+    ]
+  },
+  {
+    "table": "test.complexdata_device_lastdata",
+    "rows": [
+      {
+        "entityid": "Device001",
+        "entitytype": "ComplexDevice",
+        "fiwareservicepath": "/complex", 
+        "timeinstant": "2025-06-26T14:20:00Z"
+      }
+    ]
+  },
+  {
+    "table": "test.complexdata_device_mutable",
+    "rows": [
+      {
+        "entityid": "Device001",
+        "entitytype": "ComplexDevice",
+        "fiwareservicepath": "/complex",
+        "timeinstant": "2025-06-26T14:15:00Z"
+      },
+      {
+        "entityid": "Device001",
+        "entitytype": "ComplexDevice",
+        "fiwareservicepath": "/complex",
+        "timeinstant": "2025-06-26T14:20:00Z"
+      }
+    ]
+  }
+]
