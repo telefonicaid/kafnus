@@ -79,7 +79,7 @@ RUN cd /tmp && \
     git checkout task/upgrade_10_7_15  && \
     mvn clean package -DskipTests -Dcheckstyle.skip=true && \
     mkdir -p /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc && \
-    cp target/kafka-connect-jdbc-10.7.0.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
+    cp target/kafka-connect-jdbc-10.7.15.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
 
 # PostgreSQL JDBC Driver
 RUN curl -fsSL https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -o /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/postgresql-42.7.1.jar
