@@ -43,7 +43,7 @@ RUN microdnf update -y && \
     microdnf clean all
 
 # Install Maven 3.9.7
-RUN microdnf install -y curl-minimal && \
+RUN microdnf install -y curl && \
     curl -fsSL https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.7/apache-maven-3.9.7-bin.tar.gz \
     -o /tmp/apache-maven-3.9.7-bin.tar.gz && \
     tar xf /tmp/apache-maven-3.9.7-bin.tar.gz -C /opt && \
