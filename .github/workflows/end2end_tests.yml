@@ -58,11 +58,12 @@ jobs:
           sudo mkdir -p /data/postgis
           sudo chown -R 999:999 /data/postgis
 
+      # FIXME: remove :kafka when orion is updated to a newer version
       - name: Pre-pull required docker images
         run: |
           docker pull postgis/postgis:15-3.3
           docker pull confluentinc/cp-kafka:8.0.0
-          docker pull telefonicaiot/fiware-orion
+          docker pull telefonicaiot/fiware-orion:kafka
           docker pull mongo:8.0
           docker pull telefonicaiot/kafnus-connect
 
