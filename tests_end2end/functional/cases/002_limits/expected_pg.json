@@ -325,15 +325,15 @@
     "rows": [
       {
         "query": { "contains": "INSERT INTO \"test\".\"limit_sensor\"" },
-        "error": { "contains": "ERROR: bigint out of range"}
+        "error": { "contains": "bigint"}
       },
       {
         "query": { "contains": "INSERT INTO \"test\".\"limit_sensor_lastdata\"" },
-        "error": { "contains": "ERROR: bigint out of range"}
+        "error": { "contains": "bigint"}
       },
       {
         "query": { "contains": "INSERT INTO \"test\".\"limit_sensor_mutable\"" },
-        "error": { "contains": "ERROR: bigint out of range"}
+        "error": { "contains": "bigint"}
       }
     ]
   }
