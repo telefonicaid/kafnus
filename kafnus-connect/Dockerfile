@@ -22,7 +22,7 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-FROM confluentinc/cp-kafka-connect:7.9.2
+FROM confluentinc/cp-kafka-connect:8.0.0
 
 USER root
 
@@ -43,7 +43,7 @@ RUN microdnf update -y && \
     microdnf clean all
 
 # Install Maven 3.9.7
-RUN microdnf install -y curl && \
+RUN microdnf install -y curl-minimal && \
     curl -fsSL https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.7/apache-maven-3.9.7-bin.tar.gz \
     -o /tmp/apache-maven-3.9.7-bin.tar.gz && \
     tar xf /tmp/apache-maven-3.9.7-bin.tar.gz -C /opt && \
@@ -76,7 +76,7 @@ RUN cd /tmp/header-router && \
 RUN cd /tmp && \
     git clone https://github.com/telefonicaid/kafka-connect-jdbc-postgis.git && \
     cd kafka-connect-jdbc-postgis && \
-    git checkout task/upgrade_10_7_15  && \
+    git checkout task/upgrade_10_8_4  && \
     mvn clean package -DskipTests -Dcheckstyle.skip=true && \
     mkdir -p /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc && \
     cp target/kafka-connect-jdbc-10.7.0.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
