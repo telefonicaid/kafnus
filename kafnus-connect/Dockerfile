@@ -22,7 +22,7 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-FROM confluentinc/cp-kafka-connect:8.0.0
+FROM confluentinc/cp-kafka-connect:7.9.2
 
 USER root
 
