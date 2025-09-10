@@ -56,13 +56,14 @@ services:
 
   kafnus-connect:
     container_name: kafnus-connect
-    image: telefonicaiot/kafnus-connect
+    # FIXME: use the following line when finishing the development of kafnus-connect
+    #image: telefonicaiot/kafnus-connect
     # This service uses the official image from Docker Hub.
     # Alternatively, you can build the image locally by uncommenting the following lines.
-    # build:
-    #   context: ../kafnus-connect
-    #   dockerfile: Dockerfile
-    # image: kafnus-connect
+    build:
+      context: ../kafnus-connect
+      dockerfile: Dockerfile
+    image: kafnus-connect
     ports:
       - "8083:8083"
       - "9100:9100"
