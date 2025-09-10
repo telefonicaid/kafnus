@@ -32,19 +32,18 @@ USER root
 RUN microdnf install -y \
     java-17-openjdk-devel \
     git \
-    wget \
     tar \
     gzip \
     && microdnf clean all
 
 # Upgrade certificates
 RUN microdnf update -y && \
-    microdnf install -y ca-certificates wget && \
+    microdnf install -y ca-certificates && \
     update-ca-trust && \
     microdnf clean all
 
 # Install Maven 3.9.7
-RUN microdnf install -y curl-minimal && \
+RUN microdnf install -y curl && \
     curl -fsSL https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.7/apache-maven-3.9.7-bin.tar.gz \
     -o /tmp/apache-maven-3.9.7-bin.tar.gz && \
     tar xf /tmp/apache-maven-3.9.7-bin.tar.gz -C /opt && \
@@ -77,13 +76,13 @@ RUN cd /tmp/header-router && \
 RUN cd /tmp && \
     git clone https://github.com/telefonicaid/kafka-connect-jdbc-postgis.git && \
     cd kafka-connect-jdbc-postgis && \
-    git checkout task/add_postgis_10_7_0 && \
+    git checkout version10.7.0  && \
     mvn clean package -DskipTests -Dcheckstyle.skip=true && \
     mkdir -p /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc && \
     cp target/kafka-connect-jdbc-10.7.0.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
 
 # PostgreSQL JDBC Driver
-RUN curl -fsSL https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar
+RUN curl -fsSL https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -o /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/postgresql-42.7.1.jar
 
 # -----------------------------
 # MongoDB Kafka Connector
