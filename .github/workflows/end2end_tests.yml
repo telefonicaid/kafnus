@@ -58,18 +58,25 @@ jobs:
           sudo mkdir -p /data/postgis
           sudo chown -R 999:999 /data/postgis
 
+      # FIXME: remove :kafka when orion is updated to a newer version
+      # FIXME: add telefonicaiot/kafnus-connect when finishing its development
       - name: Pre-pull required docker images
         run: |
           docker pull postgis/postgis:15-3.3
           docker pull confluentinc/cp-kafka:8.0.0
-          docker pull telefonicaiot/fiware-orion
+          docker pull telefonicaiot/fiware-orion:kafka
           docker pull mongo:8.0
-          docker pull telefonicaiot/kafnus-connect
 
       - name: Build kafnus-ngsi image
         working-directory: kafnus-ngsi
         run: |
           docker build --no-cache -t kafnus-ngsi .
+
+      # FIXME remove this step when finishing the development of kafnus-connect
+      - name: Build kafnus-connect image
+        working-directory: kafnus-connect
+        run: |
+          docker build --no-cache -t kafnus-connect .
       
       - name: Run end-to-end tests with pytest
         working-directory: tests_end2end/functional
