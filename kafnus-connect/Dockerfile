@@ -76,7 +76,7 @@ RUN cd /tmp/header-router && \
 RUN cd /tmp && \
     git clone https://github.com/telefonicaid/kafka-connect-jdbc-postgis.git && \
     cd kafka-connect-jdbc-postgis && \
-    git checkout task/upgrade_10_8_4  && \
+    git checkout version10.8.4  && \
     mvn clean package -DskipTests -Dcheckstyle.skip=true && \
     mkdir -p /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc && \
     cp target/kafka-connect-jdbc-10.8.4.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/
