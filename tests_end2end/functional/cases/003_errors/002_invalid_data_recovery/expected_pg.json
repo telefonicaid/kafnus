@@ -2,26 +2,26 @@
   {
     "table": "test.errorrecovery_sensor",
     "rows": [
-      {"entityid": "ValidSensor001", "entitytype": "ErrorSensor", "temperature": 20.5, "status": "OK", "fiwareservicepath": "/errortest", "timeinstant": "2025-06-26T09:00:00Z"},
-      {"entityid": "ValidSensor002", "entitytype": "ErrorSensor", "temperature": 21.8, "status": "OK", "fiwareservicepath": "/errortest", "timeinstant": "2025-06-26T09:00:00Z"},
-      {"entityid": "ValidSensor001", "entitytype": "ErrorSensor", "temperature": 20.8, "status": "OK", "fiwareservicepath": "/errortest", "timeinstant": "2025-06-26T09:05:00Z"},
-      {"entityid": "ValidSensor002", "entitytype": "ErrorSensor", "temperature": 22.1, "status": "OK", "fiwareservicepath": "/errortest", "timeinstant": "2025-06-26T09:05:00Z"}
+      {"entityid": "ValidSensor001", "entitytype": "Sensor", "temperature": 20.5, "status": "OK", "fiwareservicepath": "/errorrecovery", "timeinstant": "2025-06-26T09:00:00Z"},
+      {"entityid": "ValidSensor002", "entitytype": "Sensor", "temperature": 21.8, "status": "OK", "fiwareservicepath": "/errorrecovery", "timeinstant": "2025-06-26T09:00:00Z"},
+      {"entityid": "ValidSensor001", "entitytype": "Sensor", "temperature": 20.8, "status": "OK", "fiwareservicepath": "/errorrecovery", "timeinstant": "2025-06-26T09:05:00Z"},
+      {"entityid": "ValidSensor002", "entitytype": "Sensor", "temperature": 22.1, "status": "OK", "fiwareservicepath": "/errorrecovery", "timeinstant": "2025-06-26T09:05:00Z"}
     ]
   },
   {
     "table": "test.errorrecovery_sensor_lastdata",
     "rows": [
-      {"entityid": "ValidSensor001", "entitytype": "ErrorSensor", "temperature": 20.8, "status": "OK", "fiwareservicepath": "/errortest", "timeinstant": "2025-06-26T09:05:00Z"},
-      {"entityid": "ValidSensor002", "entitytype": "ErrorSensor", "temperature": 22.1, "status": "OK", "fiwareservicepath": "/errortest", "timeinstant": "2025-06-26T09:05:00Z"}
+      {"entityid": "ValidSensor001", "entitytype": "Sensor", "temperature": 20.8, "status": "OK", "fiwareservicepath": "/errorrecovery", "timeinstant": "2025-06-26T09:05:00Z"},
+      {"entityid": "ValidSensor002", "entitytype": "Sensor", "temperature": 22.1, "status": "OK", "fiwareservicepath": "/errorrecovery", "timeinstant": "2025-06-26T09:05:00Z"}
     ]
   },
   {
     "table": "test.errorrecovery_sensor_mutable",
     "rows": [
-      {"entityid": "ValidSensor001", "entitytype": "ErrorSensor", "temperature": 20.5, "status": "OK", "fiwareservicepath": "/errortest", "timeinstant": "2025-06-26T09:00:00Z"},
-      {"entityid": "ValidSensor002", "entitytype": "ErrorSensor", "temperature": 21.8, "status": "OK", "fiwareservicepath": "/errortest", "timeinstant": "2025-06-26T09:00:00Z"},
-      {"entityid": "ValidSensor001", "entitytype": "ErrorSensor", "temperature": 20.8, "status": "OK", "fiwareservicepath": "/errortest", "timeinstant": "2025-06-26T09:05:00Z"},
-      {"entityid": "ValidSensor002", "entitytype": "ErrorSensor", "temperature": 22.1, "status": "OK", "fiwareservicepath": "/errortest", "timeinstant": "2025-06-26T09:05:00Z"}
+      {"entityid": "ValidSensor001", "entitytype": "Sensor", "temperature": 20.5, "status": "OK", "fiwareservicepath": "/errorrecovery", "timeinstant": "2025-06-26T09:00:00Z"},
+      {"entityid": "ValidSensor002", "entitytype": "Sensor", "temperature": 21.8, "status": "OK", "fiwareservicepath": "/errorrecovery", "timeinstant": "2025-06-26T09:00:00Z"},
+      {"entityid": "ValidSensor001", "entitytype": "Sensor", "temperature": 20.8, "status": "OK", "fiwareservicepath": "/errorrecovery", "timeinstant": "2025-06-26T09:05:00Z"},
+      {"entityid": "ValidSensor002", "entitytype": "Sensor", "temperature": 22.1, "status": "OK", "fiwareservicepath": "/errorrecovery", "timeinstant": "2025-06-26T09:05:00Z"}
     ]
   }
 ]
