@@ -1,7 +1,7 @@
 {
   "name": "subscription_pattern_variations_test",
   "fiware-service": "test",
-  "fiware-servicepath": "/patterns",
+  "fiware-servicepath": "/pattern",
   "subscriptions": {
     "historic": {
       "description": "Pattern:HISTORIC:variations:historic",
@@ -10,7 +10,7 @@
         "entities": [
           {
             "idPattern": "PATTERN_.*",
-            "type": "PatternSensor"
+            "type": "Sensor"
           }
         ],
         "condition": {
@@ -37,7 +37,7 @@
         "entities": [
           {
             "idPattern": "PATTERN_.*",
-            "type": "PatternSensor"
+            "type": "Sensor"
           }
         ],
         "condition": {
@@ -64,7 +64,7 @@
         "entities": [
           {
             "idPattern": "PATTERN_.*",
-            "type": "PatternSensor"
+            "type": "Sensor"
           }
         ],
         "condition": {
@@ -89,7 +89,7 @@
   "updateEntities": [
     {
       "id": "PATTERN_SENSOR_01",
-      "type": "PatternSensor",
+      "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T12:00:00Z"
@@ -99,7 +99,7 @@
     },
     {
       "id": "PATTERN_SENSOR_02",
-      "type": "PatternSensor",
+      "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T12:00:00Z"
@@ -109,7 +109,7 @@
     },
     {
       "id": "PATTERN_SENSOR_01",
-      "type": "PatternSensor",
+      "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T12:05:00Z"
@@ -118,7 +118,7 @@
     },
     {
       "id": "PATTERN_SENSOR_02",
-      "type": "PatternSensor",
+      "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T12:05:00Z"

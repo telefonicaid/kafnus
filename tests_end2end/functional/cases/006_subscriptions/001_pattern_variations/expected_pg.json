@@ -2,26 +2,25 @@
   {
     "table": "test.pattern_sensor",
     "rows": [
-      {"entityid": "PATTERN_SENSOR_01", "entitytype": "PatternSensor", "fiwareservicepath": "/patterns", "timeinstant": "2025-06-26T12:00:00Z", "value1": 15.7},
-      {"entityid": "PATTERN_SENSOR_02", "entitytype": "PatternSensor", "fiwareservicepath": "/patterns", "timeinstant": "2025-06-26T12:00:00Z", "value1": 18.3},
-      {"entityid": "PATTERN_SENSOR_01", "entitytype": "PatternSensor", "fiwareservicepath": "/patterns", "timeinstant": "2025-06-26T12:05:00Z", "value1": 16.2}
+      {"entityid": "PATTERN_SENSOR_01", "entitytype": "Sensor", "fiwareservicepath": "/pattern", "timeinstant": "2025-06-26T12:00:00Z", "value1": 15.7},
+      {"entityid": "PATTERN_SENSOR_02", "entitytype": "Sensor", "fiwareservicepath": "/pattern", "timeinstant": "2025-06-26T12:00:00Z", "value1": 18.3},
+      {"entityid": "PATTERN_SENSOR_01", "entitytype": "Sensor", "fiwareservicepath": "/pattern", "timeinstant": "2025-06-26T12:05:00Z", "value1": 16.2}
     ]
   },
   {
     "table": "test.pattern_sensor_lastdata", 
     "rows": [
-      {"entityid": "PATTERN_SENSOR_02", "entitytype": "PatternSensor", "fiwareservicepath": "/patterns", "timeinstant": "2025-06-26T12:05:00Z", "value2": 41},
-      {"entityid": "PATTERN_SENSOR_01", "entitytype": "PatternSensor", "fiwareservicepath": "/patterns", "timeinstant": "2025-06-26T12:00:00Z", "value2": 42},
-      {"entityid": "PATTERN_SENSOR_02", "entitytype": "PatternSensor", "fiwareservicepath": "/patterns", "timeinstant": "2025-06-26T12:00:00Z", "value2": 38}
+      {"entityid": "PATTERN_SENSOR_02", "entitytype": "Sensor", "fiwareservicepath": "/pattern", "timeinstant": "2025-06-26T12:05:00Z", "value2": 41},
+      {"entityid": "PATTERN_SENSOR_01", "entitytype": "Sensor", "fiwareservicepath": "/pattern", "timeinstant": "2025-06-26T12:00:00Z", "value2": 42}
     ]
   },
   {
     "table": "test.pattern_sensor_mutable",
     "rows": [
-      {"entityid": "PATTERN_SENSOR_01", "entitytype": "PatternSensor", "fiwareservicepath": "/patterns", "timeinstant": "2025-06-26T12:00:00Z", "value1": 15.7, "value2": 42},
-      {"entityid": "PATTERN_SENSOR_02", "entitytype": "PatternSensor", "fiwareservicepath": "/patterns", "timeinstant": "2025-06-26T12:00:00Z", "value1": 18.3, "value2": 38},
-      {"entityid": "PATTERN_SENSOR_01", "entitytype": "PatternSensor", "fiwareservicepath": "/patterns", "timeinstant": "2025-06-26T12:05:00Z", "value1": 16.2},
-      {"entityid": "PATTERN_SENSOR_02", "entitytype": "PatternSensor", "fiwareservicepath": "/patterns", "timeinstant": "2025-06-26T12:05:00Z", "value2": 41}
+      {"entityid": "PATTERN_SENSOR_01", "entitytype": "Sensor", "fiwareservicepath": "/pattern", "timeinstant": "2025-06-26T12:00:00Z", "value1": 15.7, "value2": 42},
+      {"entityid": "PATTERN_SENSOR_02", "entitytype": "Sensor", "fiwareservicepath": "/pattern", "timeinstant": "2025-06-26T12:00:00Z", "value1": 18.3, "value2": 38},
+      {"entityid": "PATTERN_SENSOR_01", "entitytype": "Sensor", "fiwareservicepath": "/pattern", "timeinstant": "2025-06-26T12:05:00Z", "value1": 16.2},
+      {"entityid": "PATTERN_SENSOR_02", "entitytype": "Sensor", "fiwareservicepath": "/pattern", "timeinstant": "2025-06-26T12:05:00Z", "value2": 41}
     ]
   }
 ]
