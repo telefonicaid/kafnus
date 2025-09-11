@@ -4,14 +4,14 @@
     "rows": [
       {
         "entityid": "Device001", 
-        "entitytype": "ComplexDevice",
-        "fiwareservicepath": "/complex",
+        "entitytype": "Device",
+        "fiwareservicepath": "/complexdata",
         "timeinstant": "2025-06-26T14:15:00Z"
       },
       {
         "entityid": "Device001",
-        "entitytype": "ComplexDevice", 
-        "fiwareservicepath": "/complex",
+        "entitytype": "Device", 
+        "fiwareservicepath": "/complexdata",
         "timeinstant": "2025-06-26T14:20:00Z"
       }
     ]
@@ -21,8 +21,8 @@
     "rows": [
       {
         "entityid": "Device001",
-        "entitytype": "ComplexDevice",
-        "fiwareservicepath": "/complex", 
+        "entitytype": "Device",
+        "fiwareservicepath": "/complexdata", 
         "timeinstant": "2025-06-26T14:20:00Z"
       }
     ]
@@ -32,14 +32,14 @@
     "rows": [
       {
         "entityid": "Device001",
-        "entitytype": "ComplexDevice",
-        "fiwareservicepath": "/complex",
+        "entitytype": "Device",
+        "fiwareservicepath": "/complexdata",
         "timeinstant": "2025-06-26T14:15:00Z"
       },
       {
         "entityid": "Device001",
-        "entitytype": "ComplexDevice",
-        "fiwareservicepath": "/complex",
+        "entitytype": "Device",
+        "fiwareservicepath": "/complexdata",
         "timeinstant": "2025-06-26T14:20:00Z"
       }
     ]

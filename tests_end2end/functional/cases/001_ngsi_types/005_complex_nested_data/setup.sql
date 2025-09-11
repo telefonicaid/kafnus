@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS test.complexdata_device (
     configuration JSONB,
     measurements JSONB,
     metadata JSONB,
-    tags TEXT[],
+    tags JSONB,-- TEXT[], is not supported at the moment
     CONSTRAINT complexdata_device_pkey PRIMARY KEY (timeinstant, entityid)
 );
 
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS test.complexdata_device_lastdata (
     configuration JSONB,
     measurements JSONB,
     metadata JSONB,
-    tags TEXT[],
+    tags JSONB,-- TEXT[], is not supported at the moment
     CONSTRAINT complexdata_device_lastdata_pkey PRIMARY KEY (entityid)
 );
 
@@ -38,6 +38,6 @@ CREATE TABLE IF NOT EXISTS test.complexdata_device_mutable (
     configuration JSONB,
     measurements JSONB,
     metadata JSONB,
-    tags TEXT[],
+    tags JSONB,-- TEXT[], is not supported at the moment
     CONSTRAINT complexdata_device_mutable_pkey PRIMARY KEY (timeinstant, entityid)
 );
