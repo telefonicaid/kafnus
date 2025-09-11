@@ -96,9 +96,13 @@ RUN mkdir -p /usr/local/share/kafnus-connect/plugins/mongodb && \
 # -----------------------------
 # Http Kafka Connector
 # -----------------------------
-RUN confluent-hub install --no-prompt confluentinc/kafka-connect-http:1.7.0 && \
-    ln -s /usr/share/confluent-hub-components/confluentinc-kafka-connect-http/lib /usr/local/share/kafnus-connect/plugins/http
-
+RUN cd /tmp && \
+    git clone https://github.com/Aiven-Open/http-connector-for-apache-kafka.git && \
+    cd http-connector-for-apache-kafka && \
+    git checkout v0.9.0 && \
+    ./gradlew distTar && \
+    cd /usr/local/share/kafnus-connect/plugins && \
+    tar xfv /tmp/http-connector-for-apache-kafka/build/distributions/http-connector-for-apache-kafka-0.9.0.tar
 
 # -----------------------------
 # JMX Exporter Agent
