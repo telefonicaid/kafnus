@@ -121,6 +121,11 @@ function formatDatetimeIso(tz = 'UTC') {
 function inferFieldType(name, value, attrType = null) {
     const nameLc = name.toLowerCase();
 
+    // 0. Null or undefined values: return string with null value
+    if (value === null || value === undefined) {
+        return ['string', null]; // this could be improved with type mapping
+    }
+
     // 1. Handle special attribute types
     if (attrType) {
         // Geospatial types
