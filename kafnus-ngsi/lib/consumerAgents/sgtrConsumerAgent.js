@@ -30,6 +30,7 @@ const { getFiwareContext } = require('../utils/handleEntityCb');
 const { buildKafkaKey } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/metrics');
+const { buildMutationCreate } = require('../utils/graphqlUtils');
 
 async function startSgtrConsumerAgent(logger) {
     const topic = 'raw_sgtr';
@@ -58,30 +59,34 @@ async function startSgtrConsumerAgent(logger) {
                     const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
                     const recvTimeTs = String(timestamp * 1000);
                     const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
-                    // Final document
-                    const doc = {
+                    // Final entityObject
+                    const entityObject = {
                         recvTimeTs,
                         recvTime,
                         entityId: entityRaw.id,
                         entityType: entityRaw.type
                     };
                     for (const attr of attributes) {
-                        doc[attr.attrName] = attr.attrValue;
+                        entityObject[attr.attrName] = attr.attrValue;
                     }
                     logger.info(`[sgtr] topic: ${topic}`);
-                    logger.info('[sgtr] doc: %j', doc);
+                    logger.debug('[sgtr] entityObject: \n%s', JSON.stringify(entityObject, null, 2));
+
+                    var mutation = buildMutationCreate(entityObject.entityType, entityObject);
+                    logger.debug('[sgtr] mutation: \n%s', mutation);
+
                     const outHeaders = [];
                     // Publish in output topic
                     producer.produce(
                         outputTopic,
                         null, // partition null: kafka decides
-                        Buffer.from(JSON.stringify(doc)), // message
+                        Buffer.from(JSON.stringify(mutation)), // message
                         null, // Key (optional)
                         Date.now(), // timestamp
                         null, // Opaque
                         outHeaders
                     );
-                    logger.info('[sgtr] Sent to %j | doc %j', outputTopic, doc);
+                    logger.info('[sgtr] Sent to %j | mutation %j', outputTopic, mutation);
                 } // for loop
             } catch (err) {
                 logger.error(`[sgtr] Error processing event: ${err}`);
