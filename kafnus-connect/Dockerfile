@@ -99,9 +99,10 @@ RUN mkdir -p /usr/local/share/kafnus-connect/plugins/mongodb && \
 RUN cd /tmp && \
     git clone https://github.com/Aiven-Open/http-connector-for-apache-kafka.git && \
     cd http-connector-for-apache-kafka && \
+    git checkout v0.9.0 && \
     ./gradlew distTar && \
     cd /usr/local/share/kafnus-connect/plugins && \
-    tar xfv /tmp/http-connector-for-apache-kafka/build/distributions/http-connector-for-apache-kafka-0.9.0-SNAPSHOT.tar
+    tar xfv /tmp/http-connector-for-apache-kafka/build/distributions/http-connector-for-apache-kafka-0.9.0.tar
 
 # -----------------------------
 # JMX Exporter Agent
