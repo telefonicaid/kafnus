@@ -10,7 +10,7 @@
         "entities": [
           {
             "idPattern": ".*",
-            "type": "PerformanceSensor"
+            "type": "Sensor"
           }
         ],
         "condition": {
@@ -42,7 +42,7 @@
         "entities": [
           {
             "idPattern": ".*",
-            "type": "PerformanceSensor"
+            "type": "Sensor"
           }
         ],
         "condition": {
@@ -74,7 +74,7 @@
         "entities": [
           {
             "idPattern": ".*",
-            "type": "PerformanceSensor"
+            "type": "Sensor"
           }
         ],
         "condition": {
@@ -103,7 +103,7 @@
   "updateEntities": [
     {
       "id": "PerfSensor001",
-      "type": "PerformanceSensor",
+      "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T16:00:00Z"
@@ -139,7 +139,7 @@
     },
     {
       "id": "PerfSensor002",
-      "type": "PerformanceSensor",
+      "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T16:00:00Z"
@@ -175,7 +175,7 @@
     },
     {
       "id": "PerfSensor001",
-      "type": "PerformanceSensor", 
+      "type": "Sensor", 
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T16:05:00Z"
