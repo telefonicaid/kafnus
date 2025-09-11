@@ -96,7 +96,7 @@ RUN mkdir -p /usr/local/share/kafnus-connect/plugins/mongodb && \
 # -----------------------------
 # Http Kafka Connector
 # -----------------------------
-RUN confluent-hub install --no-prompt confluentinc/kafka-connect-http:1.7.0 && \
+RUN confluent-hub install --no-prompt confluentinc/kafka-connect-http:1.7.10 && \
     ln -s /usr/share/confluent-hub-components/confluentinc-kafka-connect-http/lib /usr/local/share/kafnus-connect/plugins/http
 
 
