@@ -170,14 +170,14 @@ function inferFieldType(name, value, attrType = null) {
 
     // Integer handling: choose int32 or int64 based on range
     if (Number.isInteger(value)) {
-        if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) {
-            return ['int32', value];
-        }
-        if (value >= -(2 ** 63) && value <= 2 ** 63 - 1) {
-            return ['int64', value];
-        }
-        logger.warn(`Integer out of range BIGINT: ${value}`);
-        return ['string', String(value)];
+        // Safe int32
+        if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) return ['int32', value];
+
+        // Safe int64 (check safe integer range)
+        if (Number.isSafeInteger(value)) return ['int64', value];
+
+        // Out of safe integer → treat as double
+        return ['double', value];
     }
 
     // Floating point numbers
