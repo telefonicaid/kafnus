@@ -4,7 +4,7 @@
     "fiware-servicepath": "/tourism",
     "subscriptions": {
         "sgtr": {
-            "description": "kafka segitur tourism hotel create",
+            "description": "kafka sgtr tourism hotel create",
             "status": "active",
             "subject": {
                 "entities": [
@@ -95,9 +95,17 @@
                     "lowSeasonOccupancyBedsRatio",
                     "numberOfAccommodationUnits",
                     "numberOfBeds",
-                    "segitturClass"
+                    "segitturClass",
+                    "stars",
+                    "published",
+                    "label",
+                    "hotelSpecialty",
+                    "hasPriceClass",
+                    "offersMealPlan",
+                    "offersAdditionalAccommodationService",
+                    "hasDescription",
+                    "offersRoom"
                 ]
-                
             }
         }
     },
