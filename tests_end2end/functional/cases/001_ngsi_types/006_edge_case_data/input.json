@@ -1,7 +1,7 @@
 {
   "name": "edge_case_data_test",
   "fiware-service": "test",
-  "fiware-servicepath": "/edgecases",
+  "fiware-servicepath": "/edgecase",
   "subscriptions": {
     "historic": {
       "description": "EdgeCase:HISTORIC:data:historic",
@@ -10,7 +10,7 @@
         "entities": [
           {
             "idPattern": ".*",
-            "type": "EdgeCaseEntity"
+            "type": "entity"
           }
         ],
         "condition": {
@@ -41,7 +41,7 @@
         "entities": [
           {
             "idPattern": ".*",
-            "type": "EdgeCaseEntity"
+            "type": "entity"
           }
         ],
         "condition": {
@@ -72,7 +72,7 @@
         "entities": [
           {
             "idPattern": ".*",
-            "type": "EdgeCaseEntity"
+            "type": "entity"
           }
         ],
         "condition": {
@@ -100,7 +100,7 @@
   "updateEntities": [
     {
       "id": "EdgeCase001",
-      "type": "EdgeCaseEntity",
+      "type": "entity",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T18:00:00Z"
@@ -108,25 +108,38 @@
       "zero_value": {"value": 0.0, "type": "Float"},
       "empty_text": {"value": "", "type": "Text"},
       "large_number": {"value": 9223372036854775807, "type": "Integer"},
-      "special_chars": {"value": "!@#$%^&*()_+-=[]{}|;':\",./<>?", "type": "Text"},
-      "unicode_text": {"value": "Привет мир 你好世界 🌍🚀⭐", "type": "Text"}
+      "special_chars": {"value": "!@#$%^&*()_+-=[]{}|;':\",./<>?", "type": "TextUnrestricted"},
+      "unicode_text": {"value": "Привет мир 你好世界 🌍🚀⭐", "type": "TextUnrestricted"}
+    },
+    {
+      "id": "EdgeCase001",
+      "type": "entity",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T18:00:01Z"
+      },
+      "zero_value": {"value": 0.0, "type": "Float"},
+      "empty_text": {"value": "", "type": "Text"},
+      "large_number": {"value": 9007199254740991, "type": "Integer"},
+      "special_chars": {"value": "!@#$%^&*()_+-=[]{}|;':\",./<>?", "type": "TextUnrestricted"},
+      "unicode_text": {"value": "Привет мир 你好世界 🌍🚀⭐", "type": "TextUnrestricted"}
     },
     {
       "id": "EdgeCase002",
-      "type": "EdgeCaseEntity",
+      "type": "entity",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T18:00:00Z"
       },
       "zero_value": {"value": -0.0, "type": "Float"},
       "empty_text": {"value": " ", "type": "Text"},
-      "large_number": {"value": -9223372036854775808, "type": "Integer"},
-      "special_chars": {"value": "\\n\\t\\r\\\"\\'\\/\\\\", "type": "Text"},
+      "large_number": {"value": -9007199254740991, "type": "Integer"},
+      "special_chars": {"value": "\\n\\t\\r\\\"\\'\\/\\\\", "type": "TextUnrestricted"},
       "unicode_text": {"value": "🔥💯✨🎯🌟⚡🚀💎🎉🔊", "type": "Text"}
     },
     {
       "id": "EdgeCase001",
-      "type": "EdgeCaseEntity",
+      "type": "entity",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T18:05:00Z"

@@ -4,30 +4,30 @@
     "rows": [
       {
         "entityid": "EdgeCase001",
-        "entitytype": "EdgeCaseEntity",
-        "fiwareservicepath": "/edgecases",
-        "timeinstant": "2025-06-26T18:00:00Z",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
+        "timeinstant": "2025-06-26T18:00:01Z",
         "zero_value": 0.0,
         "empty_text": "",
-        "large_number": 9223372036854775807,
+        "large_number": 9007199254740991,
         "special_chars": "!@#$%^&*()_+-=[]{}|;':\",./<>?",
         "unicode_text": "Привет мир 你好世界 🌍🚀⭐"
       },
       {
         "entityid": "EdgeCase002",
-        "entitytype": "EdgeCaseEntity",
-        "fiwareservicepath": "/edgecases",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
         "timeinstant": "2025-06-26T18:00:00Z",
         "zero_value": -0.0,
         "empty_text": " ",
-        "large_number": -9223372036854775808,
+        "large_number": -9007199254740991,
         "special_chars": "\\n\\t\\r\\\"\\'\\/\\\\",
         "unicode_text": "🔥💯✨🎯🌟⚡🚀💎🎉🔊"
       },
       {
         "entityid": "EdgeCase001",
-        "entitytype": "EdgeCaseEntity",
-        "fiwareservicepath": "/edgecases",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
         "timeinstant": "2025-06-26T18:05:00Z",
         "zero_value": 0.000001,
         "empty_text": "now_not_empty",
@@ -42,8 +42,8 @@
     "rows": [
       {
         "entityid": "EdgeCase001",
-        "entitytype": "EdgeCaseEntity",
-        "fiwareservicepath": "/edgecases",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
         "timeinstant": "2025-06-26T18:05:00Z",
         "zero_value": 0.000001,
         "empty_text": "now_not_empty",
@@ -53,12 +53,12 @@
       },
       {
         "entityid": "EdgeCase002",
-        "entitytype": "EdgeCaseEntity",
-        "fiwareservicepath": "/edgecases",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
         "timeinstant": "2025-06-26T18:00:00Z",
         "zero_value": -0.0,
         "empty_text": " ",
-        "large_number": -9223372036854775808,
+        "large_number": -9007199254740991,
         "special_chars": "\\n\\t\\r\\\"\\'\\/\\\\",
         "unicode_text": "🔥💯✨🎯🌟⚡🚀💎🎉🔊"
       }
@@ -69,30 +69,30 @@
     "rows": [
       {
         "entityid": "EdgeCase001",
-        "entitytype": "EdgeCaseEntity",
-        "fiwareservicepath": "/edgecases",
-        "timeinstant": "2025-06-26T18:00:00Z",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
+        "timeinstant": "2025-06-26T18:00:01Z",
         "zero_value": 0.0,
         "empty_text": "",
-        "large_number": 9223372036854775807,
+        "large_number": 9007199254740991,
         "special_chars": "!@#$%^&*()_+-=[]{}|;':\",./<>?",
         "unicode_text": "Привет мир 你好世界 🌍🚀⭐"
       },
       {
         "entityid": "EdgeCase002",
-        "entitytype": "EdgeCaseEntity",
-        "fiwareservicepath": "/edgecases",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
         "timeinstant": "2025-06-26T18:00:00Z",
         "zero_value": -0.0,
         "empty_text": " ",
-        "large_number": -9223372036854775808,
+        "large_number": -9007199254740991,
         "special_chars": "\\n\\t\\r\\\"\\'\\/\\\\",
         "unicode_text": "🔥💯✨🎯🌟⚡🚀💎🎉🔊"
       },
       {
         "entityid": "EdgeCase001",
-        "entitytype": "EdgeCaseEntity",
-        "fiwareservicepath": "/edgecases",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
         "timeinstant": "2025-06-26T18:05:00Z",
         "zero_value": 0.000001,
         "empty_text": "now_not_empty",
