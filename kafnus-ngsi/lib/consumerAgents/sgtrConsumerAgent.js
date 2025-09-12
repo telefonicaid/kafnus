@@ -53,26 +53,17 @@ async function startSgtrConsumerAgent(logger) {
                 const headers = message.headers || {};
                 const dataList = message.data ? message.data : [];
 
-                for (const entityRaw of dataList) {
-                    const attributes = []; // TBD: get attributes from entity in ngsiv2 format
+                for (const entityObject of dataList) {
                     const { service, servicepath } = getFiwareContext(headers, message);
                     const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
                     const recvTimeTs = String(timestamp * 1000);
                     const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
-                    // Final entityObject
-                    const entityObject = {
-                        recvTimeTs,
-                        recvTime,
-                        entityId: entityRaw.id,
-                        entityType: entityRaw.type
-                    };
-                    for (const attr of attributes) {
-                        entityObject[attr.attrName] = attr.attrValue;
-                    }
                     logger.info(`[sgtr] topic: ${topic}`);
                     logger.debug('[sgtr] entityObject: \n%s', JSON.stringify(entityObject, null, 2));
 
-                    var mutation = buildMutationCreate(entityObject.entityType, entityObject);
+                    var type = entityObject.type;
+                    delete entityObject.type;
+                    var mutation = buildMutationCreate(type, entityObject);
                     logger.debug('[sgtr] mutation: \n%s', mutation);
 
                     const outHeaders = [];
