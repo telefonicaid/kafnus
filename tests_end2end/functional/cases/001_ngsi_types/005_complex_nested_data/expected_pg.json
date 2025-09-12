@@ -1,46 +1,186 @@
 [
   {
-    "table": "test.complexdata_device",
+    "table": "test.complex_device",
     "rows": [
       {
         "entityid": "Device001", 
         "entitytype": "ComplexDevice",
         "fiwareservicepath": "/complex",
-        "timeinstant": "2025-06-26T14:15:00Z"
+        "timeinstant": "2025-06-26T14:15:00Z",
+        "configuration": {
+          "sensors": [
+            {"type": "temperature", "interval": 300, "precision": 0.1},
+            {"type": "humidity", "interval": 600, "precision": 1.0}
+          ],
+          "network": {
+            "protocol": "LoRaWAN",
+            "frequency": 868.1,
+            "power": 14
+          },
+          "enabled": true
+        },
+        "measurements": {
+          "temperature": 25.3,
+          "humidity": 62.8,
+          "battery": 87,
+          "signal_strength": -85
+        },
+        "metadata": {
+          "location": {
+            "latitude": 40.4168,
+            "longitude": -3.7038,
+            "altitude": 650
+          },
+          "installation_date": "2025-01-15",
+          "firmware_version": "1.2.3"
+        },
+        "tags": ["outdoor", "temperature", "humidity", "lora"]
       },
       {
         "entityid": "Device001",
         "entitytype": "ComplexDevice", 
         "fiwareservicepath": "/complex",
-        "timeinstant": "2025-06-26T14:20:00Z"
+        "timeinstant": "2025-06-26T14:20:00Z",
+        "configuration": {
+          "sensors": [
+            {"type": "temperature", "interval": 300, "precision": 0.1},
+            {"type": "humidity", "interval": 600, "precision": 1.0}
+          ],
+          "network": {
+            "protocol": "LoRaWAN",
+            "frequency": 868.1,
+            "power": 14
+          },
+          "enabled": true
+        },
+        "measurements": {
+          "temperature": 25.8,
+          "humidity": 61.2,
+          "battery": 86,
+          "signal_strength": -82
+        },
+        "metadata": {
+          "location": {
+            "latitude": 40.4168,
+            "longitude": -3.7038,
+            "altitude": 650
+          },
+          "installation_date": "2025-01-15",
+          "firmware_version": "1.2.3"
+        },
+        "tags": ["outdoor", "temperature", "humidity", "lora"]
       }
     ]
   },
   {
-    "table": "test.complexdata_device_lastdata",
+    "table": "test.complex_device_lastdata",
     "rows": [
       {
         "entityid": "Device001",
         "entitytype": "ComplexDevice",
         "fiwareservicepath": "/complex", 
-        "timeinstant": "2025-06-26T14:20:00Z"
+        "timeinstant": "2025-06-26T14:20:00Z",
+        "configuration": {
+          "sensors": [
+            {"type": "temperature", "interval": 300, "precision": 0.1},
+            {"type": "humidity", "interval": 600, "precision": 1.0}
+          ],
+          "network": {
+            "protocol": "LoRaWAN",
+            "frequency": 868.1,
+            "power": 14
+          },
+          "enabled": true
+        },
+        "measurements": {
+          "temperature": 25.8,
+          "humidity": 61.2,
+          "battery": 86,
+          "signal_strength": -82
+        },
+        "metadata": {
+          "location": {
+            "latitude": 40.4168,
+            "longitude": -3.7038,
+            "altitude": 650
+          },
+          "installation_date": "2025-01-15",
+          "firmware_version": "1.2.3"
+        },
+        "tags": ["outdoor", "temperature", "humidity", "lora"]
       }
     ]
   },
   {
-    "table": "test.complexdata_device_mutable",
+    "table": "test.complex_device_mutable",
     "rows": [
       {
         "entityid": "Device001",
         "entitytype": "ComplexDevice",
         "fiwareservicepath": "/complex",
-        "timeinstant": "2025-06-26T14:15:00Z"
+        "timeinstant": "2025-06-26T14:15:00Z",
+        "configuration": {
+          "sensors": [
+            {"type": "temperature", "interval": 300, "precision": 0.1},
+            {"type": "humidity", "interval": 600, "precision": 1.0}
+          ],
+          "network": {
+            "protocol": "LoRaWAN",
+            "frequency": 868.1,
+            "power": 14
+          },
+          "enabled": true
+        },
+        "measurements": {
+          "temperature": 25.3,
+          "humidity": 62.8,
+          "battery": 87,
+          "signal_strength": -85
+        },
+        "metadata": {
+          "location": {
+            "latitude": 40.4168,
+            "longitude": -3.7038,
+            "altitude": 650
+          },
+          "installation_date": "2025-01-15",
+          "firmware_version": "1.2.3"
+        },
+        "tags": ["outdoor", "temperature", "humidity", "lora"]
       },
       {
         "entityid": "Device001",
         "entitytype": "ComplexDevice",
         "fiwareservicepath": "/complex",
-        "timeinstant": "2025-06-26T14:20:00Z"
+        "timeinstant": "2025-06-26T14:20:00Z",
+        "configuration": {
+          "sensors": [
+            {"type": "temperature", "interval": 300, "precision": 0.1},
+            {"type": "humidity", "interval": 600, "precision": 1.0}
+          ],
+          "network": {
+            "protocol": "LoRaWAN",
+            "frequency": 868.1,
+            "power": 14
+          },
+          "enabled": true
+        },
+        "measurements": {
+          "temperature": 25.8,
+          "humidity": 61.2,
+          "battery": 86,
+          "signal_strength": -82
+        },
+        "metadata": {
+          "location": {
+            "latitude": 40.4168,
+            "longitude": -3.7038,
+            "altitude": 650
+          },
+          "installation_date": "2025-01-15",
+          "firmware_version": "1.2.3"
+        },
+        "tags": ["outdoor", "temperature", "humidity", "lora"]
       }
     ]
   }
