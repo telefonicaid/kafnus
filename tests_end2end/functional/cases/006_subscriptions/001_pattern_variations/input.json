@@ -1,0 +1,129 @@
+{
+  "name": "subscription_pattern_variations_test",
+  "fiware-service": "test",
+  "fiware-servicepath": "/patterns",
+  "subscriptions": {
+    "historic": {
+      "description": "Pattern:HISTORIC:variations:historic",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": "PATTERN_.*",
+            "type": "PatternSensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "value1"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_historic"
+        },
+        "attrs": [
+          "TimeInstant",
+          "value1"
+        ]
+      }
+    },
+    "lastdata": {
+      "description": "Pattern:LASTDATA:variations:lastdata",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": "PATTERN_.*",
+            "type": "PatternSensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "value2"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_lastdata"
+        },
+        "attrs": [
+          "TimeInstant",
+          "value2"
+        ]
+      }
+    },
+    "mutable": {
+      "description": "Pattern:MUTABLE:variations:mutable", 
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": "PATTERN_.*",
+            "type": "PatternSensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_mutable"
+        },
+        "attrs": [
+          "TimeInstant",
+          "value1",
+          "value2"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "PATTERN_SENSOR_01",
+      "type": "PatternSensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:00:00Z"
+      },
+      "value1": {"value": 15.7, "type": "Float"},
+      "value2": {"value": 42, "type": "Integer"}
+    },
+    {
+      "id": "PATTERN_SENSOR_02",
+      "type": "PatternSensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:00:00Z"
+      },
+      "value1": {"value": 18.3, "type": "Float"},
+      "value2": {"value": 38, "type": "Integer"}
+    },
+    {
+      "id": "PATTERN_SENSOR_01",
+      "type": "PatternSensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:05:00Z"
+      },
+      "value1": {"value": 16.2, "type": "Float"}
+    },
+    {
+      "id": "PATTERN_SENSOR_02",
+      "type": "PatternSensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:05:00Z"
+      },
+      "value2": {"value": 41, "type": "Integer"}
+    }
+  ]
+}

@@ -121,12 +121,22 @@ function formatDatetimeIso(tz = 'UTC') {
 function inferFieldType(name, value, attrType = null) {
     const nameLc = name.toLowerCase();
 
+    // 0. Null or undefined values: return string with null value
+    if (value === null || value === undefined) {
+        return ['string', null]; // this could be improved with type mapping
+    }
+
+    // 1. Handle special attribute types
     if (attrType) {
+        // Geospatial types
         if (attrType.startsWith('geo:')) {
             return ['geometry', value];
         }
 
+        // DateTime and ISO8601 types
         if (attrType === 'DateTime' || attrType === 'ISO8601') {
+            // Special case for timeinstant/recvtime: always treat as string
+            // because they are processed specially in Kafnus-Connect sinks
             if (['timeinstant', 'recvtime'].includes(nameLc)) {
                 return ['string', String(value)];
             }
@@ -134,6 +144,7 @@ function inferFieldType(name, value, attrType = null) {
                 if (value == null) {
                     return ['string', null];
                 }
+                // Use Kafka Connect Timestamp logical type
                 return [{ type: 'int64', name: 'org.apache.kafka.connect.data.Timestamp' }, toEpochMillis(value)];
             } catch (err) {
                 logger.warn(`Error parsing datetime for field '${name}': ${err}`);
@@ -141,37 +152,7 @@ function inferFieldType(name, value, attrType = null) {
             }
         }
 
-        if (attrType === 'Float') {
-            return ['float', parseFloat(value)];
-        }
-
-        if (attrType === 'Number') {
-            const numVal = Number(value);
-
-            if (Number.isNaN(numVal)) {
-                return ['string', String(value)];
-            }
-
-            // ¿Integer?
-            if (Number.isInteger(numVal)) {
-                if (numVal >= -(2 ** 31) && numVal <= 2 ** 31 - 1) {
-                    return ['int32', numVal];
-                }
-                if (numVal >= -(2 ** 63) && numVal <= 2 ** 63 - 1) {
-                    return ['int64', numVal];
-                }
-                // If it is too big → double (even for integers)
-                return ['double', numVal];
-            }
-
-            // If not integer → double
-            return ['double', numVal];
-        }
-
-        if (attrType === 'Boolean') {
-            return ['boolean', value];
-        }
-
+        // JSON or structured values: serialize to string
         if (['json', 'StructuredValue'].includes(attrType)) {
             try {
                 return ['string', JSON.stringify(value)];
@@ -180,40 +161,36 @@ function inferFieldType(name, value, attrType = null) {
                 return ['string', String(value)];
             }
         }
+    }
 
+    // 2. If not a special type, but value is a string → treat as string
+    if (typeof value === 'string') {
         return ['string', value];
     }
 
-    // Fallbacks
-    if (['timeinstant', 'recvtime'].includes(nameLc)) {
-        return ['string', String(value)];
-    }
-
-    if (isPossibleDatetime(value)) {
-        try {
-            return [{ type: 'int64', name: 'org.apache.kafka.connect.data.Timestamp' }, toEpochMillis(value)];
-        } catch (err) {
-            logger.warn(`Error parsing datetime for field '${name}': ${err}`);
-            return ['string', String(value)];
-        }
-    }
-
+    // 3. Fallback: infer type for other primitives
     if (typeof value === 'boolean') {
         return ['boolean', value];
     }
+
+    // Integer handling: choose int32 or int64 based on range
     if (Number.isInteger(value)) {
-        if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) {
-            return ['int32', value];
-        }
-        if (value >= -(2 ** 63) && value <= 2 ** 63 - 1) {
-            return ['int64', value];
-        }
-        logger.warn(`Integer out of range BIGINT: ${value}`);
-        return ['string', String(value)];
+        // Safe int32
+        if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) return ['int32', value];
+
+        // Safe int64 (check safe integer range)
+        if (Number.isSafeInteger(value)) return ['int64', value];
+
+        // Out of safe integer → treat as double
+        return ['double', value];
     }
+
+    // Floating point numbers
     if (typeof value === 'number') {
         return ['double', value];
     }
+
+    // Objects: serialize to string (fallback)
     if (typeof value === 'object') {
         try {
             return ['string', JSON.stringify(value)];
@@ -222,7 +199,9 @@ function inferFieldType(name, value, attrType = null) {
             return ['string', String(value)];
         }
     }
-    return ['string', value];
+
+    // 4. All other cases: treat as string
+    return ['string', String(value)];
 }
 
 // -----------------

@@ -1,0 +1,141 @@
+{
+  "name": "edge_case_data_test",
+  "fiware-service": "test",
+  "fiware-servicepath": "/edgecases",
+  "subscriptions": {
+    "historic": {
+      "description": "EdgeCase:HISTORIC:data:historic",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "EdgeCaseEntity"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_historic"
+        },
+        "attrs": [
+          "TimeInstant",
+          "zero_value",
+          "empty_text",
+          "large_number",
+          "special_chars",
+          "unicode_text"
+        ]
+      }
+    },
+    "lastdata": {
+      "description": "EdgeCase:LASTDATA:data:lastdata",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "EdgeCaseEntity"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_lastdata"
+        },
+        "attrs": [
+          "TimeInstant",
+          "zero_value",
+          "empty_text",
+          "large_number",
+          "special_chars",
+          "unicode_text"
+        ]
+      }
+    },
+    "mutable": {
+      "description": "EdgeCase:MUTABLE:data:mutable",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "EdgeCaseEntity"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_mutable"
+        },
+        "attrs": [
+          "TimeInstant",
+          "zero_value",
+          "empty_text", 
+          "large_number",
+          "special_chars",
+          "unicode_text"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "EdgeCase001",
+      "type": "EdgeCaseEntity",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T18:00:00Z"
+      },
+      "zero_value": {"value": 0.0, "type": "Float"},
+      "empty_text": {"value": "", "type": "Text"},
+      "large_number": {"value": 9223372036854775807, "type": "Integer"},
+      "special_chars": {"value": "!@#$%^&*()_+-=[]{}|;':\",./<>?", "type": "Text"},
+      "unicode_text": {"value": "Привет мир 你好世界 🌍🚀⭐", "type": "Text"}
+    },
+    {
+      "id": "EdgeCase002",
+      "type": "EdgeCaseEntity",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T18:00:00Z"
+      },
+      "zero_value": {"value": -0.0, "type": "Float"},
+      "empty_text": {"value": " ", "type": "Text"},
+      "large_number": {"value": -9223372036854775808, "type": "Integer"},
+      "special_chars": {"value": "\\n\\t\\r\\\"\\'\\/\\\\", "type": "Text"},
+      "unicode_text": {"value": "🔥💯✨🎯🌟⚡🚀💎🎉🔊", "type": "Text"}
+    },
+    {
+      "id": "EdgeCase001",
+      "type": "EdgeCaseEntity",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T18:05:00Z"
+      },
+      "zero_value": {"value": 0.000001, "type": "Float"},
+      "empty_text": {"value": "now_not_empty", "type": "Text"},
+      "large_number": {"value": 12345, "type": "Integer"},
+      "special_chars": {"value": "normal text", "type": "Text"},
+      "unicode_text": {"value": "Café naïve résumé", "type": "Text"}
+    }
+  ]
+}
