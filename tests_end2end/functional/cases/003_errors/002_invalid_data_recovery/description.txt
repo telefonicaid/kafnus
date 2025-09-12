@@ -1,0 +1,1 @@
+Tests system behavior when processing invalid data mixed with valid data. Validates that the system can recover and continue processing valid data after encountering invalid entries, with proper error handling and data integrity.

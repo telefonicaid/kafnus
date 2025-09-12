@@ -249,11 +249,50 @@ def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multi
 
 ---
 
+---
+
+## 🧪 Extended Test Coverage
+
+The e2e test battery has been extended to cover additional real-world scenarios and edge cases:
+
+### **New Test Categories**
+
+#### 📦 Multi-Entity Processing
+- `000_basic/003_multi_entity_batch`: Tests batch processing of multiple entity types (sensors + streetlights) in a single update request
+
+#### 🔗 Complex Data Structures  
+- `001_ngsi_types/005_complex_nested_data`: Validates handling of nested JSON objects, arrays, and structured values
+- `001_ngsi_types/006_edge_case_data`: Tests edge cases including zero values, empty strings, large numbers, Unicode text, and special characters
+
+#### ⚠️ Error Handling & Recovery
+- `003_errors/002_invalid_data_recovery`: Validates system behavior when processing invalid data mixed with valid data
+
+#### ⚡ Performance & Scalability
+- `005_performance/001_large_payload`: Tests system performance with large payloads and bulk data processing
+
+#### 📡 Subscription Patterns
+- `006_subscriptions/001_pattern_variations`: Tests different subscription patterns, ID patterns, condition attributes, and notification configurations
+
+### **Coverage Improvements**
+
+The extended test suite now validates:
+- **Multi-entity scenarios**: Batch processing of different entity types
+- **Complex data handling**: Nested objects, arrays, and structured JSON payloads  
+- **Edge case robustness**: Zero values, empty strings, Unicode, special characters
+- **Error resilience**: Recovery from invalid data while maintaining system integrity
+- **Performance characteristics**: Large payload handling and throughput
+- **Subscription flexibility**: Various pattern matching and notification strategies
+
+All new tests follow the established pattern with `description.txt`, `input.json`, `expected_pg.json`, and `setup.sql` files.
+
+---
+
 ## 📌 Notes
 
 - You can inspect Kafka and DB manually during pause (3600s sleep).
 - Logs show useful debug output at each step.
 - TestContainers ensures full isolation and cleanup.
+- The test suite now includes **16 scenarios** covering core functionality, data types, error handling, performance, and subscription patterns.
 
 ## 🧭 Navigation
 

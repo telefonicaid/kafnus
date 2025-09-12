@@ -1,0 +1,105 @@
+[
+  {
+    "table": "test.performance_sensor",
+    "rows": [
+      {
+        "entityid": "PerfSensor001", 
+        "entitytype": "Sensor",
+        "fiwareservicepath": "/performance",
+        "timeinstant": "2025-06-26T16:00:00Z",
+        "temperature": 23.4,
+        "humidity": 67.8,
+        "pressure": 1013.25,
+        "light_level": 450,
+        "battery_level": 85
+      },
+      {
+        "entityid": "PerfSensor002",
+        "entitytype": "Sensor",
+        "fiwareservicepath": "/performance", 
+        "timeinstant": "2025-06-26T16:00:00Z",
+        "temperature": 24.1,
+        "humidity": 65.3,
+        "pressure": 1012.80,
+        "light_level": 520,
+        "battery_level": 92
+      },
+      {
+        "entityid": "PerfSensor001",
+        "entitytype": "Sensor",
+        "fiwareservicepath": "/performance",
+        "timeinstant": "2025-06-26T16:05:00Z",
+        "temperature": 23.6,
+        "humidity": 67.4,
+        "pressure": 1013.18,
+        "light_level": 475,
+        "battery_level": 84
+      }
+    ]
+  },
+  {
+    "table": "test.performance_sensor_lastdata",
+    "rows": [
+      {
+        "entityid": "PerfSensor001",
+        "entitytype": "Sensor",
+        "fiwareservicepath": "/performance",
+        "timeinstant": "2025-06-26T16:05:00Z",
+        "temperature": 23.6,
+        "humidity": 67.4,
+        "pressure": 1013.18,
+        "light_level": 475,
+        "battery_level": 84
+      },
+      {
+        "entityid": "PerfSensor002",
+        "entitytype": "Sensor",
+        "fiwareservicepath": "/performance",
+        "timeinstant": "2025-06-26T16:00:00Z",
+        "temperature": 24.1,
+        "humidity": 65.3,
+        "pressure": 1012.80,
+        "light_level": 520,
+        "battery_level": 92
+      }
+    ]
+  },
+  {
+    "table": "test.performance_sensor_mutable",
+    "rows": [
+      {
+        "entityid": "PerfSensor001",
+        "entitytype": "Sensor",
+        "fiwareservicepath": "/performance",
+        "timeinstant": "2025-06-26T16:00:00Z",
+        "temperature": 23.4,
+        "humidity": 67.8,
+        "pressure": 1013.25,
+        "light_level": 450,
+        "battery_level": 85
+      },
+      {
+        "entityid": "PerfSensor002",
+        "entitytype": "Sensor",
+        "fiwareservicepath": "/performance",
+        "timeinstant": "2025-06-26T16:00:00Z",
+        "temperature": 24.1,
+        "humidity": 65.3,
+        "pressure": 1012.80,
+        "light_level": 520,
+        "battery_level": 92
+      },
+      {
+        "entityid": "PerfSensor001",
+        "entitytype": "Sensor",
+        "fiwareservicepath": "/performance",
+        "timeinstant": "2025-06-26T16:05:00Z",
+        "temperature": 23.6,
+        "humidity": 67.4,
+        "pressure": 1013.18,
+        "light_level": 475,
+        "battery_level": 84
+      }
+    ]
+  }
+]

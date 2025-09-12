@@ -1,0 +1,213 @@
+{
+  "name": "large_payload_performance_test",
+  "fiware-service": "test",
+  "fiware-servicepath": "/performance",
+  "subscriptions": {
+    "historic": {
+      "description": "Performance:HISTORIC:large:historic",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_historic"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature",
+          "humidity", 
+          "pressure",
+          "light_level",
+          "battery_level",
+          "data_payload"
+        ]
+      }
+    },
+    "lastdata": {
+      "description": "Performance:LASTDATA:large:lastdata",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_lastdata"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature",
+          "humidity",
+          "pressure",
+          "light_level",
+          "battery_level",
+          "data_payload"
+        ]
+      }
+    },
+    "mutable": {
+      "description": "Performance:MUTABLE:large:mutable",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_mutable"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature",
+          "humidity",
+          "pressure",
+          "light_level", 
+          "battery_level",
+          "data_payload"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "PerfSensor001",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T16:00:00Z"
+      },
+      "temperature": {"value": 23.4, "type": "Float"},
+      "humidity": {"value": 67.8, "type": "Float"},
+      "pressure": {"value": 1013.25, "type": "Float"},
+      "light_level": {"value": 450, "type": "Integer"},
+      "battery_level": {"value": 85, "type": "Integer"},
+      "data_payload": {
+        "type": "StructuredValue",
+        "value": {
+          "measurements": [
+            {"timestamp": "2025-06-26T15:55:00Z", "temp": 23.1, "hum": 68.2},
+            {"timestamp": "2025-06-26T15:56:00Z", "temp": 23.2, "hum": 68.0},
+            {"timestamp": "2025-06-26T15:57:00Z", "temp": 23.3, "hum": 67.9},
+            {"timestamp": "2025-06-26T15:58:00Z", "temp": 23.3, "hum": 67.8},
+            {"timestamp": "2025-06-26T15:59:00Z", "temp": 23.4, "hum": 67.8}
+          ],
+          "calibration": {
+            "temp_offset": -0.1,
+            "hum_offset": 0.5,
+            "last_calibrated": "2025-01-15"
+          },
+          "diagnostics": {
+            "cpu_usage": 12.5,
+            "memory_usage": 45.8,
+            "uptime_seconds": 2592000,
+            "error_count": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "PerfSensor002",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T16:00:00Z"
+      },
+      "temperature": {"value": 24.1, "type": "Float"},
+      "humidity": {"value": 65.3, "type": "Float"},
+      "pressure": {"value": 1012.80, "type": "Float"},
+      "light_level": {"value": 520, "type": "Integer"},
+      "battery_level": {"value": 92, "type": "Integer"},
+      "data_payload": {
+        "type": "StructuredValue",
+        "value": {
+          "measurements": [
+            {"timestamp": "2025-06-26T15:55:00Z", "temp": 23.8, "hum": 65.7},
+            {"timestamp": "2025-06-26T15:56:00Z", "temp": 23.9, "hum": 65.6},
+            {"timestamp": "2025-06-26T15:57:00Z", "temp": 24.0, "hum": 65.4},
+            {"timestamp": "2025-06-26T15:58:00Z", "temp": 24.0, "hum": 65.3},
+            {"timestamp": "2025-06-26T15:59:00Z", "temp": 24.1, "hum": 65.3}
+          ],
+          "calibration": {
+            "temp_offset": 0.0,
+            "hum_offset": -0.2,
+            "last_calibrated": "2025-01-20"
+          },
+          "diagnostics": {
+            "cpu_usage": 8.2,
+            "memory_usage": 38.1,
+            "uptime_seconds": 2419200,
+            "error_count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "PerfSensor001",
+      "type": "Sensor", 
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T16:05:00Z"
+      },
+      "temperature": {"value": 23.6, "type": "Float"},
+      "humidity": {"value": 67.4, "type": "Float"},
+      "pressure": {"value": 1013.18, "type": "Float"},
+      "light_level": {"value": 475, "type": "Integer"},
+      "battery_level": {"value": 84, "type": "Integer"},
+      "data_payload": {
+        "type": "StructuredValue",
+        "value": {
+          "measurements": [
+            {"timestamp": "2025-06-26T16:00:00Z", "temp": 23.4, "hum": 67.8},
+            {"timestamp": "2025-06-26T16:01:00Z", "temp": 23.5, "hum": 67.7},
+            {"timestamp": "2025-06-26T16:02:00Z", "temp": 23.5, "hum": 67.6},
+            {"timestamp": "2025-06-26T16:03:00Z", "temp": 23.6, "hum": 67.5},
+            {"timestamp": "2025-06-26T16:04:00Z", "temp": 23.6, "hum": 67.4}
+          ],
+          "calibration": {
+            "temp_offset": -0.1,
+            "hum_offset": 0.5,
+            "last_calibrated": "2025-01-15"
+          },
+          "diagnostics": {
+            "cpu_usage": 13.2,
+            "memory_usage": 46.3,
+            "uptime_seconds": 2592300,
+            "error_count": 0
+          }
+        }
+      }
+    }
+  ]
+}

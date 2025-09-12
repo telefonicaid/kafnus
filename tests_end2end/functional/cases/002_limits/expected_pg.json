@@ -319,5 +319,22 @@
         "value_numeric": 0.000000010000000
       }
     ]
+  },
+  {
+    "table": "test.test_error_log",
+    "rows": [
+      {
+        "query": { "contains": "INSERT INTO \"tests\".\"test\".\"limit_sensor\"" },
+        "error": { "contains": "ERROR: bigint out of range"}
+      },
+      {
+        "query": { "contains": "INSERT INTO \"tests\".\"test\".\"limit_sensor_lastdata\"" },
+        "error": { "contains": "ERROR: bigint out of range"}
+      },
+      {
+        "query": { "contains": "INSERT INTO \"tests\".\"test\".\"limit_sensor_mutable\"" },
+        "error": { "contains": "ERROR: bigint out of range"}
+      }
+    ]
   }
 ]

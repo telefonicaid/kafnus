@@ -1,0 +1,1 @@
+Tests different subscription patterns and notification configurations. Validates system behavior with various entity ID patterns, condition attributes, and notification attribute selections.
