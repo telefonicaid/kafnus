@@ -36,7 +36,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Map;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -66,6 +67,7 @@ public class HttpErrorToDlq<R extends ConnectRecord<R>> implements Transformatio
 
     private String dlqTopic;
     private static final ObjectMapper mapper = new ObjectMapper();
+    Logger LOGGER = LoggerFactory.getLogger(HttpErrorToDlq.class);
 
     @Override
     public R apply(R record) {
@@ -83,6 +85,7 @@ public class HttpErrorToDlq<R extends ConnectRecord<R>> implements Transformatio
                 } catch (NumberFormatException ignored) {}
             }
         }
+        LOGGER.debug("[HttpErrorToDlq] Got status code: {}", statusCode);
         if (statusCode != null && statusCode >= 400) {
             isError = true;
         }
