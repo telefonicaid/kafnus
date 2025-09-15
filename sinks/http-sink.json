@@ -13,6 +13,10 @@
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter.schemas.enable": false,
 
+    "transforms": "HttpErrorToDlq",
+    "transforms.HttpErrorToDlq.type": "com.telefonicaHttpErrorToDlq",
+    "transforms.HttpErrorToDlq.dlq.topic.name": "raw_errors",
+
     "errors.tolerance": "all",
     "errors.deadletterqueue.topic.name": "raw_errors",
     "errors.deadletterqueue.context.headers.enable": true,
