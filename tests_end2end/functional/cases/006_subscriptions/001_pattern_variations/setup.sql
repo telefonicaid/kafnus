@@ -1,9 +1,9 @@
 -- Drop and create subscription pattern test tables
-DROP TABLE IF EXISTS test.pattern_sensor;
-DROP TABLE IF EXISTS test.pattern_sensor_lastdata;
-DROP TABLE IF EXISTS test.pattern_sensor_mutable;
+DROP TABLE IF EXISTS test.patterns_sensor;
+DROP TABLE IF EXISTS test.patterns_sensor_lastdata;
+DROP TABLE IF EXISTS test.patterns_sensor_mutable;
 
-CREATE TABLE IF NOT EXISTS test.pattern_sensor (
+CREATE TABLE IF NOT EXISTS test.patterns_sensor (
     recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
     fiwareservicepath TEXT,
     entityid TEXT,
@@ -11,10 +11,10 @@ CREATE TABLE IF NOT EXISTS test.pattern_sensor (
     timeinstant TIMESTAMPTZ,
     value1 DOUBLE PRECISION,
     value2 INTEGER,
-    CONSTRAINT pattern_sensor_pkey PRIMARY KEY (timeinstant, entityid)
+    CONSTRAINT patterns_sensor_pkey PRIMARY KEY (timeinstant, entityid)
 );
 
-CREATE TABLE IF NOT EXISTS test.pattern_sensor_lastdata (
+CREATE TABLE IF NOT EXISTS test.patterns_sensor_lastdata (
     recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
     fiwareservicepath TEXT,
     entityid TEXT,
@@ -22,10 +22,10 @@ CREATE TABLE IF NOT EXISTS test.pattern_sensor_lastdata (
     timeinstant TIMESTAMPTZ,
     value1 DOUBLE PRECISION,
     value2 INTEGER,
-    CONSTRAINT pattern_sensor_lastdata_pkey PRIMARY KEY (entityid)
+    CONSTRAINT patterns_sensor_lastdata_pkey PRIMARY KEY (entityid)
 );
 
-CREATE TABLE IF NOT EXISTS test.pattern_sensor_mutable (
+CREATE TABLE IF NOT EXISTS test.patterns_sensor_mutable (
     recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
     fiwareservicepath TEXT,
     entityid TEXT,
@@ -33,5 +33,5 @@ CREATE TABLE IF NOT EXISTS test.pattern_sensor_mutable (
     timeinstant TIMESTAMPTZ,
     value1 DOUBLE PRECISION,
     value2 INTEGER,
-    CONSTRAINT pattern_sensor_mutable_pkey PRIMARY KEY (timeinstant, entityid)
+    CONSTRAINT patterns_sensor_mutable_pkey PRIMARY KEY (timeinstant, entityid)
 );

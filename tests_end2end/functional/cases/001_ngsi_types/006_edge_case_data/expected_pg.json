@@ -1,6 +1,6 @@
 [
   {
-    "table": "test.edgecase_entity",
+    "table": "test.edgecases_entity",
     "rows": [
       {
         "entityid": "EdgeCase001",
@@ -38,7 +38,7 @@
     ]
   },
   {
-    "table": "test.edgecase_entity_lastdata",
+    "table": "test.edgecases_entity_lastdata",
     "rows": [
       {
         "entityid": "EdgeCase001",
@@ -65,7 +65,7 @@
     ]
   },
   {
-    "table": "test.edgecase_entity_mutable",
+    "table": "test.edgecases_entity_mutable",
     "rows": [
       {
         "entityid": "EdgeCase001",
