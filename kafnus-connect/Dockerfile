@@ -71,6 +71,16 @@ RUN cd /tmp/header-router && \
     cp target/header-router-1.0.0-jar-with-dependencies.jar /usr/local/share/kafnus-connect/plugins/header-router/header-router-1.0.0.jar
 
 # -----------------------------
+# Build http error to DLQ
+# -----------------------------
+COPY src/http-to-dlq /tmp/http-to-dlq
+RUN cd /tmp/http-to-dlq && \
+    mvn clean package && \
+    mkdir -p /usr/local/share/kafnus-connect/plugins/http-to-dlq && \
+    cp target/http-to-dlq-1.0.0-jar-with-dependencies.jar /usr/local/share/kafnus-connect/plugins/http-to-dlq/http-to-dlq-1.0.0.jar
+
+
+# -----------------------------
 # Build JDBC Connector from PostGIS fork
 # -----------------------------
 RUN cd /tmp && \
