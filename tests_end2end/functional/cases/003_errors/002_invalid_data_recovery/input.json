@@ -4,13 +4,13 @@
   "fiware-servicepath": "/errortest",
   "subscriptions": {
     "historic": {
-      "description": "ErrorRecovery:HISTORIC:invalid:historic",
+      "description": "Sensor:HISTORIC:invalid:historic",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "ErrorSensor"
+            "type": "Sensor"
           }
         ],
         "condition": {
@@ -32,13 +32,13 @@
       }
     },
     "lastdata": {
-      "description": "ErrorRecovery:LASTDATA:invalid:lastdata",
+      "description": "Sensor:LASTDATA:invalid:lastdata",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "ErrorSensor"
+            "type": "Sensor"
           }
         ],
         "condition": {
@@ -60,13 +60,13 @@
       }
     },
     "mutable": {
-      "description": "ErrorRecovery:MUTABLE:invalid:mutable",
+      "description": "Sensor:MUTABLE:invalid:mutable",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "ErrorSensor"
+            "type": "Sensor"
           }
         ],
         "condition": {
@@ -91,7 +91,7 @@
   "updateEntities": [
     {
       "id": "ValidSensor001",
-      "type": "ErrorSensor",
+      "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T09:00:00Z"
@@ -101,7 +101,7 @@
     },
     {
       "id": "ValidSensor002",
-      "type": "ErrorSensor",
+      "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T09:00:00Z"
@@ -111,7 +111,7 @@
     },
     {
       "id": "ValidSensor001",
-      "type": "ErrorSensor",
+      "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T09:05:00Z"
@@ -121,7 +121,7 @@
     },
     {
       "id": "ValidSensor002",
-      "type": "ErrorSensor",
+      "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T09:05:00Z"

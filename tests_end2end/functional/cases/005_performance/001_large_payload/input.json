@@ -4,13 +4,13 @@
   "fiware-servicepath": "/performance",
   "subscriptions": {
     "historic": {
-      "description": "Performance:HISTORIC:large:historic",
+      "description": "Sensor:HISTORIC:large:historic",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "PerformanceSensor"
+            "type": "Sensor"
           }
         ],
         "condition": {
@@ -36,13 +36,13 @@
       }
     },
     "lastdata": {
-      "description": "Performance:LASTDATA:large:lastdata",
+      "description": "Sensor:LASTDATA:large:lastdata",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "PerformanceSensor"
+            "type": "Sensor"
           }
         ],
         "condition": {
@@ -68,13 +68,13 @@
       }
     },
     "mutable": {
-      "description": "Performance:MUTABLE:large:mutable",
+      "description": "Sensor:MUTABLE:large:mutable",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "PerformanceSensor"
+            "type": "Sensor"
           }
         ],
         "condition": {
@@ -103,7 +103,7 @@
   "updateEntities": [
     {
       "id": "PerfSensor001",
-      "type": "PerformanceSensor",
+      "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T16:00:00Z"
@@ -139,7 +139,7 @@
     },
     {
       "id": "PerfSensor002",
-      "type": "PerformanceSensor",
+      "type": "Sensor",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T16:00:00Z"
@@ -175,7 +175,7 @@
     },
     {
       "id": "PerfSensor001",
-      "type": "PerformanceSensor", 
+      "type": "Sensor", 
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T16:05:00Z"

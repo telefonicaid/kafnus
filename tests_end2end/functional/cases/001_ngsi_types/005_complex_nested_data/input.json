@@ -4,13 +4,13 @@
   "fiware-servicepath": "/complex",
   "subscriptions": {
     "historic": {
-      "description": "ComplexDevice:HISTORIC:nested:historic",
+      "description": "Device:HISTORIC:nested:historic",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "ComplexDevice"
+            "type": "Device"
           }
         ],
         "condition": {
@@ -34,13 +34,13 @@
       }
     },
     "lastdata": {
-      "description": "ComplexDevice:LASTDATA:nested:lastdata",
+      "description": "Device:LASTDATA:nested:lastdata",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "ComplexDevice"
+            "type": "Device"
           }
         ],
         "condition": {
@@ -64,13 +64,13 @@
       }
     },
     "mutable": {
-      "description": "ComplexDevice:MUTABLE:nested:mutable",
+      "description": "Device:MUTABLE:nested:mutable",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "ComplexDevice"
+            "type": "Device"
           }
         ],
         "condition": {
@@ -97,7 +97,7 @@
   "updateEntities": [
     {
       "id": "Device001",
-      "type": "ComplexDevice",
+      "type": "Device",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T14:15:00Z"
@@ -145,7 +145,7 @@
     },
     {
       "id": "Device001",
-      "type": "ComplexDevice",
+      "type": "Device",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T14:20:00Z"

@@ -4,13 +4,13 @@
   "fiware-servicepath": "/edgecases",
   "subscriptions": {
     "historic": {
-      "description": "EdgeCase:HISTORIC:data:historic",
+      "description": "Entity:HISTORIC:data:historic",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "EdgeCaseEntity"
+            "type": "Entity"
           }
         ],
         "condition": {
@@ -35,13 +35,13 @@
       }
     },
     "lastdata": {
-      "description": "EdgeCase:LASTDATA:data:lastdata",
+      "description": "Entity:LASTDATA:data:lastdata",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "EdgeCaseEntity"
+            "type": "Entity"
           }
         ],
         "condition": {
@@ -66,13 +66,13 @@
       }
     },
     "mutable": {
-      "description": "EdgeCase:MUTABLE:data:mutable",
+      "description": "Entity:MUTABLE:data:mutable",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "EdgeCaseEntity"
+            "type": "Entity"
           }
         ],
         "condition": {
@@ -100,7 +100,7 @@
   "updateEntities": [
     {
       "id": "EdgeCase001",
-      "type": "EdgeCaseEntity",
+      "type": "Entity",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T18:00:00Z"
@@ -113,7 +113,7 @@
     },
     {
       "id": "EdgeCase002",
-      "type": "EdgeCaseEntity",
+      "type": "Entity",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T18:00:00Z"
@@ -126,7 +126,7 @@
     },
     {
       "id": "EdgeCase001",
-      "type": "EdgeCaseEntity",
+      "type": "Entity",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T18:05:00Z"
