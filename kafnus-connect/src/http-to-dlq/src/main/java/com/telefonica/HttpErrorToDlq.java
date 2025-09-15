@@ -31,7 +31,12 @@ import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.transforms.Transformation;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
 import java.util.Map;
+
 
 /**
  *
@@ -54,14 +59,20 @@ How it works
  *
  */
 
+
+
+
 public class HttpErrorToDlq<R extends ConnectRecord<R>> implements Transformation<R> {
 
     private String dlqTopic;
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public R apply(R record) {
-        Integer statusCode = null;
+        boolean isError = false;
 
+        // 1. Check HTTP status header
+        Integer statusCode = null;
         if (record.headers().lastWithName("http.response.code") != null) {
             Object val = record.headers().lastWithName("http.response.code").value();
             if (val instanceof Integer) {
@@ -72,12 +83,36 @@ public class HttpErrorToDlq<R extends ConnectRecord<R>> implements Transformatio
                 } catch (NumberFormatException ignored) {}
             }
         }
-
         if (statusCode != null && statusCode >= 400) {
-            // Redirect message to DLQ
+            isError = true;
+        }
+
+        // 2. Check payload for GraphQL "errors" field (if statusCode is 200)
+        if (!isError && statusCode != null && statusCode == 200) {
+            Object value = record.value();
+            if (value != null) {
+                try {
+                    JsonNode root = null;
+                    if (value instanceof String) {
+                        root = mapper.readTree((String) value);
+                    } else {
+                        // fallback: serialize value.toString()
+                        root = mapper.readTree(value.toString());
+                    }
+                    if (root.has("errors") && root.get("errors").isArray() && root.get("errors").size() > 0) {
+                        isError = true;
+                    }
+                } catch (IOException e) {
+                    // ignore parse errors, treat as non-error
+                }
+            }
+        }
+
+        if (isError) {
+            // redirect to DLQ
             return record.newRecord(
-                    dlqTopic,                       // topic target
-                    null,                           // partition
+                    dlqTopic,
+                    null,
                     record.keySchema(),
                     record.key(),
                     record.valueSchema(),
@@ -87,14 +122,14 @@ public class HttpErrorToDlq<R extends ConnectRecord<R>> implements Transformatio
             );
         }
 
-        return record; 
+        return record;
     }
 
     @Override
     public ConfigDef config() {
         return new ConfigDef()
                 .define("dlq.topic.name", ConfigDef.Type.STRING, ConfigDef.Importance.HIGH,
-                        "Topic name for DLQ messages with HTTP error");
+                        "Name of the DLQ topic for HTTP/GraphQL error records");
     }
 
     @Override
