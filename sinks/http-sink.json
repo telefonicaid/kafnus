@@ -14,7 +14,7 @@
     "value.converter.schemas.enable": false,
     "report.response.headers": true,
     "transforms": "HttpErrorToDlq",
-    "transforms.HttpErrorToDlq.type": "com.telefonicaHttpErrorToDlq",
+    "transforms.HttpErrorToDlq.type": "com.telefonica.HttpErrorToDlq",
     "transforms.HttpErrorToDlq.dlq.topic.name": "raw_errors",
 
     "errors.tolerance": "all",
