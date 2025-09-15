@@ -34,9 +34,26 @@ import org.apache.kafka.connect.transforms.Transformation;
 import java.util.Map;
 
 /**
- * SMT que redirige mensajes con errores HTTP al tópico DLQ configurado.
- * Se asume que el conector Aiven HTTP Sink añade un header "http.response.code".
+ *
+ * HttpErrorToDlq SMT
+ *
+ * The HttpErrorToDlq transform is a custom Kafka Connect Single Message Transform (SMT) that captures records with HTTP response errors and reroutes them to a dedicated Dead Letter Queue (DLQ) topic.
+ * 
+ * This is useful when using the Aiven HTTP Sink Connector, which does not natively send failed HTTP requests (e.g. 4xx/5xx responses) to a DLQ.
+How it works
+ *
+ *    The transform checks for the presence of the Kafka Connect header http.response.code, which is added by the HTTP sink connector after each request.
+ *
+ *    If the status code is 400 or higher, the record is redirected to the configured DLQ topic.
+ *
+ *    Otherwise, the record passes through unchanged.
+ *
+ * Parameters:
+ *  Name                Type    Importance      Description
+ *  dlq.topic.name      string  high            Name of the Kafka topic to which HTTP error records should be redirected.
+ *
  */
+
 public class HttpErrorToDlq<R extends ConnectRecord<R>> implements Transformation<R> {
 
     private String dlqTopic;

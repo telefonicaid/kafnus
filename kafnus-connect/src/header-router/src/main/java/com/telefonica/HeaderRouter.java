@@ -1,6 +1,6 @@
 /**
  * Copyright 2025 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
- * PROJECT: openmetadata-scripts
+ * PROJECT: kafnus
  *
  * This software and / or computer program has been developed by Telefónica Soluciones
  * de Informática y Comunicaciones de España, S.A.U (hereinafter TSOL) and is protected
