@@ -12,7 +12,7 @@
     "key.converter.schemas.enable": false,
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter.schemas.enable": false,
-
+    "report.response.headers": true,
     "transforms": "HttpErrorToDlq",
     "transforms.HttpErrorToDlq.type": "com.telefonicaHttpErrorToDlq",
     "transforms.HttpErrorToDlq.dlq.topic.name": "raw_errors",
