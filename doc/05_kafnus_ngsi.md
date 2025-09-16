@@ -110,39 +110,41 @@ async function handleEntityCb(
 
 The function `inferFieldType` (see `lib/utils/ngsiUtils.js`) is responsible for converting NGSIv2 attributes (including their optional `attrType`) into Kafka Connect-compatible field types and processed values.
 
-This function returns a tuple:
+This function always returns a tuple:
 
 ```js
 function inferFieldType(name, value, attrType = null)
 ```
 
-### 🔍 Behavior by NGSI `attrType`:
+### 🔍 Behavior by `attrType` and JS-native inference:
 
-| NGSI Type         | Kafka Connect Type                   | Notes                                                                 |
-|-------------------|---------------------------------------|-----------------------------------------------------------------------|
-| `geo:*`           | `"geometry"`                         | Processed as PostGIS-compatible WKB.                                  |
-| `DateTime`        | Kafka `Timestamp` schema (`int64`)   | Converted to epoch millis unless it's a special field (see below).    |
-| `Float`           | `"float"`                            | Parsed as 32-bit float.                                               |
-| `Number`          | `"int32"`, `"int64"`, or `"double"`  | Chooses the narrowest numeric type based on value range.              |
-| `Boolean`         | `"boolean"`                          |                                                                       |
-| `Text`, Unknown   | `"string"`                           | Default type when `attrType` is missing or unrecognized.             |
-| `StructuredValue` | `"string"` (JSON)                    | Serialized to string for simplicity.                                  |
+| Mechanism / Source              | Kafka Connect Type                                | Notes                                                                 |
+|---------------------------------|---------------------------------------------------|-----------------------------------------------------------------------|
+| `geo:json` (`attrType`)         | `"geometry"`                                      | Processed externally as PostGIS-compatible geometry.                   |
+| `DateTime`, `ISO8601` (`attrType`) | Kafka `Timestamp` schema (`int64`)             | Converted to epoch millis, **except** `timeInstant` and `recvTime` which remain strings. |
+| JS-native string value          | `"string"`                                        | Any value inferred as string is passed through as-is.                  |
+| JS-native boolean value         | `"boolean"`                                       |                                                                       |
+| JS-native number value          | `"double"`                                        | All numeric values are handled as JS float64 (double precision).       |
+| JS-native object/array          | `"string"` (JSON)                                 | Serialized to JSON string.                                            |
+| Unknown / untyped value         | `"string"`                                        | Fallback for unsupported types or nulls.                               |
 
-### ⚠️ Fallbacks
+### ⚠️ Null handling
 
+- All `null` or `undefined` values are normalized to `['string', null]`.  
+- This guarantees schema compatibility in Kafka Connect.  
+- For numeric columns, constraint errors (e.g. `NOT NULL`) are raised correctly by the sink connector.
 
-If `attrType` is missing, the type is inferred using JavaScript-native heuristics:
+### ⚠️ Simplifications
 
-- Timestamps are recognized by pattern.
-- Integers are scaled to fit the smallest Connect type.
-- Objects/arrays are serialized to JSON strings.
-- Values exceeding the `BIGINT` range fallback to string and are logged.
+- Unlike earlier versions, **no attempt is made to distinguish between `int32`, `int64`, and `double`**.  
+  All numbers are treated as **`double`** for consistency and simplicity.  
+- Only **`DateTime/ISO8601`** and **`geo:json`** are treated as special types.  
+- All other NGSI attributes are mapped directly to their JS-native type or serialized as strings.
 
 ### ⚠️ Known Limitations
 
-- Attributes with more than **9 decimal places** may lose precision if received as **strings via Context Broker**.
-- Extremely large numbers (e.g., above `9223372036854775807`) are **not representable** as integers and are **downgraded to strings**.
-- Errors during type inference (e.g., **invalid dates** or **malformed JSON**) are **logged and gracefully handled**.
+- JavaScript numbers are IEEE-754 doubles. Values above ~`9e15` may lose precision, but this is acceptable since PostgreSQL sinks typically use `double`.  
+- Invalid dates or malformed JSON are logged and tryed to store as strings.  
 
 ---
 
