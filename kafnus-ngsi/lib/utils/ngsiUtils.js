@@ -123,13 +123,13 @@ function inferFieldType(name, value, attrType = null) {
 
     // 0. Null or undefined values: return string with null value
     if (value === null || value === undefined) {
-        return ['string', null]; // this could be improved with type mapping
+        return ['string', null];
     }
 
     // 1. Handle special attribute types
     if (attrType) {
         // Geospatial types
-        if (attrType.startsWith('geo:')) {
+        if (attrType == "geo:json") {
             return ['geometry', value];
         }
 
@@ -151,16 +151,6 @@ function inferFieldType(name, value, attrType = null) {
                 return ['string', String(value)];
             }
         }
-
-        // JSON or structured values: serialize to string
-        if (['json', 'StructuredValue'].includes(attrType)) {
-            try {
-                return ['string', JSON.stringify(value)];
-            } catch (err) {
-                logger.warn(`Error serializing '${name}' as JSON: ${err}`);
-                return ['string', String(value)];
-            }
-        }
     }
 
     // 2. If not a special type, but value is a string → treat as string
@@ -173,19 +163,7 @@ function inferFieldType(name, value, attrType = null) {
         return ['boolean', value];
     }
 
-    // Integer handling: choose int32 or int64 based on range
-    if (Number.isInteger(value)) {
-        // Safe int32
-        if (value >= -(2 ** 31) && value <= 2 ** 31 - 1) return ['int32', value];
-
-        // Safe int64 (check safe integer range)
-        if (Number.isSafeInteger(value)) return ['int64', value];
-
-        // Out of safe integer → treat as double
-        return ['double', value];
-    }
-
-    // Floating point numbers
+    // Number handling: return as double (type  in JS is always float64)
     if (typeof value === 'number') {
         return ['double', value];
     }
@@ -203,7 +181,6 @@ function inferFieldType(name, value, attrType = null) {
     // 4. All other cases: treat as string
     return ['string', String(value)];
 }
-
 
 // -----------------
 // Kafka Schema Builder
