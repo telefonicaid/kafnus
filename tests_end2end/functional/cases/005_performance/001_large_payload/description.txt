@@ -1,0 +1,1 @@
+Tests system performance with large payload sizes and bulk data processing. Validates that Kafnus can handle substantial data volumes and maintain data integrity during high-throughput scenarios.

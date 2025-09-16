@@ -50,6 +50,13 @@
     {
       "id": "NPO-test",
       "type": "Errors",
+      "timeinstant": { "type": "DateTime", "value": "2025-05-05T11:45:00Z" },
+      "bool_col": { "type": "Boolean", "value": true },
+      "text_col": { "type": "Text", "value": null }
+    },
+    {
+      "id": "NPO-test",
+      "type": "Errors",
       "timeinstant": { "type": "DateTime", "value": "2025-05-05T11:50:00Z" },
       "bool_col": { "type": "Boolean", "value": true },
       "text_col": { "type": "Text", "value": "text" },

@@ -1,0 +1,1 @@
+Tests batch processing of multiple entities with different types in a single update request. Validates that the system correctly handles mixed entity types (sensors and streetlights) and processes them into appropriate tables.

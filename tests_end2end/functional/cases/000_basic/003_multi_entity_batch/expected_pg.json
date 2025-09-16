@@ -1,0 +1,48 @@
+[
+  {
+    "table": "test.multientity_sensor",
+    "rows": [
+      {"entityid": "TempSensor001", "entitytype": "Sensor", "temperature": 22.5, "humidity": 65.2, "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:30:00Z"},
+      {"entityid": "TempSensor002", "entitytype": "Sensor", "temperature": 24.1, "humidity": 58.7, "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:30:00Z"},
+      {"entityid": "TempSensor001", "entitytype": "Sensor", "temperature": 23.1, "humidity": 64.8, "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:35:00Z"}
+    ]
+  },
+  {
+    "table": "test.multientity_sensor_lastdata", 
+    "rows": [
+      {"entityid": "TempSensor001", "entitytype": "Sensor", "temperature": 23.1, "humidity": 64.8, "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:35:00Z"},
+      {"entityid": "TempSensor002", "entitytype": "Sensor", "temperature": 24.1, "humidity": 58.7, "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:30:00Z"}
+    ]
+  },
+  {
+    "table": "test.multientity_sensor_mutable",
+    "rows": [
+      {"entityid": "TempSensor001", "entitytype": "Sensor", "temperature": 22.5, "humidity": 65.2, "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:30:00Z"},
+      {"entityid": "TempSensor002", "entitytype": "Sensor", "temperature": 24.1, "humidity": 58.7, "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:30:00Z"},
+      {"entityid": "TempSensor001", "entitytype": "Sensor", "temperature": 23.1, "humidity": 64.8, "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:35:00Z"}
+    ]
+  },
+  {
+    "table": "test.multientity_streetlight",
+    "rows": [
+      {"entityid": "StreetLight001", "entitytype": "StreetLight", "luminosity": 850, "status": "ON", "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:30:00Z"},
+      {"entityid": "StreetLight002", "entitytype": "StreetLight", "luminosity": 920, "status": "ON", "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:30:00Z"},
+      {"entityid": "StreetLight001", "entitytype": "StreetLight", "luminosity": 875, "status": "ON", "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:35:00Z"}
+    ]
+  },
+  {
+    "table": "test.multientity_streetlight_lastdata",
+    "rows": [
+      {"entityid": "StreetLight001", "entitytype": "StreetLight", "luminosity": 875, "status": "ON", "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:35:00Z"},
+      {"entityid": "StreetLight002", "entitytype": "StreetLight", "luminosity": 920, "status": "ON", "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:30:00Z"}
+    ]
+  },
+  {
+    "table": "test.multientity_streetlight_mutable",
+    "rows": [
+      {"entityid": "StreetLight001", "entitytype": "StreetLight", "luminosity": 850, "status": "ON", "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:30:00Z"},
+      {"entityid": "StreetLight002", "entitytype": "StreetLight", "luminosity": 920, "status": "ON", "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:30:00Z"},
+      {"entityid": "StreetLight001", "entitytype": "StreetLight", "luminosity": 875, "status": "ON", "fiwareservicepath": "/multientity", "timeinstant": "2025-06-26T10:35:00Z"}
+    ]
+  }
+]

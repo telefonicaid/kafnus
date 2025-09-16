@@ -1,0 +1,105 @@
+[
+  {
+    "table": "test.edgecase_entity",
+    "rows": [
+      {
+        "entityid": "EdgeCase001",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
+        "timeinstant": "2025-06-26T18:00:01Z",
+        "zero_value": 0.0,
+        "empty_text": "",
+        "large_number": 9007199254740991,
+        "special_chars": "!@#$%^&*()_+-=[]{}|;':\",./<>?",
+        "unicode_text": "Привет мир 你好世界 🌍🚀⭐"
+      },
+      {
+        "entityid": "EdgeCase002",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
+        "timeinstant": "2025-06-26T18:00:00Z",
+        "zero_value": -0.0,
+        "empty_text": " ",
+        "large_number": -9007199254740991,
+        "special_chars": "\\n\\t\\r\\\"\\'\\/\\\\",
+        "unicode_text": "🔥💯✨🎯🌟⚡🚀💎🎉🔊"
+      },
+      {
+        "entityid": "EdgeCase001",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
+        "timeinstant": "2025-06-26T18:05:00Z",
+        "zero_value": 0.000001,
+        "empty_text": "now_not_empty",
+        "large_number": 12345,
+        "special_chars": "normal text",
+        "unicode_text": "Café naïve résumé"
+      }
+    ]
+  },
+  {
+    "table": "test.edgecase_entity_lastdata",
+    "rows": [
+      {
+        "entityid": "EdgeCase001",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
+        "timeinstant": "2025-06-26T18:05:00Z",
+        "zero_value": 0.000001,
+        "empty_text": "now_not_empty",
+        "large_number": 12345,
+        "special_chars": "normal text",
+        "unicode_text": "Café naïve résumé"
+      },
+      {
+        "entityid": "EdgeCase002",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
+        "timeinstant": "2025-06-26T18:00:00Z",
+        "zero_value": -0.0,
+        "empty_text": " ",
+        "large_number": -9007199254740991,
+        "special_chars": "\\n\\t\\r\\\"\\'\\/\\\\",
+        "unicode_text": "🔥💯✨🎯🌟⚡🚀💎🎉🔊"
+      }
+    ]
+  },
+  {
+    "table": "test.edgecase_entity_mutable",
+    "rows": [
+      {
+        "entityid": "EdgeCase001",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
+        "timeinstant": "2025-06-26T18:00:01Z",
+        "zero_value": 0.0,
+        "empty_text": "",
+        "large_number": 9007199254740991,
+        "special_chars": "!@#$%^&*()_+-=[]{}|;':\",./<>?",
+        "unicode_text": "Привет мир 你好世界 🌍🚀⭐"
+      },
+      {
+        "entityid": "EdgeCase002",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
+        "timeinstant": "2025-06-26T18:00:00Z",
+        "zero_value": -0.0,
+        "empty_text": " ",
+        "large_number": -9007199254740991,
+        "special_chars": "\\n\\t\\r\\\"\\'\\/\\\\",
+        "unicode_text": "🔥💯✨🎯🌟⚡🚀💎🎉🔊"
+      },
+      {
+        "entityid": "EdgeCase001",
+        "entitytype": "entity",
+        "fiwareservicepath": "/edgecase",
+        "timeinstant": "2025-06-26T18:05:00Z",
+        "zero_value": 0.000001,
+        "empty_text": "now_not_empty",
+        "large_number": 12345,
+        "special_chars": "normal text",
+        "unicode_text": "Café naïve résumé"
+      }
+    ]
+  }
+]
