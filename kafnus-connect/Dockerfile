@@ -97,9 +97,11 @@ RUN mkdir -p /usr/local/share/kafnus-connect/plugins/mongodb && \
 # Http Kafka Connector
 # -----------------------------
 RUN cd /tmp && \
-    git clone https://github.com/Aiven-Open/http-connector-for-apache-kafka.git && \
-    cd http-connector-for-apache-kafka && \
-    git checkout v0.9.0 && \
+    #git clone https://github.com/Aiven-Open/http-connector-for-apache-kafka.git && \
+    git clone https://github.com/telefonicaid/http-connector-for-apache-kafka-graphql.git && \
+    cd http-connector-for-apache-kafka-graphql && \
+    #git checkout v0.9.0 && \
+    git checkout task/handle_errors_graphql && \
     ./gradlew distTar && \
     cd /usr/local/share/kafnus-connect/plugins && \
     tar xfv /tmp/http-connector-for-apache-kafka/build/distributions/http-connector-for-apache-kafka-0.9.0.tar
