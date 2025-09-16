@@ -30,6 +30,7 @@ package com.telefonica;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.transforms.Transformation;
+import org.apache.kafka.connect.transforms.util.SimpleConfig;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,9 +66,20 @@ How it works
 
 public class HttpErrorToDlq<R extends ConnectRecord<R>> implements Transformation<R> {
 
+    public static final String DLQ_TOPIC_NAME_CONFIG = "dlq.topic.name";
+
+    private static final ConfigDef CONFIG_DEF = new ConfigDef()
+        .define(DLQ_TOPIC_NAME_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Name of the DLQ topic for HTTP/GraphQL error records");
+
     private String dlqTopic;
     private static final ObjectMapper mapper = new ObjectMapper();
     Logger LOGGER = LoggerFactory.getLogger(HttpErrorToDlq.class);
+
+    @Override
+    public void configure(Map<String, ?> configs) {
+        SimpleConfig config = new SimpleConfig(CONFIG_DEF, configs);
+        this.dlqTopic = config.getString(DLQ_TOPIC_NAME_CONFIG);
+    }
 
     @Override
     public R apply(R record) {
@@ -130,14 +142,7 @@ public class HttpErrorToDlq<R extends ConnectRecord<R>> implements Transformatio
 
     @Override
     public ConfigDef config() {
-        return new ConfigDef()
-                .define("dlq.topic.name", ConfigDef.Type.STRING, ConfigDef.Importance.HIGH,
-                        "Name of the DLQ topic for HTTP/GraphQL error records");
-    }
-
-    @Override
-    public void configure(Map<String, ?> configs) {
-        this.dlqTopic = (String) configs.get("dlq.topic.name");
+        return CONFIG_DEF;
     }
 
     @Override
