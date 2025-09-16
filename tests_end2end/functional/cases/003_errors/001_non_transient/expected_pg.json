@@ -32,7 +32,7 @@
     "rows": [
       {
         "query": { "contains": "INSERT INTO \"tests\".\"test\".\"access_errors\"" },
-        "error": { "contains": "ERROR: column \"bool_col\" is of type boolean but expression is of type integer"}
+        "error": { "contains": "ERROR: column \"bool_col\" is of type boolean but expression is of type double precision"}
       },
       {
         "query": { "contains": "INSERT INTO \"tests\".\"test\".\"access_errors\"" },
@@ -44,8 +44,12 @@
       },
       {
         "query": { "contains": "INSERT INTO \"tests\".\"test\".\"access_errors\"" },
+        "error": { "regex": "ERROR: null value in column .*double_not_null.*violates.*not[- ]?null constraint" }
+      },
+      {
+        "query": { "contains": "INSERT INTO \"tests\".\"test\".\"access_errors\"" },
         "error": { "contains": "ERROR: duplicate key value violates unique constraint \"access_errors_pkey\"" }
-      }
+     }
     ]
   }
 ]

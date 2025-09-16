@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS test.access_errors (
     text_col TEXT,            -- ❌
     not_null_col TEXT NOT NULL, -- ❌
     int_col INTEGER,                   -- ❌
+    double_not_null DOUBLE PRECISION NOT NULL,                   -- ❌
     averagestay DOUBLE PRECISION,     -- ✅
 
     CONSTRAINT access_errors_pkey PRIMARY KEY (timeinstant, entityid)
