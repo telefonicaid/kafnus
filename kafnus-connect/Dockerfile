@@ -104,7 +104,7 @@ RUN cd /tmp && \
     git checkout task/handle_errors_graphql && \
     ./gradlew distTar && \
     cd /usr/local/share/kafnus-connect/plugins && \
-    tar xfv /tmp/http-connector-for-apache-kafka/build/distributions/http-connector-for-apache-kafka-0.9.0.tar
+    tar xfv /tmp/http-connector-for-apache-kafka-graphql/build/distributions/http-connector-for-apache-kafka-0.9.0.tar
 
 # -----------------------------
 # JMX Exporter Agent
