@@ -59,7 +59,7 @@ def discover_scenarios():
                 logger.debug(f"↪️ No setup SQL for: {relative_name}")
             cases.append((relative_name, 'pg', input_json, expected_json, setup_sql if setup_sql.exists() else None))
 
-        elif: input_json.exists() and expected_http_json.exists():
+        elif input_json.exists() and expected_http_json.exists():
             relative_name = str(dir_path.relative_to(SCENARIOS_DIR))
             logger.debug(f"✅ Found scenario: {relative_name}")
             cases.append((relative_name, 'http', input_json, expected_json, setup_sql if setup_sql.exists() else None))
