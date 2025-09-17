@@ -62,15 +62,13 @@ async function startErrorsConsumerAgent(logger) {
                         hdrs[headerName] = decodedValue.toString();
                     });
                 }
-
+                logger.info('[errors] headers==%j', hdrs);
                 let fullErrorMsg = hdrs['__connect.errors.exception.message'] || 'Unknown error';
                 const causeMsg = hdrs['__connect.errors.exception.cause.message'];
                 if (causeMsg && !fullErrorMsg.includes(causeMsg)) {
                     fullErrorMsg += `\nCaused by: ${causeMsg}`;
                 }
-
                 const timestamp = formatDatetimeIso('UTC');
-
                 let dbName = hdrs['__connect.errors.topic'] || '';
                 if (!dbName) {
                     const dbMatch = fullErrorMsg.match(/INSERT INTO "([^"]+)"/);
@@ -78,10 +76,8 @@ async function startErrorsConsumerAgent(logger) {
                         dbName = dbMatch[1].split('.')[0];
                     }
                 }
-
-                dbName = dbName.replace(/_(lastdata|mutable)$/, '');
+                dbName = dbName.replace(/_(lastdata|mutable|http)$/, '');
                 const errorTopicName = `${dbName}_error_log`;
-
                 let errorMessage;
                 const errMatch = fullErrorMsg.match(/(ERROR: .+?)(\n|$)/);
                 if (errMatch) {
@@ -93,7 +89,6 @@ async function startErrorsConsumerAgent(logger) {
                 } else {
                     errorMessage = fullErrorMsg;
                 }
-
                 let originalQuery;
                 const queryMatch = fullErrorMsg.match(/(INSERT INTO "[^"]+"[^)]+\)[^)]*\))/);
                 if (queryMatch) {
@@ -115,10 +110,9 @@ async function startErrorsConsumerAgent(logger) {
                         });
                         originalQuery = `INSERT INTO "${dbName}"."${table}" (${columns}) VALUES (${values.join(',')})`;
                     } else {
-                        originalQuery = '';
+                        originalQuery = JSON.stringify(valueJson);
                     }
                 }
-
                 const errorRecord = {
                     schema: {
                         type: 'struct',
@@ -135,7 +129,7 @@ async function startErrorsConsumerAgent(logger) {
                         query: originalQuery
                     }
                 };
-
+                logger.info('[errors] errorRecord %j', errorRecord);
                 await producer.produce(
                     errorTopicName,
                     null, // Partition null: kafka decides

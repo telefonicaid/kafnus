@@ -34,7 +34,7 @@ const { buildMutationCreate } = require('../utils/graphqlUtils');
 
 async function startSgtrConsumerAgent(logger) {
     const topic = 'raw_sgtr';
-    const outputTopic = 'tests_http';
+    const outputTopic = 'test_http';
     const groupId = /* process.env.GROUP_ID || */ 'ngsi-processor-sgtr';
 
     const producer = await createProducer(logger);
