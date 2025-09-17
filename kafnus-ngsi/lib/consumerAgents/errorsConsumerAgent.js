@@ -110,7 +110,7 @@ async function startErrorsConsumerAgent(logger) {
                         });
                         originalQuery = `INSERT INTO "${dbName}"."${table}" (${columns}) VALUES (${values.join(',')})`;
                     } else {
-                        originalQuery = valueJson;
+                        originalQuery = JSON.stringify(valueJson);
                     }
                 }
                 const errorRecord = {
