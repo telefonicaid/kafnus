@@ -61,7 +61,6 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
         execute_sql_file(setup, db_config=DEFAULT_DB_CONFIG)
     elif scenario_type == "http" and setup:
         logger.info(f"1. Executing setup HTTP script: {setup.name}")
-        #execute_http_file(setup, db_config=DEFAULT_DB_CONFIG)
     else:
         logger.info("1. No setup SQL/HTTP provided for this scenario.")
 
@@ -73,13 +72,14 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
     service_operations.orion_set_up()
 
     # Step 3: Validate result in PostGIS / HTTP
-    logger.info(f"3. Validating results against expected: {expected_json.name}")
+
     if scenario_type == "pq":
+        logger.info(f"3. Validating results against expected: {expected_json.name}")
         expected_data = load_scenario(expected_json, as_expected=True)
         validator = PostgisValidator(DEFAULT_DB_CONFIG)
     elif scenario_type == "http":
+        logger.info(f"3. Validating results against expected: {expected_json.name}")
         expected_data = load_scenario(expected_json, as_expected=True)
-        #validator = HttpValidator()
     else:
         logger.info("3. No setup SQL/HTTP validator for this scenario.")
 
@@ -117,11 +117,11 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
             validator = HttpValidator(url)
             result = validator.validate(headers, body)
             if result is not True:
-                logger.error(f"❌ Validation failed in request: {request}")
+                logger.error(f"❌ Validation failed in request: {request_data}")
                 all_valid = False
-                errors.append(f"❌ Error in request: {request})")
+                errors.append(f"❌ Error in request: {request_data})")
             else:
-                logger.debug(f"✅ request {request} validated successfully")
+                logger.debug(f"✅ request {request_data} validated successfully")
 
     if all_valid:
         logger.info(f"✅ Scenario {scenario_name} passed successfully.")

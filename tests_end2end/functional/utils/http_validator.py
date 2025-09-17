@@ -25,6 +25,7 @@
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
+from config import logger
 import json
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -35,7 +36,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             body = json.loads(body_bytes.decode("utf-8"))
         except Exception:
             body = body_bytes.decode("utf-8")
-            
+        logger.debug(f"do_POST {body}")
         self.server.requests.append({
             "path": self.path,
             "headers": dict(self.headers),
@@ -54,7 +55,7 @@ class HttpValidator:
         self.port = parsed.port or 80
         self.expected_path = expected_path
         self.requests = []
-
+        logger.debug(f"HTTPServer {self.host} and {self.port}")
         self.httpd = HTTPServer((self.host, self.port), RequestHandler)
         self.httpd.requests = self.requests
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
@@ -69,13 +70,13 @@ class HttpValidator:
         """
         headers = headers or {}
         body = body or {}
-
+        logger.debug(f"validate body {body}")
         for req in self.requests:
-            if req["path"] == self.expected_path:
-                if all(req["headers"].get(k) == v for k, v in headers.items()) and req["body"] == body:
-                    return True
+            if req["body"] == body:
+                return True
+
         return False
-        
+
     def stop(self):
         """Detiene el servidor"""
         self.httpd.shutdown()

@@ -62,7 +62,7 @@ def discover_scenarios():
         elif input_json.exists() and expected_http_json.exists():
             relative_name = str(dir_path.relative_to(SCENARIOS_DIR))
             logger.debug(f"✅ Found scenario: {relative_name}")
-            cases.append((relative_name, 'http', input_json, expected_json, setup_sql if setup_sql.exists() else None))
+            cases.append((relative_name, 'http', input_json, expected_http_json, setup_sql if setup_sql.exists() else None))
         else:
             if "input.json" in filenames or "expected_pg.json" or "expected_http.json" in filenames:
                 logger.warning(f"⚠️ Partial scenario in: {dir_path} (missing input.json or expected_pg.json or expected_http.json)")

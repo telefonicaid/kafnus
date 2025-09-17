@@ -23,8 +23,7 @@
             "notification": {
                 "kafkaCustom": {
                     "url": "kafka://kafka:9092",
-                    "topic": "raw_sgtr"
-
+                    "topic": "raw_sgtr",
                     "json": {
                         "data": [
                             {
@@ -81,7 +80,6 @@
 
                         ]
                     }
-            
                 },
                 "attrs": [
                     "TimeInstant",
