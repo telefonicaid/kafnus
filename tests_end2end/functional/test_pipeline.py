@@ -25,14 +25,15 @@
 import pytest
 from utils.scenario_loader import load_scenario
 from utils.postgis_validator import PostgisValidator
+from utils.http_validator import HttpValidator
 from utils.sql_runner import execute_sql_file
 from config import logger
 from utils.scenario_loader import discover_scenarios, load_description
 
 from config import DEFAULT_DB_CONFIG
 
-@pytest.mark.parametrize("scenario_name, input_json, expected_json, setup_sql", discover_scenarios())
-def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multiservice_stack):
+@pytest.mark.parametrize("scenario_name, scenario_type, input_json, expected_json, setup", discover_scenarios())
+def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, setup, multiservice_stack):
     """
     End-to-end test for a given scenario:
     1. Executes optional setup SQL file to prepare database state.
@@ -55,11 +56,14 @@ def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multi
         logger.info(f"0. Description: {desc}")
 
     # Step 1: Execute setup SQL
-    if setup_sql:
-        logger.info(f"1. Executing setup SQL script: {setup_sql.name}")
-        execute_sql_file(setup_sql, db_config=DEFAULT_DB_CONFIG)
+    if scenario_type == "pq" and setup:
+        logger.info(f"1. Executing setup SQL script: {setup.name}")
+        execute_sql_file(setup, db_config=DEFAULT_DB_CONFIG)
+    elif scenario_type == "http" and setup:
+        logger.info(f"1. Executing setup HTTP script: {setup.name}")
+        #execute_http_file(setup, db_config=DEFAULT_DB_CONFIG)
     else:
-        logger.info("1. No setup SQL provided for this scenario.")
+        logger.info("1. No setup SQL/HTTP provided for this scenario.")
 
     # Step 2: Load input.json and send updates to CB
     logger.info(f"2. Loading and sending updates from: {input_json.name}")
@@ -68,35 +72,56 @@ def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multi
     service_operations = ServiceOperations(multiservice_stack, [orion_request])
     service_operations.orion_set_up()
 
-    # Step 3: Validate result in PostGIS
+    # Step 3: Validate result in PostGIS / HTTP
     logger.info(f"3. Validating results against expected: {expected_json.name}")
-    expected_data = load_scenario(expected_json, as_expected=True)
-    validator = PostgisValidator(DEFAULT_DB_CONFIG)
+    if scenario_type == "pq":
+        expected_data = load_scenario(expected_json, as_expected=True)
+        validator = PostgisValidator(DEFAULT_DB_CONFIG)
+    elif scenario_type == "http":
+        expected_data = load_scenario(expected_json, as_expected=True)
+        #validator = HttpValidator()
+    else:
+        logger.info("3. No setup SQL/HTTP validator for this scenario.")
 
     all_valid = True
     errors = []
 
-    for table_data in expected_data:
-        table = table_data["table"]
-        if "rows" in table_data:
-            rows = table_data["rows"]
-            result = validator.validate(table, rows)
-            if result is not True:
-                logger.error(f"❌ Validation failed in table: {table}")
-                all_valid = False
-                errors.append(f"❌ Error in table: {table} (present rows)")
-            else:
-                logger.debug(f"✅ Table {table} validated successfully (present rows)")
+    if scenario_type == "pq":
+        for table_data in expected_data:
+            table = table_data["table"]
+            if "rows" in table_data:
+                rows = table_data["rows"]
+                result = validator.validate(table, rows)
+                if result is not True:
+                    logger.error(f"❌ Validation failed in table: {table}")
+                    all_valid = False
+                    errors.append(f"❌ Error in table: {table} (present rows)")
+                else:
+                    logger.debug(f"✅ Table {table} validated successfully (present rows)")
 
-        if "absent" in table_data:
-            forbidden_rows = table_data["absent"]
-            result = validator.validate_absent(table, forbidden_rows)
+            if "absent" in table_data:
+                forbidden_rows = table_data["absent"]
+                result = validator.validate_absent(table, forbidden_rows)
+                if result is not True:
+                    logger.error(f"❌ Forbidden rows found in table: {table}")
+                    all_valid = False
+                    errors.append(f"❌ Error in table: {table} (forbidden rows)")
+                else:
+                    logger.debug(f"✅ Table {table} validated successfully (forbidden rows absent)")
+
+    if scenario_type == "http":
+        for request_data in expected_data:
+            url = request_data["url"]
+            headers = request_data["headers"]
+            body = request_data["body"]
+            validator = HttpValidator(url)
+            result = validator.validate(headers, body)
             if result is not True:
-                logger.error(f"❌ Forbidden rows found in table: {table}")
+                logger.error(f"❌ Validation failed in request: {request}")
                 all_valid = False
-                errors.append(f"❌ Error in table: {table} (forbidden rows)")
+                errors.append(f"❌ Error in request: {request})")
             else:
-                logger.debug(f"✅ Table {table} validated successfully (forbidden rows absent)")
+                logger.debug(f"✅ request {request} validated successfully")
 
     if all_valid:
         logger.info(f"✅ Scenario {scenario_name} passed successfully.")

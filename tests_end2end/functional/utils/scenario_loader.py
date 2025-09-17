@@ -46,7 +46,8 @@ def discover_scenarios():
     for dirpath, _, filenames in os.walk(SCENARIOS_DIR):
         dir_path = Path(dirpath)
         input_json = dir_path / "input.json"
-        expected_json = dir_path / "expected_pg.json"
+        expected_json = dir_path / "expected_pg.json" 
+        expected_http_json = dir_path / "expected_http.json"
         setup_sql = dir_path / "setup.sql"
 
         if input_json.exists() and expected_json.exists():
@@ -56,10 +57,15 @@ def discover_scenarios():
                 logger.debug(f"↪️ Includes setup SQL: {setup_sql.name}")
             else:
                 logger.debug(f"↪️ No setup SQL for: {relative_name}")
-            cases.append((relative_name, input_json, expected_json, setup_sql if setup_sql.exists() else None))
+            cases.append((relative_name, 'pg', input_json, expected_json, setup_sql if setup_sql.exists() else None))
+
+        elif: input_json.exists() and expected_http_json.exists():
+            relative_name = str(dir_path.relative_to(SCENARIOS_DIR))
+            logger.debug(f"✅ Found scenario: {relative_name}")
+            cases.append((relative_name, 'http', input_json, expected_json, setup_sql if setup_sql.exists() else None))
         else:
-            if "input.json" in filenames or "expected_pg.json" in filenames:
-                logger.warning(f"⚠️ Partial scenario in: {dir_path} (missing input.json or expected_pg.json)")
+            if "input.json" in filenames or "expected_pg.json" or "expected_http.json" in filenames:
+                logger.warning(f"⚠️ Partial scenario in: {dir_path} (missing input.json or expected_pg.json or expected_http.json)")
 
     cases.sort(key=lambda c: c[0])  # Sort by scenario name (relative path)
     logger.debug(f"🔢 Total scenarios discovered: {len(cases)}")
