@@ -44,16 +44,14 @@ async function startMongoConsumerAgent(logger) {
             const start = Date.now();
             try {
                 const rawValue = value ? value.toString() : null;
-                if (!rawValue) {
-                    return;
-                }
+                if (!rawValue) return;
+
                 const k = key ? key.toString() : null;
                 logger.info(`[mongo] key=${k} value=${rawValue}`);
-                const data = JSON.parse(rawValue);
-                const headers = data.headers || {};
-                const body = data.body || {};
-                const attributes = body.attributes || [];
 
+                const message = JSON.parse(rawValue);
+
+                const headers = message.headers || {};
                 const fiwareService = headers['fiware-service'] || 'default';
                 const servicePath = headers['fiware-servicepath'] || '/';
 
@@ -65,37 +63,39 @@ async function startMongoConsumerAgent(logger) {
                 const recvTimeTs = String(timestamp * 1000);
                 const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
 
-                // Final document
-                const doc = {
-                    recvTimeTs,
-                    recvTime,
-                    entityId: body.entityId,
-                    entityType: body.entityType
-                };
+                const entities = message.data || [];
+                for (const entity of entities) {
+                    const doc = {
+                        recvTimeTs,
+                        recvTime,
+                        entityId: entity.id,
+                        entityType: entity.type
+                    };
 
-                for (const attr of attributes) {
-                    doc[attr.attrName] = attr.attrValue;
+                    // Add plain attributes
+                    for (const [attrName, attrObj] of Object.entries(entity)) {
+                        if (attrName !== 'id' && attrName !== 'type') {
+                            doc[attrName] = attrObj.value;
+                        }
+                    }
+
+                    logger.info(`[mongo] topic: ${topic}`);
+                    logger.info(`[mongo] database: ${mongoDb}`);
+                    logger.info(`[mongo] collection: ${mongoCollection}`);
+                    logger.info(`[mongo] doc: ${JSON.stringify(doc)}`);
+
+                    // Send to outputTopic
+                    producer.produce(
+                        outputTopic,
+                        null, // partition
+                        Buffer.from(JSON.stringify(doc)),
+                        Buffer.from(JSON.stringify({ database: mongoDb, collection: mongoCollection })),
+                        Date.now()
+                    );
+
+                    logger.info(`[mongo] Sent to '${outputTopic}' | DB: ${mongoDb}, Collection: ${mongoCollection}`);
                 }
-                logger.info(`[mongo] topic: ${topic}`);
-                logger.info(`[mongo] database: ${mongoDb}`);
-                logger.info(`[mongo] collection: ${mongoCollection}`);
-                logger.info(`[mongo] doc: ${doc}`);
-                // Publish in output topic
-                producer.produce(
-                    outputTopic,
-                    null, // partition null: kafka decides
-                    Buffer.from(JSON.stringify(doc)), // message
-                    Buffer.from(
-                        JSON.stringify({
-                            // key (optional)
-                            database: mongoDb,
-                            collection: mongoCollection
-                        })
-                    ),
-                    Date.now()
-                );
 
-                logger.info(`[mongo] Sent to '${outputTopic}' | DB: ${mongoDb}, Collection: ${mongoCollection}`);
             } catch (err) {
                 logger.error(`[mongo] Error processing event: ${err.message}`);
             }
