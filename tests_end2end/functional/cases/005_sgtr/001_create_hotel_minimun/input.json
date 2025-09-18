@@ -1,6 +1,6 @@
 {
-    "name": "hotel_minimun_test_case",
-    "fiware-service": "smartcity",
+    "name": "hotel_minimun_tourism_test",
+    "fiware-service": "test",
     "fiware-servicepath": "/tourism",
     "subscriptions": {
         "sgtr": {
@@ -9,8 +9,7 @@
             "subject": {
                 "entities": [
                     {
-                        "id": ".*",
-                        "isPattern": true,
+                        "idPattern": ".*",
                         "type": "Hotel"
                     }
                 ],
@@ -23,8 +22,7 @@
             "notification": {
                 "kafkaCustom": {
                     "url": "kafka://kafka:9092",
-                    "topic": "raw_sgtr"
-
+                    "topic": "raw_sgtr",
                     "json": {
                         "data": [
                             {
@@ -78,10 +76,8 @@
                                     }
                                 }
                             }
-
                         ]
                     }
-            
                 },
                 "attrs": [
                     "TimeInstant",
