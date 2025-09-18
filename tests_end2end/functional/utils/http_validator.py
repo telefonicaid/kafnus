@@ -60,7 +60,6 @@ class HttpValidator:
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self.thread.start()
         logger.info(f"HTTPServer {self.host} and {self.port} started")
-        None
 
     def validate(self, headers, body):
         """
@@ -82,17 +81,3 @@ class HttpValidator:
         logger.info(f"validator and HTTPServer stopped")
         self.httpd.shutdown()
         self.thread.join()
-
-
-# if __name__ == "__main__":
-#     validator = HttpValidator("http://localhost:3333")
-
-#     import requests
-#     requests.post("http://localhost:3333",
-#                   headers={"X-Token": "abc"},
-#                   json={"id": 1})
-
-#     print(validator.validate(
-#         headers={"X-Token": "abc"},
-#         body={"id": 1}
-#     ))
