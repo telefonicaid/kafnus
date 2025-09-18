@@ -41,7 +41,23 @@ function createConsumerAgent(logger, { groupId, topic, onData }) {
                 logger.info(`ConsumerAgent ready — topic=${topic} group=${configKafka['group.id']}`);
                 resolve(consumer);
             })
-            .on('data', onData)
+            .on('data', (message) => {
+                const normalizedHeaders = {};
+                if (message.headers) {
+                    for (const [key, value] of Object.entries(message.headers)) {
+                        normalizedHeaders[key] = value?.toString();
+                    }
+                }
+                // Adapt librdkafka message → our expected format
+                onData({
+                    key: message.key,
+                    value: message.value,
+                    headers: message.normalizedHeaders,   // needed for routing
+                    topic: message.topic,
+                    partition: message.partition,
+                    offset: message.offset
+                });
+            })
             .on('event.error', (err) => {
                 logger.error(`Event error on topic ${topic}:`, err);
             })

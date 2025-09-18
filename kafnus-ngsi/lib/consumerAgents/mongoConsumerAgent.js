@@ -32,7 +32,7 @@ const { messagesProcessed, processingTime } = require('../utils/metrics');
 
 async function startMongoConsumerAgent(logger) {
     const topic = 'raw_mongo';
-    const outputTopic = 'tests_mongo';
+    const outputTopic = 'test_mongo';
     const groupId = /* process.env.GROUP_ID || */ 'ngsi-processor-mongo';
 
     const producer = await createProducer(logger);
@@ -40,7 +40,7 @@ async function startMongoConsumerAgent(logger) {
     const consumer = await createConsumerAgent(logger, {
         groupId,
         topic,
-        onData: ({ key, value }) => {
+        onData: ({ key, value, headers }) => {
             const start = Date.now();
             try {
                 const rawValue = value ? value.toString() : null;
@@ -51,9 +51,10 @@ async function startMongoConsumerAgent(logger) {
 
                 const message = JSON.parse(rawValue);
 
-                const headers = message.headers || {};
-                const fiwareService = headers['fiware-service'] || 'default';
-                const servicePath = headers['fiware-servicepath'] || '/';
+                logger.info(`[mongo] headers=${JSON.stringify(headers)}`);
+                // Read headers for routing
+                const fiwareService = headers?.['Fiware-Service']?.toString() || 'default';
+                const servicePath = headers?.['Fiware-Servicepath']?.toString() || '/';
 
                 // Encode database and collection
                 const mongoDb = `sth_${encodeMongo(fiwareService)}`;
