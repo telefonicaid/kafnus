@@ -27,7 +27,6 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from config import logger
 import json
-import time
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -52,7 +51,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 class HttpValidator:
     def __init__(self, url, expected_path="/"):
         parsed = urlparse(url)
-        self.host = parsed.hostname or "localhost"
+        self.host = parsed.hostname or "0.0.0.0"
         self.port = parsed.port or 3333
         self.expected_path = expected_path
         self.requests = []
@@ -72,11 +71,8 @@ class HttpValidator:
         """
         headers = headers or {}
         body = body or {}
-        time.sleep(30)
-        logger.debug(f"validate body {body}")
         for req in self.requests:
             reqbody = req["body"]
-            logger.debug(f"validate reqbody {reqbody}")
             if reqbody == body:
                 return True
 

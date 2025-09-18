@@ -67,7 +67,6 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
         for request_data in expected_data:
             url = request_data["url"]
             validator = HttpValidator(url)
-        time.sleep(5)
     else:
         logger.info("1. No setup SQL/HTTP provided for this scenario.")
 
@@ -85,7 +84,7 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
         expected_data = load_scenario(expected_json, as_expected=True)
         validator = PostgisValidator(DEFAULT_DB_CONFIG)
     elif scenario_type == "http":
-        time.sleep(5)
+        time.sleep(10)
         None
     else:
         logger.info("3. No setup SQL/HTTP validator for this scenario.")
