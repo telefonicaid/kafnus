@@ -498,7 +498,7 @@ class ServiceOperations:
         - generated_data: List of OrionRequestData objects containing the test scenario data.
         """
         self.multi_service_container = multi_service_container
-        self.topics_raw = ["raw_historic", "raw_lastdata", "raw_mutable", "raw_sgtr"]
+        self.topics_raw = ["raw_historic", "raw_lastdata", "raw_mutable", "raw_mongo", "raw_sgtr"]
         self.generators = generated_data
 
     def orion_set_up(self):

@@ -1,0 +1,48 @@
+{
+  "name": "mongo_test_case",
+  "fiware-service": "test",
+  "fiware-servicepath": "/mongo",
+  "subscriptions": {
+    "historic": {
+      "description": "Device:HISTORIC:mongo:historic",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Device"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:9092",
+          "topic": "raw_mongo"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "Device:001",
+      "type": "Device",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T11:00:00Z"
+      },
+      "temperature": {
+        "value": 25.3,
+        "type": "Float"
+      }
+    }
+  ]
+}

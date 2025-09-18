@@ -25,6 +25,7 @@
 import pytest
 from utils.scenario_loader import load_scenario
 from utils.postgis_validator import PostgisValidator
+from utils.mongo_validator import MongoValidator
 from utils.http_validator import HttpValidator
 from utils.sql_runner import execute_sql_file
 from config import logger
@@ -77,8 +78,7 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
     service_operations = ServiceOperations(multiservice_stack, [orion_request])
     service_operations.orion_set_up()
 
-    # Step 3: Validate result in PostGIS / HTTP
-
+    # Step 3: Validate result in PostGIS / Mongo / HTTP
     if scenario_type == "pq":
         logger.info(f"3. Validating results against expected: {expected_json.name}")
         expected_data = load_scenario(expected_json, as_expected=True)
@@ -115,6 +115,17 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
                 else:
                     logger.debug(f"✅ Table {table} validated successfully (forbidden rows absent)")
 
+    if scenario_type == "mongo":
+        expected_docs = load_scenario(expected_json, as_expected=True)
+        validator = MongoValidator()
+        
+        for coll_data in expected_docs:
+            coll = coll_data["collection"]
+            if "documents" in coll_data:
+                assert validator.validate(coll, coll_data["documents"])
+            if "absent" in coll_data:
+                assert validator.validate_absent(coll, coll_data["absent"])
+    
     if scenario_type == "http":
         for request_data in expected_data:
             headers = request_data["headers"]

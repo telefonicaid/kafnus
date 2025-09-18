@@ -1,0 +1,15 @@
+[
+  {
+    "collection": "test_collection",
+    "documents": [
+      {
+        "id": "Device:001",
+        "type": "Device",
+        "temperature": 25.3
+      }
+    ],
+    "absent": [
+      { "id": "Device:999" }
+    ]
+  }
+]
