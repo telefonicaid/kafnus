@@ -29,7 +29,7 @@ from utils.http_validator import HttpValidator
 from utils.sql_runner import execute_sql_file
 from config import logger
 from utils.scenario_loader import discover_scenarios, load_description
-
+import time
 from config import DEFAULT_DB_CONFIG
 
 @pytest.mark.parametrize("scenario_name, scenario_type, input_json, expected_json, setup", discover_scenarios())
@@ -48,6 +48,8 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
     - multiservice_stack: Pytest fixture providing connection info to deployed services.
     """
     logger.info(f"🧪 Running scenario: {scenario_name}")
+    validator = None
+    expected_data = None
 
     # Step 0: Load scenario description if available
     scenario_dir = input_json.parent
@@ -59,8 +61,13 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
     if scenario_type == "pq" and setup:
         logger.info(f"1. Executing setup SQL script: {setup.name}")
         execute_sql_file(setup, db_config=DEFAULT_DB_CONFIG)
-    elif scenario_type == "http" and setup:
-        logger.info(f"1. Executing setup HTTP script: {setup.name}")
+    elif scenario_type == "http":
+        logger.info(f"3. Loading validator HTTP for expected: {expected_json.name}")
+        expected_data = load_scenario(expected_json, as_expected=True)
+        for request_data in expected_data:
+            url = request_data["url"]
+            validator = HttpValidator(url)
+        time.sleep(5)
     else:
         logger.info("1. No setup SQL/HTTP provided for this scenario.")
 
@@ -78,8 +85,8 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
         expected_data = load_scenario(expected_json, as_expected=True)
         validator = PostgisValidator(DEFAULT_DB_CONFIG)
     elif scenario_type == "http":
-        logger.info(f"3. Validating results against expected: {expected_json.name}")
-        expected_data = load_scenario(expected_json, as_expected=True)
+        time.sleep(5)
+        None
     else:
         logger.info("3. No setup SQL/HTTP validator for this scenario.")
 
@@ -111,10 +118,8 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
 
     if scenario_type == "http":
         for request_data in expected_data:
-            url = request_data["url"]
             headers = request_data["headers"]
             body = request_data["body"]
-            validator = HttpValidator(url)
             result = validator.validate(headers, body)
             if result is not True:
                 logger.error(f"❌ Validation failed in request: {request_data}")

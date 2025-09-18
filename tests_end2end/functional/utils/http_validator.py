@@ -27,16 +27,17 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from config import logger
 import json
+import time
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
+        logger.debug(f"do_POST")
         content_length = int(self.headers.get("Content-Length", 0))
         body_bytes = self.rfile.read(content_length)
         try:
             body = json.loads(body_bytes.decode("utf-8"))
         except Exception:
             body = body_bytes.decode("utf-8")
-        logger.debug(f"do_POST {body}")
         self.server.requests.append({
             "path": self.path,
             "headers": dict(self.headers),
@@ -52,14 +53,15 @@ class HttpValidator:
     def __init__(self, url, expected_path="/"):
         parsed = urlparse(url)
         self.host = parsed.hostname or "localhost"
-        self.port = parsed.port or 80
+        self.port = parsed.port or 3333
         self.expected_path = expected_path
         self.requests = []
-        logger.debug(f"HTTPServer {self.host} and {self.port}")
         self.httpd = HTTPServer((self.host, self.port), RequestHandler)
         self.httpd.requests = self.requests
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self.thread.start()
+        logger.info(f"HTTPServer {self.host} and {self.port} started")
+        None
 
     def validate(self, headers, body):
         """
@@ -70,16 +72,31 @@ class HttpValidator:
         """
         headers = headers or {}
         body = body or {}
+        time.sleep(30)
         logger.debug(f"validate body {body}")
         for req in self.requests:
-            if req["body"] == body:
+            reqbody = req["body"]
+            logger.debug(f"validate reqbody {reqbody}")
+            if reqbody == body:
                 return True
 
         return False
 
     def stop(self):
-        """Detiene el servidor"""
+        logger.info(f"validator and HTTPServer stopped")
         self.httpd.shutdown()
         self.thread.join()
 
 
+# if __name__ == "__main__":
+#     validator = HttpValidator("http://localhost:3333")
+
+#     import requests
+#     requests.post("http://localhost:3333",
+#                   headers={"X-Token": "abc"},
+#                   json={"id": 1})
+
+#     print(validator.validate(
+#         headers={"X-Token": "abc"},
+#         body={"id": 1}
+#     ))
