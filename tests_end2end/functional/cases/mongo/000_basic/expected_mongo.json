@@ -3,9 +3,10 @@
     "collection": "sth_x002fmongo",
     "documents": [
       {
-        "id": "Device:001",
-        "type": "Device",
-        "temperature": 25.3
+        "entityId": "Device:001",
+        "entityType": "Device",
+        "temperature": 25.3,
+        "TimeInstant": "2025-06-26T11:00:00.000Z"
       }
     ],
     "absent": [

@@ -97,7 +97,7 @@ def load_scenario(json_path, as_expected=False):
         data = json.load(f)
 
     if as_expected:
-        logger.debug("📦 Loading as expected PostGIS result")
+        logger.debug("📦 Loading as expected result")
         return data if isinstance(data, list) else [data]
     else:
         logger.debug(f"🛰️ Loading as Orion scenario: {data.get('name')}")
