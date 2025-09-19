@@ -1,0 +1,1 @@
+Minimal test case to verify case when graphql response 200 with errors.

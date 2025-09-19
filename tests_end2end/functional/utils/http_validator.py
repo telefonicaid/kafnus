@@ -29,6 +29,9 @@ from config import logger
 import json
 
 class RequestHandler(BaseHTTPRequestHandler):
+    response_code = 200
+    response_content = {"status": "OK"}
+
     def do_POST(self):
         logger.debug(f"do_POST")
         content_length = int(self.headers.get("Content-Length", 0))
@@ -42,20 +45,30 @@ class RequestHandler(BaseHTTPRequestHandler):
             "headers": dict(self.headers),
             "body": body
         })
-        
-        self.send_response(200)
+        response_body = json.dumps(self.response_content).encode("utf-8")
+        self.send_response(self.response_code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(response_body)))
         self.end_headers()
-        self.wfile.write(b"OK")
+        self.wfile.write(response_body)
 
 
 class HttpValidator:
-    def __init__(self, url, expected_path="/"):
+    def __init__(self, url, response_code=200, response_content=None):
         parsed = urlparse(url)
         self.host = parsed.hostname or "0.0.0.0"
         self.port = parsed.port or 3333
-        self.expected_path = expected_path
         self.requests = []
-        self.httpd = HTTPServer((self.host, self.port), RequestHandler)
+
+        if response_content is None:
+            response_content = {"status": "OK"}
+
+        handler_class = type(
+            "CustomRequestHandler",
+            (RequestHandler,),
+            {"response_code": response_code, "response_content": response_content}
+        )
+        self.httpd = HTTPServer((self.host, self.port), handler_class)
         self.httpd.requests = self.requests
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self.thread.start()
@@ -70,11 +83,12 @@ class HttpValidator:
         """
         headers = headers or {}
         body = body or {}
+        logger.debug(f"validator body {body}")
         for req in self.requests:
             reqbody = req["body"]
+            logger.debug(f"validator reqbody {reqbody}")
             if reqbody == body:
                 return True
-
         return False
 
     def stop(self):
