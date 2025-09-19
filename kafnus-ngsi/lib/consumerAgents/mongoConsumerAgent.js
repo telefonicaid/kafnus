@@ -79,10 +79,7 @@ async function startMongoConsumerAgent(logger) {
                         }
                     }
 
-                    logger.info(`[mongo] topic: ${topic}`);
-                    logger.info(`[mongo] database: ${mongoDb}`);
-                    logger.info(`[mongo] collection: ${mongoCollection}`);
-                    logger.info(`[mongo] doc: ${JSON.stringify(doc)}`);
+                    logger.info(`[mongo] topic=${topic} | database=${mongoDb} | collection=${mongoCollection} | doc=${JSON.stringify(doc)}`);
 
                     // Send to outputTopic
                     producer.produce(
