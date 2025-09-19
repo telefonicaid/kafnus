@@ -1,1 +1,1 @@
-Minimal test case to verify full integration. Ensures that the http flows is working correctly without errors.
+Minimal test case to verify case when graphql response 200 with errors.
