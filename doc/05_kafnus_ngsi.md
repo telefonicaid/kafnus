@@ -1,4 +1,3 @@
-
 # ⚙️ Kafnus NGSI Stream Processor (Node.js)
 
 This document explains the role of the Kafnus NGSI application in Kafnus: how it transforms NGSIv2 notifications from Kafka into structured messages ready to be persisted via Kafnus Connect.
@@ -7,19 +6,19 @@ This document explains the role of the Kafnus NGSI application in Kafnus: how it
 
 ## 🧠 Overview
 
-Kafnus NGSI (Node.js) is a Kafka stream processor that:
+Kafnus NGSI (Node.js) is a **Kafka stream processor** that:
 
 - Decodes and processes NGSIv2 notifications.
-- Adds metadata like `recvtime`.
-- Transforms geo attributes into PostGIS-compatible WKB.
-- Builds Kafnus Connect-compatible records with key/schema/payload.
-- Sets headers like `target_table` to control downstream routing via SMT.
+- Adds metadata like `recvTime`.
+- Converts geo attributes (`geo:*`) to **PostGIS-compatible WKB**.
+- Builds messages compatible with **Kafnus Connect**.
+- Publishes to **dynamic Kafka topics** using headers and entity metadata.
 
 ---
 
 ## 🔧 Configuration
 
-### Main entry point
+### Main Entry Point
 
 - The main entry point is `kafnus-ngsi/index.js`.
 - Broker: `kafka:9092`
@@ -56,35 +55,38 @@ time=2025-09-03T11:38:21.432Z | lvl=INFO | corr=n/a | trans=n/a | op=n/a | ver=0
 
 ## 📥 Topics Consumed
 
-- `raw_historic`
-- `raw_lastdata`
-- `raw_mutable`
-- `raw_errors`
-- `raw_mongo`
-
-These are populated with NGSIv2 notifications from CB.
+| Source Type | Table Name         | Consumer Agent              |
+|-------------|------------------|----------------------------|
+| Historic (PostGIS) | `raw_historic`     | `historicConsumerAgent.js` |
+| Lastdata (PostGIS) | `raw_lastdata`     | `lastdataConsumerAgent.js` |
+| Mutable (PostGIS)  | `raw_mutable`      | `mutableConsumerAgent.js` |
+| Errors (PostGIS)   | `raw_errors`       | `errorsConsumerAgent.js` |
+| Mongo              | `raw_mongo`        | `mongoConsumerAgent.js` |
+| HTTP               | `raw_sgtr`         | `sgtrConsumerAgent.js` |
 
 ---
 
 ## 📤 Topics Produced
 
-- `<fiware_service>` → processed historic
-- `<fiware_service>_lastdata` → processed lastdata
-- `<fiware_service>_mutable` → processed mutable
-- `<db_name>_error_log`  → DLQ-parsed errors
-- Output topic for Mongo.
-
-Topic names are dynamic, based on Kafka record headers and entity metadata.
+- `<fiware_service>` → processed historic  
+- `<fiware_service>_lastdata` → processed lastdata  
+- `<fiware_service>_mutable` → processed mutable  
+- `<db_name>_error_log` → DLQ-parsed errors  
+- Mongo output topics: `sth_<fiware_service>_<servicepath>`  
+- HTTP output topic: `test_http`  
+- Topic names are dynamic, based on Kafka record headers and entity metadata.
 
 ---
 
-## 🔄 Processing Flow
+## Postgis Agents
+
+### 🔄 Processing Flow
 
 The core function is `handleEntityCb` in `lib/utils/handleEntityCb.js`:
 
 1. Parse the input notification.
 2. Add `recvtime`.
-3. Convert `geo:*` attributes to WKB.
+3. Convert `geo:*` attributes to WKB (PostGIS only).
 4. Build Kafnus Connect schema and payload.
 5. Send to output topic.
 6. Set header: `target_table = table_name`.
@@ -106,7 +108,7 @@ async function handleEntityCb(
 
 ---
 
-## 🧬 Field Type Inference
+### 🧬 Field Type Inference
 
 The function `inferFieldType` (see `lib/utils/ngsiUtils.js`) is responsible for converting NGSIv2 attributes (including their optional `attrType`) into Kafka Connect-compatible field types and processed values.
 
@@ -116,7 +118,7 @@ This function always returns a tuple:
 function inferFieldType(name, value, attrType = null)
 ```
 
-### 🔍 Behavior by `attrType` and JS-native inference:
+#### 🔍 Behavior by `attrType` and JS-native inference:
 
 | Mechanism / Source              | Kafka Connect Type                                | Notes                                                                 |
 |---------------------------------|---------------------------------------------------|-----------------------------------------------------------------------|
@@ -128,31 +130,31 @@ function inferFieldType(name, value, attrType = null)
 | JS-native object/array          | `"string"` (JSON)                                 | Serialized to JSON string.                                            |
 | Unknown / untyped value         | `"string"`                                        | Fallback for unsupported types or nulls.                               |
 
-### ⚠️ Null handling
+#### ⚠️ Null handling
 
 - All `null` or `undefined` values are normalized to `['string', null]`.  
 - This guarantees schema compatibility in Kafka Connect.  
 - For numeric columns, constraint errors (e.g. `NOT NULL`) are raised correctly by the sink connector.
 
-### ⚠️ Simplifications
+#### ⚠️ Simplifications
 
 - Unlike earlier versions, **no attempt is made to distinguish between `int32`, `int64`, and `double`**.  
   All numbers are treated as **`double`** for consistency and simplicity.  
 - Only **`DateTime/ISO8601`** and **`geo:json`** are treated as special types.  
 - All other NGSI attributes are mapped directly to their JS-native type or serialized as strings.
 
-### ⚠️ Known Limitations
+#### ⚠️ Known Limitations
 
 - JavaScript numbers are IEEE-754 doubles. Values above ~`9e15` may lose precision, but this is acceptable since PostgreSQL sinks typically use `double`.  
 - Invalid dates or malformed JSON are logged and tryed to store as strings.  
 
 ---
 
-## 🕒 DateTime Handling
+### 🕒 DateTime Handling
 
 Special treatment is applied to datetime fields to ensure compatibility and clarity across the entire data pipeline.
 
-### ✅ `timeinstant` and `recvtime`
+#### ✅ `timeinstant` and `recvtime`
 
 The fields `timeinstant` and `recvtime` are **always sent as ISO 8601 strings**.
 
@@ -167,16 +169,13 @@ Example:
 "timeinstant": "2025-07-31T10:12:00Z"
 ```
 
-### 🧪 Other `DateTime` fields
+#### 🧪 Other `DateTime` fields
 
 For all other datetime attributes, values are converted to **epoch milliseconds** and wrapped in a Kafka Connect timestamp schema:
 
-```python
-epoch_ms = to_epoch_millis(value)
-return {
-    "type": "int64",
-    "name": "org.apache.kafka.connect.data.Timestamp"
-}, epoch_ms
+```js
+// Use Kafka Connect Timestamp logical type
+return [{ type: 'int64', name: 'org.apache.kafka.connect.data.Timestamp' }, toEpochMillis(value)];
 ```
 
 This allows the timestamp to be interpreted natively by sinks like JDBC without requiring connector configuration.
@@ -185,25 +184,25 @@ The datetime parsing logic can be found in `lib/utils/ngsiUtils.js`.
 
 ---
 
-## 🌍 Geometry Transformation
+### 🌍 Geometry Transformation
 
-Geo attributes like `geo:point`, `geo:polygon`, and `geo:json` are converted to **WKB** for PostGIS. The logic uses Shapely, GeoJSON and WKT/WKB translation. This has been implemented thanks to this [PR](https://github.com/confluentinc/kafka-connect-jdbc/pull/1048).
+Geo attributes, only inside `geo:json`, are converted to **WKB** for PostGIS. The logic uses Shapely, GeoJSON and WKT/WKB translation. This has been implemented thanks to this [PR](https://github.com/confluentinc/kafka-connect-jdbc/pull/1048).
 
 Example:
 
-```python
-def to_wkb_struct_from_wkt(wkt_str, field_name, srid=4326):
-    """
-    Converts a WKT geometry string to a Debezium-compatible WKB struct with schema and base64-encoded payload.
-    Used for sending geo attributes in Kafnus Connect format.
-    """
+```js
+function toWkbStructFromWkt(wktStr, fieldName, srid = 4326) {
+    /**
+     * Converts a WKT geometry string to a Debezium-compatible WKB struct with schema and base64-encoded payload.
+     * Used for sending geo attributes in Kafnus Connect format.
+     */
     ...
 
-def to_wkt_geometry(attr_type, attr_value):
-    """
-    Converts NGSI geo attributes (geo:point, geo:polygon, geo:json) to WKT string.
-    Supports extension for additional geo types if needed.
-    """
+function toWktGeometry(attrType, attrValue) {
+    /**
+     * Converts NGSI geo attributes (geo:point, geo:polygon, geo:json) to WKT string.
+     * Supports extension for additional geo types if needed.
+     */
     ...
 ```
 
@@ -211,16 +210,16 @@ The resulting field is base64-encoded and embedded in the Kafnus Connect payload
 
 ---
 
-## 🗝️ Kafka Message Key
+### 🗝️ Kafka Message Key
 
 Each record includes a structured key, depending on the flow:
 
-```python
-def build_kafka_key(entity: dict, key_fields: list, include_timeinstant=False):
-    """
-    Builds the Kafka message key with schema based on key_fields and optionally timeinstant.
-    This key is used for Kafnus Connect upsert mode or primary key definition.
-    """
+```js
+function buildKafkaKey(entity, keyFields, includeTimeinstant = false) {
+    /**
+     * Builds the Kafka message key with schema based on key_fields and optionally timeinstant.
+     * This key is used for Kafnus Connect upsert mode or primary key definition.
+     */
     ...
 ```
 
@@ -228,20 +227,20 @@ Useful for upsert operations in JDBC sinks (`lastdata`, `mutable`).
 
 ---
 
-## 🧠 Flows and Behaviors
+### 🧠 Flows and Behaviors
 
-### `raw_historic`
+#### `raw_historic`
 
 - All notifications are sent downstream regardless of timestamp.
 - Output topic: `<service>`
 
-### `raw_lastdata`
+#### `raw_lastdata`
 
 - Maintains a Faust Table `last_seen_timestamps` to filter old records.
 - Sends only newer TimeInstant values.
 - Output topic: `<service>_lastdata`
 
-### `raw_mutable`
+#### `raw_mutable`
 
 - Allows overwriting/updating mutable data.
 - Still under active development.
@@ -249,19 +248,17 @@ Useful for upsert operations in JDBC sinks (`lastdata`, `mutable`).
 
 ---
 
-## 🚨 DLQ Handling (`raw_errors`)
+### 🚨 DLQ Handling (`raw_errors`)
 
 Kafnus NGSI parses Kafnus Connect DLQ messages and reconstructs error logs:
 
-```python
-# Errors Agent
-@app.agent(raw_errors_topic)
-async def process_errors(stream):
-    """
-    Processes Kafnus Connect error messages from the 'raw_errors' topic.
-    Parses failed inserts or connector issues, extracts the relevant SQL error message and context,
-    and emits a structured error log message to a per-tenant error topic (e.g., 'clientname_error_log').
-    """
+```js
+async function startErrorsConsumerAgent(logger) {
+    /**
+     * Processes Kafnus Connect error messages from the 'raw_errors' topic.
+     * Parses failed inserts or connector issues, extracts the relevant SQL error message and context,
+     * and emits a structured error log message to a per-tenant error topic (e.g., 'clientname_error_log').
+     */
     ...
 ```
 
@@ -279,21 +276,32 @@ These are published to topics like `<dbname>_error_log`.
 
 ---
 
-## 🧪 Testing
+## Mongo Agent
 
-Use `tests_end2end/` and `kafnus-ngsi/tests/postgis/` to simulate notification input and verify Kafnus NGSI behavior.
+- Maps `Fiware-Service` and `Fiware-ServicePath` to database and collection names.
+- Each entity in `message.data` produces a **document**.
+- Example document structure:
 
-Producer example:
-
-```bash
-python producer.py tests/postgis/003_geometries/parking_zone_notification.json
+```json
+{
+  "entityId": "Device:001",
+  "entityType": "Device",
+  "temperature": 25.3,
+  "recvTime": "2025-09-19T09:32:11.000Z",
+  "recvTimeTs": "1758274331000",
+  "TimeInstant": "2025-06-26T11:00:00.000Z"
+}
 ```
 
-Expected Kafnus NGSI log output:
+- Output topic dynamic (`test_mongo` in dev).
+- Key optional: `{ database, collection }`.
 
-```bash
-[INFO] ✅ [_lastdata] Sent to topic 'tests_lastdata': NPO-101
-```
+---
+
+## HTTP Agent (`sgtrConsumerAgent.js`)
+
+- Consumes `raw_sgtr` and produces HTTP-compatible output (`test_http`).
+- Generates GraphQL mutations per entity using `buildMutationCreate`.
 
 ---
 

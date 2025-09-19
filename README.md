@@ -15,9 +15,10 @@ It processes NGSI notifications from the Context Broker (CB) and stores them in 
   Node.js service that transforms raw notifications into structured events. Each data flow (historic, lastdata, mutable, etc.) is handled by an independent agent.
 
 - 🔄 **Kafnus Connect**  
-  Custom image of Kafka Connect with plugins integrated. Persists processed messages to:
+  Custom image of Kafka Connect with plugins integrated. Persists processed messages to different sinks:
   - **PostGIS**, via a modified JDBC connector and custom SMT.
   - **MongoDB**, via the official MongoDB connector.
+  - **HTTP endpoints**, via a  Aiven-Open http connector for apache kafka.
 
 - 📊 **Monitoring**  
   Integrated with Prometheus and Grafana to expose metrics from Kafka, Kafnus Connect, and Kafnus NGSI.
