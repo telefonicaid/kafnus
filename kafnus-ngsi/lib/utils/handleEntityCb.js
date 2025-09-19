@@ -29,7 +29,8 @@ const {
     toWkbStructFromWkt,
     toKafnusConnectSchema,
     buildKafkaKey,
-    sanitizeTopic
+    sanitizeTopic,
+    getFiwareContext
 } = require('./ngsiUtils');
 
 function buildTargetTable(datamodel, service, servicepath, entityid, entitytype, suffix) {
@@ -45,30 +46,6 @@ function buildTargetTable(datamodel, service, servicepath, entityid, entitytype,
     } else {
         throw new Error(`Unsupported datamodel: ${datamodel}`);
     }
-}
-
-function getFiwareContext(headers, fallbackEvent) {
-    let service = null;
-    let servicepath = null;
-    if (headers && headers.length > 0) {
-        const hdict = {};
-        headers.forEach((headerObj) => {
-            const headerName = Object.keys(headerObj)[0];
-            const bufferValue = headerObj[headerName];
-            const decodedValue = Buffer.from(bufferValue);
-            hdict[headerName.toLowerCase()] = decodedValue.toString();
-        });
-        service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
-        servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
-    } else {
-        const hdrs = fallbackEvent.headers ? fallbackEvent.headers : fallbackEvent;
-        service = (hdrs['fiware-service'] ? hdrs['fiware-service'] : 'default').toLowerCase();
-        servicepath = (hdrs['fiware-servicepath'] ? hdrs['fiware-servicepath'] : '/').toLowerCase();
-    }
-    if (!servicepath.startsWith('/')) {
-        servicepath = '/' + servicepath;
-    }
-    return { service, servicepath };
 }
 
 async function handleEntityCb(

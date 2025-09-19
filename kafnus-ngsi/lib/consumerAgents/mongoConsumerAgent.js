@@ -26,7 +26,7 @@
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
-const { encodeMongo } = require('../utils/ngsiUtils');
+const { getFiwareContext, encodeMongo } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/metrics');
 
@@ -51,16 +51,15 @@ async function startMongoConsumerAgent(logger) {
 
                 const message = JSON.parse(rawValue);
 
-                logger.info(`[mongo] headers=${JSON.stringify(headers)}`);
-                // Read headers for routing
-                const fiwareService = headers?.['Fiware-Service']?.toString() || 'default';
-                const servicePath = headers?.['Fiware-Servicepath']?.toString() || '/';
+                // Extract Fiware-Service and Fiware-ServicePath from headers (for routing)
+                const { service: fiwareService, servicepath: servicePath } =
+                    getFiwareContext(headers, message);
 
                 // Encode database and collection
                 const mongoDb = `sth_${encodeMongo(fiwareService)}`;
                 const mongoCollection = `sth_${encodeMongo(servicePath)}`;
 
-                const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
+                const timestamp = Math.floor(Date.now() / 1000);
                 const recvTimeTs = String(timestamp * 1000);
                 const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
 
