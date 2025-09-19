@@ -119,12 +119,15 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
         expected_docs = load_scenario(expected_json, as_expected=True)
         validator = MongoValidator()
         
-        for coll_data in expected_docs:
-            coll = coll_data["collection"]
-            if "documents" in coll_data:
-                assert validator.validate(coll, coll_data["documents"])
-            if "absent" in coll_data:
-                assert validator.validate_absent(coll, coll_data["absent"])
+        try:
+            for coll_data in expected_docs:
+                coll = coll_data["collection"]
+                if "documents" in coll_data:
+                    assert validator.validate(coll, coll_data["documents"])
+                if "absent" in coll_data:
+                    assert validator.validate_absent(coll, coll_data["absent"])
+        finally:
+            validator.close()
     
     if scenario_type == "http":
         for request_data in expected_data:
