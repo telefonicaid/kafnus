@@ -1,0 +1,232 @@
+{
+    "name": "hotel_minimun_tourism_test",
+    "fiware-service": "test",
+    "fiware-servicepath": "/tourism",
+    "subscriptions": {
+        "sgtr": {
+            "description": "kafka sgtr tourism hotel create",
+            "status": "active",
+            "subject": {
+                "entities": [
+                    {
+                        "idPattern": ".*",
+                        "type": "Hotel"
+                    }
+                ],
+                "condition": {
+                    "attrs": [
+                        "TimeInstant"
+                    ]
+                }
+            },
+            "notification": {
+                "kafkaCustom": {
+                    "url": "kafka://kafka:9092",
+                    "topic": "raw_sgtr",
+                    "json": {
+                        "data": [
+                            {
+                                "type": "${type}",
+                                "externalId": "${id}",
+                                "stars": 4,
+                                "published": true,
+                                "label": {
+                                    "value": "${label.value}",
+                                    "lang": "${label.lang}"
+                                },
+                                "hotelSpecialty": {
+                                    "uri": "${hotelSpecialty.uri}"
+                                },
+                                "hasPriceClass": {
+                                    "uri": "${hasPriceClass.uri}"
+                                },
+                                "offersMealPlan": [
+                                    {
+                                        "uri": "${offersMealPlan[0].uri}"
+                                    },
+                                    {
+                                        "uri": "${offersMealPlan[1].uri}"
+                                    },
+                                    {
+                                        "uri": "${offersMealPlan[2].uri}"
+                                    },
+                                    {
+                                        "uri": "${offersMealPlan[3].uri}"
+                                    }
+                                ],
+                                "offersAdditionalAccommodationService": [
+                                    {
+                                        "uri": "${offersAdditionalAccommodationService[0].uri}"
+                                    },
+                                    {
+                                        "uri": "${offersAdditionalAccommodationService[1].uri}"
+                                    }
+                                ],
+                                "hasDescription": {
+                                    "object": {
+                                        "shortDescription": "${hasDescription.object.shortDescription}",
+                                        "longDescription": "${hasDescription.object.longDescription}",
+                                        "keyword": []
+                                    }
+                                },
+                                "offersRoom": {
+                                    "object": {
+                                        "numberOfRooms": "${offersRoom.object.numberOfRooms}",
+                                        "maximumCapacity": "${offersRoom.object.maximumCapacity}"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "attrs": [
+                    "TimeInstant",
+                    "occupancyAccommodationUnitsRatio",
+                    "occupancyBedsRatio",
+                    "weekendOccupancyAccommodationUnitsRatio",
+                    "weekendOccupancyBedsRatio",
+                    "highSeasonOccupancyAccommodationUnitsRatio",
+                    "highSeasonOccupancyBedsRatio",
+                    "lowSeasonOccupancyAccommodationUnitsRatio",
+                    "lowSeasonOccupancyBedsRatio",
+                    "numberOfAccommodationUnits",
+                    "numberOfBeds",
+                    "segitturClass",
+                    "stars",
+                    "published",
+                    "label",
+                    "hotelSpecialty",
+                    "hasPriceClass",
+                    "offersMealPlan",
+                    "offersAdditionalAccommodationService",
+                    "hasDescription",
+                    "offersRoom"
+                ]
+            }
+        }
+    },
+    "updateEntities": [
+        {
+            "id": "Hotel:xxx",
+            "type": "Hotel",
+            "TimeInstant": {
+                "type": "DateTime",
+                "value": "2025-09-13T12:12:00.000Z",
+                "metadata": {}
+            },
+            "hasDescription": {
+                "type": "json",
+                "value": {
+                    "object": {
+                        "shortDescription": "Un hotel moderno con todos los servicios para negocios y ocio",
+                        "longDescription": "blablabla ",
+                        "keyword": []
+                    }
+                },
+                "metadata": {}
+            },
+            "hasPriceClass": {
+                "type": "json",
+                "value": {
+                    "uri": "https://ontologia.segittur.es/turismo/kos/priceclass/HighRange"
+                },
+                "metadata": {}
+            },
+            "highSeasonOccupancyAccommodationUnitsRatio": {
+                "type": "Number",
+                "value": 0.5,
+                "metadata": {}
+            },
+            "highSeasonOccupancyBedsRatio": {
+                "type": "Number",
+                "value": 0.55,
+                "metadata": {}
+            },
+            "hotelSpecialty": {
+                "type": "json",
+                "value": {
+                    "uri": "https://ontologia.segittur.es/turismo/kos/hotelspecialty/BusinessHotel"
+                },
+                "metadata": {}
+            },
+            "label": {
+                "type": "json",
+                "value": {
+                    "value": "Hotel 5bb",
+                    "lang": "es"
+                },
+                "metadata": {}
+            },
+            "lowSeasonOccupancyAccommodationUnitsRatio": {
+                "type": "Number",
+                "value": 0.3,
+                "metadata": {}
+            },
+            "lowSeasonOccupancyBedsRatio": {
+                "type": "Number",
+                "value": 0.2,
+                "metadata": {}
+            },
+            "occupancyAccommodationUnitsRatio": {
+                "type": "Number",
+                "value": 0.25,
+                "metadata": {}
+            },
+            "occupancyBedsRatio": {
+                "type": "Number",
+                "value": 0.36,
+                "metadata": {}
+            },
+            "offersAdditionalAccommodationService": {
+                "type": "json",
+                "value": [
+                    {
+                        "uri": "https://ontologia.segittur.es/turismo/kos/accommodationservice/Restaurant"
+                    },
+                    {
+                        "uri": "https://ontologia.segittur.es/turismo/kos/accommodationservice/Pool"
+                    }
+                ],
+                "metadata": {}
+            },
+            "offersMealPlan": {
+                "type": "json",
+                "value": [
+                    {
+                        "uri": "https://ontologia.segittur.es/turismo/kos/mealplan/AccommodationOnly"
+                    },
+                    {
+                        "uri": "https://ontologia.segittur.es/turismo/kos/mealplan/Breakfast"
+                    },
+                    {
+                        "uri": "https://ontologia.segittur.es/turismo/kos/mealplan/HalfBoard"
+                    },
+                    {
+                        "uri": "https://ontologia.segittur.es/turismo/kos/mealplan/FullBoard"
+                    }
+                ],
+                "metadata": {}
+            },
+            "offersRoom": {
+                "type": "json",
+                "value": {
+                    "object": {
+                        "numberOfRooms": 8,
+                        "maximumCapacity": 2
+                    }
+                },
+                "metadata": {}
+            },
+            "weekendOccupancyAccommodationUnitsRatio": {
+                "type": "Number",
+                "value": 0.8,
+                "metadata": {}
+            },
+            "weekendOccupancyBedsRatio": {
+                "type": "Number",
+                "value": 0.44,
+                "metadata": {}
+            }
+        }
+    ]
+}
