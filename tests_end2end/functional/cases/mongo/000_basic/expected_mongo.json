@@ -1,0 +1,16 @@
+[
+  {
+    "collection": "sth_x002fmongo",
+    "documents": [
+      {
+        "entityId": "Device:001",
+        "entityType": "Device",
+        "temperature": 25.3,
+        "TimeInstant": "2025-06-26T11:00:00.000Z"
+      }
+    ],
+    "absent": [
+      { "id": "Device:999" }
+    ]
+  }
+]
