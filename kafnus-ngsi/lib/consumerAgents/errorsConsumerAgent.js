@@ -30,6 +30,11 @@ const { formatDatetimeIso } = require('../utils/ngsiUtils');
 const { messagesProcessed, processingTime } = require('../utils/metrics');
 
 async function startErrorsConsumerAgent(logger) {
+    /**
+     * Processes Kafnus Connect error messages from the 'raw_errors' topic.
+     * Parses failed inserts or connector issues, extracts the relevant SQL error message and context,
+     * and emits a structured error log message to a per-tenant error topic (e.g., 'clientname_error_log').
+     */
     const topic = 'raw_errors';
     const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-errors';
 

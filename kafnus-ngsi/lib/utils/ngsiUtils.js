@@ -36,6 +36,10 @@ const logger = theLogger.getBasicLogger();
 // WKT/WKB conversion
 // -----------------
 function toWkbStructFromWkt(wktStr, fieldName, srid = 4326) {
+    /**
+     * Converts a WKT geometry string to a Debezium-compatible WKB struct with schema and base64-encoded payload.
+     * Used for sending geo attributes in Kafnus Connect format.
+     */
     try {
         const geom = Geometry.parse(wktStr);
         const wkb = geom.toWkb();
@@ -64,6 +68,10 @@ function toWkbStructFromWkt(wktStr, fieldName, srid = 4326) {
 }
 
 function toWktGeometry(attrType, attrValue) {
+    /**
+     * Converts NGSI geo attributes (geo:point, geo:polygon, geo:json) to WKT string.
+     * Supports extension for additional geo types if needed.
+     */
     try {
         if (attrType === 'geo:point') {
             if (typeof attrValue === 'string') {
@@ -228,6 +236,10 @@ function toKafnusConnectSchema(entity, schemaOverrides = {}, attributeTypes = {}
 }
 
 function buildKafkaKey(entity, keyFields, includeTimeinstant = false) {
+    /**
+     * Builds the Kafka message key with schema based on key_fields and optionally timeinstant.
+     * This key is used for Kafnus Connect upsert mode or primary key definition.
+     */
     const fields = [];
     const payload = {};
     keyFields.forEach((k) => {
