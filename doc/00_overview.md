@@ -16,12 +16,13 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 ### 🧠 Processing Layer
 - **Kafnus NGSI Stream Processor**  
-  A Node.js-based service that enriches and transforms raw notifications into structured messages. Each flow (e.g., `historic`, `lastdata`, `mutable`) is managed by a dedicated Kafnus NGSI agent.
+  A Node.js-based service that enriches and transforms raw notifications into structured messages. Each flow (e.g., `historic`, `lastdata`, `mutable`, `mongo`...) is managed by a dedicated Kafnus NGSI agent.
 
 ### 💾 Persistence Layer
-- **Kafnus Connect (JDBC + MongoDB)**  
+- **Kafnus Connect (JDBC + MongoDB + HTTP)**  
   - Custom SMT and patched JDBC connector to handle PostGIS geometries.
   - MongoDB connector for storing JSON documents.
+  - Enables notification to external HTTP endpoints for integration with third-party services.
 
 ---
 
@@ -31,7 +32,7 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 1. **CB → Kafka**  
 2. **Kafka raw topics → Kafnus NGSI agents**  
 3. **Kafnus NGSI → Kafka processed topics**  
-4. **Kafka → Kafnus Connect → PostGIS / MongoDB**
+4. **Kafka → Kafnus Connect → PostGIS / MongoDB / HTTP**
 
 ![Simplified Schema](/doc/images/SimplifiedSchema.png)
 
@@ -49,6 +50,7 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 - Functional end-to-end tests using Python + Pytest + Testcontainers.
 - Each scenario defines:
+  - Optional description
   - Input notifications
   - Optional DB setup
   - Expected persisted output
@@ -57,8 +59,6 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 ## 🛣️ Future Plans
 
-- Advance Mongo's functionality.
-- Evolve HTTP agent.
 - Update tests if the testcontainer library adds direct support for Docker Compose V2
 
 ---
@@ -71,7 +71,8 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 - `tests_end2end/`: E2E test cases and framework  
 - `sinks/`: Example connectors used for tests  
 - `kafnus-connect/`: Builds image with needed plugins  
-  - `src/header-router/`: Custom Single Message Transform (SMT) implementation  
+  - `src/header-router/`: Custom Single Message Transform (SMT) implementation
+  - `Dockerfile` to build image with dependencies
 
 ## 🧭 Navigation
 

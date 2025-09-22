@@ -125,6 +125,25 @@ curl -X PUT -H "Content-Type: application/json" \
 curl -X DELETE http://localhost:8083/connectors/<name>
 ```
 
+### 4.4 Multi-Tenant / Multi-Client Usage
+
+The provided sink configurations (`pg-sink-historic.json`, `pg-sink-lastdata.json`, `pg-sink-mutable.json`,  
+`pg-sink-errors.json`, `mdb-sink.json` and `http-sink.json`) as well as the example test scenarios under  
+`/tests_end2end/functional/cases` are **designed to work with a single tenant (fiware-service) named `test`**.
+
+If you want to onboard additional clients (e.g. `smartcity1`, `smartcity2`), you need to create a **separate set of sinks** for each tenant. This usually involves:
+
+- Copying the base sink configuration JSON files
+- Replacing the `config.topic` prefixes (each tenant uses isolated Kafka topics)
+- Replacing the `config.table.name.format` prefixes (so each tenant persists to its own DB schemas/tables)
+- Reviewing DB connection options if different PostGIS/Mongo instances are used (check for `config.connection.url`)
+
+Once adapted, register the new connector set using the same process (`curl -X POST ...`).
+
+> 💡 Example: You would typically have one set of sinks (`pg-sink-historic`, `pg-sink-lastdata`, `pg-sink-mutable`,  
+> `pg-sink-errors`...) for **`smartcity1`**, and another equivalent set for **`smartcity2`**.  
+> Each set handles only its own tenant’s traffic.
+
 ---
 
 ## 📊 5. Topic & Data Verification
@@ -167,7 +186,7 @@ SELECT * FROM test.simple_sensor LIMIT 5;
 ## ⚠️ 6. Common Issues & Fixes
 
 - **Connector won't start**  
-  Check plugin path and JARs under `kafnus-connect/plugins/`.  
+  Check plugins are available in `kafnus-connect`.  
 - **Port conflicts**  
   Ensure no other service is using ports 9092, 8083, 1026, 1883, 5432, 27017.  
 - **Network not found**  
@@ -180,15 +199,9 @@ SELECT * FROM test.simple_sensor LIMIT 5;
 
 ---
 
-## 💾 7. Backup & Cleanup
-
-Still in progress...
-
----
-
 ## 🧭 Navigation
 
-- [⬅️ Previous: Architecture](/02_architecture.md)
+- [⬅️ Previous: Architecture](/doc//02_architecture.md)
 - [🏠 Main index](../README.md#documentation)
-- [➡️ Next: Docker Details](/04_docker.md)
+- [➡️ Next: Docker Details](/doc//04_docker.md)
 

@@ -22,13 +22,7 @@ This image can be build the first time you run from `/kafnus-connect` directory,
 docker build --no-cache -t kafnus-connect .
 ```
 
-You can still inspect or modify the plugin structure by looking inside:
-
-```
-kafnus-connect/plugins/
-```
-
-This directory is automatically populated during the image build, based on the logic in the [Dockerfile](/kafnus-connect/Dockerfile).
+This is automatically populated during the image build, based on the logic in the [Dockerfile](/kafnus-connect/Dockerfile).
 
 ---
 
@@ -210,7 +204,7 @@ Look for:
 
 - `io.confluent.connect.jdbc.JdbcSinkConnector`
 - `com.mongodb.kafka.connect.MongoSinkConnector`
-- `io.confluent.connect.http.HttpSinkConnector`
+- `io.aiven.kafka.connect.http.HttpSinkConnector`
 
 ---
 
@@ -239,7 +233,7 @@ However, note that the registration is not kept if docker containers are stopped
 
 ---
 
-## 7. 🧪 Quick Manual Test (MQTT → PostGIS)
+## 7. 🧪 Quick Manual Test
 
 You must have:
 

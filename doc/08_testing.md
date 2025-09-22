@@ -28,12 +28,16 @@ Tests are located in:
 ```plaintext
 tests_end2end/functional/
 ├── cases/
-│   ├── 000A_simple/
-│   │   ├── input.json
-│   │   ├── expected_pg.json
-│   │   ├── description.txt
-│   │   └── setup.sql
-│   ├── ...
+│   ├── http/
+│   ├── mongo/
+│   └── postgis/
+│       ├── 000_basic/
+│       │   ├── 001_simple/
+│       │   │   ├── description.txt
+│       │   │   ├── input.json
+│       │   │   ├── expected_pg.json
+│       │   │   └── setup.sql
+│       │   └── ...
 ├── test_pipeline.py
 ├── common_test.py
 ├── config.py
@@ -63,7 +67,7 @@ Each test case directory under `cases/` includes:
    - Optional `description.txt` is displayed
    - Optional `setup.sql` is applied to create schemas/tables
    - `input.json` is parsed to send CB subscriptions and entity updates
-   - The resulting DB state is validated against `expected_pg.json`
+   - The resulting DB state is validated against `expected_{sink}.json`
 
 ---
 
@@ -76,6 +80,7 @@ All necessary services are deployed dynamically via Docker using the `docker-com
 - Kafnus Connect
 - Kafnus NGSI
 - PostGIS (optional, see below)
+- Mongo
 
 You don’t need to manually start any service.
 
@@ -124,6 +129,7 @@ pytest -s test_pipeline.py
 You can filter scenarios using `-k` and their directory names or tags. To run specific scenarios:
 
 ```bash
+pytest -s test_pipeline.py -k "postgis"
 pytest -s test_pipeline.py -k "000A or 000B"
 ```
 
@@ -210,7 +216,7 @@ CREATE TABLE test.simple_sensor (
 }
 ```
 
-### `expected_pg.json`
+### `expected_{sink}.json`
 ```json
 [
   {
@@ -245,13 +251,14 @@ def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multi
     
     validator = PostgisValidator(...)
     assert validator.validate(...) is True
+
+    validator = MongoValidator()
+    assert validator.validate(...) is True
 ```
 
 ---
 
----
-
-## 🧪 Extended Test Coverage
+## 🧪 Copilot Extended Test Coverage
 
 The e2e test battery has been extended to cover additional real-world scenarios and edge cases:
 
