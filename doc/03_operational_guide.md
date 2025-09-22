@@ -136,7 +136,7 @@ If you want to onboard additional clients (e.g. `smartcity1`, `smartcity2`), you
 - Copying the base sink configuration JSON files
 - Replacing the `config.topic` prefixes (each tenant uses isolated Kafka topics)
 - Replacing the `config.table.name.format` prefixes (so each tenant persists to its own DB schemas/tables)
-- Reviewing DB connection options if different PostGIS/Mongo instances are used
+- Reviewing DB connection options if different PostGIS/Mongo instances are used (check for `config.connection.url`)
 
 Once adapted, register the new connector set using the same process (`curl -X POST ...`).
 
@@ -186,7 +186,7 @@ SELECT * FROM test.simple_sensor LIMIT 5;
 ## ⚠️ 6. Common Issues & Fixes
 
 - **Connector won't start**  
-  Check plugin path and JARs under `kafnus-connect/plugins/`.  
+  Check plugins are available in `kafnus-connect`.  
 - **Port conflicts**  
   Ensure no other service is using ports 9092, 8083, 1026, 1883, 5432, 27017.  
 - **Network not found**  
@@ -199,15 +199,9 @@ SELECT * FROM test.simple_sensor LIMIT 5;
 
 ---
 
-## 💾 7. Backup & Cleanup
-
-Still in progress...
-
----
-
 ## 🧭 Navigation
 
-- [⬅️ Previous: Architecture](/02_architecture.md)
+- [⬅️ Previous: Architecture](/doc//02_architecture.md)
 - [🏠 Main index](../README.md#documentation)
-- [➡️ Next: Docker Details](/04_docker.md)
+- [➡️ Next: Docker Details](/doc//04_docker.md)
 

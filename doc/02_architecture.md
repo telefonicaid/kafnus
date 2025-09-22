@@ -13,27 +13,60 @@ The system is designed to replace Cygnus in FIWARE-based environments, introduci
 3. **Persistence**
 4. **Monitoring**
 
-The system supports multiple data flows (`historic`, `lastdata`, `mutable`) and both **PostGIS** and **MongoDB** sinks.
+The system supports multiple data flows (`historic`, `lastdata`, `mutable`) and **PostGIS**, **MongoDB** and **HTTP** sinks.
 
 ---
 
-## 🔄 End-to-End Flow Description
+### 🗄️ PostGIS (JDBC) Flow
 
 1. **CB → Kafka**  
-   NGSIv2 notifications are published directly from the Context Broker to Kafka raw topics.
+   NGSIv2 notifications are published directly from the Context Broker to Kafka raw topics (`raw_historic`, `raw_lastdata`, `raw_mutable`).
 
 2. **Kafka → Kafnus NGSI**  
-   Kafnus NGSI processor consumes messages from `raw_historic`, `raw_lastdata`, and `raw_mutable`. Each flow is handled by a dedicated agent. Processing includes:
+   The NGSI processor consumes these raw topics. Each flow is handled by a dedicated agent. Processing includes:
    - Enrichment (`recvtime`)
    - Conversion of `geo:*` fields to WKB
    - Schema construction
    - Header setting for routing
 
 3. **Kafnus NGSI → Kafka**  
-   Processed events are emitted to new Kafka topics (`<service>`, `<service>_lastdata`, etc.) along with a header (`target_table`) indicating the intended DB table.
+   Processed events are emitted to tenant-specific Kafka topics (`<service>`, `<service>_lastdata`, etc.) along with a header (`target_table`) indicating the intended DB table.
 
-4. **Kafka → Kafnus Connect → DB**  
-   Kafnus Connect sink connectors (JDBC or MongoDB) persist messages into the appropriate database tables. A custom SMT (`HeaderRouter`) rewrites the topic name from the Kafka header.
+4. **Kafka → Kafnus Connect → PostGIS**  
+   Sink connectors (`JdbcSinkConnector`) persist messages into relational tables.  
+   The `HeaderRouter` SMT rewrites the topic name from the Kafka header, ensuring the event lands in the correct table
+   (`historic`, `lastdata`, `mutable`, `errors`).
+
+---
+
+### 🍃 MongoDB Flow (simpler)
+
+- Input arrives via `raw_mongo` Kafka topic.  
+- The **Mongo agent** parses the event, extracts `fiware-service` and `fiware-servicepath` from headers, and builds the **target DB/collection** (e.g. `sth_<service>.<servicepath>`).  
+- Documents are enriched with `recvTime` and `recvTimeTs`.  
+- A producer publishes the final document to the `test_mongo` topic, from where the **MongoDB sink connector** persists into the right collection.
+
+👉 Unlike JDBC, Mongo does **not** use the `HeaderRouter` SMT. Routing is embedded in the agent logic
+(`namespace.mapper` handles DB/collection mapping).
+
+---
+
+### 🌐 HTTP Flow (simpler)
+
+- Input arrives via `raw_sgtr` Kafka topic.  
+- The **HTTP agent** parses the message, extracts Fiware context, and builds a **GraphQL mutation** (or another HTTP-compatible payload) for the entity.  
+- The mutation is published to the `test_http` Kafka topic.  
+- The **HTTP sink connector** (Aiven implementation) forwards the payload to the configured external API.
+
+👉 Again, no `HeaderRouter` is involved. The logic is limited to transforming the NGSI entity into the desired HTTP
+payload before forwarding.
+
+---
+
+✅ **Summary:**  
+- **PostGIS**: Complex path (schema building, topic→table mapping, HeaderRouter).  
+- **MongoDB**: Direct mapping (headers → DB/collection).  
+- **HTTP**: Direct mapping (entity → mutation → HTTP endpoint).  
 
 ---
 
@@ -41,7 +74,7 @@ The system supports multiple data flows (`historic`, `lastdata`, `mutable`) and 
 
 ### Simplified View
 
-This image shows the core data path for a single flow:
+This image shows the core data path for a single postgis flow:
 
 ![Simplified Architecture](../doc/images/SimplifiedSchema.png)
 
@@ -67,23 +100,23 @@ Detailed diagram showing all services and flows in the PostGIS variant:
    - `raw_historic`
    - `raw_lastdata`
    - `raw_mutable`
+   - `raw_errors`
+   - `raw_mongo`
+   - `raw_sgtr`
 
 ### 🧠 Processing – Kafnus NGSI
 
 - Written in Node.js (previously Python/Faust, now deprecated)
 - Processes raw NGSIv2 notifications
-- Applies logic per flow:
-  - `historic`: all events
-  - `lastdata`: deduplicated by `TimeInstant`
-  - `mutable`: allows field overwrite
-- Sets Kafka headers like `target_table`
-- Produces to dynamic topics (`{service}[_{flow}]`)
+- Applies logic per flow
+- Produces to dynamic topics
 
 ### 🛢️ Persistence – Kafnus Connect
 
 - **JDBC Connector** (with PostGIS geometry support)
 - **MongoDB Connector**
-- **Custom SMT (`HeaderRouter`)** rewrites topic name from header
+- **HTTP Connector**
+- **Custom SMT (`HeaderRouter`)** rewrites topic name from header (used for postgis flows)
 
 Kafnus Connect configurations are defined in JSON files under `sinks/`.
 
@@ -94,7 +127,7 @@ Kafnus Connect configurations are defined in JSON files under `sinks/`.
 - Easy to add new flows by defining new Kafnus NGSI agents.
 - Flexible topic-to-table mapping via Kafka headers and SMT.
 - Kafnus Connect sink configuration is modular (JSON files).
-- MongoDB pipeline can evolve independently.
+- PostGIS, MongoDB and HTTP pipelines can evolve independently.
 
 ---
 
