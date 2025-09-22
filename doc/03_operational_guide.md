@@ -125,6 +125,25 @@ curl -X PUT -H "Content-Type: application/json" \
 curl -X DELETE http://localhost:8083/connectors/<name>
 ```
 
+### 4.4 Multi-Tenant / Multi-Client Usage
+
+The provided sink configurations (`pg-sink-historic.json`, `pg-sink-lastdata.json`, `pg-sink-mutable.json`,  
+`pg-sink-errors.json`, `mdb-sink.json` and `http-sink.json`) as well as the example test scenarios under  
+`/tests_end2end/functional/cases` are **designed to work with a single tenant (fiware-service) named `test`**.
+
+If you want to onboard additional clients (e.g. `smartcity1`, `smartcity2`), you need to create a **separate set of sinks** for each tenant. This usually involves:
+
+- Copying the base sink configuration JSON files
+- Replacing the `config.topic` prefixes (each tenant uses isolated Kafka topics)
+- Replacing the `config.table.name.format` prefixes (so each tenant persists to its own DB schemas/tables)
+- Reviewing DB connection options if different PostGIS/Mongo instances are used
+
+Once adapted, register the new connector set using the same process (`curl -X POST ...`).
+
+> 💡 Example: You would typically have one set of sinks (`pg-sink-historic`, `pg-sink-lastdata`, `pg-sink-mutable`,  
+> `pg-sink-errors`...) for **`smartcity1`**, and another equivalent set for **`smartcity2`**.  
+> Each set handles only its own tenant’s traffic.
+
 ---
 
 ## 📊 5. Topic & Data Verification
