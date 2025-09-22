@@ -27,11 +27,9 @@ This directory is **populated automatically** during the Docker build using the 
 
 ### 1. JDBC Plugin for PostGIS
 
-Path: `kafnus-connect/plugins/kafka-connect-jdbc/`
-
 Includes:
 
-- `kafka-connect-jdbc-10.7.0.jar`
+- `kafka-connect-jdbc-10.8.4.jar`
 - `postgresql-42.7.1.jar`
 
 Used in:
@@ -42,24 +40,21 @@ Used in:
 
 ### 2. MongoDB Sink Plugin
 
-Path: `kafnus-connect/plugins/mongodb/`
-
 Includes:
 
 - `mongo-kafka-connect-1.10.0-confluent.jar`
 - MongoDB drivers (`bson`, `driver-core`, `driver-sync`)
 
-> 🚧 Mongo support is experimental and may change.
+Used in:
+- `mdb-sink.json`
 
 ### 3. HTTP Sink Connector
 
-**Path:** `sinks/http-sink.json`
-
 This connector enables sending data from Kafka topics to an external HTTP endpoint. It is now part of the supported sinks in the Kafnus architecture.
 
-- **Connector class**: `io.confluent.connect.http.HttpSinkConnector`
+- **Connector class**: `io.aiven.kafka.connect.http.HttpSinkConnector`
 - **Type**: sink
-- **Version**: 1.7.0
+- **Version**: 0.9.0
 - **Example config file**: `http-sink.json`
 - **Kafka topic**: `tests_http` (configurable)
 - **HTTP endpoint**: e.g., `http://172.17.0.1:3333`
@@ -79,6 +74,15 @@ A Java-based Single Message Transform (SMT) implemented in `HeaderRouter.java`. 
 "transforms.HeaderRouter.type": "com.telefonica.HeaderRouter",
 "transforms.HeaderRouter.header.key": "target_table"
 ```
+
+### Other Detected Plugins
+ 
+ The runtime environment also includes additional connectors such as:
+ - `com.mongodb.kafka.connect.MongoSourceConnector` (1.10.0)
+ - `io.confluent.connect.jdbc.JdbcSourceConnector` (10.8.4)
+ - MirrorMaker 2 connectors (`MirrorCheckpointConnector`, `MirrorHeartbeatConnector`, `MirrorSourceConnector` – 8.0.0-ccs)
+ 
+These components are either **dependencies needed by the sink plugins** or **source connectors included with the plugin distribution**. They are **not used directly in the Kafnus architecture**.
 
 ---
 
