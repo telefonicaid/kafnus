@@ -63,7 +63,17 @@ async function startSgtrConsumerAgent(logger) {
 
                     var type = entityObject.type;
                     delete entityObject.type;
-                    var mutation = buildMutationCreate(type, entityObject);
+                    // TBD: Add suffix to uris
+
+                    var mutation;
+                    const alterationType = entityObject.alterationType.value
+                        ? entityObject.alterationType.value.toLowerCase()
+                        : entityObject.alterationType.toLowerCase();
+                    if (alterationType === 'entityupdate') {
+                        mutation = buildMutationUpdate(type, entityObject.id, entityObject);
+                    } else {
+                        mutation = buildMutationCreate(type, entityObject);
+                    }
                     logger.debug('[sgtr] mutation: \n%s', mutation);
 
                     const outHeaders = [];
