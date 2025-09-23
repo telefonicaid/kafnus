@@ -17,7 +17,10 @@
                     "attrs": [
                         "TimeInstant"
                     ]
-                }
+                },
+                "alterationTypes": [
+                    "entityCreate", "entityUpdate", "entityChange"
+                ]
             },
             "notification": {
                 "kafkaCustom": {
@@ -26,6 +29,7 @@
                     "json": {
                         "data": [
                             {
+                                "alterationType": "${alterationType}",
                                 "type": "${type}",
                                 "externalId": "${id}",
                                 "stars": 4,
@@ -107,7 +111,7 @@
     },
     "updateEntities": [
         {
-            "id": "Hotel:xxx",
+            "id": "Hotel:Minimo",
             "type": "Hotel",
             "TimeInstant": {
                 "type": "DateTime",
@@ -152,7 +156,7 @@
             "label": {
                 "type": "json",
                 "value": {
-                    "value": "Hotel 5bb",
+                    "value": "Hotel Minimo",
                     "lang": "es"
                 },
                 "metadata": {}

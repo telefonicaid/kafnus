@@ -27,6 +27,9 @@
 const theLogger = require('./logger');
 const logger = theLogger.getBasicLogger();
 
+const PREFIX_RESOURCE = 'http://datos.segittur.es/grafo/resource/';
+const PREFIX_KOS = 'https://ontologia.segittur.es/turismo/kos/';
+
 function toGraphQLValue(value) {
     if (typeof value === 'string') {
         return `"${
@@ -44,6 +47,10 @@ function toGraphQLValue(value) {
     } else {
         return String(value); // number, booleans, null
     }
+}
+
+function addPrefix(prefix, root) {
+    return prefix + root;
 }
 
 function buildMutationCreate(entityType, entityObject) {
@@ -69,14 +76,16 @@ function buildMutationCreate(entityType, entityObject) {
 
 function buildMutationUpdate(entityType, id, entityObject) {
     const objectString = toGraphQLValue(entityObject);
+    const uri = addPrefix(PREFIX_RESOURCE, id);
 
     return {
         query: `
             mutation {
                 update${entityType}(dti: "grafo",
-                    id: "${id}",
                     input: {
-                        patch: ${objectString}
+                        uri: ${uri},
+                        externalId: ${id},
+                        object: ${objectString}
                     }
                 ) {
                     uri
@@ -86,13 +95,19 @@ function buildMutationUpdate(entityType, id, entityObject) {
     };
 }
 
-function buildMutationDelete(entityType, id) {
+function buildMutationDelete(/*entityType,*/ id) {
+    const uri = addPrefix(PREFIX_RESOURCE, id);
+    // return {
+    //     query: `
+    //         mutation {
+    //             delete${entityType}(dti: "grafo", id: "${id}")
+    //         }
+    //     `
+    // };
     return {
         query: `
             mutation {
-                delete${entityType}(dti: "grafo", id: "${id}") {
-                    uri
-                }
+                deleteData(dti: "grafo", uris: ["${uri}"])
             }
         `
     };

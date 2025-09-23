@@ -9,6 +9,7 @@
         "subscriptionId": "6895adbe6eab6b403605331a",
         "data":[
             {
+                "alterationType": "entityCreate",
                 "type":"Hotel",
                 "externalId":"Hotel:xxx",
                 "stars":4,
