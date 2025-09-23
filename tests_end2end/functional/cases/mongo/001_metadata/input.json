@@ -1,5 +1,5 @@
 {
-  "name": "mongo_test_case_basic",
+  "name": "mongo_test_case_metadata",
   "fiware-service": "test",
   "fiware-servicepath": "/mongo",
   "subscriptions": {
@@ -8,26 +8,16 @@
       "status": "active",
       "subject": {
         "entities": [
-          {
-            "idPattern": ".*",
-            "type": "Device"
-          }
+          { "idPattern": ".*", "type": "Device" }
         ],
-        "condition": {
-          "attrs": [
-            "TimeInstant"
-          ]
-        }
+        "condition": { "attrs": ["temperature"] }
       },
       "notification": {
         "kafkaCustom": {
           "url": "kafka://kafka:9092",
           "topic": "raw_mongo"
         },
-        "attrs": [
-          "TimeInstant",
-          "temperature"
-        ]
+        "attrs": ["temperature"]
       }
     }
   },
@@ -35,13 +25,13 @@
     {
       "id": "Device:001",
       "type": "Device",
-      "TimeInstant": {
-        "type": "DateTime",
-        "value": "2025-06-26T11:00:00Z"
-      },
       "temperature": {
         "value": 25.3,
-        "type": "Float"
+        "type": "Float",
+        "metadata": {
+          "unit": { "type": "Text", "value": "Celsius" },
+          "accuracy": { "type": "Number", "value": 0.1 }
+        }
       }
     }
   ]

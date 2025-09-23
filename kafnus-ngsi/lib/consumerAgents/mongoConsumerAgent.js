@@ -76,6 +76,9 @@ async function startMongoConsumerAgent(logger) {
                     for (const [attrName, attrObj] of Object.entries(entity)) {
                         if (attrName !== 'id' && attrName !== 'type') {
                             doc[attrName] = attrObj.value;
+                            if (attrObj.metadata && Object.keys(attrObj.metadata).length > 0) {
+                                doc[`${attrName}_md`] = attrObj.metadata;
+                            }
                         }
                     }
 

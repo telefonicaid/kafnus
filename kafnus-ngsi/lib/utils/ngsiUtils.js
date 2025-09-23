@@ -296,6 +296,7 @@ function encodeMongo(value) {
         return 'x002f';
     }
     return value
+        .replace(/x[0-9a-f]{4}/gi, (m) => 'xx' + m.slice(1)) // strings composed of a x character and a Unicode
         .replace(/\//g, 'x002f')
         .replace(/\./g, 'x002e')
         .replace(/\$/g, 'x0024')
