@@ -30,7 +30,7 @@ const { getFiwareContext } = require('../utils/handleEntityCb');
 const { buildKafkaKey } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/metrics');
-const { buildMutationCreate } = require('../utils/graphqlUtils');
+const { buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
 
 async function startSgtrConsumerAgent(logger) {
     const topic = 'raw_sgtr';
@@ -63,18 +63,20 @@ async function startSgtrConsumerAgent(logger) {
 
                     const type = entityObject.type;
                     delete entityObject.type;
-                    // TBD: Add suffix to uris
 
                     let mutation;
                     const alterationType = entityObject.alterationType.value
                         ? entityObject.alterationType.value.toLowerCase()
                         : entityObject.alterationType.toLowerCase();
                     delete entityObject.alterationType;
-                    if (alterationType === 'entityupdate') {
-                        const id = entityObject.id;
-                        delete entityObject.id;
+                    if (alterationType === 'entityupdate' || alterationType === 'entitychange') {
+                        const id = entityObject.externalId;
                         mutation = buildMutationUpdate(type, id, entityObject);
+                    } else if (alterationType === 'entitydelete') {
+                        const id = entityObject.externalId;
+                        mutation = buildMutationDelete(id);
                     } else {
+                        // alterationType === 'entitycreate'
                         mutation = buildMutationCreate(type, entityObject);
                     }
                     logger.debug('[sgtr] mutation: \n%s', mutation);

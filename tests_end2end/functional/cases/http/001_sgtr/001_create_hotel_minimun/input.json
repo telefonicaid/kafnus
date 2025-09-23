@@ -29,7 +29,7 @@
                     "json": {
                         "data": [
                             {
-                                "alterationType": "entityCreate",
+                                "alterationType": "${alterationType}",
                                 "type": "${type}",
                                 "externalId": "${id}",
                                 "stars": 4,
