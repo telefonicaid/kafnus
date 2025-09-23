@@ -7,7 +7,7 @@
     },
     "response": {
         "status": 200,
-        "body": {"data": {"createHotel": null}, "errors": [{"message": "URI http://datos.segittur.es/grafo/resource/Hotel5xxx already exists in the graph. Please provide a different external ID.", "locations": [{"line": 1, "column": 12}], "path": ["createHotel"]}]}
+        "body": {"data": {"createHotel": null}, "errors": [{"message": "URI http://datos.segittur.es/grafo/resource/Hotel:xxx already exists in the graph. Please provide a different external ID.", "locations": [{"line": 1, "column": 12}], "path": ["createHotel"]}]}
     }
 }
 ]

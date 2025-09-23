@@ -28,6 +28,7 @@ const theLogger = require('./logger');
 const logger = theLogger.getBasicLogger();
 
 const PREFIX_RESOURCE = 'http://datos.segittur.es/grafo/resource/';
+const PREFIX_KOS = 'https://ontologia.segittur.es/turismo/kos/';
 
 function toGraphQLValue(value) {
     if (typeof value === 'string') {
