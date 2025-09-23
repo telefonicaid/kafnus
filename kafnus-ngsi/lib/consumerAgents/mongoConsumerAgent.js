@@ -60,13 +60,11 @@ async function startMongoConsumerAgent(logger) {
                 const mongoCollection = `sth_${encodeMongo(servicePath)}`;
 
                 const timestamp = Math.floor(Date.now() / 1000);
-                const recvTimeTs = String(timestamp * 1000);
                 const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
 
                 const entities = message.data || [];
                 for (const entity of entities) {
                     const doc = {
-                        recvTimeTs,
                         recvTime,
                         entityId: entity.id,
                         entityType: entity.type
@@ -76,6 +74,9 @@ async function startMongoConsumerAgent(logger) {
                     for (const [attrName, attrObj] of Object.entries(entity)) {
                         if (attrName !== 'id' && attrName !== 'type') {
                             doc[attrName] = attrObj.value;
+                            if (attrObj.metadata && Object.keys(attrObj.metadata).length > 0) {
+                                doc[`${attrName}_md`] = attrObj.metadata;
+                            }
                         }
                     }
 
