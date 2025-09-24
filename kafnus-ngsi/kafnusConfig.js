@@ -26,7 +26,6 @@
 
 'use strict';
 
-
 const _ = require('lodash');
 const Ajv = require('ajv');
 const logger = require('./lib/utils/logger');
@@ -43,30 +42,46 @@ const envVarsSchema = {
         NODE_ENV: {
             type: 'string',
             default: 'development',
-            enum: ['development', 'production'],
+            enum: ['development', 'production']
         },
         KAFNUS_NGSI_KAFKA_BROKER: {
             type: 'string',
-            default: 'kafka:9092',
+            default: 'kafka:9092'
         },
         KAFNUS_NGSI_GROUP_ID: {
             type: 'string',
-            default: 'ngsi-processor',
+            default: 'ngsi-processor'
         },
         KAFNUS_NGSI_LOG_LEVEL: {
             type: 'string',
             default: 'INFO',
-            enum: ['INFO', 'WARN', 'ERROR', 'DEBUG'],
+            enum: ['INFO', 'WARN', 'ERROR', 'DEBUG']
         },
         KAFNUS_NGSI_LOG_OB: {
             type: 'string',
-            default: 'ES',
+            default: 'ES'
         },
         KAFNUS_NGSI_LOG_COMP: {
             type: 'string',
-            default: 'Kafnus',
+            default: 'Kafnus'
         },
-    },
+        KAFNUS_NGSI_SECURITY_PROTOCOL: {
+            type: 'string',
+            default: 'plaintext'
+        },
+        KAFNUS_NGSI_SASL_MECHANISMS: {
+            type: 'string',
+            default: 'PLAIN'
+        },
+        KAFNUS_NGSI_SASL_USERNAME: {
+            type: 'string',
+            default: null
+        },
+        KAFNUS_NGSI_SASL_PASSWORD: {
+            type: 'string',
+            default: null
+        }
+    }
 };
 
 const envVars = _.clone(process.env);
@@ -80,18 +95,17 @@ const config = {
     env: envVars.NODE_ENV,
     kafka: {
         'bootstrap.servers': envVars.KAFNUS_NGSI_KAFKA_BROKER,
-        // FIXME: pending
-        // 'sasl.username': envVars.KAFNUS_NGSI_CLUSTER_API_KEY,
-        // 'sasl.password': envVars.KAFNUS_NGSI_CLUSTER_API_SECRET,
-        // 'security.protocol': 'SASL_SSL',
-        // 'sasl.mechanisms': 'PLAIN',
-        'group.id': envVars.KAFNUS_NGSI_GROUP_ID,
+        'security.protocol': envVars.KAFNUS_NGSI_SECURITY_PROTOCOL,
+        'sasl.mechanisms': envVars.KAFNUS_NGSI_SASL_MECHANISMS,
+        'sasl.username': envVars.KAFNUS_NGSI_SASL_USERNAME,
+        'sasl.password': envVars.KAFNUS_NGSI_SASL_PASSWORD,
+        'group.id': envVars.KAFNUS_NGSI_GROUP_ID
     },
     logger: {
         level: envVars.KAFNUS_NGSI_LOG_LEVEL,
         ob: envVars.KAFNUS_NGSI_LOG_OB,
-        comp: envVars.KAFNUS_NGSI_LOG_COMP,
-    },
+        comp: envVars.KAFNUS_NGSI_LOG_COMP
+    }
 };
 
 module.exports.config = config;
