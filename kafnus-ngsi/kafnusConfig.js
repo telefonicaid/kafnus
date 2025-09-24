@@ -63,7 +63,7 @@ const envVarsSchema = {
         },
         KAFNUS_NGSI_LOG_COMP: {
             type: 'string',
-            default: 'Kafnus'
+            default: 'Kafnus-ngsi'
         },
         KAFNUS_NGSI_SECURITY_PROTOCOL: {
             type: 'string',
@@ -80,6 +80,10 @@ const envVarsSchema = {
         KAFNUS_NGSI_SASL_PASSWORD: {
             type: 'string',
             default: null
+        },
+        KAFNUS_NGSI_AUTO_OFFSET_RESET: {
+            type: 'string',
+            default: 'earliest'
         }
     }
 };
@@ -99,7 +103,8 @@ const config = {
         'sasl.mechanisms': envVars.KAFNUS_NGSI_SASL_MECHANISMS,
         'sasl.username': envVars.KAFNUS_NGSI_SASL_USERNAME,
         'sasl.password': envVars.KAFNUS_NGSI_SASL_PASSWORD,
-        'group.id': envVars.KAFNUS_NGSI_GROUP_ID
+        'group.id': envVars.KAFNUS_NGSI_GROUP_ID,
+        'auto.offset.reset': envVars.KAFNUS_NGSI_AUTO_OFFSET_RESET
     },
     logger: {
         level: envVars.KAFNUS_NGSI_LOG_LEVEL,
