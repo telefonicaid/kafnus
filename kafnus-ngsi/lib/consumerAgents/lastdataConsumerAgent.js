@@ -32,7 +32,7 @@ const { messagesProcessed, processingTime } = require('../utils/metrics');
 
 async function startLastdataConsumerAgent(logger) {
     const topic = 'raw_lastdata';
-    const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-lastdata';
+    const groupId = 'ngsi-processor-lastdata';
     const datamodel = 'dm-by-entity-type-database';
     const suffix = '_lastdata';
 

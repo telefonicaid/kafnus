@@ -31,7 +31,7 @@ const { messagesProcessed, processingTime } = require('../utils/metrics');
 
 async function startHistoricConsumerAgent(logger) {
     const topic = 'raw_historic';
-    const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-historic';
+    const groupId = 'ngsi-processor-historic';
     const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
     const producer = await createProducer(logger);
 

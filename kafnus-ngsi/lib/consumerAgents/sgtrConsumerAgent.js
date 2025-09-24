@@ -35,7 +35,7 @@ const { buildMutationCreate, buildMutationUpdate, buildMutationDelete } = requir
 async function startSgtrConsumerAgent(logger) {
     const topic = 'raw_sgtr';
     const outputTopic = 'sgtr_http'; // Fixed topic for all services/subservices
-    const groupId = /* process.env.GROUP_ID || */ 'ngsi-processor-sgtr';
+    const groupId = 'ngsi-processor-sgtr';
 
     const producer = await createProducer(logger);
 
