@@ -3,7 +3,8 @@
   "config": {
     "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
     "tasks.max": "1",
-    "topics": "test_mongo",
+    
+    "topics.regex": "^(?!raw_mongo$).*_mongo$",
 
     "connection.uri": "mongodb://mongo:27017",
     "database": "dummy",

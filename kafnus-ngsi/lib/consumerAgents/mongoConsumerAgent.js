@@ -30,6 +30,8 @@ const { getFiwareContext, encodeMongo } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/metrics');
 
+const OUTPUT_TOPIC_SUFFIX = '_mongo';
+
 async function startMongoConsumerAgent(logger) {
     const topic = 'raw_mongo';
     const outputTopic = 'test_mongo';
@@ -58,6 +60,9 @@ async function startMongoConsumerAgent(logger) {
                 // Encode database and collection
                 const mongoDb = `sth_${encodeMongo(fiwareService)}`;
                 const mongoCollection = `sth_${encodeMongo(servicePath)}`;
+
+                // Define output topic
+                const outputTopic = `${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
 
                 const timestamp = Math.floor(Date.now() / 1000);
                 const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
