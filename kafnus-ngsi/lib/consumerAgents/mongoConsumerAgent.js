@@ -30,11 +30,10 @@ const { getFiwareContext, encodeMongo } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/metrics');
 
-const OUTPUT_TOPIC_SUFFIX = '_mongo';
+const OUTPUT_TOPIC_PREFIX = 'mongo_';
 
 async function startMongoConsumerAgent(logger) {
     const topic = 'raw_mongo';
-    const outputTopic = 'test_mongo';
     const groupId = /* process.env.GROUP_ID || */ 'ngsi-processor-mongo';
 
     const producer = await createProducer(logger);
@@ -62,7 +61,7 @@ async function startMongoConsumerAgent(logger) {
                 const mongoCollection = `sth_${encodeMongo(servicePath)}`;
 
                 // Define output topic
-                const outputTopic = `${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
+                const outputTopic = `${OUTPUT_TOPIC_PREFIX}${fiwareService}`;
 
                 const timestamp = Math.floor(Date.now() / 1000);
                 const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();

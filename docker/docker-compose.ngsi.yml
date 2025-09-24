@@ -45,6 +45,8 @@ services:
         echo 'Topic raw_errors created or already created.'
         kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_mongo --partitions 1 --replication-factor 1 &&
         echo 'Topic raw_mongo created or already created.'
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic dlq_mongo --partitions 1 --replication-factor 1 &&
+        echo 'Topic dlq_mongo created or already created.'
         kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_sgtr --partitions 1 --replication-factor 1 &&
         echo 'Topic raw_sgtr... created or already created.'
       "

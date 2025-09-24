@@ -4,7 +4,7 @@
     "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
     "tasks.max": "1",
     
-    "topics.regex": "^(?!raw_mongo$).*_mongo$",
+    "topics.regex": "^mongo_.*$",
 
     "connection.uri": "mongodb://mongo:27017",
     "database": "dummy",
@@ -18,6 +18,10 @@
     "key.converter.schemas.enable": false,
 
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
-    "value.converter.schemas.enable": false
+    "value.converter.schemas.enable": false,
+
+    "errors.tolerance": "all",
+    "errors.deadletterqueue.topic.name": "dlq_mongo",
+    "errors.deadletterqueue.context.headers.enable": true
   }
 }

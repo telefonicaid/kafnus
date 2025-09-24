@@ -293,7 +293,7 @@ These are published to topics like `<dbname>_error_log`.
 }
 ```
 
-- Output topic is dynamic, named as `<Fiware-Service>_mongo` by default
+- Output topic is dynamic, named as `mongo_<Fiware-Service>`.
 - Database is `sth_<encoded Fiware-Service>`.
 - Collection is `sth_<encoded Fiware-ServicePath>`.
 
