@@ -1,0 +1,300 @@
+{
+    "name": "hotel_minimun_tourism_test",
+    "fiware-service": "test",
+    "fiware-servicepath": "/tourism",
+    "subscriptions": {
+        "sgtr": {
+            "description": "kafka sgtr tourism hotel create",
+            "status": "active",
+            "subject": {
+                "entities": [
+                    {
+                        "idPattern": ".*",
+                        "type": "Hotel"
+                    }
+                ],
+                "condition": {
+                    "attrs": [
+                        "TimeInstant"
+                    ]
+                },
+                "alterationTypes": [
+                    "entityCreate", "entityUpdate", "entityChange"
+                ]
+            },
+            "notification": {
+                "kafkaCustom": {
+                    "url": "kafka://kafka:9092",
+                    "topic": "raw_sgtr",
+                    "json": {
+                        "data": [
+                            {
+                                "alterationType": "${alterationType}",
+                                "type": "${type}",
+
+
+                                "externalId": "${name}",
+                                "name": "${name}",
+                                "registrationNumber": "${registrationNumber}",
+                                "hasAdditionalType": "${hasAdditionalType}",
+                                "autonomousCheckIn": "${autonomousCheckIn}",
+                                "chainOrGroup": "${chainOrGroup}",
+                                "checkInHours": "${checkInHours}",
+                                "checkOutHours": "${checkOutHours}",
+                                "numberOfBeds": "${numberOfBeds}",
+                                "numberOfAccommodationUnits": "${numberOfAccommodationUnits}",
+                                "parador": "${parador}",
+                                "hasLocation": {
+                                    "object": {
+                                        "autonomousCommunity": "${hasLocation}",
+                                        "country": "${hasLocation}",
+                                        "locality": "${hasLocation}",
+                                        "postalCode": "${hasLocation}",
+                                        "province": "${hasLocation}",
+                                        "streetAddress": "${hasLocation}",
+                                        "asWkt": "POINT(12.4964 41.9028)",
+                                        "lat": 12.4,
+                                        "long": 41.9
+                                    }
+                                },
+                                "hasDescription": {
+                                    "object": {
+                                        "shortDescription": "${hasDescription}",
+                                        "longDescription": "${hasDescription}",
+                                        "keyword": []
+                                    }
+                                }
+                                
+                            }
+                        ]
+                    }
+                },
+                "attrs": [
+                    "TimeInstant"
+                ]
+            }
+        }
+    },
+    "updateEntities": [
+        {
+            "id": "Hotel:Minimo",
+            "type": "Hotel",
+
+            "TimeInstant": {
+                "type": "DateTime",
+                "value": "2025-09-24T13:30:00.000Z",
+                "metadata": {}
+            },
+            "accommodationRating": {
+                "type": "MultiRelation",
+                "value": [
+                    "Rating:001"
+                ],
+                "metadata": {}
+            },
+            "accommodationUnitCategory": {
+                "type": "MultiString",
+                "value": [
+                    "Apartment"
+                ],
+                "metadata": {}
+            },
+            "autonomousCheckIn": {
+                "type": "Boolean",
+                "value": true,
+                "metadata": {}
+            },
+            "chainOrGroup": {
+                "type": "String",
+                "value": "example01",
+                "metadata": {}
+            },
+            "checkInHours": {
+                "type": "String",
+                "value": "example01",
+                "metadata": {}
+            },
+            "checkOutHours": {
+                "type": "String",
+                "value": "example01",
+                "metadata": {}
+            },
+            "hasAdditionalInformation": {
+                "type": "Relation",
+                "value": "AdditionalInformation:001",
+                "metadata": {}
+            },
+            "hasAdditionalType": {
+                "type": "String",
+                "value": "example01",
+                "metadata": {}
+            },
+            "hasContactPoint": {
+                "type": "MultiRelation",
+                "value": [
+                    "BookingChannel:001"
+                ],
+                "metadata": {}
+            },
+            "hasDescription": {
+                "type": "Relation",
+                "value": "Description:001",
+                "metadata": {}
+            },
+            "hasLocation": {
+                "type": "Relation",
+                "value": "Location:001",
+                "metadata": {}
+            },
+            "hasMultimedia": {
+                "type": "Relation",
+                "value": "Multimedia:001",
+                "metadata": {}
+            },
+            "hasOpeningHours": {
+                "type": "MultiRelation",
+                "value": [
+                    "OpeningHours:001"
+                ],
+                "metadata": {}
+            },
+            "hasPriceClass": {
+                "type": "Text",
+                "value": "HighRange",
+                "metadata": {}
+            },
+            "hasSocialMediaProfile": {
+                "type": "MultiRelation",
+                "value": [
+                    "SocialMediaProfile:001"
+                ],
+                "metadata": {}
+            },
+            "highSeasonOccupancyAccommodationUnitsRatio": {
+                "type": "Number",
+                "value": 0.4,
+                "metadata": {}
+            },
+            "highSeasonOccupancyBedsRatio": {
+                "type": "Number",
+                "value": 0.55,
+                "metadata": {}
+            },
+            "lowSeasonOccupancyAccommodationUnitsRatio": {
+                "type": "Number",
+                "value": 0.3,
+                "metadata": {}
+            },
+            "lowSeasonOccupancyBedsRatio": {
+                "type": "Number",
+                "value": 0.2,
+                "metadata": {}
+            },
+            "name": {
+                "type": "String",
+                "value": "example01",
+                "metadata": {}
+            },
+            "numberOfAccommodationUnits": {
+                "type": "Number",
+                "value": 9,
+                "metadata": {}
+            },
+            "numberOfBeds": {
+                "type": "Number",
+                "value": 9,
+                "metadata": {}
+            },
+            "occupancyAccommodationUnitsRatio": {
+                "type": "Number",
+                "value": 0.25,
+                "metadata": {}
+            },
+            "occupancyBedsRatio": {
+                "type": "Number",
+                "value": 0.36,
+                "metadata": {}
+            },
+            "offeredBy": {
+                "type": "Relation",
+                "value": "Accommodation:001",
+                "metadata": {}
+            },
+            "offersAdditionalAccommodationService": {
+                "type": "MultiString",
+                "value": [
+                    "Arcade"
+                ],
+                "metadata": {}
+            },
+            "offersAdditionalTouristOrRelatedFacility": {
+                "type": "MultiString",
+                "value": [
+                    "AccessForDisabled"
+                ],
+                "metadata": {}
+            },
+            "parador": {
+                "type": "Boolean",
+                "value": true,
+                "metadata": {}
+            },
+            "paymentMethod": {
+                "type": "MultiString",
+                "value": [
+                    "BankCard"
+                ],
+                "metadata": {}
+            },
+            "registrationNumber": {
+                "type": "String",
+                "value": "example01",
+                "metadata": {}
+            },
+            "relatedTo": {
+                "type": "MultiRelation",
+                "value": "Accommodation:001",
+                "metadata": {}
+            },
+            "relatedTourismDestination": {
+                "type": "MultiRelation",
+                "value": [
+                    "TourismDestination:001"
+                ],
+                "metadata": {}
+            },
+            "touristType": {
+                "type": "MultiString",
+                "value": [
+                    "ActiveOrAdventureTourism"
+                ],
+                "metadata": {}
+            },
+            "travelUnit": {
+                "type": "MultiString",
+                "value": [
+                    "Alone"
+                ],
+                "metadata": {}
+            },
+            "typeOfAccommodationRate": {
+                "type": "MultiString",
+                "value": [
+                    "AccommodationOnly"
+                ],
+                "metadata": {}
+            },
+            "weekendOccupancyAccommodationUnitsRatio": {
+                "type": "Number",
+                "value": 0.8,
+                "metadata": {}
+            },
+            "weekendOccupancyBedsRatio": {
+                "type": "Number",
+                "value": 0.44,
+                "metadata": {}
+            }
+
+        }
+    ]
+}
