@@ -34,7 +34,7 @@ const { buildMutationCreate, buildMutationUpdate, buildMutationDelete } = requir
 
 async function startSgtrConsumerAgent(logger) {
     const topic = 'raw_sgtr';
-    const outputTopic = 'test_http';
+    const outputTopic = 'sgtr_http'; // Fixed topic for all services/subservices
     const groupId = /* process.env.GROUP_ID || */ 'ngsi-processor-sgtr';
 
     const producer = await createProducer(logger);
@@ -55,6 +55,7 @@ async function startSgtrConsumerAgent(logger) {
 
                 for (const entityObject of dataList) {
                     const { service, servicepath } = getFiwareContext(headers, message);
+                    // TO DO: use service to fix tenant: "dti": "grafo" ?
                     const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
                     const recvTimeTs = String(timestamp * 1000);
                     const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
