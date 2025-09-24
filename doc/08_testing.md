@@ -179,6 +179,31 @@ When enabled, tests will pause for up to 1 hour (or until you press `Ctrl + C`),
 
 ## 🧬 Example Scenario Files
 
+### 🛑 MongoValidator Test Constraint
+
+> ⚠️ **Important:** The `MongoValidator` is hardcoded to connect **only** to the database `sth_test`.  
+> Therefore, in Mongo-related end-to-end test scenarios, the `fiware-service` **must be set to `"test"`** to ensure documents are correctly published to the database that the validator inspects.
+
+Example `input.json` for a Mongo test case:
+
+```json
+{
+  "name": "mongo_test_case_basic",
+  "fiware-service": "test", <-
+  "fiware-servicepath": "/mongo",
+  "subscriptions": {
+    ...
+  },
+  "updateEntities": [
+    ...
+}
+```
+
+- All documents sent to the dynamic Kafka topic `test_mongo` are stored in `sth_test.<collection>`.  
+- The collection name is derived from `fiware-servicepath` and encoded using `encodeMongo()`.  
+- The validator ignores `recvTime` field during checks.
+
+
 ### `setup.sql`
 ```sql
 CREATE SCHEMA IF NOT EXISTS test;
