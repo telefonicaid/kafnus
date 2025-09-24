@@ -104,6 +104,9 @@ Defines:
 - `create-topics`: Creates all Kafka topics needed by Kafnus NGSI and Connect
 - `kafnus-ngsi`: Builds and runs the Faust service
 
+> **Note:** The `create-topics` service is no longer required and its lines are commented out in the Docker file.  
+> If needed, this service could be repurposed to define the number of partitions for the input Kafka topics.
+
 Kafnus NGSI image is built from the [`Dockerfile`](../kafnus-ngsi/Dockerfile).
 
 Exposes:
