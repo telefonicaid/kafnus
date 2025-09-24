@@ -89,16 +89,10 @@ RUN curl -fsSL https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/p
 # -----------------------------
 # MongoDB Kafka Connector
 # -----------------------------
-# Confluent image and dependencies
+# MongoDB oficial image with additional dependencies
 RUN mkdir -p /usr/local/share/kafnus-connect/plugins/mongodb && \
-    curl -fsSL https://repo.maven.apache.org/maven2/org/mongodb/kafka/mongo-kafka-connect/1.10.0/mongo-kafka-connect-1.10.0-confluent.jar -o /usr/local/share/kafnus-connect/plugins/mongodb/mongo-kafka-connect-1.10.0-confluent.jar && \
-    curl -fsSL https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-core/4.9.1/mongodb-driver-core-4.9.1.jar -o /usr/local/share/kafnus-connect/plugins/mongodb/mongodb-driver-core-4.9.1.jar && \
-    curl -fsSL https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-sync/4.9.1/mongodb-driver-sync-4.9.1.jar -o /usr/local/share/kafnus-connect/plugins/mongodb/mongodb-driver-sync-4.9.1.jar && \
-    curl -fsSL https://repo1.maven.org/maven2/org/mongodb/bson/4.9.1/bson-4.9.1.jar -o /usr/local/share/kafnus-connect/plugins/mongodb/bson-4.9.1.jar
-# MongoDB image with additional dependencies
-# RUN mkdir -p /usr/local/share/kafnus-connect/plugins/mongodb && \
-#     curl -fsSL https://repo.maven.apache.org/maven2/org/mongodb/kafka/mongo-kafka-connect/2.0.1/mongo-kafka-connect-2.0.1-all.jar \
-#         -o /usr/local/share/kafnus-connect/plugins/mongodb/mongo-kafka-connect-2.0.1-all.jar
+    curl -fsSL https://repo.maven.apache.org/maven2/org/mongodb/kafka/mongo-kafka-connect/2.0.1/mongo-kafka-connect-2.0.1-all.jar \
+        -o /usr/local/share/kafnus-connect/plugins/mongodb/mongo-kafka-connect-2.0.1-all.jar
 
 # -----------------------------
 # Http Kafka Connector
