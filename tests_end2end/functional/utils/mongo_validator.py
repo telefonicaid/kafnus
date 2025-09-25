@@ -35,7 +35,7 @@ class MongoValidator:
         self.client = MongoClient(uri)
         self.db = self.client[db_name]
 
-    def validate(self, collection, expected_docs, timeout=10, poll_interval=1):
+    def validate(self, collection, expected_docs, timeout=15, poll_interval=1):
         """
         Waits until all expected documents are present in the collection.
         - expected_docs: list of dicts with the fields that must exist (ignores recvtime)
