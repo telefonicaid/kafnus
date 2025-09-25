@@ -144,6 +144,37 @@ Once adapted, register the new connector set using the same process (`curl -X PO
 > `pg-sink-errors`...) for **`smartcity1`**, and another equivalent set for **`smartcity2`**.  
 > Each set handles only its own tenant’s traffic.
 
+### 4.5 Regex Topics Caveat for Mongo Sink
+
+The MongoDB sink connector can be configured either with a **static list of topics** (`topics`) or with a **regular expression** (`topics.regex`).  
+
+⚠️ **Important:**  
+You cannot configure both `topics` and `topics.regex` at the same time — the connector will fail to start if both are present.  
+
+When using `topics.regex`, the matching is performed **only once at startup**.  
+Any topics created later that match the regex will **not** be processed automatically.
+
+To make the connector start consuming new topics, you must either:
+
+1. **Redeploy the connector**, or  
+2. **Update its configuration** via a `PUT` to the connector’s `/config` endpoint (this effectively refreshes the regex evaluation).  
+
+Example update command:
+
+```bash
+curl -X PUT -H "Content-Type: application/json" \
+     --data @mdb-sink.json \
+     http://localhost:8083/connectors/mongo-sink/config
+```
+
+⚠️ **Operational Note:**  
+This needs to be clearly documented as part of the onboarding process for new tenants/services.  
+
+- For **PostGIS**, the current approach is to spin up one connector per service.  
+- For **MongoDB**, two alternatives exist:  
+  - adopt the same per-service connector strategy, or  
+  - require a connector update (via `PUT`) whenever a new topic needs to be consumed.
+
 ---
 
 ## 📊 5. Topic & Data Verification

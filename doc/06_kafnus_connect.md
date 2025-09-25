@@ -47,6 +47,11 @@ Includes:
 Used in:
 - `mdb-sink.json`
 
+> ⚠️ **Warning:**  
+> When using `topics.regex` with the MongoDB sink connector, keep in mind that the regex is only evaluated when the connector starts.  
+> If new topics are created later, the connector will **not** automatically pick them up unless the connector is redeployed or updated.  
+> See the [official MongoDB Kafka docs](https://www.mongodb.com/docs/kafka-connector/current/sink-connector/configuration-properties/kafka-topic/#std-label-sink-configuration-topic-properties) for details.
+
 ### 3. HTTP Sink Connector
 
 This connector enables sending data from Kafka topics to an external HTTP endpoint. It is now part of the supported sinks in the Kafnus architecture.
