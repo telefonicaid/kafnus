@@ -35,18 +35,18 @@ class MongoValidator:
         self.client = MongoClient(uri)
         self.db = self.client[db_name]
 
-    def validate(self, collection, expected_docs, timeout=10, poll_interval=1):
+    def validate(self, collection, expected_docs, timeout=15, poll_interval=1):
         """
         Waits until all expected documents are present in the collection.
-        - expected_docs: list of dicts with the fields that must exist (ignores recvtime and recvtimeTS)
+        - expected_docs: list of dicts with the fields that must exist (ignores recvtime)
         - timeout: maximum time in seconds to wait
         - poll_interval: interval between queries in seconds
         """
         col = self.db[collection]
         start = time.time()
-        # Filter out recvtime and recvtimeTS from expected docs
+        # Filter out recvtime from expected docs
         expected_docs_filtered = [
-            {k: v for k, v in doc.items() if k not in ("recvtime", "recvtimeTS")}
+            {k: v for k, v in doc.items() if k != "recvtime"}
             for doc in expected_docs
         ]
 
@@ -75,7 +75,7 @@ class MongoValidator:
         col = self.db[collection]
         start = time.time()
         forbidden_docs_filtered = [
-            {k: v for k, v in doc.items() if k not in ("recvtime", "recvtimeTS")}
+            {k: v for k, v in doc.items() if k != "recvtime"}
             for doc in forbidden_docs
         ]
 

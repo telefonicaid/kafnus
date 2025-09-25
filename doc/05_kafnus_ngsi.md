@@ -293,8 +293,9 @@ These are published to topics like `<dbname>_error_log`.
 }
 ```
 
-- Output topic dynamic (`test_mongo` in dev).
-- Key optional: `{ database, collection }`.
+- Output topic is dynamic, named as `<Fiware-Service>_mongo` by default
+- Database is `sth_<encoded Fiware-Service>`.
+- Collection is `sth_<encoded Fiware-ServicePath>`.
 
 ---
 
