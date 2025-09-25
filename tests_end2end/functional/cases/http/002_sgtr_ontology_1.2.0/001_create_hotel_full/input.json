@@ -31,8 +31,6 @@
                             {
                                 "alterationType": "${alterationType}",
                                 "type": "${type}",
-
-
                                 "externalId": "${name}",
                                 "name": "${name}",
                                 "registrationNumber": "${registrationNumber}",
@@ -77,9 +75,8 @@
     },
     "updateEntities": [
         {
-            "id": "Hotel:Minimo",
+            "id": "example01",
             "type": "Hotel",
-
             "TimeInstant": {
                 "type": "DateTime",
                 "value": "2025-09-24T13:30:00.000Z",
