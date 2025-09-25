@@ -23,35 +23,29 @@
 # criminal actions it may exercise to protect its rights.
 
 services:
-  create-topics:
-    image: confluentinc/cp-kafka:8.0.0
-    container_name: create-topics
-    depends_on:
-      kafka:
-        condition: service_healthy
-    command: >
-      bash -c "
-        echo 'Waiting for Kafka to be ready...';
-        cub kafka-ready -b kafka:9092 1 30;
-        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_historic --partitions 1 --replication-factor 1 &&
-        echo 'Topic raw_historic created or already created.'
-        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_lastdata --partitions 1 --replication-factor 1 &&
-        echo 'Topic raw_lastdata created or already created.'
-        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic ngsi-processor-lastdata_entity_timeinstant-changelog --partitions 1 --replication-factor 1 &&
-        echo 'Topic ngsi-processor-lastdata_entity_timeinstant-changelog created or already created.'
-        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_mutable --partitions 1 --replication-factor 1 &&
-        echo 'Topic raw_mutable created or already created.'
-        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_errors --partitions 1 --replication-factor 1 &&
-        echo 'Topic raw_errors created or already created.'
-        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_mongo --partitions 1 --replication-factor 1 &&
-        echo 'Topic raw_mongo created or already created.'
-        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic dlq_mongo --partitions 1 --replication-factor 1 &&
-        echo 'Topic dlq_mongo created or already created.'
-        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_sgtr --partitions 1 --replication-factor 1 &&
-        echo 'Topic raw_sgtr... created or already created.'
-      "
-    networks:
-      - kafka-postgis-net
+#  create-topics:
+#    image: apache/kafka:4.1.0
+#    container_name: create-topics
+#    depends_on:
+#      kafka:
+#        condition: service_healthy
+#    command: >
+#      bash -c "
+#        export PATH=$PATH:/opt/kafka/bin;
+#        echo 'Creating Kafka topics...';
+#        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_historic --partitions 1 --replication-factor 1;
+#        echo 'Topic raw_lastdata created or already created.'
+#        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_mutable --partitions 1 --replication-factor 1;
+#        echo 'Topic raw_mutable created or already created.'
+#        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_errors --partitions 1 --replication-factor 1;
+#        echo 'Topic raw_errors created or already created.'
+#        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_mongo --partitions 1 --replication-factor 1;
+#        echo 'Topic raw_mongo created or already created.'
+#        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_sgtr --partitions 1 --replication-factor 1;
+#        echo 'Topic raw_sgtr... created or already created.'
+#      "
+#    networks:
+#      - kafka-postgis-net
       
   kafnus-ngsi:
     container_name: kafnus-ngsi
@@ -62,8 +56,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
-      create-topics:
-        condition: service_completed_successfully
+#      create-topics:
+#        condition: service_completed_successfully
     environment:
       - KAFNUS_NGSI_KAFKA_BROKER=kafka:9092
       - KAFNUS_NGSI_METRICS_PORT=8000
