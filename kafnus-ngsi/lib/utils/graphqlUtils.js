@@ -27,8 +27,10 @@
 const theLogger = require('./logger');
 const logger = theLogger.getBasicLogger();
 
-const PREFIX_RESOURCE = 'http://datos.segittur.es/grafo/resource/';
+const GRAFO = 'grafo'; // 'grafo_v_120';
+const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO}/resource/`;
 const PREFIX_KOS = 'https://ontologia.segittur.es/turismo/kos/';
+const GRAFO_STR = `"${GRAFO}"`;
 
 function toGraphQLValue(value) {
     if (typeof value === 'string') {
@@ -60,7 +62,7 @@ function buildMutationCreate(entityType, entityObject) {
     const templateMutationCreate = {
         query: `
             mutation {
-                create${entityType}(dti: "grafo",
+                create${entityType}(dti: ${GRAFO_STR},
                     input: {
                         object: ${objectString}
                     }
@@ -76,15 +78,15 @@ function buildMutationCreate(entityType, entityObject) {
 
 function buildMutationUpdate(entityType, id, entityObject) {
     const objectString = toGraphQLValue(entityObject);
-    const uri = addPrefix(PREFIX_RESOURCE, id);
+    // const uri = addPrefix(PREFIX_RESOURCE, id);
+    // const uriString = toGraphQLValue(uri);
+    // const idString = toGraphQLValue(id);
 
     return {
         query: `
             mutation {
-                update${entityType}(dti: "grafo",
+                update${entityType}(dti: ${GRAFO_STR},
                     input: {
-                        uri: ${uri},
-                        externalId: ${id},
                         object: ${objectString}
                     }
                 ) {
@@ -100,14 +102,14 @@ function buildMutationDelete(/*entityType,*/ id) {
     // return {
     //     query: `
     //         mutation {
-    //             delete${entityType}(dti: "grafo", id: "${id}")
+    //             delete${entityType}(dti: ${GRAFO_STR}, id: "${id}")
     //         }
     //     `
     // };
     return {
         query: `
             mutation {
-                deleteData(dti: "grafo", uris: ["${uri}"])
+                deleteData(dti: ${GRAFO_STR}, uris: ["${uri}"])
             }
         `
     };
