@@ -22,6 +22,8 @@
 
     "errors.tolerance": "all",
     "errors.deadletterqueue.topic.name": "dlq_mongo",
-    "errors.deadletterqueue.context.headers.enable": true
+    "errors.deadletterqueue.context.headers.enable": true,
+    "errors.deadletterqueue.topic.replication.factor": "1",
+    "errors.deadletterqueue.topic.partitions": "1"
   }
 }
