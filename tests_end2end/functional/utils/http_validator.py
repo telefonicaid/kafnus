@@ -52,6 +52,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(response_body)
 
+class ReusableHTTPServer(HTTPServer):
+    allow_reuse_address = True
 
 class HttpValidator:
     def __init__(self, url, response_code=200, response_content=None):
@@ -68,7 +70,7 @@ class HttpValidator:
             (RequestHandler,),
             {"response_code": response_code, "response_content": response_content}
         )
-        self.httpd = HTTPServer((self.host, self.port), handler_class)
+        self.httpd = ReusableHTTPServer((self.host, self.port), handler_class)
         self.httpd.requests = self.requests
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self.thread.start()
@@ -94,4 +96,5 @@ class HttpValidator:
     def stop(self):
         logger.info(f"validator and HTTPServer stopped")
         self.httpd.shutdown()
+        self.httpd.server_close()
         self.thread.join()
