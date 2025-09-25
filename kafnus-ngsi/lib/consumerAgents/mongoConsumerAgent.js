@@ -34,7 +34,7 @@ const OUTPUT_TOPIC_PREFIX = 'mongo_';
 
 async function startMongoConsumerAgent(logger) {
     const topic = 'raw_mongo';
-    const groupId = /* process.env.GROUP_ID || */ 'ngsi-processor-mongo';
+    const groupId = 'ngsi-processor-mongo';
 
     const producer = await createProducer(logger);
 
@@ -53,8 +53,7 @@ async function startMongoConsumerAgent(logger) {
                 const message = JSON.parse(rawValue);
 
                 // Extract Fiware-Service and Fiware-ServicePath from headers (for routing)
-                const { service: fiwareService, servicepath: servicePath } =
-                    getFiwareContext(headers, message);
+                const { service: fiwareService, servicepath: servicePath } = getFiwareContext(headers, message);
 
                 // Encode database and collection
                 const mongoDb = `sth_${encodeMongo(fiwareService)}`;
@@ -84,7 +83,11 @@ async function startMongoConsumerAgent(logger) {
                         }
                     }
 
-                    logger.info(`[mongo] topic=${topic} | database=${mongoDb} | collection=${mongoCollection} | doc=${JSON.stringify(doc)}`);
+                    logger.info(
+                        `[mongo] topic=${topic} | database=${mongoDb} | collection=${mongoCollection} | doc=${JSON.stringify(
+                            doc
+                        )}`
+                    );
 
                     // Send to outputTopic
                     producer.produce(
@@ -97,7 +100,6 @@ async function startMongoConsumerAgent(logger) {
 
                     logger.info(`[mongo] Sent to '${outputTopic}' | DB: ${mongoDb}, Collection: ${mongoCollection}`);
                 }
-
             } catch (err) {
                 logger.error(`[mongo] Error processing event: ${err.message}`);
             }

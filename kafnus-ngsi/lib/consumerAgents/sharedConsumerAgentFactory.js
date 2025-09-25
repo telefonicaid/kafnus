@@ -30,7 +30,7 @@ const { config } = require('../../kafnusConfig');
 function createConsumerAgent(logger, { groupId, topic, onData }) {
     const configKafka = { ...config.kafka, 'group.id': groupId };
     const consumer = new Kafka.KafkaConsumer(configKafka, {
-        'auto.offset.reset': /*process.env.AUTO_OFFSET_RESET ||*/ 'earliest'
+        'auto.offset.reset': config.kafka['auto.offset.reset']
     });
 
     return new Promise((resolve, reject) => {

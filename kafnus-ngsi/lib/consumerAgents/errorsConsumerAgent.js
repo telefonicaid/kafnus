@@ -36,7 +36,7 @@ async function startErrorsConsumerAgent(logger) {
      * and emits a structured error log message to a per-tenant error topic (e.g., 'clientname_error_log').
      */
     const topic = 'raw_errors';
-    const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-errors';
+    const groupId = 'ngsi-processor-errors';
 
     const producer = await createProducer(logger);
 

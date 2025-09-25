@@ -31,7 +31,7 @@ const { messagesProcessed, processingTime } = require('../utils/metrics');
 
 async function startMutableConsumerAgent(logger) {
     const topic = 'raw_mutable';
-    const groupId = /*process.env.GROUP_ID ||*/ 'ngsi-processor-mutable';
+    const groupId = 'ngsi-processor-mutable';
     const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
     const suffix = '_mutable';
     const producer = await createProducer(logger);
