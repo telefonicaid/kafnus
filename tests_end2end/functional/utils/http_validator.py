@@ -33,20 +33,27 @@ class RequestHandler(BaseHTTPRequestHandler):
     response_content = {"status": "OK"}
 
     def do_POST(self):
-        logger.debug(f"do_POST")
+        logger.debug("do_POST")
         content_length = int(self.headers.get("Content-Length", 0))
         body_bytes = self.rfile.read(content_length)
         try:
             body = json.loads(body_bytes.decode("utf-8"))
         except Exception:
             body = body_bytes.decode("utf-8")
+
+        # Save request
         self.server.requests.append({
             "path": self.path,
             "headers": dict(self.headers),
             "body": body
         })
-        response_body = json.dumps(self.response_content).encode("utf-8")
-        self.send_response(self.response_code)
+
+        # Use response dinamically stored in server
+        response_code = getattr(self.server, "response_code", 200)
+        response_content = getattr(self.server, "response_content", {"status": "OK"})
+
+        response_body = json.dumps(response_content).encode("utf-8")
+        self.send_response(response_code)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(response_body)))
         self.end_headers()
@@ -56,25 +63,37 @@ class ReusableHTTPServer(HTTPServer):
     allow_reuse_address = True
 
 class HttpValidator:
+    # shared pool of servers already created
+    _servers = {}
+
     def __init__(self, url, response_code=200, response_content=None):
         parsed = urlparse(url)
         self.host = parsed.hostname or "0.0.0.0"
         self.port = parsed.port or 3333
-        self.requests = []
+        self.key = (self.host, self.port)
 
-        if response_content is None:
-            response_content = {"status": "OK"}
+        if self.key in HttpValidator._servers:
+            # Reuses current server
+            self.httpd, self.thread, self.requests = HttpValidator._servers[self.key]
+            logger.info(f"Reusing HTTPServer {self.host}:{self.port}")
+        else:
+            # Creates a new server
+            self.requests = []
+            self.httpd = ReusableHTTPServer((self.host, self.port), RequestHandler)
+            self.httpd.requests = self.requests
+            self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
+            self.thread.start()
+            HttpValidator._servers[self.key] = (self.httpd, self.thread, self.requests)
+            logger.info(f"HTTPServer {self.host}:{self.port} started")
 
-        handler_class = type(
-            "CustomRequestHandler",
-            (RequestHandler,),
-            {"response_code": response_code, "response_content": response_content}
-        )
-        self.httpd = ReusableHTTPServer((self.host, self.port), handler_class)
-        self.httpd.requests = self.requests
-        self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
-        self.thread.start()
-        logger.info(f"HTTPServer {self.host} and {self.port} started")
+        # Always update response
+        self.update_response(response_code, response_content or {"status": "OK"})
+
+    def update_response(self, response_code=200, response_content=None):
+        """Update response with the same server"""
+        self.httpd.response_code = response_code
+        if response_content is not None:
+            self.httpd.response_content = response_content
 
     def validate(self, headers, body):
         """
@@ -98,3 +117,4 @@ class HttpValidator:
         self.httpd.shutdown()
         self.httpd.server_close()
         self.thread.join()
+        HttpValidator._servers.pop(self.key, None)
