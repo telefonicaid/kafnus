@@ -43,7 +43,7 @@ The system supports multiple data flows (`historic`, `lastdata`, `mutable`) and 
 
 - Input arrives via `raw_mongo` Kafka topic.  
 - The **Mongo agent** parses the event, extracts `fiware-service` and `fiware-servicepath` from headers, and builds the **target DB/collection** (e.g. `sth_<service>.<servicepath>`).  
-- Documents are enriched with `recvTime` and `recvTimeTs`.  
+- Documents are enriched with `recvTime`.  
 - A producer publishes the final document to the `test_mongo` topic, from where the **MongoDB sink connector** persists into the right collection.
 
 👉 Unlike JDBC, Mongo does **not** use the `HeaderRouter` SMT. Routing is embedded in the agent logic

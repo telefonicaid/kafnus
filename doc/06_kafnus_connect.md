@@ -42,8 +42,7 @@ Used in:
 
 Includes:
 
-- `mongo-kafka-connect-1.10.0-confluent.jar`
-- MongoDB drivers (`bson`, `driver-core`, `driver-sync`)
+- `mongo-kafka-connect-2.0.1-all.jar` with included MongoDB drivers as (`bson`, `driver-core`, `driver-sync`)
 
 Used in:
 - `mdb-sink.json`
@@ -78,7 +77,7 @@ A Java-based Single Message Transform (SMT) implemented in `HeaderRouter.java`. 
 ### Other Detected Plugins
  
  The runtime environment also includes additional connectors such as:
- - `com.mongodb.kafka.connect.MongoSourceConnector` (1.10.0)
+ - `com.mongodb.kafka.connect.MongoSourceConnector` (2.0.1)
  - `io.confluent.connect.jdbc.JdbcSourceConnector` (10.8.4)
  - MirrorMaker 2 connectors (`MirrorCheckpointConnector`, `MirrorHeartbeatConnector`, `MirrorSourceConnector` – 8.0.0-ccs)
  
