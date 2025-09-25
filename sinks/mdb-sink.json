@@ -4,7 +4,7 @@
     "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
     "tasks.max": "1",
     
-    "topics.regex": "^mongo_.*$",
+    "topics": "test_mongo",
 
     "connection.uri": "mongodb://mongo:27017",
     "database": "dummy",
