@@ -88,7 +88,7 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
         validator = PostgisValidator(DEFAULT_DB_CONFIG)
     elif scenario_type == "http":
         logger.info(f"2. Waiting results expected: {expected_json.name}")
-        time.sleep(7)
+        time.sleep(10)
     else:
         logger.info("3. No setup SQL/HTTP validator for this scenario.")
 
@@ -133,17 +133,20 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
             validator.close()
     
     if scenario_type == "http":
-        for request_data in expected_data:
-            headers = request_data["headers"]
-            body = request_data["body"]
-            result = validator.validate(headers, body)
+        try: 
+            for request_data in expected_data:
+                headers = request_data["headers"]
+                body = request_data["body"]
+                result = validator.validate(headers, body)
+                #validator.stop()
+                if result is not True:
+                    logger.error(f"❌ Validation failed in request: {request_data}")
+                    all_valid = False
+                    errors.append(f"❌ Error in request: {request_data})")
+                else:
+                    logger.debug(f"✅ request {request_data} validated successfully")
+        finally:
             validator.stop()
-            if result is not True:
-                logger.error(f"❌ Validation failed in request: {request_data}")
-                all_valid = False
-                errors.append(f"❌ Error in request: {request_data})")
-            else:
-                logger.debug(f"✅ request {request_data} validated successfully")
 
     if all_valid:
         logger.info(f"✅ Scenario {scenario_name} passed successfully.")
