@@ -349,7 +349,7 @@ def multiservice_stack():
         logger.info("🚀 Deployings sinks...")
         deploy_all_sinks(sinks_dir)
         wait_for_connector()
-        time.sleep(5)
+        time.sleep(10)
 
         yield MultiServiceContainer(
             orionHost=orion_host,
