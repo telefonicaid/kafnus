@@ -23,10 +23,11 @@ Custom Dockerfiles are located in their respective component directories:
 
 ```plaintext
 kafnus-connect/
-└── Dockerfile
+├── docker-entrypoint.sh # entrypoint for the Kafnus Connect container, initializing environment variables, configuring plugins, and launching the Kafka Connect process.
+└── Dockerfile  # builds Kafnus Connect from OpenJDK 17 + Kafka 4.1.0, manually installing plugins
 
 kafnus-ngsi/
-└── Dockerfile
+└── Dockerfile # builds Kafnus NGSI from source code
 ```
 
 ---
@@ -49,7 +50,6 @@ PostGIS and Monitoring are commented out by default.
 
 > You can pass arguments like `-d` to run in detached mode.
 
-
 ### `docker-down.sh`
 
 Stops the same services and removes volumes & orphan containers:
@@ -64,11 +64,10 @@ Stops the same services and removes volumes & orphan containers:
 
 The Docker Compose setup relies on two custom images:
 
-- **Kafnus Connect** is built using `kafnus-connect/Dockerfile`, which includes all required connectors and plugins during the image build process.
+- **Kafnus Connect** is built using `kafnus-connect/Dockerfile`, which uses Kafka official distribution 4.1.0 with OpenJDK 17 and includes all required connectors and plugins during the image build process.
 - **Kafnus NGSI** is built using `kafnus-ngsi/Dockerfile`, which includes the Node.js stream processing app and all dependencies.
 
 Both images are automatically built via `docker-up.sh`, so you don't need to build them manually unless debugging or developing.
-
 
 ### `docker-compose.kafka.yml`
 
@@ -76,9 +75,10 @@ Defines:
 
 - Kafka broker (port 9092, 29092)
 - Kafnus Connect image with plugins:
+
   - Builds and runs custom image
-  - Custom plugins in `/usr/local/share/kafnus-connect/plugins`
-  - Monitoring enabled via JMX Exporter
+  - Custom plugins in `${CONNECT_PLUGIN_PATH}` (default `/usr/local/share/kafnus-connect/plugins`)
+  - Monitoring enabled via JMX Exporter (path `/home/appuser/jmx_exporter`)
 - Connect waits for Kafka to be healthy before starting
 
 Topics are auto-created (`KAFKA_AUTO_CREATE_TOPICS_ENABLE=true`)
@@ -101,7 +101,7 @@ docker build --no-cache -t kafnus-connect .
 
 Defines:
 
-- `create-topics`: Creates all Kafka topics needed by Kafnus NGSI and Connect
+- `create-topics`: Unused. Creates all source Kafka topics needed by Kafnus NGSI
 - `kafnus-ngsi`: Builds and runs the Faust service
 
 > **Note:** The `create-topics` service is no longer required and its lines are commented out in the Docker file.  
@@ -187,7 +187,7 @@ docker network create kafka-postgis-net
 
 Kafnus Connect plugins are automatically bundled during image build (inside [`kafnus-connect/Dockerfile`](/kafnus-connect/Dockerfile)).
 
-The plugin directory (`/usr/local/share/kafnus-connect/plugins/`) inside the kafnus-connect image contains:
+Plugin directory `${CONNECT_PLUGIN_PATH}` contains:
 
 - `header-router` (custom SMT)
 - `kafka-connect-jdbc` (custom connector with geometry support)

@@ -9,6 +9,30 @@ This document explains how Kafnus Connect is configured to persist NGSI notifica
 
 This project uses Docker Compose to orchestrate the multi-service environment, including Kafnus Connect and other components.
 
+### 🔊 Adjusting Connector Plugin Log Level
+
+You can control the log level of Kafka Connect plugins using the `CONNECT_LOG4J_LOGGERS` environment variable in your Docker Compose configuration. This is useful for debugging or reducing noise from specific libraries.
+
+**Example usage:**
+
+```yaml
+environment:
+  CONNECT_LOG4J_LOGGERS: "com.hivemq=DEBUG,org.reflections=ERROR"
+```
+
+This sets the log level for the `com.hivemq` connector to `DEBUG` and for `org.reflections` to `ERROR`. You can adjust the value to target other packages or log levels as needed.
+
+**Default configuration:**
+
+```yaml
+environment:
+  CONNECT_LOG4J_LOGGERS: "org.reflections=ERROR"
+```
+
+This is the default setting, which only reduces log noise from the `org.reflections` library.
+
+Refer to the [Kafka Connect documentation](https://docs.confluent.io/platform/current/connect/logging.html) for more details on configuring logging.
+
 **Important:**  
 In tests, we override the default `docker-compose` CLI used by some tools and libraries to instead use the latest Docker Compose V2 syntax (`docker compose`). This ensures compatibility with the newest Docker CLI features and avoids issues related to the deprecated `docker-compose` command.
 
@@ -16,13 +40,34 @@ The custom Python fixture leverages this by substituting commands so that all co
 
 > ⚠️ **Note:** Legacy `docker-compose` command could be used, you can simply remove or disable the custom overriding class (`DockerCompose`) in the test fixtures in [`common_test.py`](../tests_end2end/functional/common_test.py). Doing so will revert to the default behavior.
 
+### ⚡ docker-entrypoint.sh
+
+The `docker-entrypoint.sh` script generates the Kafka Connect configuration at `/home/appuser/config/connect-distributed.properties` using environment variables, then starts Kafka Connect in distributed mode.  
+
+Key environment variables:
+
+- `CONNECT_BOOTSTRAP_SERVERS` (default: `kafka:9092`)
+- `CONNECT_GROUP_ID` (default: `connect-cluster`)
+- `CONNECT_KEY_CONVERTER` / `CONNECT_VALUE_CONVERTER`
+- `CONNECT_PLUGIN_PATH` (default: `/usr/local/share/kafnus-connect/plugins`)
+- `CONNECT_REST_PORT` (default: `8083`)
+
+The script ensures defaults are set and logs the final configuration before launching:
+
+```sh
+exec "${KAFKA_HOME}/bin/connect-distributed.sh" "${CONFIG_FILE}"
+```
+
 ---
 
 ## 🧩 Kafnus Connect Plugins
 
-Kafnus Connect plugins are automatically built into the Docker image.
+Kafnus Connect plugins are automatically built into the Docker image and placed under the path defined by the environment variable `CONNECT_PLUGIN_PATH`. By default, this is:
 
-You can inspect them at runtime under the `kafnus-connect/plugins/` directory.  
+```
+/usr/local/share/kafnus-connect/plugins
+```
+
 This directory is **populated automatically** during the Docker build using the logic defined in the [Dockerfile](/kafnus-connect/Dockerfile).
 
 ### 1. JDBC Plugin for PostGIS
@@ -54,7 +99,7 @@ Used in:
 
 ### 3. HTTP Sink Connector
 
-This connector enables sending data from Kafka topics to an external HTTP endpoint. It is now part of the supported sinks in the Kafnus architecture.
+This connector enables sending data from Kafka topics to an external HTTP endpoint. It is part of the supported sinks in the Kafnus architecture.
 
 - **Connector class**: `io.aiven.kafka.connect.http.HttpSinkConnector`
 - **Type**: sink
@@ -67,7 +112,7 @@ This connector enables sending data from Kafka topics to an external HTTP endpoi
 
 ### 4. Custom SMT – HeaderRouter
 
-Path: `kafnus-connect/plugins/header-router`
+Path: `plugins/header-router`
 
 A Java-based Single Message Transform (SMT) implemented in `HeaderRouter.java`. It rewrites the topic name based on a Kafka record header (e.g. `target_table`) set by Kafnus NGSI.
 
@@ -216,6 +261,8 @@ docker exec -it kafka /opt/kafka/bin/kafka-console-consumer.sh \
 ```
 
 To confirm persistence, check tables in PostGIS or MongoDB after running the corresponding test input.
+
+---
 
 ## 🧭 Navigation
 

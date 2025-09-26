@@ -25,3 +25,4 @@
 - Change: exposed Kafka configuration through Kafnus environment variables (#107)
 - Change: switched Kafka broker image from Confluent to Apache (Kafka Connect still using Confluent image) (#109)
 - Change: updated output topics for HTTP flow and Mongo flow (#110, #111)
+- Change: Kafnus Connect Docker image now uses OpenJDK 17 + Apache Kafka base instead of Confluent image (#118)
