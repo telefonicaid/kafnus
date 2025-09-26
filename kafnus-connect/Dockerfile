@@ -22,107 +22,116 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-FROM confluentinc/cp-kafka-connect:8.0.0
+FROM openjdk:17-jdk-slim
 
+ARG KAFKA_VERSION=4.1.0
+ARG SCALA_VERSION=2.13
+ENV KAFKA_HOME=/opt/kafka
+ENV CONNECT_PLUGIN_PATH=/usr/local/share/kafnus-connect/plugins
+
+## -----------------------------
+## Build tools
+## -----------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl git tar gzip maven ca-certificates wget unzip gnupg2 \
+    && rm -rf /var/lib/apt/lists/*
+
+## -----------------------------
+## Download Kafka (official distribution)
+## -----------------------------
+RUN mkdir -p /opt && \
+    cd /opt && \
+    curl -fsSL "https://downloads.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz" \
+      -o /tmp/kafka.tgz && \
+    tar -xzf /tmp/kafka.tgz -C /opt && \
+    ln -s /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION} ${KAFKA_HOME} && \
+    rm /tmp/kafka.tgz
+
+## -----------------------------
+## Plugin directories
+## -----------------------------
+RUN mkdir -p ${CONNECT_PLUGIN_PATH}
+
+## -----------------------------
+## Non-root user
+## -----------------------------
+RUN groupadd -r appuser && useradd -r -g appuser -m -d /home/appuser appuser && \
+    chown -R appuser:appuser ${KAFKA_HOME} ${CONNECT_PLUGIN_PATH}
+USER appuser
+WORKDIR ${KAFKA_HOME}
+
+## -----------------------------
+## Custom SMT: HeaderRouter
+## -----------------------------
 USER root
+COPY src/header-router /usr/local/build/header-router
+RUN cd /usr/local/build/header-router && \
+    mvn clean package -DskipTests && \
+    mkdir -p ${CONNECT_PLUGIN_PATH}/header-router && \
+    cp target/header-router-1.0.0-jar-with-dependencies.jar \
+       ${CONNECT_PLUGIN_PATH}/header-router/header-router-1.0.0.jar && \
+    rm -rf /usr/local/build/header-router
+USER appuser
 
-# -----------------------------
-# Install build dependencies
-# -----------------------------
-RUN microdnf install -y \
-    java-17-openjdk-devel \
-    git \
-    tar \
-    gzip \
-    && microdnf clean all
+## -----------------------------
+## Connectors
+## -----------------------------
 
-# Upgrade certificates
-RUN microdnf update -y && \
-    microdnf install -y ca-certificates && \
-    update-ca-trust && \
-    microdnf clean all
-
-# Install Maven 3.9.7
-RUN microdnf install -y curl-minimal && \
-    curl -fsSL https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.7/apache-maven-3.9.7-bin.tar.gz \
-    -o /tmp/apache-maven-3.9.7-bin.tar.gz && \
-    tar xf /tmp/apache-maven-3.9.7-bin.tar.gz -C /opt && \
-    ln -s /opt/apache-maven-3.9.7 /opt/maven && \
-    rm /tmp/apache-maven-3.9.7-bin.tar.gz && \
-    microdnf clean all
-
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
-ENV MAVEN_HOME=/opt/maven
-ENV PATH="${JAVA_HOME}/bin:${MAVEN_HOME}/bin:${PATH}"
-
-# -----------------------------
-# Create plugin directories
-# -----------------------------
-RUN mkdir -p /usr/local/share/kafnus-connect/plugins \
-    && chown -R appuser:appuser /usr/local/share/kafnus-connect/plugins
-
-# -----------------------------
-# Build HeaderRouter
-# -----------------------------
-COPY src/header-router /tmp/header-router
-RUN cd /tmp/header-router && \
-    mvn clean package && \
-    mkdir -p /usr/local/share/kafnus-connect/plugins/header-router && \
-    cp target/header-router-1.0.0-jar-with-dependencies.jar /usr/local/share/kafnus-connect/plugins/header-router/header-router-1.0.0.jar && \
-    rm -rf /tmp/header-router
-
-# -----------------------------
-# Build JDBC Connector from PostGIS fork
-# -----------------------------
+## JDBC Connector (PostGIS fork)
 RUN cd /tmp && \
     git clone https://github.com/telefonicaid/kafka-connect-jdbc-postgis.git && \
     cd kafka-connect-jdbc-postgis && \
-    git checkout version10.8.4  && \
+    git checkout version10.8.4 || true && \
     mvn clean package -DskipTests -Dcheckstyle.skip=true && \
-    mkdir -p /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc && \
-    cp target/kafka-connect-jdbc-10.8.4.jar /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/ && \
+    mkdir -p ${CONNECT_PLUGIN_PATH}/kafka-connect-jdbc && \
+    cp target/kafka-connect-jdbc-10.8.4.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-jdbc/ && \
     rm -rf /tmp/kafka-connect-jdbc-postgis
 
-# PostgreSQL JDBC Driver
-RUN curl -fsSL https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar -o /usr/local/share/kafnus-connect/plugins/kafka-connect-jdbc/postgresql-42.7.1.jar
+## PostgreSQL JDBC Driver
+RUN curl -fsSL https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.1/postgresql-42.7.1.jar \
+    -o ${CONNECT_PLUGIN_PATH}/kafka-connect-jdbc/postgresql-42.7.1.jar
 
-# -----------------------------
-# MongoDB Kafka Connector
-# -----------------------------
-# MongoDB oficial image with additional dependencies
-RUN mkdir -p /usr/local/share/kafnus-connect/plugins/mongodb && \
-    curl -fsSL https://repo.maven.apache.org/maven2/org/mongodb/kafka/mongo-kafka-connect/2.0.1/mongo-kafka-connect-2.0.1-all.jar \
-        -o /usr/local/share/kafnus-connect/plugins/mongodb/mongo-kafka-connect-2.0.1-all.jar
+## MongoDB Kafka Connector (MongoDB official version - full jar)
+RUN mkdir -p ${CONNECT_PLUGIN_PATH}/mongodb && \
+    curl -fsSL https://repo1.maven.org/maven2/org/mongodb/kafka/mongo-kafka-connect/2.0.1/mongo-kafka-connect-2.0.1-all.jar \
+      -o ${CONNECT_PLUGIN_PATH}/mongodb/mongo-kafka-connect-2.0.1-all.jar
 
-# -----------------------------
-# Http Kafka Connector
-# -----------------------------
+## HTTP Connector (telefonicaid fork)
 RUN cd /tmp && \
     git clone https://github.com/telefonicaid/http-connector-for-apache-kafka-graphql.git && \
     cd http-connector-for-apache-kafka-graphql && \
-    git checkout task/handle_errors_graphql && \
+    git checkout task/handle_errors_graphql || true && \
     ./gradlew clean distTar && \
-    cd /usr/local/share/kafnus-connect/plugins && \
-    tar xfv /tmp/http-connector-for-apache-kafka-graphql/build/distributions/http-connector-for-apache-kafka-0.9.0.tar && \
+    mkdir -p ${CONNECT_PLUGIN_PATH}/http-connector && \
+    tar xfv build/distributions/http-connector-for-apache-kafka-0.9.0.tar -C ${CONNECT_PLUGIN_PATH}/http-connector --strip-components=1 && \
     rm -rf /tmp/http-connector-for-apache-kafka-graphql
 
+## -----------------------------
+## JMX Exporter
+## -----------------------------
+RUN mkdir -p /home/appuser/jmx_exporter && \
+    curl -fsSL https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.20.0/jmx_prometheus_javaagent-0.20.0.jar \
+      -o /home/appuser/jmx_exporter/jmx_prometheus_javaagent.jar
 
-# -----------------------------
-# JMX Exporter Agent
-# -----------------------------
-RUN mkdir -p /usr/share/jmx_exporter && \
-    curl -fsSL https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.20.0/jmx_prometheus_javaagent-0.20.0.jar -o /usr/share/jmx_exporter/jmx_prometheus_javaagent.jar
+## -----------------------------
+## Config directory for Kafka Connect
+## -----------------------------
+RUN mkdir -p /home/appuser/config
+ENV LOG_DIR=/home/appuser/logs
+RUN mkdir -p ${LOG_DIR}
 
-COPY monitoring/kafnus-connect.yml /usr/share/jmx_exporter/
+## Fix Java 17 + cgroups v2 issue
+ENV JAVA_TOOL_OPTIONS="-XX:+UnlockExperimentalVMOptions -XX:-UseContainerSupport"
 
-# -----------------------------
-# Set permissions and environment
-# -----------------------------
-RUN chown -R appuser:appuser /usr/local/share/kafnus-connect/plugins /usr/share/jmx_exporter
+## -----------------------------
+## Entrypoint
+## -----------------------------
+COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-USER appuser
-
-ENV CONNECT_PLUGIN_PATH="/usr/local/share/kafnus-connect/plugins:/usr/share/java"
+ENV PATH="${KAFKA_HOME}/bin:${PATH}"
 ENV KAFKA_JMX_PORT=9100
 ENV JMX_PROMETHEUS_PORT=9100
-ENV JMX_PROMETHEUS_EXPORTER_OPTS="-javaagent:/usr/share/jmx_exporter/jmx_prometheus_javaagent.jar=9100:/usr/share/jmx_exporter/kafnus-connect.yml"
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["connect-distributed", "/home/appuser/config/connect-distributed.properties"]
+

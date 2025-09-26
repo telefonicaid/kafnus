@@ -81,7 +81,6 @@ services:
       CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "true"
       CONNECT_PLUGIN_PATH: "/usr/local/share/kafnus-connect/plugins"
-      CONNECT_PLUGIN_DISCOVERY: "only_scan"
       CONNECT_REST_ADVERTISED_HOST_NAME: kafnus-connect
       CONNECT_LOG4J_LOGGERS: "com.hivemq=DEBUG,org.reflections=ERROR"
       # Monitoring
