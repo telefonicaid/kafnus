@@ -16,6 +16,24 @@ The custom Python fixture leverages this by substituting commands so that all co
 
 > ⚠️ **Note:** Legacy `docker-compose` command could be used, you can simply remove or disable the custom overriding class (`DockerCompose`) in the test fixtures in [`common_test.py`](../tests_end2end/functional/common_test.py). Doing so will revert to the default behavior.
 
+### ⚡ docker-entrypoint.sh
+
+The `docker-entrypoint.sh` script generates the Kafka Connect configuration at `/home/appuser/config/connect-distributed.properties` using environment variables, then starts Kafka Connect in distributed mode.  
+
+Key environment variables:
+
+- `CONNECT_BOOTSTRAP_SERVERS` (default: `kafka:9092`)
+- `CONNECT_GROUP_ID` (default: `connect-cluster`)
+- `CONNECT_KEY_CONVERTER` / `CONNECT_VALUE_CONVERTER`
+- `CONNECT_PLUGIN_PATH` (default: `/usr/local/share/kafnus-connect/plugins`)
+- `CONNECT_REST_PORT` (default: `8083`)
+
+The script ensures defaults are set and logs the final configuration before launching:
+
+```sh
+exec "${KAFKA_HOME}/bin/connect-distributed.sh" "${CONFIG_FILE}"
+```
+
 ---
 
 ## 🧩 Kafnus Connect Plugins

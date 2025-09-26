@@ -23,6 +23,7 @@ Custom Dockerfiles are located in their respective component directories:
 
 ```plaintext
 kafnus-connect/
+├── docker-entrypoint.sh # entrypoint for the Kafnus Connect container, initializing environment variables, configuring plugins, and launching the Kafka Connect process.
 └── Dockerfile  # builds Kafnus Connect from OpenJDK 17 + Kafka 4.1.0, manually installing plugins
 
 kafnus-ngsi/
