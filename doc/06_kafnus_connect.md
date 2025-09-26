@@ -9,6 +9,30 @@ This document explains how Kafnus Connect is configured to persist NGSI notifica
 
 This project uses Docker Compose to orchestrate the multi-service environment, including Kafnus Connect and other components.
 
+### 🔊 Adjusting Connector Plugin Log Level
+
+You can control the log level of Kafka Connect plugins using the `CONNECT_LOG4J_LOGGERS` environment variable in your Docker Compose configuration. This is useful for debugging or reducing noise from specific libraries.
+
+**Example usage:**
+
+```yaml
+environment:
+  CONNECT_LOG4J_LOGGERS: "com.hivemq=DEBUG,org.reflections=ERROR"
+```
+
+This sets the log level for the `com.hivemq` connector to `DEBUG` and for `org.reflections` to `ERROR`. You can adjust the value to target other packages or log levels as needed.
+
+**Default configuration:**
+
+```yaml
+environment:
+  CONNECT_LOG4J_LOGGERS: "org.reflections=ERROR"
+```
+
+This is the default setting, which only reduces log noise from the `org.reflections` library.
+
+Refer to the [Kafka Connect documentation](https://docs.confluent.io/platform/current/connect/logging.html) for more details on configuring logging.
+
 **Important:**  
 In tests, we override the default `docker-compose` CLI used by some tools and libraries to instead use the latest Docker Compose V2 syntax (`docker compose`). This ensures compatibility with the newest Docker CLI features and avoids issues related to the deprecated `docker-compose` command.
 
