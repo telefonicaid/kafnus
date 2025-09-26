@@ -20,9 +20,12 @@ The custom Python fixture leverages this by substituting commands so that all co
 
 ## 🧩 Kafnus Connect Plugins
 
-Kafnus Connect plugins are automatically built into the Docker image.
+Kafnus Connect plugins are automatically built into the Docker image and placed under the path defined by the environment variable `CONNECT_PLUGIN_PATH`. By default, this is:
 
-You can inspect them at runtime under the `kafnus-connect/plugins/` directory.  
+```
+/usr/local/share/kafnus-connect/plugins
+```
+
 This directory is **populated automatically** during the Docker build using the logic defined in the [Dockerfile](/kafnus-connect/Dockerfile).
 
 ### 1. JDBC Plugin for PostGIS
@@ -54,7 +57,7 @@ Used in:
 
 ### 3. HTTP Sink Connector
 
-This connector enables sending data from Kafka topics to an external HTTP endpoint. It is now part of the supported sinks in the Kafnus architecture.
+This connector enables sending data from Kafka topics to an external HTTP endpoint. It is part of the supported sinks in the Kafnus architecture.
 
 - **Connector class**: `io.aiven.kafka.connect.http.HttpSinkConnector`
 - **Type**: sink
@@ -67,7 +70,7 @@ This connector enables sending data from Kafka topics to an external HTTP endpoi
 
 ### 4. Custom SMT – HeaderRouter
 
-Path: `kafnus-connect/plugins/header-router`
+Path: `plugins/header-router`
 
 A Java-based Single Message Transform (SMT) implemented in `HeaderRouter.java`. It rewrites the topic name based on a Kafka record header (e.g. `target_table`) set by Kafnus NGSI.
 
@@ -216,6 +219,8 @@ docker exec -it kafka /opt/kafka/bin/kafka-console-consumer.sh \
 ```
 
 To confirm persistence, check tables in PostGIS or MongoDB after running the corresponding test input.
+
+---
 
 ## 🧭 Navigation
 
