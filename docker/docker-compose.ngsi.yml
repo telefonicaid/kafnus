@@ -23,6 +23,8 @@
 # criminal actions it may exercise to protect its rights.
 
 services:
+# FIXME: The create-topics service is no longer required and its lines are commented out.
+# If needed, this service could be repurposed to define the number of partitions for the input Kafka topics.
 #  create-topics:
 #    image: apache/kafka:4.1.0
 #    container_name: create-topics
@@ -56,6 +58,7 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+#      FIXME: If the create-topics service is repurposed, uncomment the following lines
 #      create-topics:
 #        condition: service_completed_successfully
     environment:

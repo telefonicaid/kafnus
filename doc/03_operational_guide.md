@@ -85,7 +85,7 @@ docker logs -f iot-postgis
 
 ```bash
 docker exec -it kafka \
-  kafka-console-consumer \
+  /opt/kafka/bin/kafka-console-consumer.sh \
     --bootstrap-server kafka:9092 \
     --topic raw_errors \
     --from-beginning \
@@ -191,7 +191,7 @@ Consume a sample:
 
 ```bash
 docker exec kafka \
-  kafka-console-consumer \
+  /opt/kafka/bin/kafka-console-consumer.sh \
     --bootstrap-server kafka:9092 \
     --topic <topic-name> \
     --from-beginning \
