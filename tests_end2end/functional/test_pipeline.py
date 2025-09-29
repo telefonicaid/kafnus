@@ -65,12 +65,14 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
     elif scenario_type == "http":
         logger.info(f"1. Loading validator HTTP for expected: {expected_json.name}")
         expected_data = load_scenario(expected_json, as_expected=True)
+        validators = {}
         for request_data in expected_data:
             url = request_data["url"]
             response = request_data["response"]
             response_status = response["status"]
             response_body = response["body"]
-            validator = HttpValidator(url, response_status, response_body)
+            if url not in validators:
+                validators[url] = HttpValidator(url, response_status, response_body)
     else:
         logger.info("1. No setup SQL/HTTP provided for this scenario.")
 
@@ -82,15 +84,10 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
     service_operations.orion_set_up()
 
     # Step 3: Validate result in PostGIS / Mongo / HTTP
+    logger.info(f"3. Waiting results against expected: {expected_json.name}")
     if scenario_type == "pq":
-        logger.info(f"3. Validating results against expected: {expected_json.name}")
         expected_data = load_scenario(expected_json, as_expected=True)
         validator = PostgisValidator(DEFAULT_DB_CONFIG)
-    elif scenario_type == "http":
-        logger.info(f"2. Waiting results expected: {expected_json.name}")
-        time.sleep(10)
-    else:
-        logger.info("3. No setup SQL/HTTP validator for this scenario.")
 
     all_valid = True
     errors = []
@@ -133,20 +130,29 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
             validator.close()
     
     if scenario_type == "http":
-        try: 
+        try:
             for request_data in expected_data:
-                headers = request_data["headers"]
-                body = request_data["body"]
-                result = validator.validate(headers, body)
-                #validator.stop()
-                if result is not True:
+                url = request_data["url"]
+                raw_headers = request_data.get("headers")
+                if isinstance(raw_headers, list):
+                    headers = {}
+                    for h in raw_headers:
+                        if isinstance(h, dict):
+                            headers.update(h)
+                else:
+                    headers = raw_headers or {}
+                body = request_data.get("body")
+                validator = validators[url]
+                ok = validator.validate(headers, body, timeout=30) # long timeout because http is the first flow to test
+                if not ok:
                     logger.error(f"❌ Validation failed in request: {request_data}")
                     all_valid = False
-                    errors.append(f"❌ Error in request: {request_data})")
+                    errors.append(f"❌ Error in request: {request_data}")
                 else:
                     logger.debug(f"✅ request {request_data} validated successfully")
         finally:
-            validator.stop()
+            for v in validators.values():
+                v.stop()
 
     if all_valid:
         logger.info(f"✅ Scenario {scenario_name} passed successfully.")

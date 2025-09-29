@@ -64,7 +64,7 @@ def wait_for_kafnus_connect(url=KAFNUS_TESTS_KAFNUS_CONNECT_URL, timeout=60):
         time.sleep(2)
     logger.fatal(f"❌ Kafnus Connect did not respond within {timeout} seconds")
 
-def wait_for_connector(name=KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME, url=KAFNUS_TESTS_KAFNUS_CONNECT_URL):
+def wait_for_connector(name=KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME, url=KAFNUS_TESTS_KAFNUS_CONNECT_URL, timeout=60):
     """
     Waits for the specified Kafnus Connect connector to reach the RUNNING state.
     Raises an exception if the connector does not become active after multiple attempts.
@@ -74,12 +74,19 @@ def wait_for_connector(name=KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME, url=KAFNUS_TEST
     - url: Kafnus Connect REST endpoint.
     """
     logger.info(f"⏳ Waiting for connector {name} to reach RUNNING state...")
-    for _ in range(30):
+    for _ in range(timeout // 2):
         try:
             r = requests.get(f"{url}/connectors/{name}/status")
-            if r.status_code == 200 and r.json().get("connector", {}).get("state") == "RUNNING":
+            """if r.status_code == 200 and r.json().get("connector", {}).get("state") == "RUNNING":
                 logger.info(f"✅ Connector {name} is RUNNING")
-                return
+                return"""
+            if r.status_code == 200:
+                data = r.json()
+                if data.get("connector", {}).get("state") == "RUNNING":
+                    tasks = data.get("tasks", [])
+                    if tasks and all(t["state"] == "RUNNING" for t in tasks):
+                        logger.info(f"✅ Connector {name} is RUNNING")
+                        return
         except Exception as e:
             logger.warning(f"⚠️ Error querying connector status: {str(e)}")
         time.sleep(2)
@@ -107,6 +114,27 @@ def wait_for_postgres(host, port, timeout=60):
             time.sleep(2)
     logger.fatal("❌ Postgres did not become available in time")
     raise RuntimeError("Postgres did not become available in time")
+
+def wait_for_orion(host, port, timeout=60):
+    """
+    Wait until the Orion Context Broker is reachable at host:port.
+    Raises RuntimeError if it does not become available before timeout.
+    Parameters:
+    - host (str): Orion host address
+    - port (int): Orion port
+    - timeout (int): Maximum wait time in seconds
+    """
+    url = f"http://{host}:{port}/version"
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            r = requests.get(url, timeout=2)
+            if r.status_code == 200:
+                return True
+        except Exception:
+            pass
+        time.sleep(2)
+    raise RuntimeError("Orion did not become ready in time")
 
 # ──────────────────────────────
 # Utilidades
@@ -341,15 +369,14 @@ def multiservice_stack():
         KAFNUS_TESTS_PG_USER = os.getenv("KAFNUS_TESTS_PG_USER", "postgres")
         KAFNUS_TESTS_PG_PASSWORD = os.getenv("KAFNUS_TESTS_PG_PASSWORD", "postgres")
 
+        wait_for_orion(orion_host, orion_port)
         wait_for_postgres(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT)
         ensure_postgis_db_ready(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT, KAFNUS_TESTS_PG_USER, KAFNUS_TESTS_PG_PASSWORD)
         
         wait_for_kafnus_connect()
-        time.sleep(5)
         logger.info("🚀 Deployings sinks...")
         deploy_all_sinks(sinks_dir)
         wait_for_connector()
-        time.sleep(10)
 
         yield MultiServiceContainer(
             orionHost=orion_host,
