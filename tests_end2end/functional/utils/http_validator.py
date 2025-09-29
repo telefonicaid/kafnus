@@ -206,7 +206,7 @@ class HttpValidator:
             return merged
         return {}
 
-    def validate(self, expected_headers=None, expected_body=None, timeout=30, poll_interval=0.5):
+    def validate(self, expected_headers=None, expected_body=None, timeout=30, poll_interval=1):
         start = time.time()
         expected_body = expected_body or {}
         expected_headers = self._normalize_expected_headers(expected_headers)
