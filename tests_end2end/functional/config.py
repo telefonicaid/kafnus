@@ -42,7 +42,7 @@ DEFAULT_DB_CONFIG = {
 KAFNUS_TESTS_KAFNUS_CONNECT_URL = os.getenv("KAFNUS_TESTS_KAFNUS_CONNECT_URL", "http://localhost:8083")
 
 # Default connector name for health-check
-KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME = os.getenv("KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME", "jdbc-historical-sink")
+KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME = os.getenv("KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME", "http-sink")
 
 # Setup and start logger
 def setup_test_logger(name="kafnus-tests"):

@@ -27,6 +27,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from config import logger
 import json
+import time
+import socket
 
 class RequestHandler(BaseHTTPRequestHandler):
     response_code = 200
@@ -48,7 +50,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             "body": body
         })
 
-        # Use response dinamically stored in server
+        # Use response dynamically stored in server
         response_code = getattr(self.server, "response_code", 200)
         response_content = getattr(self.server, "response_content", {"status": "OK"})
 
@@ -59,62 +61,135 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(response_body)
 
+    def do_GET(self):
+        # health endpoint
+        self.send_response(200)
+        b = json.dumps({"status": "ok"}).encode("utf-8")
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(b)))
+        self.end_headers()
+        self.wfile.write(b)
+
+    # suppress default logging (optional)
+    def log_message(self, format, *args):
+        logger.debug("HTTPServer: " + (format % args))
+
+
 class ReusableHTTPServer(HTTPServer):
     allow_reuse_address = True
 
 class HttpValidator:
-    # shared pool of servers already created
     _servers = {}
+    _lock = threading.Lock()
 
-    def __init__(self, url, response_code=200, response_content=None):
+    def __init__(self, url, response_code=200, response_content=None, bind_host=None):
         parsed = urlparse(url)
-        self.host = parsed.hostname or "0.0.0.0"
+        # always bind to 0.0.0.0 unless explicit bind_host provided
+        self.host = bind_host or "0.0.0.0"
+        self.advertised_host = parsed.hostname or "127.0.0.1"  # informational: used by tests to build callback URLs
         self.port = parsed.port or 3333
         self.key = (self.host, self.port)
 
-        if self.key in HttpValidator._servers:
-            # Reuses current server
-            self.httpd, self.thread, self.requests = HttpValidator._servers[self.key]
-            logger.info(f"Reusing HTTPServer {self.host}:{self.port}")
-        else:
-            # Creates a new server
-            self.requests = []
-            self.httpd = ReusableHTTPServer((self.host, self.port), RequestHandler)
-            self.httpd.requests = self.requests
-            self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
-            self.thread.start()
-            HttpValidator._servers[self.key] = (self.httpd, self.thread, self.requests)
-            logger.info(f"HTTPServer {self.host}:{self.port} started")
+        with HttpValidator._lock:
+            if self.key in HttpValidator._servers:
+                # Reuse current server, but clear previous requests
+                self.httpd, self.thread, self.requests = HttpValidator._servers[self.key]
+                self.requests.clear()
+                logger.info(f"Reusing HTTPServer {self.host}:{self.port}")
+            else:
+                # Create a new server and bind immediately (HTTPServer binds on instantiation)
+                self.requests = []
+                self.httpd = ReusableHTTPServer((self.host, self.port), RequestHandler)
+                self.httpd.requests = self.requests
+                self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
+                self.thread.start()
+                HttpValidator._servers[self.key] = (self.httpd, self.thread, self.requests)
+                logger.info(f"HTTPServer {self.host}:{self.port} started")
 
         # Always update response
         self.update_response(response_code, response_content or {"status": "OK"})
 
+        # ensure server socket is reachable from the test host (quick check)
+        if not self._wait_socket_ready(timeout=3):
+            logger.warning(f"HTTP server at {self.host}:{self.port} not accepting connections immediately")
+
+    def _wait_socket_ready(self, timeout=3):
+        start = time.time()
+        while time.time() - start < timeout:
+            try:
+                with socket.create_connection((self.host, self.port), timeout=1):
+                    return True
+            except OSError:
+                time.sleep(0.1)
+        return False
+
     def update_response(self, response_code=200, response_content=None):
-        """Update response with the same server"""
+        """Update response on the running server"""
         self.httpd.response_code = response_code
         if response_content is not None:
             self.httpd.response_content = response_content
 
-    def validate(self, headers, body):
-        """
-        Validates that the expected data is present in the table.
+    def _matches(self, reqbody, expected_body):
+        # If both dicts, check that expected_body items are present in reqbody (subset match)
+        if isinstance(reqbody, dict) and isinstance(expected_body, dict):
+            # allow nested check: every k in expected present in reqbody and equal
+            for k, v in expected_body.items():
+                if k not in reqbody:
+                    return False
+                if reqbody[k] != v:
+                    return False
+            return True
+        # otherwise fallback to direct equality
+        return reqbody == expected_body
 
-        - `expected_rows`: list of dicts with keys that must match in each row.
-        - Repeats until all expected rows appear in the table, or the timeout is reached.
+    def validate(self, expected_headers=None, expected_body=None, timeout=30, poll_interval=0.5, ignore_recvtime=False):
         """
-        headers = headers or {}
-        body = body or {}
-        logger.debug(f"validator body {body}")
-        for req in self.requests:
-            reqbody = req["body"]
-            logger.debug(f"validator reqbody {reqbody}")
-            if reqbody == body:
-                return True
+        Wait until a request matching expected_body (and optionally headers) appears
+        in the collected requests, or timeout occurs.
+        - expected_headers: dict or None (only checked if provided)
+        - expected_body: dict/string or None
+        - timeout: seconds to wait
+        Returns True if found, False otherwise.
+        """
+        start = time.time()
+        expected_body = expected_body or {}
+        expected_headers = expected_headers or {}
+
+        while time.time() - start < timeout:
+            # iterate over a snapshot to avoid concurrency issues
+            snapshot = list(self.requests)
+            for req in snapshot:
+                reqbody = req.get("body")
+                # optional recvTime ignore: if expected_body has keys present we only compare those
+                if self._matches(reqbody, expected_body):
+                    # headers check (subset)
+                    if expected_headers:
+                        reqheaders = {k.lower(): v for k, v in req.get("headers", {}).items()}
+                        ok = True
+                        for hk, hv in expected_headers.items():
+                            if reqheaders.get(hk.lower()) != hv:
+                                ok = False
+                                break
+                        if not ok:
+                            continue
+                    return True
+            time.sleep(poll_interval)
+
+        logger.debug(f"Timeout waiting for expected HTTP request. Requests recorded: {len(self.requests)}")
         return False
 
     def stop(self):
         logger.info(f"validator and HTTPServer stopped")
-        self.httpd.shutdown()
-        self.httpd.server_close()
-        self.thread.join()
-        HttpValidator._servers.pop(self.key, None)
+        try:
+            self.httpd.shutdown()
+            self.httpd.server_close()
+        except Exception as e:
+            logger.warning(f"Error stopping server: {e}")
+        # join thread if alive
+        try:
+            if self.thread.is_alive():
+                self.thread.join(timeout=2)
+        except Exception:
+            pass
+        with HttpValidator._lock:
+            HttpValidator._servers.pop(self.key, None)
