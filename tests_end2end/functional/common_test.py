@@ -374,11 +374,9 @@ def multiservice_stack():
         ensure_postgis_db_ready(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT, KAFNUS_TESTS_PG_USER, KAFNUS_TESTS_PG_PASSWORD)
         
         wait_for_kafnus_connect()
-        time.sleep(5)
         logger.info("🚀 Deployings sinks...")
         deploy_all_sinks(sinks_dir)
         wait_for_connector()
-        time.sleep(10)
 
         yield MultiServiceContainer(
             orionHost=orion_host,
