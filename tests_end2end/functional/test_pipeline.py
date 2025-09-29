@@ -133,7 +133,14 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
         try:
             for request_data in expected_data:
                 url = request_data["url"]
-                headers = request_data.get("headers")
+                raw_headers = request_data.get("headers")
+                if isinstance(raw_headers, list):
+                    headers = {}
+                    for h in raw_headers:
+                        if isinstance(h, dict):
+                            headers.update(h)
+                else:
+                    headers = raw_headers or {}
                 body = request_data.get("body")
                 validator = validators[url]
                 ok = validator.validate(headers, body, timeout=30) # long timeout because http is the first flow to test
