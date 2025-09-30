@@ -23,31 +23,31 @@
 # criminal actions it may exercise to protect its rights.
 
 services:
-# FIXME: The create-topics service is no longer required and its lines are commented out.
-# If needed, this service could be repurposed to define the number of partitions for the input Kafka topics.
-#  create-topics:
-#    image: apache/kafka:4.1.0
-#    container_name: create-topics
-#    depends_on:
-#      kafka:
-#        condition: service_healthy
-#    command: >
-#      bash -c "
-#        export PATH=$PATH:/opt/kafka/bin;
-#        echo 'Creating Kafka topics...';
-#        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_historic --partitions 1 --replication-factor 1;
-#        echo 'Topic raw_lastdata created or already created.'
-#        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_mutable --partitions 1 --replication-factor 1;
-#        echo 'Topic raw_mutable created or already created.'
-#        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_errors --partitions 1 --replication-factor 1;
-#        echo 'Topic raw_errors created or already created.'
-#        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_mongo --partitions 1 --replication-factor 1;
-#        echo 'Topic raw_mongo created or already created.'
-#        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_sgtr --partitions 1 --replication-factor 1;
-#        echo 'Topic raw_sgtr... created or already created.'
-#      "
-#    networks:
-#      - kafka-postgis-net
+# FIXME: The create-topics service is no longer required. But it might affect the tests.
+# If needed, this service could be used to define the number of partitions for the input Kafka topics.
+  create-topics:
+    image: apache/kafka:4.1.0
+    container_name: create-topics
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command: >
+      bash -c "
+        export PATH=$PATH:/opt/kafka/bin;
+        echo 'Creating Kafka topics...';
+        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_historic --partitions 1 --replication-factor 1;
+        echo 'Topic raw_lastdata created or already created.'
+        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_mutable --partitions 1 --replication-factor 1;
+        echo 'Topic raw_mutable created or already created.'
+        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_errors --partitions 1 --replication-factor 1;
+        echo 'Topic raw_errors created or already created.'
+        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_mongo --partitions 1 --replication-factor 1;
+        echo 'Topic raw_mongo created or already created.'
+        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic raw_sgtr --partitions 1 --replication-factor 1;
+        echo 'Topic raw_sgtr... created or already created.'
+      "
+    networks:
+      - kafka-postgis-net
       
   kafnus-ngsi:
     container_name: kafnus-ngsi
