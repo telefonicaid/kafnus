@@ -182,7 +182,7 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
         "raw_lastdata": "init_lastdata",
         "raw_mutable": "init_mutable",
         "raw_errors": "init_error_log",
-        #"raw_sgtr": "sgtr_http"
+        "raw_sgtr": "sgtr_http"
     }
 
     # --- Test messages (NGSI notification style) ---
@@ -215,6 +215,20 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
             "timestamp": "2025-09-30T14:00:00Z",
             "error": "init message when starting tests",
             "query": "INSERT INTO ..."
+        }
+    }
+
+    # --- SGTR-specific message ---
+    sgtr_msg = {
+        "key": "sgtr1",
+        "value": {
+            "data": [
+                {
+                    "alterationType": "entityCreate",
+                    "type": "Init",
+                    "externalId": "Init:Init"
+                }
+            ]
         }
     }
 
@@ -253,6 +267,20 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
     )
     logger.debug(f"➡️ Sent initial error message to raw_errors with headers {error_headers}")
 
+    # SGTR flow separately
+    sgtr_headers = [
+        ("Fiware-Service", b"init"),
+        ("Fiware-ServicePath", b"/init")
+    ]
+
+    producer.produce(
+        "raw_sgtr",
+        key=sgtr_msg["key"],
+        value=json.dumps(sgtr_msg["value"]),
+        headers=sgtr_headers
+    )
+    logger.debug(f"➡️ Sent SGTR test message to raw_sgtr with headers {sgtr_headers}")
+
     producer.flush()
 
     # --- Consume and validate ---
@@ -272,7 +300,7 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
 
         while time.time() - start < timeout and len(processed) < len(flows):
             # Consume multiple messages per iteration
-            msgs = consumer.consume(num_messages=5, timeout=2.0)
+            msgs = consumer.consume(num_messages=6, timeout=2.0)
             if not msgs:
                 continue
 
@@ -290,6 +318,9 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
                         processed[topic] = True
                 elif topic == flows["raw_mongo"]:
                     if "entityId" in val:
+                        processed[topic] = True
+                elif topic == flows["raw_sgtr"]:
+                    if "query" in val:
                         processed[topic] = True
                 else:
                     if "payload" in val:
