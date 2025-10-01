@@ -37,6 +37,7 @@ import socket
 import time
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from confluent_kafka import Producer, Consumer, KafkaException
 
 from config import logger
 from config import KAFNUS_TESTS_KAFNUS_CONNECT_URL, KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME
@@ -135,6 +136,128 @@ def wait_for_orion(host, port, timeout=60):
             pass
         time.sleep(2)
     raise RuntimeError("Orion did not become ready in time")
+
+def wait_for_kafnus_ngsi(kafka_bootstrap="localhost:9092", timeout=300):
+    """
+    Sends NGSI-like test messages to Kafnus input topics and waits until all
+    NGSI agents produce messages on their respective output topics.
+
+    Raises RuntimeError if any agent does not consume and produce a message in time.
+
+    Parameters:
+    - kafka_bootstrap: Kafka bootstrap server
+    - timeout: Maximum wait time in seconds
+    """
+
+    # Map input -> expected output
+    flows = {
+        "raw_mongo": "init_mongo",
+        "raw_historic": "init",
+        "raw_lastdata": "init_lastdata",
+        "raw_mutable": "init_mutable",
+        #"raw_errors": "init_error_log",
+    }
+
+    # --- Test messages (NGSI notification style) ---
+    # --- Shared NGSI-style message ---
+    ngsi_msg = {
+        "key": "sub1",
+        "value": {
+            "subscriptionId": "sub1",
+            "data": [{
+                "id": "Sensor1",
+                "type": "Sensor",
+                "TimeInstant": {
+                    "type": "DateTime",
+                    "value": "2025-06-26T11:00:00.000Z",
+                    "metadata": {}
+                },
+                "temperature": {
+                    "type": "Float",
+                    "value": 25,
+                    "metadata": {}
+                }
+            }]
+        }
+    }
+
+    # --- Error message ---
+    error_msg = {
+        "key": "sub_err",
+        "value": {
+            "timestamp": "2025-09-30T14:00:00Z",
+            "error": "duplicate key value violates unique constraint",
+            "query": "INSERT INTO ..."
+        }
+    }
+
+    # Topics that reuse the shared NGSI message
+    ngsi_inputs = ["raw_historic", "raw_lastdata", "raw_mutable", "raw_mongo"]
+
+    # Common headers required for routing
+    headers = [
+        ("Fiware-Service", b"init"),
+        ("Fiware-ServicePath", b"/init")
+    ]
+
+    # --- Produce ---
+    producer = Producer({"bootstrap.servers": kafka_bootstrap})
+    for topic in ngsi_inputs:
+        producer.produce(
+            topic,
+            key=ngsi_msg["key"],
+            value=json.dumps(ngsi_msg["value"]),
+            headers=headers
+        )
+        logger.debug(f"➡️ Sent shared NGSI test message to {topic} with headers {headers}")
+
+    # Error flow separately
+    # producer.produce(
+    #     "raw_errors",
+    #     key=error_msg["key"],
+    #     value=json.dumps(error_msg["value"]),
+    #     headers=headers
+    # )
+    # logger.debug(f"➡️ Sent error test message to raw_errors with headers {headers}")
+    # 
+    # producer.flush()
+
+    # --- Consume and validate ---
+    consumer = Consumer({
+        "bootstrap.servers": kafka_bootstrap,
+        "group.id": "ngsi_smoke_test",
+        "auto.offset.reset": "earliest",
+    })
+    consumer.subscribe(list(flows.values()))
+
+    processed = {}
+    start = time.time()
+
+    while time.time() - start < timeout and len(processed) < len(flows):
+        msg = consumer.poll(2)
+        if msg is None or msg.error():
+            continue
+
+        topic = msg.topic()
+        val = json.loads(msg.value())
+        logger.debug(f"✅ Got message from {topic}: {val}")
+
+        # Minimal validations per flow
+        if "payload" in val and isinstance(val["payload"], dict):
+            processed[topic] = True
+        elif topic == flows["raw_mongo"] and "entityId" in val:
+            processed[topic] = True
+        #elif topic == flows["raw_errors"] and "error" in val:
+        #    processed[topic] = True
+
+    consumer.close()
+
+    missing = set(flows.values()) - set(processed.keys())
+    if missing:
+        logger.fatal(f"❌ NGSI did not produce messages for: {missing}")
+        raise RuntimeError(f"NGSI not ready: {missing}")
+
+    logger.info("🎉 All NGSI agents processed test messages correctly")
 
 # ──────────────────────────────
 # Utilidades
@@ -377,6 +500,8 @@ def multiservice_stack():
         logger.info("🚀 Deployings sinks...")
         deploy_all_sinks(sinks_dir)
         wait_for_connector()
+
+        wait_for_kafnus_ngsi()
 
         yield MultiServiceContainer(
             orionHost=orion_host,
