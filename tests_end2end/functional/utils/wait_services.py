@@ -11,7 +11,7 @@ from config import logger
 from config import KAFNUS_TESTS_KAFNUS_CONNECT_URL, KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME
 
 
-def wait_for_kafnus_connect(url=KAFNUS_TESTS_KAFNUS_CONNECT_URL, timeout=60):
+def wait_for_kafnus_connect(url=KAFNUS_TESTS_KAFNUS_CONNECT_URL, timeout=90):
     """
     Waits until the Kafnus Connect service is available at the given URL.
     Raises an exception if the timeout is exceeded before the service becomes reachable.

@@ -32,7 +32,7 @@ services:
     ports:
       - "9308:9308"
     environment:
-      - KAFKA_SERVER=kafka:9092
+      - KAFKA_SERVER=kafka:29092
     networks:
       - kafka-postgis-net
 

@@ -31,6 +31,8 @@ services:
     depends_on:
       - mongo
       - kafka
+    environment:
+      - KAFKA_PORT=29092
     networks:
       - kafka-postgis-net
     command: -dbURI mongodb://mongo:27017
