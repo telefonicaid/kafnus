@@ -173,6 +173,7 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
     - kafka_bootstrap: Kafka bootstrap server
     - timeout: Maximum wait time in seconds
     """
+    logger.info("Starting NGSI smoke test...")
 
     # Map input -> expected output
     flows = {
