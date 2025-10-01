@@ -181,7 +181,7 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
         "raw_historic": "init",
         "raw_lastdata": "init_lastdata",
         "raw_mutable": "init_mutable",
-        #"raw_errors": "init_error_log",
+        "raw_errors": "init_error_log",
     }
 
     # --- Test messages (NGSI notification style) ---
@@ -212,7 +212,7 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
         "key": "sub_err",
         "value": {
             "timestamp": "2025-09-30T14:00:00Z",
-            "error": "duplicate key value violates unique constraint",
+            "error": "init message when starting tests",
             "query": "INSERT INTO ..."
         }
     }
@@ -238,45 +238,49 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
         logger.debug(f"➡️ Sent shared NGSI test message to {topic} with headers {headers}")
 
     # Error flow separately
-    # producer.produce(
-    #     "raw_errors",
-    #     key=error_msg["key"],
-    #     value=json.dumps(error_msg["value"]),
-    #     headers=headers
-    # )
-    # logger.debug(f"➡️ Sent error test message to raw_errors with headers {headers}")
-    # 
-    # producer.flush()
+    error_headers = [
+        ("__connect.errors.topic", b"init"),
+        ("__connect.errors.exception.message", b"init message when starting tests"),
+        ("__connect.errors.connector.name", b"init"),
+        ("target_table", b"init")
+    ]
+    producer.produce(
+        "raw_errors",
+        key=error_msg["key"],
+        value=json.dumps(error_msg["value"]),
+        headers=error_headers
+    )
+    logger.debug(f"➡️ Sent initial error message to raw_errors with headers {error_headers}")
+    producer.flush()
 
     # --- Consume and validate ---
-    consumer = Consumer({
-        "bootstrap.servers": kafka_bootstrap,
-        "group.id": "ngsi_smoke_test",
-        "auto.offset.reset": "earliest",
-    })
-    consumer.subscribe(list(flows.values()))
+    try:
+        consumer = Consumer({
+            "bootstrap.servers": kafka_bootstrap,
+            "group.id": "ngsi_smoke_test",
+            "auto.offset.reset": "earliest",
+        })
+        consumer.subscribe(list(flows.values()))
 
-    processed = {}
-    start = time.time()
+        processed = {}
+        start = time.time()
 
-    while time.time() - start < timeout and len(processed) < len(flows):
-        msg = consumer.poll(2)
-        if msg is None or msg.error():
-            continue
+        while time.time() - start < timeout and len(processed) < len(flows):
+            msg = consumer.poll(2)
+            if msg is None or msg.error():
+                continue
 
-        topic = msg.topic()
-        val = json.loads(msg.value())
-        logger.debug(f"✅ Got message from {topic}: {val}")
+            topic = msg.topic()
+            val = json.loads(msg.value())
+            logger.debug(f"✅ Got message from {topic}: {val}")
 
-        # Minimal validations per flow
-        if "payload" in val and isinstance(val["payload"], dict):
-            processed[topic] = True
-        elif topic == flows["raw_mongo"] and "entityId" in val:
-            processed[topic] = True
-        #elif topic == flows["raw_errors"] and "error" in val:
-        #    processed[topic] = True
-
-    consumer.close()
+            # Minimal validations per flow
+            if "payload" in val and isinstance(val["payload"], dict):
+                processed[topic] = True
+            elif topic == flows["raw_mongo"] and "entityId" in val:
+                processed[topic] = True
+    finally:
+        consumer.close()
 
     missing = set(flows.values()) - set(processed.keys())
     if missing:
