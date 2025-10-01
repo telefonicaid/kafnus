@@ -3,7 +3,7 @@ import json
 import requests
 import socket
 import time
-from confluent_kafka import Producer, Consumer
+from confluent_kafka import Producer, Consumer, TopicPartition
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from pathlib import Path
@@ -182,6 +182,7 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
         "raw_lastdata": "init_lastdata",
         "raw_mutable": "init_mutable",
         "raw_errors": "init_error_log",
+        #"raw_sgtr": "sgtr_http"
     }
 
     # --- Test messages (NGSI notification style) ---
@@ -251,6 +252,7 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
         headers=error_headers
     )
     logger.debug(f"➡️ Sent initial error message to raw_errors with headers {error_headers}")
+
     producer.flush()
 
     # --- Consume and validate ---
@@ -260,25 +262,43 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
             "group.id": "ngsi_smoke_test",
             "auto.offset.reset": "earliest",
         })
-        consumer.subscribe(list(flows.values()))
+        
+        partitions = [TopicPartition(t, 0) for t in flows.values()]
+        consumer.assign(partitions)
+        logger.debug(f"Assigned to topics: {[p.topic for p in partitions]}")
 
         processed = {}
         start = time.time()
 
         while time.time() - start < timeout and len(processed) < len(flows):
-            msg = consumer.poll(2)
-            if msg is None or msg.error():
+            # Consume multiple messages per iteration
+            msgs = consumer.consume(num_messages=5, timeout=2.0)
+            if not msgs:
                 continue
 
-            topic = msg.topic()
-            val = json.loads(msg.value())
-            logger.debug(f"✅ Got message from {topic}: {val}")
+            for msg in msgs:
+                if msg is None or msg.error():
+                    continue
 
-            # Minimal validations per flow
-            if "payload" in val and isinstance(val["payload"], dict):
-                processed[topic] = True
-            elif topic == flows["raw_mongo"] and "entityId" in val:
-                processed[topic] = True
+                topic = msg.topic()
+                val = json.loads(msg.value())
+                logger.debug(f"✅ Got message from {topic}: {val}")
+
+                # Minimal validations per flow
+                if topic == flows["raw_errors"]:
+                    if "payload" in val and "error" in val["payload"]:
+                        processed[topic] = True
+                elif topic == flows["raw_mongo"]:
+                    if "entityId" in val:
+                        processed[topic] = True
+                else:
+                    if "payload" in val:
+                        processed[topic] = True
+
+            still_missing = set(flows.values()) - set(processed.keys())
+            if still_missing:
+                logger.debug(f"⏳ Still waiting for: {still_missing}")
+
     finally:
         consumer.close()
 
