@@ -223,7 +223,7 @@ def multiservice_stack():
         deploy_all_sinks(sinks_dir)
         wait_for_connector()
 
-        wait_for_kafnus_ngsi()
+        wait_for_kafnus_ngsi(f"{kafka_host}:{kafka_port}")
 
         yield MultiServiceContainer(
             orionHost=orion_host,
