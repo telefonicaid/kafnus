@@ -7,3 +7,4 @@ testcontainers==3.7.0
 python-dotenv==0.21.0
 docker==7.1.0
 shapely==2.1.1
+confluent-kafka==2.11.1
