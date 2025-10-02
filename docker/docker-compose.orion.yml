@@ -24,7 +24,7 @@
 
 services:
   orion:
-    image: telefonicaiot/fiware-orion:kafka
+    image: telefonicaiot/fiware-orion:latest
     container_name: orion
     ports:
       - "1026:1026"
