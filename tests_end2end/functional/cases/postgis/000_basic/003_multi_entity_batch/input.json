@@ -25,7 +25,7 @@
       },
       "notification": {
         "kafkaCustom": {
-          "url": "kafka://kafka:9092",
+          "url": "kafka://kafka:29092",
           "topic": "raw_historic"
         },
         "attrs": [
@@ -59,7 +59,7 @@
       },
       "notification": {
         "kafkaCustom": {
-          "url": "kafka://kafka:9092",
+          "url": "kafka://kafka:29092",
           "topic": "raw_lastdata"
         },
         "attrs": [
@@ -93,7 +93,7 @@
       },
       "notification": {
         "kafkaCustom": {
-          "url": "kafka://kafka:9092",
+          "url": "kafka://kafka:29092",
           "topic": "raw_mutable"
         },
         "attrs": [

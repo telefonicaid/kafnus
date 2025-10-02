@@ -55,14 +55,20 @@ function addPrefix(prefix, root) {
     return prefix + root;
 }
 
+function capitalEntityType(entityType) {
+    if (!entityType) return '';
+    return entityType.charAt(0).toUpperCase() + entityType.slice(1).toLowerCase();
+}
+
 function buildMutationCreate(entityType, entityObject) {
     // Convert object to string for GraphQL
     const objectString = toGraphQLValue(entityObject);
+    const capEntityType = capitalEntityType(entityType);
 
     const templateMutationCreate = {
         query: `
             mutation {
-                create${entityType}(dti: ${GRAFO_STR},
+                create${capEntityType}(dti: ${GRAFO_STR},
                     input: {
                         object: ${objectString}
                     }
@@ -78,6 +84,7 @@ function buildMutationCreate(entityType, entityObject) {
 
 function buildMutationUpdate(entityType, id, entityObject) {
     const objectString = toGraphQLValue(entityObject);
+    const capEntityType = capitalEntityType(entityType);
     // const uri = addPrefix(PREFIX_RESOURCE, id);
     // const uriString = toGraphQLValue(uri);
     // const idString = toGraphQLValue(id);
@@ -85,7 +92,7 @@ function buildMutationUpdate(entityType, id, entityObject) {
     return {
         query: `
             mutation {
-                update${entityType}(dti: ${GRAFO_STR},
+                update${capEntityType}(dti: ${GRAFO_STR},
                     input: {
                         object: ${objectString}
                     }
@@ -115,17 +122,18 @@ function buildMutationDelete(/*entityType,*/ id) {
     };
 }
 
-function buildMutation(type, entityName, args = {}, returnFields = ['uri']) {
+function buildMutation(type, entityType, args = {}, returnFields = ['uri']) {
     const argsString = Object.entries(args)
         .map(([k, v]) => `${k}: ${toGraphQLValue(v)}`)
         .join(', ');
 
     const returnFieldsString = returnFields.join(' ');
+    const capEntityType = capitalEntityType(entityType);
 
     return {
         query: `
             mutation {
-                ${type}${entityName}(${argsString}) {
+                ${type}${capEntityType}(${argsString}) {
                     ${returnFieldsString}
                 }
             }
