@@ -12,6 +12,7 @@
 - Feature: Prometheus metrics and Grafana dashboards for Kafka lag, connector status, and errors (#9, #55)
 - Feature: Docker Compose deployment with modular images (#31, #36, #72, #80)
 - Feature: CI/CD GitHub Actions for end-to-end test automation (#34, #39, #91)
+- Feature: added error sink support for HTTP (#125) and Mongo (#130) flows
 - Fix: package naming issues in Node.js connector (#44, #45)
 - Fix: JDBC patch and PostGIS type support (#50, #84, #87)
 - Fix: internal notification payloads (#51)
