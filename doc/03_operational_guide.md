@@ -109,6 +109,8 @@ curl -X POST -H "Content-Type: application/json" \
 
 Repeat for `pg-sink-lastdata.json`, `pg-sink-mutable.json`, `pg-sink-errors.json`, `mdb-sink.json` and `http-sink.json`.
 
+> You can also do this for `mdb-sink-errors.json` and `http-sink-errors.json`, but this connectors may change in the future.
+
 ### 4.2 Update Connector Config
 
 Use HTTP PUT to update a running connector:
