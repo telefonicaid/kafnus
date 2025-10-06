@@ -222,6 +222,8 @@ def multiservice_stack():
         logger.info("🚀 Deployings sinks...")
         deploy_all_sinks(sinks_dir)
         wait_for_connector()
+        wait_for_connector("jdbc-historical-sink")
+        wait_for_connector("mongo-sink")
 
         wait_for_kafnus_ngsi(f"{kafka_host}:{kafka_port}")
 
