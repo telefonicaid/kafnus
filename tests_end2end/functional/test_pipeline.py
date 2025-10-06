@@ -59,7 +59,7 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
         logger.info(f"0. Description: {desc}")
 
     # Step 1: Execute setup SQL
-    if scenario_type == "pq" and setup:
+    if scenario_type == "pg" and setup:
         logger.info(f"1. Executing setup SQL script: {setup.name}")
         execute_sql_file(setup, db_config=DEFAULT_DB_CONFIG)
     elif scenario_type == "http":
@@ -85,14 +85,14 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
 
     # Step 3: Validate result in PostGIS / Mongo / HTTP
     logger.info(f"3. Waiting results against expected: {expected_json.name}")
-    if scenario_type == "pq":
+    if scenario_type == "pg":
         expected_data = load_scenario(expected_json, as_expected=True)
         validator = PostgisValidator(DEFAULT_DB_CONFIG)
 
     all_valid = True
     errors = []
 
-    if scenario_type == "pq":
+    if scenario_type == "pg":
         for table_data in expected_data:
             table = table_data["table"]
             if "rows" in table_data:
