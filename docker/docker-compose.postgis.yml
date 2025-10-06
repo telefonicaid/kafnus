@@ -36,7 +36,7 @@ services:
       - "5432:5432"
     command: postgres --shared_buffers=256MB --max_connections=500
     environment:
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${KAFNUS_TESTS_PG_PASSWORD:-postgres}
     logging:
       driver: "json-file"
       options:
