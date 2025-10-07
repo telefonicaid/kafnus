@@ -4,9 +4,9 @@
     "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
     "tasks.max": "1",
     "topics": "mongo_error_log",
-    "connection.url": "jdbc:postgresql://${KAFNUS_TESTS_PG_HOST}:${KAFNUS_TESTS_PG_PORT}/${KAFNUS_TESTS_PG_DBNAME}",
-    "connection.user": "${KAFNUS_TESTS_PG_USER}",
-    "connection.password": "${KAFNUS_TESTS_PG_PASSWORD}",
+    "connection.url": "jdbc:postgresql://iot-postgis:5432/tests",
+    "connection.user": "postgres",
+    "connection.password": "postgres",
 
     "insert.mode": "insert",
     "table.name.format": "test.${topic}",
