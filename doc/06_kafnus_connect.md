@@ -80,7 +80,7 @@ Example usage inside a connector definition:
 or, for MongoDB:
 
 ```json
-"connection.uri": "mongodb://${env:MONGO_HOST}:${env:MONGO_PORT}"
+"connection.uri": "mongodb://${env:KAFNUS_TESTS_MONGO_HOST}:${env:KAFNUS_TESTS_MONGO_PORT}"
 ```
 
 These variables are defined in the `environment` section of the `kafnus-connect` service in `docker-compose.kafka.yml`:
@@ -92,8 +92,8 @@ These variables are defined in the `environment` section of the `kafnus-connect`
   KAFNUS_TESTS_PG_DBNAME: tests
   KAFNUS_TESTS_PG_USER: postgres
   KAFNUS_TESTS_PG_PASSWORD: postgres
-  MONGO_HOST: mongo
-  MONGO_PORT: "27017"
+  KAFNUS_TESTS_MONGO_HOST: mongo
+  KAFNUS_TESTS_MONGO_PORT: "27017"
 ```
 
 > ✅ These environment variables are available to all sink connectors via `${env:...}` references thanks to the `config.providers=env` setting in the Kafnus Connect distributed configuration.

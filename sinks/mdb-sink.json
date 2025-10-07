@@ -6,7 +6,7 @@
     
     "topics": "test_mongo",
 
-    "connection.uri": "mongodb://${env:MONGO_HOST}:${env:MONGO_PORT}",
+    "connection.uri": "mongodb://${env:KAFNUS_TESTS_MONGO_HOST}:${env:KAFNUS_TESTS_MONGO_PORT}",
     "database": "dummy",
     "collection": "dummy",
 

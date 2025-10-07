@@ -92,7 +92,7 @@ Example usage inside connector definitions:
 
 ```json
 "connection.url": "jdbc:postgresql://${env:KAFNUS_TESTS_PG_HOST}:${env:KAFNUS_TESTS_PG_PORT}/${env:KAFNUS_TESTS_PG_DBNAME}",
-"connection.uri": "mongodb://${env:MONGO_HOST}:${env:MONGO_PORT}"
+"connection.uri": "mongodb://${env:KAFNUS_TESTS_MONGO_HOST}:${env:KAFNUS_TESTS_MONGO_PORT}"
 ```
 
 These variables are defined in the `kafnus-connect` service within `docker-compose.kafka.yml`:
@@ -103,8 +103,8 @@ KAFNUS_TESTS_PG_PORT: "5432"
 KAFNUS_TESTS_PG_DBNAME: tests
 KAFNUS_TESTS_PG_USER: postgres
 KAFNUS_TESTS_PG_PASSWORD: postgres
-MONGO_HOST: mongo
-MONGO_PORT: "27017"
+KAFNUS_TESTS_MONGO_HOST: mongo
+KAFNUS_TESTS_MONGO_PORT: "27017"
 ```
 
 > ✅ This approach avoids hardcoded credentials, improves portability, and keeps test configurations cleaner and safer.

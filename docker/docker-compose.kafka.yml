@@ -91,8 +91,8 @@ services:
       KAFNUS_TESTS_PG_DBNAME: tests
       KAFNUS_TESTS_PG_USER: postgres
       KAFNUS_TESTS_PG_PASSWORD: postgres
-      MONGO_HOST: mongo
-      MONGO_PORT: "27017"
+      KAFNUS_TESTS_MONGO_HOST: mongo
+      KAFNUS_TESTS_MONGO_PORT: "27017"
 
       # Monitoring
       KAFKA_JMX_PORT: 9100
