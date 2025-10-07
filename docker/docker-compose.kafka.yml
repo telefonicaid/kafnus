@@ -85,6 +85,13 @@ services:
       CONNECT_PLUGIN_PATH: "/usr/local/share/kafnus-connect/plugins"
       CONNECT_REST_ADVERTISED_HOST_NAME: kafnus-connect
       CONNECT_LOG4J_LOGGERS: "org.reflections=ERROR"
+
+      KAFNUS_TESTS_PG_HOST: iot-postgis
+      KAFNUS_TESTS_PG_PORT: "5432"
+      KAFNUS_TESTS_PG_DBNAME: tests
+      KAFNUS_TESTS_PG_USER: postgres
+      KAFNUS_TESTS_PG_PASSWORD: postgres
+
       # Monitoring
       KAFKA_JMX_PORT: 9100
       JMX_PROMETHEUS_PORT: 9100
