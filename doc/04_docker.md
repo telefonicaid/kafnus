@@ -80,6 +80,7 @@ Defines:
   - Custom plugins in `${CONNECT_PLUGIN_PATH}` (default `/usr/local/share/kafnus-connect/plugins`)
   - Monitoring enabled via JMX Exporter (path `/home/appuser/jmx_exporter`)
 - Connect waits for Kafka to be healthy before starting
+- For tests, environment variables for sink connectors are defined (`KAFNUS_TESTS_PG_HOST`, `KAFNUS_TESTS_PG_PORT`...)
 
 Topics are auto-created (`KAFKA_AUTO_CREATE_TOPICS_ENABLE=true`)
 

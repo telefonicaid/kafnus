@@ -84,6 +84,31 @@ All necessary services are deployed dynamically via Docker using the `docker-com
 
 You don’t need to manually start any service.
 
+### 💡 Environment Variables in Test Sinks
+
+During end-to-end tests, **sink connectors** (PostGIS, MongoDB, HTTP) use environment variables to dynamically resolve their connection settings through the Kafka Connect `EnvVarConfigProvider`.
+
+Example usage inside connector definitions:
+
+```json
+"connection.url": "jdbc:postgresql://${env:KAFNUS_TESTS_PG_HOST}:${env:KAFNUS_TESTS_PG_PORT}/${env:KAFNUS_TESTS_PG_DBNAME}",
+"connection.uri": "mongodb://${env:KAFNUS_TESTS_MONGO_HOST}:${env:KAFNUS_TESTS_MONGO_PORT}"
+```
+
+These variables are defined in the `kafnus-connect` service within `docker-compose.kafka.yml`:
+
+```yaml
+KAFNUS_TESTS_PG_HOST: iot-postgis
+KAFNUS_TESTS_PG_PORT: "5432"
+KAFNUS_TESTS_PG_DBNAME: tests
+KAFNUS_TESTS_PG_USER: postgres
+KAFNUS_TESTS_PG_PASSWORD: postgres
+KAFNUS_TESTS_MONGO_HOST: mongo
+KAFNUS_TESTS_MONGO_PORT: "27017"
+```
+
+> ✅ This approach avoids hardcoded credentials, improves portability, and keeps test configurations cleaner and safer.
+
 ---
 
 ## ⚡ Dynamic PostGIS Handling
@@ -225,7 +250,7 @@ CREATE TABLE test.simple_sensor (
     "historic": {
       "notification": {
         "kafkaCustom": {
-          "topic": "kafka://kafka:9092"
+          "topic": "kafka://kafka:29092"
         },
         "attrs": ["TimeInstant", "temperature"]
       }

@@ -47,6 +47,9 @@ plugin.path=${CONNECT_PLUGIN_PATH:-/usr/local/share/kafnus-connect/plugins}
 
 rest.port=${CONNECT_REST_PORT:-8083}
 rest.advertised.host.name=${CONNECT_REST_ADVERTISED_HOST_NAME:-kafnus-connect}
+
+config.providers=env
+config.providers.env.class=org.apache.kafka.common.config.provider.EnvVarConfigProvider
 EOF
 
 echo ">> Starting Kafka Connect with config:"

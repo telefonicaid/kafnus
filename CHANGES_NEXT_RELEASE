@@ -12,6 +12,7 @@
 - Feature: Docker Compose deployment with modular images (#31, #36, #72, #80)
 - Feature: CI/CD GitHub Actions for end-to-end test automation (#34, #39, #91)
 - Feature: added error sink support for HTTP (#125) and Mongo (#130) flows
+- Feature: environment variables can now be used in sink configurations (#131, #133)
 - Fix: package naming issues in Node.js connector (#44, #45)
 - Fix: JDBC patch and PostGIS type support (#50, #84, #87)
 - Fix: internal notification payloads (#51)
@@ -21,6 +22,7 @@
 - Fix: handling of native JSON and NGSI types (#37, #43, #42, #96)
 - Fix: race condition in tests and ensure system readiness on startup (#120, #124)
 - Hardening: removed Mosquitto references and reduced envelope messages (#69, #75)
+- Fix: resolved multiple test issues including schema cleanup at startup, DLQ partition handling, and improved connector checks before test execution (#135)
 - Hardening: improved documentation for scaling, architecture, and test scenarios (#52, #70, #101)
 - Hardening: added metadata handling and validation for Mongo and HTTP flows (#99, #98, #104)
 - Hardening: improved GitHub Actions logs and workflows (#39, #41)
