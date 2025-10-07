@@ -1,4 +1,5 @@
 
+
 - Feature: full NGSIv2 processing pipeline with Kafnus NGSI processor and Kafka Connect integration (#9, #29, #55, #104)
 - Feature: dynamic topic routing based on fiware-service and servicePath (#9, #29, #55)
 - Feature: multiple data flows supported: historic, lastdata, mutable, errors, mongo, http (#9, #43, #104)
