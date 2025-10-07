@@ -1,10 +1,10 @@
 [ 
   {
-    "table": "test.test_error_log",
+    "table": "test.sgtr_error_log",
     "rows": [
       {
         "query": { "contains": "createHotel" },
-        "error": { "contains": "java.io.IOException: Server replied with status code 200 and body with errors"}
+        "error": { "contains": "java.net.ConnectException"}
       }
     ]
   }
