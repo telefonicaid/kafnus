@@ -1,11 +1,12 @@
 -- setup_tests.sql
 CREATE EXTENSION IF NOT EXISTS postgis;
 
-CREATE SCHEMA IF NOT EXISTS test;
+-- Drop schema
+DROP SCHEMA IF EXISTS test CASCADE;
+-- Create schema
+CREATE SCHEMA test;
 
--- Drop table
-DROP TABLE IF EXISTS test.test_error_log;
-
+-- Create table for error logging
 CREATE TABLE test.test_error_log (
     "timestamp" TIMESTAMPTZ NOT NULL,
     error TEXT NOT NULL,
