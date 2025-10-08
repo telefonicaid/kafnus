@@ -34,11 +34,12 @@ from config import SCENARIOS_DIR
 def discover_scenarios():
     """
     Recursively discovers all test scenarios by scanning the SCENARIOS_DIR.
+
     Returns a list of tuples:
     - scenario name (relative path from SCENARIOS_DIR)
+    - list of (expected_type, expected_path)
     - path to input.json
-    - path to expected_pg.json
-    - optional path to setup.sql if it exists
+    - optional path to setup.sql
     """
     logger.debug(f"🔍 Recursively scanning for test scenarios in: {SCENARIOS_DIR}")
     cases = []
@@ -46,32 +47,31 @@ def discover_scenarios():
     for dirpath, _, filenames in os.walk(SCENARIOS_DIR):
         dir_path = Path(dirpath)
         input_json = dir_path / "input.json"
-        expected_pg_json = dir_path / "expected_pg.json" 
-        expected_mongo_json = dir_path / "expected_mongo.json" 
-        expected_http_json = dir_path / "expected_http.json"
         setup_sql = dir_path / "setup.sql"
 
-        if input_json.exists() and expected_pg_json.exists():
-            relative_name = str(dir_path.relative_to(SCENARIOS_DIR))
-            logger.debug(f"✅ Found scenario: {relative_name}")
-            if setup_sql.exists():
-                logger.debug(f"↪️ Includes setup SQL: {setup_sql.name}")
-            else:
-                logger.debug(f"↪️ No setup SQL for: {relative_name}")
-            cases.append((relative_name, 'pg', input_json, expected_pg_json, setup_sql if setup_sql.exists() else None))
-        
-        elif input_json.exists() and expected_mongo_json.exists():
-            relative_name = str(dir_path.relative_to(SCENARIOS_DIR))
-            logger.debug(f"✅ Found scenario: {relative_name}")
-            cases.append((relative_name, 'mongo', input_json, expected_mongo_json, None))
+        if not input_json.exists():
+            continue
 
-        elif input_json.exists() and expected_http_json.exists():
-            relative_name = str(dir_path.relative_to(SCENARIOS_DIR))
-            logger.debug(f"✅ Found scenario: {relative_name}")
-            cases.append((relative_name, 'http', input_json, expected_http_json, setup_sql if setup_sql.exists() else None))
-        else:
-            if "input.json" in filenames or "expected_pg.json" in filenames or "expected_mongo.json" in filenames or "expected_http.json" in filenames:
-                logger.warning(f"⚠️ Partial scenario in: {dir_path} (missing input.json or expected_pg.json or expected_mongo.json or expected_http.json)")
+        expected_files = [
+            (f.replace("expected_", "").replace(".json", ""), dir_path / f)
+            for f in filenames
+            if f.startswith("expected_") and f.endswith(".json")
+        ]
+
+        if not expected_files:
+            continue
+
+        relative_name = str(dir_path.relative_to(SCENARIOS_DIR))
+        logger.debug(f"✅ Found scenario: {relative_name} ({[e[0] for e in expected_files]})")
+
+        cases.append(
+            (
+                relative_name,
+                expected_files,
+                input_json,
+                setup_sql if setup_sql.exists() else None
+            )
+        )
 
     cases.sort(key=lambda c: c[0])  # Sort by scenario name (relative path)
     logger.debug(f"🔢 Total scenarios discovered: {len(cases)}")

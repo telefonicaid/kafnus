@@ -33,24 +33,25 @@ from utils.scenario_loader import discover_scenarios, load_description
 import time
 from config import DEFAULT_DB_CONFIG
 
-@pytest.mark.parametrize("scenario_name, scenario_type, input_json, expected_json, setup", discover_scenarios())
-def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, setup, multiservice_stack):
+@pytest.mark.parametrize("scenario_name, expected_list, input_json, setup", discover_scenarios())
+def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, multiservice_stack):
     """
     End-to-end test for a given scenario:
     1. Executes optional setup SQL file to prepare database state.
     2. Loads and sends data updates to the Orion Context Broker.
-    3. Validates that the final PostGIS database state matches the expected output.
+    3. Validates that the final database state matches the expected output.
 
     Parameters:
     - scenario_name: Name of the test case.
     - input_json: Path to the input scenario JSON file.
-    - expected_json: Path to the expected database state JSON file.
+    - expected_list: List with path to the expected database state JSON files.
     - setup_sql: Optional SQL file for DB setup.
     - multiservice_stack: Pytest fixture providing connection info to deployed services.
     """
     logger.info(f"🧪 Running scenario: {scenario_name}")
-    validator = None
-    expected_data = None
+
+    all_valid = True
+    errors = []
 
     # Step 0: Load scenario description if available
     scenario_dir = input_json.parent
@@ -58,105 +59,88 @@ def test_e2e_pipeline(scenario_name, scenario_type, input_json, expected_json, s
     if desc:
         logger.info(f"0. Description: {desc}")
 
-    # Step 1: Execute setup SQL
-    if scenario_type == "pg" and setup:
-        logger.info(f"1. Executing setup SQL script: {setup.name}")
+    # Step 1: Setup SQL (if any)
+    if setup:
+        logger.info(f"📜 Executing setup SQL: {setup.name}")
         execute_sql_file(setup, db_config=DEFAULT_DB_CONFIG)
-    elif scenario_type == "http":
-        logger.info(f"1. Loading validator HTTP for expected: {expected_json.name}")
-        expected_data = load_scenario(expected_json, as_expected=True)
-        validators = {}
-        for request_data in expected_data:
-            url = request_data["url"]
-            response = request_data["response"]
-            response_status = response["status"]
-            response_body = response["body"]
-            if url not in validators:
-                validators[url] = HttpValidator(url, response_status, response_body)
-    else:
-        logger.info("1. No setup SQL/HTTP provided for this scenario.")
 
-    # Step 2: Load input.json and send updates to CB
-    logger.info(f"2. Loading and sending updates from: {input_json.name}")
+    # Step 2: Load input.json
     orion_request = load_scenario(input_json)
     from common_test import ServiceOperations
     service_operations = ServiceOperations(multiservice_stack, [orion_request])
     service_operations.orion_set_up()
 
-    # Step 3: Validate result in PostGIS / Mongo / HTTP
-    logger.info(f"3. Waiting results against expected: {expected_json.name}")
-    if scenario_type == "pg":
+    # Step 3: Validate all expected files
+    for expected_type, expected_json in expected_list:
+        logger.info(f"🔍 Validating expected type: {expected_type} ({expected_json.name})")
         expected_data = load_scenario(expected_json, as_expected=True)
-        validator = PostgisValidator(DEFAULT_DB_CONFIG)
 
-    all_valid = True
-    errors = []
+        if expected_type == "pg":
+            validator = PostgisValidator(DEFAULT_DB_CONFIG)
+            for table_data in expected_data:
+                table = table_data["table"]
+                if "rows" in table_data:
+                    if not validator.validate(table, table_data["rows"]):
+                        all_valid = False
+                        errors.append(f"❌ PG validation failed in table {table}")
+                if "absent" in table_data:
+                    if not validator.validate_absent(table, table_data["absent"]):
+                        all_valid = False
+                        errors.append(f"❌ PG forbidden rows in table {table}")
 
-    if scenario_type == "pg":
-        for table_data in expected_data:
-            table = table_data["table"]
-            if "rows" in table_data:
-                rows = table_data["rows"]
-                result = validator.validate(table, rows)
-                if result is not True:
-                    logger.error(f"❌ Validation failed in table: {table}")
-                    all_valid = False
-                    errors.append(f"❌ Error in table: {table} (present rows)")
-                else:
-                    logger.debug(f"✅ Table {table} validated successfully (present rows)")
+        elif expected_type == "mongo":
+            validator = MongoValidator()
+            try:
+                for coll_data in expected_data:
+                    coll = coll_data["collection"]
+                    if "documents" in coll_data:
+                        if not validator.validate(coll, coll_data["documents"]):
+                            all_valid = False
+                            errors.append(f"❌ Mongo validation failed in {coll}")
+                    if "absent" in coll_data:
+                        if not validator.validate_absent(coll, coll_data["absent"]):
+                            all_valid = False
+                            errors.append(f"❌ Mongo forbidden docs in {coll}")
+            finally:
+                validator.close()
 
-            if "absent" in table_data:
-                forbidden_rows = table_data["absent"]
-                result = validator.validate_absent(table, forbidden_rows)
-                if result is not True:
-                    logger.error(f"❌ Forbidden rows found in table: {table}")
-                    all_valid = False
-                    errors.append(f"❌ Error in table: {table} (forbidden rows)")
-                else:
-                    logger.debug(f"✅ Table {table} validated successfully (forbidden rows absent)")
-
-    if scenario_type == "mongo":
-        expected_docs = load_scenario(expected_json, as_expected=True)
-        validator = MongoValidator()
-        
-        try:
-            for coll_data in expected_docs:
-                coll = coll_data["collection"]
-                if "documents" in coll_data:
-                    assert validator.validate(coll, coll_data["documents"])
-                if "absent" in coll_data:
-                    assert validator.validate_absent(coll, coll_data["absent"])
-        finally:
-            validator.close()
-    
-    if scenario_type == "http":
-        try:
-            for request_data in expected_data:
-                url = request_data["url"]
-                raw_headers = request_data.get("headers")
-                if isinstance(raw_headers, list):
+        elif expected_type == "http":
+            validators = {}
+            for req in expected_data:
+                url = req["url"]
+                response = req["response"]
+                status = response["status"]
+                body = response["body"]
+                if url not in validators:
+                    validators[url] = HttpValidator(url, status, body)
+            try:
+                for req in expected_data:
+                    url = req["url"]
                     headers = {}
-                    for h in raw_headers:
-                        if isinstance(h, dict):
-                            headers.update(h)
-                else:
-                    headers = raw_headers or {}
-                body = request_data.get("body")
-                validator = validators[url]
-                ok = validator.validate(headers, body, timeout=30) # long timeout because http is the first flow to test
-                if not ok:
-                    logger.error(f"❌ Validation failed in request: {request_data}")
-                    all_valid = False
-                    errors.append(f"❌ Error in request: {request_data}")
-                else:
-                    logger.debug(f"✅ request {request_data} validated successfully")
-        finally:
-            for v in validators.values():
-                v.stop()
+                    raw_headers = req.get("headers")
+                    if isinstance(raw_headers, list):
+                        for h in raw_headers:
+                            if isinstance(h, dict):
+                                headers.update(h)
+                    else:
+                        headers = raw_headers or {}
+                    body = req.get("body")
+                    validator = validators[url]
+                    ok = validator.validate(headers, body, timeout=30)
+                    if not ok:
+                        all_valid = False
+                        errors.append(f"❌ HTTP validation failed for {url}")
+            finally:
+                for v in validators.values():
+                    v.stop()
 
+        else:
+            logger.warning(f"⚠️ Unknown expected type '{expected_type}' — skipping.")
+
+    # Step 4: Assert final result
     if all_valid:
         logger.info(f"✅ Scenario {scenario_name} passed successfully.")
     else:
         logger.error(f"❌ Scenario {scenario_name} failed.")
+        assert all_valid, f"❌ Errors in scenario {scenario_name}:\n" + "\n".join(errors)
 
-    assert all_valid, f"❌ Errors in scenario: {scenario_name}\n" + "\n".join(errors)
