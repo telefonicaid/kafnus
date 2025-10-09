@@ -244,7 +244,6 @@ def multiservice_stack():
     
     logger.info("✅ Tests have finished")
 
-
 # ──────────────────────────────
 # Orion Adapter
 # ──────────────────────────────

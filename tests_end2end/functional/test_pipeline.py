@@ -26,7 +26,6 @@ import pytest
 from utils.scenario_loader import load_scenario
 from utils.postgis_validator import PostgisValidator
 from utils.mongo_validator import MongoValidator
-from utils.http_validator import HttpValidator
 from utils.sql_runner import execute_sql_file
 from config import logger
 from utils.scenario_loader import discover_scenarios, load_description
@@ -34,7 +33,7 @@ import time
 from config import DEFAULT_DB_CONFIG
 
 @pytest.mark.parametrize("scenario_name, expected_list, input_json, setup", discover_scenarios())
-def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, multiservice_stack):
+def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, multiservice_stack, http_validators):
     """
     End-to-end test for a given scenario:
     1. Executes optional setup SQL file to prepare database state.
@@ -105,34 +104,28 @@ def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, multiserv
                 validator.close()
 
         elif expected_type == "http":
-            validators = {}
+            validators = http_validators  # it comes from fixture
             for req in expected_data:
                 url = req["url"]
-                response = req["response"]
-                status = response["status"]
-                body = response["body"]
-                if url not in validators:
-                    validators[url] = HttpValidator(url, status, body)
-            try:
-                for req in expected_data:
-                    url = req["url"]
-                    headers = {}
-                    raw_headers = req.get("headers")
-                    if isinstance(raw_headers, list):
-                        for h in raw_headers:
-                            if isinstance(h, dict):
-                                headers.update(h)
-                    else:
-                        headers = raw_headers or {}
-                    body = req.get("body")
-                    validator = validators[url]
-                    ok = validator.validate(headers, body, timeout=30)
-                    if not ok:
-                        all_valid = False
-                        errors.append(f"❌ HTTP validation failed for {url}")
-            finally:
-                for v in validators.values():
-                    v.stop()
+                headers = {}
+                raw_headers = req.get("headers")
+                if isinstance(raw_headers, list):
+                    for h in raw_headers:
+                        if isinstance(h, dict):
+                            headers.update(h)
+                else:
+                    headers = raw_headers or {}
+                body = req.get("body")
+                validator = validators.get(url)
+                if not validator:
+                    all_valid = False
+                    errors.append(f"❌ HttpValidator was not found for url: {url}")
+                    continue
+                ok = validator.validate(headers, body, timeout=30)
+                if not ok:
+                    all_valid = False
+                    errors.append(f"❌ HTTP validation failed for {url}")
+
 
         else:
             logger.warning(f"⚠️ Unknown expected type '{expected_type}' — skipping.")

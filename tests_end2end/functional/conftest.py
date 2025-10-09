@@ -27,6 +27,12 @@ load_dotenv(override=True)
 
 from common_test import multiservice_stack
 
+import pytest
+import time
+from config import logger
+from utils.scenario_loader import load_scenario
+from utils.http_validator import HttpValidator
+
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     """
     Print a summary of the test results at the end of the test run.
@@ -38,3 +44,41 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     for report in terminalreporter.stats.get("failed", []):
         if report.when == "call":
             terminalreporter.write_line(f"❌ {report.nodeid}")
+
+# ──────────────────────────────
+# HTTP Validators Fixture
+# ──────────────────────────────
+@pytest.fixture(scope="function")
+def http_validators(request):
+    """
+    Fixture that starts all required HTTP mock servers
+    based on the "http" type expected_json entries before running tests.
+    They are automatically destroyed at the end of the test function.
+    """
+    # request.param will come from @pytest.mark.parametrize
+    expected_list = getattr(request, "param", None)
+    validators = {}
+
+    if expected_list:
+        for expected_type, expected_json in expected_list:
+            if expected_type != "http":
+                continue
+            expected_data = load_scenario(expected_json, as_expected=True)
+            for req in expected_data:
+                url = req["url"]
+                response = req["response"]
+                status = response["status"]
+                body = response["body"]
+                if url not in validators:
+                    validators[url] = HttpValidator(url, status, body)
+        logger.info(f"🚀 Started {len(validators)} HTTP mock servers")
+
+    # Short optional wait for stability
+    time.sleep(1)
+
+    yield validators
+
+    # Teardown
+    for v in validators.values():
+        v.stop()
+    logger.info("🛑 HTTP mock servers stopped")
