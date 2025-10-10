@@ -74,6 +74,15 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
   - `src/header-router/`: Custom Single Message Transform (SMT) implementation
   - `Dockerfile` to build image with dependencies
 
+## 📚 References
+
+- [Kafnus repository and documentation](https://github.com/telefonicaid/kafnus)
+- [Orion documentation on Kafka notifications](https://github.com/telefonicaid/fiware-orion/blob/bdd41c4eac7326d0c2740816f53def0dfffeab9f/doc/manuals/user/kafka_notifications.md)
+- [Apache Kafka documentation](https://kafka.apache.org/)
+- [TelefonicaID fork of Confluent JDBC connector (PostGIS support)](https://github.com/telefonicaid/kafka-connect-jdbc-postgis)
+- [MongoDB Kafka Connector documentation](https://www.mongodb.com/docs/kafka-connector/current/?msockid=317503fb1486698a24a21584151968d9)
+- [Aiven HTTP Connector for Apache Kafka repository](https://github.com/Aiven-Open/http-connector-for-apache-kafka)
+
 ## 🧭 Navigation
 
 - [🏠 Main index](../README.md#documentation)
