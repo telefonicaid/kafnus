@@ -4,7 +4,7 @@
     "rows": [
       {
         "query": { "contains": "createHotel" },
-        "error": { "contains": "java.net.ConnectException"}
+        "error": { "contains": "java.io.IOException: Server replied with status code 200 and body with errors"}
       }
     ]
   }

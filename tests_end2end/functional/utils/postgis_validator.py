@@ -68,7 +68,7 @@ class PostgisValidator:
         - `expected_rows`: list of dicts with keys that must match in each row.
         - Repeats until all expected rows appear in the table, or the timeout is reached.
         """
-        logger.info(f"✅ Validating table {table} with timeout={timeout}")
+        logger.info(f"Validating table {table} with timeout={timeout}")
         start = time.time()
 
         while time.time() - start < timeout:
