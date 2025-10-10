@@ -51,34 +51,50 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 @pytest.fixture(scope="function")
 def http_validators(request):
     """
-    Fixture that starts all required HTTP mock servers
-    based on the "http" type expected_json entries before running tests.
-    They are automatically destroyed at the end of the test function.
+    Starts the HTTP mocks required according to the test case's expected_list (if any).
+    They are destroyed at the end of the test function.
     """
-    # request.param will come from @pytest.mark.parametrize
-    expected_list = getattr(request, "param", None)
     validators = {}
 
+    # Get expected_list from the test parameters (callspec)
+    expected_list = None
+    callspec = getattr(request.node, "callspec", None)
+    if callspec:
+        expected_list = callspec.params.get("expected_list")
+    else:
+        # fallback: maybe it's not a parametrized test
+        expected_list = None
+
     if expected_list:
+        # internal imports here to avoid import cycles when loading conftest
+        from utils.scenario_loader import load_scenario
+        from utils.http_validator import HttpValidator
+
         for expected_type, expected_json in expected_list:
             if expected_type != "http":
                 continue
             expected_data = load_scenario(expected_json, as_expected=True)
             for req in expected_data:
-                url = req["url"]
-                response = req["response"]
-                status = response["status"]
-                body = response["body"]
+                url = req.get("url")
+                response = req.get("response", {}) or {}
+                status = response.get("status", 200)
+                body = response.get("body")
+                if not url:
+                    continue
                 if url not in validators:
                     validators[url] = HttpValidator(url, status, body)
-        logger.info(f"🚀 Started {len(validators)} HTTP mock servers")
 
-    # Short optional wait for stability
-    time.sleep(1)
+        logger.info(f"🚀 Started {len(validators)} mock HTTP servers")
+
+    # small wait to ensure bind
+    time.sleep(0.5)
 
     yield validators
 
-    # Teardown
+    # teardown
     for v in validators.values():
-        v.stop()
-    logger.info("🛑 HTTP mock servers stopped")
+        try:
+            v.stop()
+        except Exception:
+            logger.exception("Error stopping HttpValidator")
+    logger.info("🛑 Mock HTTP servers stopped")
