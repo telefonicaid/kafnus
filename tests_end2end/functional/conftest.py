@@ -51,44 +51,39 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 @pytest.fixture(scope="function")
 def http_validators(request):
     """
-    Starts the HTTP mocks required according to the test case's expected_list (if any).
-    They are destroyed at the end of the test function.
+    Starts HTTP mocks only if the test scenario has an 'http' expected type.
+    Otherwise, returns an empty dict without doing anything.
     """
     validators = {}
 
-    # Get expected_list from the test parameters (callspec)
-    expected_list = None
+    # Get expected_list from parametrized test
     callspec = getattr(request.node, "callspec", None)
-    if callspec:
-        expected_list = callspec.params.get("expected_list")
-    else:
-        # fallback: maybe it's not a parametrized test
-        expected_list = None
+    expected_list = callspec.params.get("expected_list") if callspec else None
 
-    if expected_list:
-        # internal imports here to avoid import cycles when loading conftest
-        from utils.scenario_loader import load_scenario
-        from utils.http_validator import HttpValidator
+    # Skip fixture completely if no HTTP expected
+    has_http = any(et == "http" for et, _ in (expected_list or []))
+    if not has_http:
+        logger.debug("⏩ No HTTP expectations in this scenario — skipping HttpValidator setup.")
+        yield {}
+        return
 
-        for expected_type, expected_json in expected_list:
-            if expected_type != "http":
+    for expected_type, expected_json in expected_list:
+        if expected_type != "http":
+            continue
+        expected_data = load_scenario(expected_json, as_expected=True)
+        for req in expected_data:
+            url = req.get("url")
+            response = req.get("response", {}) or {}
+            status = response.get("status", 200)
+            body = response.get("body")
+            if not url:
                 continue
-            expected_data = load_scenario(expected_json, as_expected=True)
-            for req in expected_data:
-                url = req.get("url")
-                response = req.get("response", {}) or {}
-                status = response.get("status", 200)
-                body = response.get("body")
-                if not url:
-                    continue
-                if url not in validators:
-                    validators[url] = HttpValidator(url, status, body)
+            if url not in validators:
+                validators[url] = HttpValidator(url, status, body)
 
-        logger.info(f"🚀 Started {len(validators)} mock HTTP servers")
+    logger.info(f"🚀 Started {len(validators)} mock HTTP servers for this scenario")
 
-    # small wait to ensure bind
     time.sleep(0.5)
-
     yield validators
 
     # teardown
