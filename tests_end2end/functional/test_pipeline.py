@@ -26,14 +26,15 @@ import pytest
 from utils.scenario_loader import load_scenario
 from utils.postgis_validator import PostgisValidator
 from utils.mongo_validator import MongoValidator
+from utils.http_validator import HttpValidator
 from utils.sql_runner import execute_sql_file
 from config import logger
 from utils.scenario_loader import discover_scenarios, load_description
-import time
 from config import DEFAULT_DB_CONFIG
+import time
 
 @pytest.mark.parametrize("scenario_name, expected_list, input_json, setup", discover_scenarios())
-def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, multiservice_stack, http_validators):
+def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, multiservice_stack):
     """
     End-to-end test for a given scenario:
     1. Executes optional setup SQL file to prepare database state.
@@ -51,8 +52,9 @@ def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, multiserv
 
     all_valid = True
     errors = []
+    http_validators = {}
 
-    # Step 0: Load scenario description if available
+    # Step 0: Description
     scenario_dir = input_json.parent
     desc = load_description(scenario_dir)
     if desc:
@@ -65,75 +67,102 @@ def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, multiserv
 
     # Step 2: Load input.json
     orion_request = load_scenario(input_json)
+
+    # 🔹 Step 2.1: Pre-create HTTP mocks (before Orion notifications)
+    # Find any expected_http.json in expected_list and start servers early
+    for expected_type, expected_json in expected_list:
+        if expected_type != "http":
+            continue
+        expected_data = load_scenario(expected_json, as_expected=True)
+        for req in expected_data:
+            url = req["url"]
+            response = req.get("response", {}) or {}
+            status = response.get("status", 200)
+            body = response.get("body")
+            if url not in http_validators:
+                http_validators[url] = HttpValidator(url, status, body)
+
+    if http_validators:
+        logger.info(f"🚀 Pre-started {len(http_validators)} HTTP mock servers before Orion updates")
+        time.sleep(0.5)  # tiny delay for socket readiness
+
+    # Step 2.2: Send updates to Orion
     from common_test import ServiceOperations
     service_operations = ServiceOperations(multiservice_stack, [orion_request])
     service_operations.orion_set_up()
 
     # Step 3: Validate all expected files
-    for expected_type, expected_json in expected_list:
-        logger.info(f"🔍 Validating expected type: {expected_type} ({expected_json.name})")
-        expected_data = load_scenario(expected_json, as_expected=True)
+    try:
+        for expected_type, expected_json in expected_list:
+            logger.info(f"🔍 Validating expected type: {expected_type} ({expected_json.name})")
+            expected_data = load_scenario(expected_json, as_expected=True)
 
-        if expected_type == "pg":
-            validator = PostgisValidator(DEFAULT_DB_CONFIG)
-            for table_data in expected_data:
-                table = table_data["table"]
-                if "rows" in table_data:
-                    if not validator.validate(table, table_data["rows"]):
-                        all_valid = False
-                        errors.append(f"❌ PG validation failed in table {table}")
-                if "absent" in table_data:
-                    if not validator.validate_absent(table, table_data["absent"]):
-                        all_valid = False
-                        errors.append(f"❌ PG forbidden rows in table {table}")
-
-        elif expected_type == "mongo":
-            validator = MongoValidator()
-            try:
-                for coll_data in expected_data:
-                    coll = coll_data["collection"]
-                    if "documents" in coll_data:
-                        if not validator.validate(coll, coll_data["documents"]):
+            if expected_type == "pg":
+                validator = PostgisValidator(DEFAULT_DB_CONFIG)
+                for table_data in expected_data:
+                    table = table_data["table"]
+                    if "rows" in table_data:
+                        if not validator.validate(table, table_data["rows"]):
                             all_valid = False
-                            errors.append(f"❌ Mongo validation failed in {coll}")
-                    if "absent" in coll_data:
-                        if not validator.validate_absent(coll, coll_data["absent"]):
+                            errors.append(f"❌ PG validation failed in table {table}")
+                    if "absent" in table_data:
+                        if not validator.validate_absent(table, table_data["absent"]):
                             all_valid = False
-                            errors.append(f"❌ Mongo forbidden docs in {coll}")
-            finally:
-                validator.close()
+                            errors.append(f"❌ PG forbidden rows in table {table}")
 
-        elif expected_type == "http":
-            validators = http_validators  # it comes from fixture
-            for req in expected_data:
-                url = req["url"]
-                headers = {}
-                raw_headers = req.get("headers")
-                if isinstance(raw_headers, list):
-                    for h in raw_headers:
-                        if isinstance(h, dict):
-                            headers.update(h)
-                else:
-                    headers = raw_headers or {}
-                body = req.get("body")
-                validator = validators.get(url)
-                if not validator:
-                    all_valid = False
-                    errors.append(f"❌ HttpValidator was not found for url: {url}")
-                    continue
-                ok = validator.validate(headers, body, timeout=30)
-                if not ok:
-                    all_valid = False
-                    errors.append(f"❌ HTTP validation failed for {url}")
+            elif expected_type == "mongo":
+                validator = MongoValidator()
+                try:
+                    for coll_data in expected_data:
+                        coll = coll_data["collection"]
+                        if "documents" in coll_data:
+                            if not validator.validate(coll, coll_data["documents"]):
+                                all_valid = False
+                                errors.append(f"❌ Mongo validation failed in {coll}")
+                        if "absent" in coll_data:
+                            if not validator.validate_absent(coll, coll_data["absent"]):
+                                all_valid = False
+                                errors.append(f"❌ Mongo forbidden docs in {coll}")
+                finally:
+                    validator.close()
 
+            elif expected_type == "http":
+                for req in expected_data:
+                    url = req["url"]
+                    headers = {}
+                    raw_headers = req.get("headers")
+                    if isinstance(raw_headers, list):
+                        for h in raw_headers:
+                            if isinstance(h, dict):
+                                headers.update(h)
+                    else:
+                        headers = raw_headers or {}
+                    body = req.get("body")
+                    validator = http_validators.get(url)
+                    if not validator:
+                        all_valid = False
+                        errors.append(f"❌ HttpValidator not found for {url}")
+                        continue
+                    ok = validator.validate(headers, body, timeout=30)
+                    if not ok:
+                        all_valid = False
+                        errors.append(f"❌ HTTP validation failed for {url}")
 
-        else:
-            logger.warning(f"⚠️ Unknown expected type '{expected_type}' — skipping.")
+            else:
+                logger.warning(f"⚠️ Unknown expected type '{expected_type}' — skipping.")
+    finally:
+        # Step 5: Teardown HTTP servers
+        if http_validators:
+            for v in http_validators.values():
+                try:
+                    v.stop()
+                except Exception:
+                    logger.exception("Error stopping HttpValidator")
+            logger.info("🛑 Mock HTTP servers stopped")
 
-    # Step 4: Assert final result
+    # Step 6: Assert final result
     if all_valid:
         logger.info(f"✅ Scenario {scenario_name} passed successfully.")
     else:
         logger.error(f"❌ Scenario {scenario_name} failed.")
         assert all_valid, f"❌ Errors in scenario {scenario_name}:\n" + "\n".join(errors)
-

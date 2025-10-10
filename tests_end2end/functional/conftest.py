@@ -27,12 +27,6 @@ load_dotenv(override=True)
 
 from common_test import multiservice_stack
 
-import pytest
-import time
-from config import logger
-from utils.scenario_loader import load_scenario
-from utils.http_validator import HttpValidator
-
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     """
     Print a summary of the test results at the end of the test run.
@@ -44,52 +38,3 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     for report in terminalreporter.stats.get("failed", []):
         if report.when == "call":
             terminalreporter.write_line(f"❌ {report.nodeid}")
-
-# ──────────────────────────────
-# HTTP Validators Fixture
-# ──────────────────────────────
-@pytest.fixture(scope="function")
-def http_validators(request):
-    """
-    Starts HTTP mocks only if the test scenario has an 'http' expected type.
-    Otherwise, returns an empty dict without doing anything.
-    """
-    validators = {}
-
-    # Get expected_list from parametrized test
-    callspec = getattr(request.node, "callspec", None)
-    expected_list = callspec.params.get("expected_list") if callspec else None
-
-    # Skip fixture completely if no HTTP expected
-    has_http = any(et == "http" for et, _ in (expected_list or []))
-    if not has_http:
-        logger.debug("⏩ No HTTP expectations in this scenario — skipping HttpValidator setup.")
-        yield {}
-        return
-
-    for expected_type, expected_json in expected_list:
-        if expected_type != "http":
-            continue
-        expected_data = load_scenario(expected_json, as_expected=True)
-        for req in expected_data:
-            url = req.get("url")
-            response = req.get("response", {}) or {}
-            status = response.get("status", 200)
-            body = response.get("body")
-            if not url:
-                continue
-            if url not in validators:
-                validators[url] = HttpValidator(url, status, body)
-
-    logger.info(f"🚀 Started {len(validators)} mock HTTP servers for this scenario")
-
-    time.sleep(0.5)
-    yield validators
-
-    # teardown
-    for v in validators.values():
-        try:
-            v.stop()
-        except Exception:
-            logger.exception("Error stopping HttpValidator")
-    logger.info("🛑 Mock HTTP servers stopped")
