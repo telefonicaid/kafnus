@@ -1,4 +1,4 @@
-1.0.0 (October 8th, 2025)
+1.0.0 (October 10th, 2025)
 
 - Feature: full NGSIv2 processing pipeline with Kafnus NGSI processor and Kafka Connect integration (#9, #29, #55, #104)
 - Feature: dynamic topic routing based on fiware-service and servicePath (#9, #29, #55)
