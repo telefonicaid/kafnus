@@ -98,10 +98,10 @@ docker exec -it kafka \
 
 ### 4.1 Register a Connector
 
-From project root `sinks/`:
+From project root `tests_end2end/sinks/`:
 
 ```bash
-cd sinks/
+cd tests_end2end/sinks/
 curl -X POST -H "Content-Type: application/json" \
      --data @pg-sink-historic.json \
      http://localhost:8083/connectors

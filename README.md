@@ -15,7 +15,9 @@ It processes NGSI notifications from the Context Broker (CB) and stores them in 
   Node.js service that transforms raw notifications into structured events. Each data flow (historic, lastdata, mongo, etc.) is handled by an independent agent.
 
 - 🔄 **Kafnus Connect**  
-  Custom image of Kafka Connect with plugins integrated. Persists processed messages to different sinks:
+  Persistence component (Kafka Connect–based) responsible for storing processed NGSI messages. Custom image of Kafka Connect with plugins integrated.
+  It is hosted in a separate repository: [telefonicaid/kafnus-connect](https://github.com/telefonicaid/kafnus-connect).  
+  Supports:
   - **PostGIS**, via a modified JDBC connector and custom SMT.
   - **MongoDB**, via the official MongoDB connector.
   - **HTTP endpoints**, via a  Aiven-Open http connector for apache kafka.
@@ -60,3 +62,9 @@ Complete documentation is available in the [`doc/`](./doc) directory:
 - Node.js 20+ (for Kafnus NGSI)
 - Python 3.11+ (for tests)
 - Maven
+
+> 🧭 **Project structure note**
+>
+> This repository is part of the [Kafnus ecosystem](https://github.com/telefonicaid/kafnus).
+> - [Kafnus NGSI (processing)](https://github.com/telefonicaid/kafnus)
+> - [Kafnus Connect (persistence)](https://github.com/telefonicaid/kafnus-connect)

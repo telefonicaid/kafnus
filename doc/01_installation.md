@@ -213,7 +213,7 @@ Look for:
 Hint: Before registering the connectors, make sure the tests database has been created. This is explained in the next section.
 
 ```bash
-cd sinks/
+cd tests_end2end/sinks/
 
 curl -X POST -H "Content-Type: application/json" --data @pg-sink-historic.json http://localhost:8083/connectors
 curl -X POST -H "Content-Type: application/json" --data @pg-sink-lastdata.json http://localhost:8083/connectors
