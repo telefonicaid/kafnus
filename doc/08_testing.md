@@ -45,6 +45,8 @@ tests_end2end/functional/
 └── utils/
 ```
 
+> Note: The `sinks/` directory, which contains connector configuration files (e.g. pg-sink, mongo-sink, http-sink), is located under `tests_end2end/` and it is used for testing purposes.
+
 ---
 
 ## 🧪 Test Scenario Format

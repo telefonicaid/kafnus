@@ -19,16 +19,14 @@ docker/
 └── docker-down.sh
 ```
 
-Custom Dockerfiles are located in their respective component directories:
+Custom Dockerfiles are located in their respective component repositories:
 
 ```plaintext
-kafnus-connect/
-├── docker-entrypoint.sh # entrypoint for the Kafnus Connect container, initializing environment variables, configuring plugins, and launching the Kafka Connect process.
-└── Dockerfile  # builds Kafnus Connect from OpenJDK 17 + Kafka 4.1.0, manually installing plugins
-
 kafnus-ngsi/
-└── Dockerfile # builds Kafnus NGSI from source code
+└── Dockerfile  # builds Kafnus NGSI (Node.js stream processor)
 ```
+
+Kafnus Connect (persistence layer) is maintained in a separate repository: [kafnus-connect](https://github.com/telefonicaid/kafnus-connect)
 
 ---
 
@@ -64,10 +62,13 @@ Stops the same services and removes volumes & orphan containers:
 
 The Docker Compose setup relies on two custom images:
 
-- **Kafnus Connect** is built using `kafnus-connect/Dockerfile`, which uses Kafka official distribution 4.1.0 with OpenJDK 17 and includes all required connectors and plugins during the image build process.
-- **Kafnus NGSI** is built using `kafnus-ngsi/Dockerfile`, which includes the Node.js stream processing app and all dependencies.
+- **Kafnus Connect** → built from [kafnus-connect](https://github.com/telefonicaid/kafnus-connect), based on Kafka 4.1.0 + OpenJDK 17.  
+  Includes all plugins: JDBC (PostGIS), MongoDB, HTTP, and custom SMTs.  
+- **Kafnus NGSI** → built from this repository (`kafnus-ngsi/Dockerfile`), containing the Node.js-based stream processing logic.
 
-Both images are automatically built via `docker-up.sh`, so you don't need to build them manually unless debugging or developing.
+Both images are downloaded automatically by `docker-up.sh`, so manual builds are rarely needed.
+
+---
 
 ### `docker-compose.kafka.yml`
 
@@ -84,17 +85,7 @@ Defines:
 
 Topics are auto-created (`KAFKA_AUTO_CREATE_TOPICS_ENABLE=true`)
 
-Kafnus Connect image is built from the [`Dockerfile`](../kafnus-connect/Dockerfile).
-
-Exposes:
-- Port `8083`: Kafnus Connect API
-- Port `9100`: Prometheus metrics
-
-To build from `/kafnus-connect` directory you can use:
-
-```bash
-docker build --no-cache -t kafnus-connect .
-```
+> To build the Kafnus Connect image manually, follow the guide in the [kafnus-connect repository](https://github.com/telefonicaid/kafnus-connect).
 
 ---
 
@@ -186,25 +177,33 @@ docker network create kafka-postgis-net
 
 ## ⚙️ Plugins
 
-Kafnus Connect plugins are automatically bundled during image build (inside [`kafnus-connect/Dockerfile`](/kafnus-connect/Dockerfile)).
+Kafnus Connect automatically bundles required connectors and SMTs at image build time (see [kafnus-connect/Dockerfile](https://github.com/telefonicaid/kafnus-connect)).
 
-Plugin directory `${CONNECT_PLUGIN_PATH}` contains:
+Plugin directory (`${CONNECT_PLUGIN_PATH}`) includes:
 
-- `header-router` (custom SMT)
-- `kafka-connect-jdbc` (custom connector with geometry support)
-- `mongodb` connector
-- `http` HTTP sink connector for forwarding Kafka data to external HTTP endpoints
+- `header-router` → custom SMT for routing based on message headers  
+- `kafka-connect-jdbc` → custom JDBC connector (PostGIS support)  
+- `mongodb` → MongoDB sink connector  
+- `http` → HTTP sink connector for pushing data to external APIs  
 
 ---
 
 ## 🧪 Notes for Testing
 
-The test suite can also dynamically start these containers via **Testcontainers** when running end-to-end tests. See [`08_testing.md`](doc/08_testing.md).
+End-to-end tests use **Testcontainers** to dynamically spin up Kafka, Kafnus NGSI, and Kafnus Connect environments.
+
+Connector definitions used in tests are stored under:
+
+```plaintext
+tests_end2end/sinks/
+```
+
+Refer to the [08_testing.md](./08_testing.md) guide for full details.
 
 ---
 
 ## 🧭 Navigation
 
-- [⬅️ Previous: Operational-Guide](/doc/03_operational_guide.md)
+- [⬅️ Previous: Operational Guide](/doc/03_operational_guide.md)
 - [🏠 Main index](../README.md#documentation)
 - [➡️ Next: Kafnus NGSI](/doc/05_kafnus_ngsi.md)

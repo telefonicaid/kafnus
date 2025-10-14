@@ -204,7 +204,7 @@ def multiservice_stack():
 
         logger.info("✅ Services successfully deployed")
 
-        sinks_dir = Path(__file__).resolve().parent.parent.parent / "sinks"
+        sinks_dir = Path(__file__).resolve().parent.parent / "sinks"
         logger.debug(f"📂 sinks_dir path: {sinks_dir}")
         logger.debug(f"📁 Files found: {[f.name for f in sinks_dir.glob('*')]}")
 
