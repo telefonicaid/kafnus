@@ -26,8 +26,9 @@
 
 const theLogger = require('./logger');
 const logger = theLogger.getBasicLogger();
+const { config } = require('../../kafnusConfig');
 
-const GRAFO = 'grafo_v_120';
+const GRAFO = config.graphql['grafo'];
 const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO}/resource/`;
 const PREFIX_KOS = 'https://ontologia.segittur.es/turismo/kos/';
 const GRAFO_STR = `"${GRAFO}"`;
