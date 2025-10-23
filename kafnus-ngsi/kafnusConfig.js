@@ -84,6 +84,10 @@ const envVarsSchema = {
         KAFNUS_NGSI_AUTO_OFFSET_RESET: {
             type: 'string',
             default: 'earliest'
+        },
+        KAFNUS_NGSI_GRAFO: {
+            type: 'string',
+            default: 'grafo_v_120'
         }
     }
 };
@@ -110,6 +114,9 @@ const config = {
         level: envVars.KAFNUS_NGSI_LOG_LEVEL,
         ob: envVars.KAFNUS_NGSI_LOG_OB,
         comp: envVars.KAFNUS_NGSI_LOG_COMP
+    },
+    graphql: {
+        grafo: envVars.KAFNUS_NGSI_GRAFO
     }
 };
 
