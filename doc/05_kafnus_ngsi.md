@@ -23,6 +23,7 @@ Kafnus NGSI (Node.js) is a **Kafka stream processor** that:
 - The main entry point is `kafnus-ngsi/index.js`.
 - Broker: `kafka:9092`
 - Metrics are exposed via Prometheus-compatible endpoints.
+- LogLevel is exposed in http endpoint.
 
 ### Launch command (in Docker):
 
@@ -50,6 +51,8 @@ Example log output:
 ```
 time=2025-09-03T11:38:21.432Z | lvl=INFO | corr=n/a | trans=n/a | op=n/a | ver=0.0.1 | ob=ES | comp=Kafnus | msg=[historic] Sent to topic 'test' (table: 'limit_sensor'): Sensor:LimitTest:12
 ```
+
+ℹ️ The environment variable `KAFNUS_NGSI_ADMIN_PORT` is used to set default port for admin (metrics and logLevel) API endpoints, set the variable in [`/docker/docker-compose.ngsi.yml`](/docker/docker-compose.ngsi.yml).
 
 ---
 
