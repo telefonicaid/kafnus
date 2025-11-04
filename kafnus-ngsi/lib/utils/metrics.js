@@ -26,7 +26,7 @@
 
 const client = require('prom-client');
 const http = require('http');
-const logger = require('logops');
+const logger = require('./logger');
 
 // Metrics definition
 const messagesProcessed = new client.Counter({
@@ -52,7 +52,7 @@ function startMetricsServer(logger, port = 8000) {
         if (req.url === '/logLevel') {
             if (req.method === 'GET') {
                 res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify({ level: logger.level }));
+                res.end(JSON.stringify({ level: logger.getLevel() }));
                 return;
             }
 
@@ -69,8 +69,7 @@ function startMetricsServer(logger, port = 8000) {
                             return;
                         }
 
-                        logger.level = level;
-                        //logger.setLevel(config.logger.level);
+                        logger.setLevel(config.logger.level);
                         logger.info(`Log level changed to: ${level}`);
 
                         res.setHeader('Content-Type', 'application/json');
