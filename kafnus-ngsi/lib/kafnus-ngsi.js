@@ -36,7 +36,7 @@ const startErrorsConsumerAgent = require('./consumerAgents/errorsConsumerAgent')
 const startMongoConsumerAgent = require('./consumerAgents/mongoConsumerAgent');
 const startSgtrConsumerAgent = require('./consumerAgents/sgtrConsumerAgent');
 
-const { startMetricsServer } = require('./utils/metrics');
+const { startAdminServer } = require('./utils/admin');
 
 async function main() {
     const log = logger.getBasicLogger();
@@ -44,7 +44,7 @@ async function main() {
     log.info('Starting all consumers...');
 
     const started = await Promise.all([
-        startMetricsServer(log, 8000),
+        startAdminServer(log, config.admin.port),
         startHistoricConsumerAgent(log),
         startLastdataConsumerAgent(log),
         startMutableConsumerAgent(log),
