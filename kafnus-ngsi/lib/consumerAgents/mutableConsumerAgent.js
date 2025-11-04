@@ -27,7 +27,7 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
-const { messagesProcessed, processingTime } = require('../utils/metrics');
+const { messagesProcessed, processingTime } = require('../utils/admin');
 
 async function startMutableConsumerAgent(logger) {
     const topic = 'raw_mutable';

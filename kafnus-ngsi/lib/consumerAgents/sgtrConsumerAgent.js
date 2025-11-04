@@ -29,7 +29,7 @@ const { createProducer } = require('./sharedProducerFactory');
 const { getFiwareContext } = require('../utils/handleEntityCb');
 const { buildKafkaKey } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
-const { messagesProcessed, processingTime } = require('../utils/metrics');
+const { messagesProcessed, processingTime } = require('../utils/admin');
 const { buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
 
 async function startSgtrConsumerAgent(logger) {

@@ -28,7 +28,7 @@ const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { buildTargetTable, getFiwareContext, handleEntityCb } = require('../utils/handleEntityCb');
 const { buildKafkaKey } = require('../utils/ngsiUtils');
-const { messagesProcessed, processingTime } = require('../utils/metrics');
+const { messagesProcessed, processingTime } = require('../utils/admin');
 
 async function startLastdataConsumerAgent(logger) {
     const topic = 'raw_lastdata';

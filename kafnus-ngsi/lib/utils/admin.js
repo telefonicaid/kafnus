@@ -41,8 +41,8 @@ const processingTime = new client.Gauge({
     labelNames: ['flow']
 });
 
-// Start metrics server
-function startMetricsServer(logger, port = 8000) {
+// Start admin server
+function startAdminServer(logger, port = 8000) {
     const server = http.createServer(async (req, res) => {
         if (req.url === '/metrics' && req.method === 'GET') {
             res.setHeader('Content-Type', client.register.contentType);
@@ -94,6 +94,6 @@ function startMetricsServer(logger, port = 8000) {
     return server;
 }
 
-exports.startMetricsServer = startMetricsServer;
+exports.startAdminServer = startAdminServer;
 exports.messagesProcessed = messagesProcessed;
 exports.processingTime = processingTime;
