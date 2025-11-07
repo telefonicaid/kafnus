@@ -1,2 +1,2 @@
-- Add admin endpoint for logLevel and metrics
+- Add admin endpoint for logLevel and metrics (#147, #150)
 - Add configuration for grafo version (graphql)
