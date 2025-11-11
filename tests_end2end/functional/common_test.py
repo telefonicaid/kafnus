@@ -72,6 +72,8 @@ class MultiServiceContainer:
     kafkaPort: str
     kafkaConnectHost: str
     KafkaConnectPort: str
+    ngsiAdminHost: str
+    ngsiAdminPort: str
 
 
 @dataclass
@@ -202,6 +204,9 @@ def multiservice_stack():
         kafnus_connect_host = compose.get_service_host("kafnus-connect", 8083)
         kafnus_connect_port = compose.get_service_port("kafnus-connect", 8083)
 
+        kafnus_ngsi_host = compose.get_service_host("kafnus-ngsi", 8000)
+        kafnus_ngsi_port = compose.get_service_port("kafnus-ngsi", 8000)
+
         logger.info("✅ Services successfully deployed")
 
         sinks_dir = Path(__file__).resolve().parent.parent / "sinks"
@@ -233,7 +238,9 @@ def multiservice_stack():
             kafkaHost=kafka_host,
             kafkaPort=kafka_port,
             kafkaConnectHost=kafnus_connect_host,
-            KafkaConnectPort=kafnus_connect_port
+            KafkaConnectPort=kafnus_connect_port,
+            ngsiAdminHost=kafnus_ngsi_host,
+            ngsiAdminPort=kafnus_ngsi_port,
         )
 
         # If the KAFNUS_TESTS_E2E_MANUAL_INSPECTION env var is set to "true", the test will pause

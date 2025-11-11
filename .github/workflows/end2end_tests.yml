@@ -98,4 +98,4 @@ jobs:
         working-directory: tests_end2end/functional
         run: |
           source .venv/bin/activate
-          pytest -s test_pipeline.py
+          pytest -s
