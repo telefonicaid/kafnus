@@ -66,7 +66,7 @@ def test_get_log_level(admin_base_url):
 
 def test_set_log_level(admin_base_url):
     """Should change log level"""
-    new_level = "debug"
+    new_level = "DEBUG"
 
     response = requests.post(
         f"{admin_base_url}/logLevel",

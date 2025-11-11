@@ -69,7 +69,7 @@ function startAdminServer(logger, port = 8000) {
                             return;
                         }
 
-                        logger.setLevel(config.logger.level);
+                        logger.setLevel(level.toUpperCase());
                         logger.info(`Log level changed to: ${level}`);
 
                         res.setHeader('Content-Type', 'application/json');
