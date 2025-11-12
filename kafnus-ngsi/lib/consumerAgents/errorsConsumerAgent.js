@@ -27,7 +27,7 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { formatDatetimeIso } = require('../utils/ngsiUtils');
-const { messagesProcessed, processingTime } = require('../utils/metrics');
+const { messagesProcessed, processingTime } = require('../utils/admin');
 
 async function startErrorsConsumerAgent(logger) {
     /**

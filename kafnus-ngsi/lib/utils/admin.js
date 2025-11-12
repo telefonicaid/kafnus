@@ -26,6 +26,7 @@
 
 const client = require('prom-client');
 const http = require('http');
+const logger = require('./logger');
 
 // Metrics definition
 const messagesProcessed = new client.Counter({
@@ -40,25 +41,59 @@ const processingTime = new client.Gauge({
     labelNames: ['flow']
 });
 
-// Start metrics server
-function startMetricsServer(logger, port = 8000) {
+// Start admin server
+function startAdminServer(logger, port = 8000) {
     const server = http.createServer(async (req, res) => {
-        if (req.url === '/metrics') {
+        if (req.url === '/metrics' && req.method === 'GET') {
             res.setHeader('Content-Type', client.register.contentType);
             res.end(await client.register.metrics());
-        } else {
-            res.statusCode = 404;
-            res.end();
+            return;
         }
+        if (req.url === '/logLevel') {
+            if (req.method === 'GET') {
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ level: logger.getLevel() }));
+                return;
+            }
+
+            if (req.method === 'POST') {
+                let body = '';
+                req.on('data', (chunk) => (body += chunk));
+                req.on('end', () => {
+                    try {
+                        const { level } = JSON.parse(body);
+
+                        if (!level) {
+                            res.statusCode = 400;
+                            res.end(JSON.stringify({ error: 'Missing "level" field' }));
+                            return;
+                        }
+
+                        logger.setLevel(level.toUpperCase());
+                        logger.info(`Log level changed to: ${level}`);
+
+                        res.setHeader('Content-Type', 'application/json');
+                        res.end(JSON.stringify({ ok: true, level }));
+                    } catch (err) {
+                        res.statusCode = 400;
+                        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+                    }
+                });
+                return;
+            }
+        }
+        res.statusCode = 404;
+        res.end();
     });
 
     server.listen(port, () => {
         logger.info(`Metrics server listening on http://localhost:${port}/metrics`);
+        logger.info(`Log leven endpoint enabled at http://localhost:${port}/logLevel`);
     });
 
     return server;
 }
 
-exports.startMetricsServer = startMetricsServer;
+exports.startAdminServer = startAdminServer;
 exports.messagesProcessed = messagesProcessed;
 exports.processingTime = processingTime;

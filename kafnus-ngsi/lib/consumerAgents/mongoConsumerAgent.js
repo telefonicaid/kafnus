@@ -28,7 +28,7 @@ const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { getFiwareContext, encodeMongo } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
-const { messagesProcessed, processingTime } = require('../utils/metrics');
+const { messagesProcessed, processingTime } = require('../utils/admin');
 
 const OUTPUT_TOPIC_SUFFIX = '_mongo';
 

@@ -65,6 +65,10 @@ const envVarsSchema = {
             type: 'string',
             default: 'Kafnus-ngsi'
         },
+        KAFNUS_NGSI_ADMIN_PORT: {
+            type: 'number',
+            default: 8000
+        },
         KAFNUS_NGSI_SECURITY_PROTOCOL: {
             type: 'string',
             default: 'plaintext'
@@ -114,6 +118,9 @@ const config = {
         level: envVars.KAFNUS_NGSI_LOG_LEVEL,
         ob: envVars.KAFNUS_NGSI_LOG_OB,
         comp: envVars.KAFNUS_NGSI_LOG_COMP
+    },
+    admin: {
+        port: envVars.KAFNUS_NGSI_ADMIN_PORT
     },
     graphql: {
         grafo: envVars.KAFNUS_NGSI_GRAFO
