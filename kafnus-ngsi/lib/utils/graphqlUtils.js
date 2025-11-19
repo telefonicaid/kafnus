@@ -1,9 +1,9 @@
 /*
- * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de Espa�a, S.A.U.
+ * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de Espaï¿½a, S.A.U.
  * PROJECT: Kafnus
  *
- * This software and / or computer program has been developed by Telefónica Soluciones
- * de Informática y Comunicaciones de España, S.A.U (hereinafter TSOL) and is protected
+ * This software and / or computer program has been developed by TelefÃ³nica Soluciones
+ * de InformÃ¡tica y Comunicaciones de EspaÃ±a, S.A.U (hereinafter TSOL) and is protected
  * as copyright by the applicable legislation on intellectual property.
  *
  * It belongs to TSOL, and / or its licensors, the exclusive rights of reproduction,
@@ -32,6 +32,25 @@ const GRAFO = config.graphql['grafo'];
 const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO}/resource/`;
 const PREFIX_KOS = 'https://ontologia.segittur.es/turismo/kos/';
 const GRAFO_STR = `"${GRAFO}"`;
+
+function slugify(text) {
+    // Normalize Unicode using NFKD (e.g., "é" → "é")
+    text = text
+        .normalize('NFKD')
+        // Remove diacritic marks
+        .replace(/[\u0300-\u036f]/g, '');
+
+    // Convert to lowercase
+    text = text.toLowerCase();
+
+    // Replace any non-alphanumeric characters with hyphens
+    text = text.replace(/[^a-z0-9]+/g, '-');
+
+    // Remove leading and trailing hyphens
+    text = text.replace(/^-+|-+$/g, '');
+
+    return text;
+}
 
 function toGraphQLValue(value) {
     if (typeof value === 'string') {
@@ -142,6 +161,7 @@ function buildMutation(type, entityType, args = {}, returnFields = ['uri']) {
     };
 }
 
+exports.slugify = slugify;
 exports.buildMutationCreate = buildMutationCreate;
 exports.buildMutationUpdate = buildMutationUpdate;
 exports.buildMutationDelete = buildMutationDelete;
