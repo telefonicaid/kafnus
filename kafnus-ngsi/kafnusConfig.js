@@ -91,7 +91,7 @@ const envVarsSchema = {
         },
         KAFNUS_NGSI_GRAPHQL_GRAFO: {
             type: 'string',
-            default: 'grafo-v120'
+            default: 'grafo_v_120'
         },
         KAFNUS_NGSI_GRAPHQL_SLUG_URI: {
             type: 'boolean',
