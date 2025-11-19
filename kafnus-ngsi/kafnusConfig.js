@@ -89,9 +89,13 @@ const envVarsSchema = {
             type: 'string',
             default: 'earliest'
         },
-        KAFNUS_NGSI_GRAFO: {
+        KAFNUS_NGSI_GRAPHQL_GRAFO: {
             type: 'string',
             default: 'grafo_v_120'
+        },
+        KAFNUS_NGSI_GRAPHQL_SLUG_URI: {
+            type: 'boolean',
+            default: false
         }
     }
 };
@@ -123,7 +127,8 @@ const config = {
         port: envVars.KAFNUS_NGSI_ADMIN_PORT
     },
     graphql: {
-        grafo: envVars.KAFNUS_NGSI_GRAFO
+        grafo: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO,
+        slugUri: envVars.KAFNUS_NGSI_GRAPHQL_SLUG_URI
     }
 };
 
