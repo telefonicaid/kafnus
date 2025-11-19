@@ -309,6 +309,28 @@ These are published to topics like `<dbname>_error_log`.
 
 ---
 
+
+## Docker environment variables for kafnus-ngsi:
+
+| Environment Variable              | Type     | Default Value     | Description                                                                 |
+|----------------------------------|----------|-------------------|-----------------------------------------------------------------------------|
+| `KAFNUS_NGSI_KAFKA_BROKER`       | string   | `kafna:9092`  | Address of the Kafka broker the service will connect to.                    |
+| `KAFNUS_NGSI_GROUP_ID`           | string   | `ngsi-processor`  | Kafka consumer group ID used by the NGSI processor.                         |
+| `KAFNUS_NGSI_LOG_LEVEL`          | string   | `INFO`           | Logging level for the application (`INFO`, `WARN`, `ERROR`, `DEBUG`).       |
+| `KAFNUS_NGSI_LOG_OB`             | string   | `ES`              | Origin or location tag used in logs.                                        |
+| `KAFNUS_NGSI_LOG_COMP`           | string   | `Kafnus-ngsi`     | Component name used in log messages.                                        |
+| `KAFNUS_NGSI_ADMIN_PORT`         | number   | `8000`            | Port where the admin or health-check server will listen.                    |
+| `KAFNUS_NGSI_SECURITY_PROTOCOL`  | string   | `plaintext`       | Kafka security protocol (e.g., `plaintext`, `SASL_PLAINTEXT`, `SASL_SSL`).  |
+| `KAFNUS_NGSI_SASL_MECHANISMS`    | string   | `PLAIN`           | SASL mechanism for Kafka authentication.                                    |
+| `KAFNUS_NGSI_SASL_USERNAME`      | string   | `null`            | Username for SASL authentication (if enabled).                              |
+| `KAFNUS_NGSI_SASL_PASSWORD`      | string   | `null`            | Password for SASL authentication (if enabled).                              |
+| `KAFNUS_NGSI_AUTO_OFFSET_RESET`  | string   | `earliest`        | Kafka offset reset policy (`earliest`, `latest`).                           |
+| `KAFNUS_NGSI_GRAPHQL_GRAFO`      | string   | `grafo_v_120`      | Graph name or version used by the GraphQL service.                          |
+| `KAFNUS_NGSI_GRAPHQL_SLUG_URI`   | boolean  | `false`           | Enables or disables slug-based GraphQL URIs.                                |
+
+---
+
+
 ## 🧭 Navigation
 
 - [⬅️ Previous: ](/doc/04_docker.md)
