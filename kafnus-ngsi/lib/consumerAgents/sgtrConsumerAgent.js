@@ -31,6 +31,7 @@ const { buildKafkaKey } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
+const { config } = require('../../kafnusConfig');
 
 async function startSgtrConsumerAgent(logger) {
     const topic = 'raw_sgtr';
@@ -71,14 +72,14 @@ async function startSgtrConsumerAgent(logger) {
                         : entityObject.alterationType.toLowerCase();
                     delete entityObject.alterationType;
                     if (alterationType === 'entityupdate' || alterationType === 'entitychange') {
-                        const id = slugify(entityObject.externalId);
+                        const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
                         mutation = buildMutationUpdate(type, id, entityObject);
                     } else if (alterationType === 'entitydelete') {
-                        const id = slugify(entityObject.externalId);
+                        const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
                         mutation = buildMutationDelete(id);
                     } else {
                         // case when alterationType === 'entitycreate'
-                        if (entityObject.externalId) {
+                        if (entityObject.externalId && config.graphql.slugUri) {
                             entityObject.externalId = slugify(entityObject.externalId);
                         }
                         mutation = buildMutationCreate(type, entityObject);
