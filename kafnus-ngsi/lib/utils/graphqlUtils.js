@@ -52,6 +52,13 @@ function slugify(text) {
     return text;
 }
 
+function slugifyUri(uri) {
+    const parts = uri.split('/');
+    const last = parts.pop(); // i.e. "Description:001"
+    const slugified = slugify(last); // i.e. "description-001"
+    return [...parts, slugified].join('/');
+}
+
 function toGraphQLValue(value) {
     if (typeof value === 'string') {
         return `"${
@@ -63,6 +70,16 @@ function toGraphQLValue(value) {
     } else if (Array.isArray(value)) {
         return `[${value.map(toGraphQLValue).join(', ')}]`;
     } else if (value && typeof value === 'object') {
+        if (
+            config.graphql.slugUri &&
+            // Check URIs and slugify the end of uri
+            'uri' in value &&
+            typeof value.uri === 'string'
+        ) {
+            const newUri = slugifyUri(value.uri);
+            return `{ uri: "${newUri}" }`;
+        }
+
         return `{ ${Object.entries(value)
             .map(([k, v]) => `${k}: ${toGraphQLValue(v)}`)
             .join(', ')} }`;
