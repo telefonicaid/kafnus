@@ -20,9 +20,9 @@ Tests are located in:
 
 - `tests_end2end/functional/`
   - `cases/`: Each test scenario has its own directory
-  - `test_pipeline.py`:
+  - `test_pipeline.py`: End-to-end test for a given scenario
   - `common_test.py`: Core functionalities (raise containers, subs to CB...)
-  - `config.py`: database configuration, kafnus-connect endpoint...
+  - `config.py`: Database configuration, kafnus-connect endpoint...
   - `utils/`: Scenario loader, DB validator, SQL runner, Kafka loader
 
 ```plaintext
@@ -39,6 +39,7 @@ tests_end2end/functional/
 │       │   │   └── setup.sql
 │       │   └── ...
 ├── test_pipeline.py
+├── test_admin_server.py
 ├── common_test.py
 ├── config.py
 ├── conftest.py
@@ -352,6 +353,17 @@ All new tests follow the established pattern with `description.txt`, `input.json
 - Logs show useful debug output at each step.
 - TestContainers ensures full isolation and cleanup.
 - The test suite now includes **16 scenarios** covering core functionality, data types, error handling, performance, and subscription patterns.
+
+### Admin Server Tests
+
+Kafnus-NGSI now includes **a separate test suite for the Admin Server** (`test_admin_server.py`), which covers:
+
+- `/logLevel`: GET and POST to check and change log levels.
+- `/metrics`: GET to expose Prometheus metrics.
+- `/health`: GET to check operational status (`status: "UP"`).
+
+> ⚡ This is a lightweight check to ensure the Admin Server is running. Most end-to-end tests remain focused on PostGIS, Kafka, and pipeline validation.
+
 
 ## 🧭 Navigation
 

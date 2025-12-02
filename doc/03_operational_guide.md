@@ -62,6 +62,43 @@ For each connector:
 curl -s http://localhost:8083/connectors/<name>/status | jq .
 ```
 
+### 2.3 Admin Server Endpoints & Health Check
+
+Kafnus-NGSI exposes an **Admin HTTP server** on `KAFNUS_NGSI_ADMIN_PORT` (default `8000`) with `health` endpoint:
+
+**Health check:**
+
+```bash
+curl -s http://localhost:8000/health | jq .
+```
+
+Expected response:
+
+```json
+{
+  "status": "UP",
+  "timestamp": "2025-12-02T10:15:32.123Z"
+}
+```
+
+> ✅ A valid JSON response confirms the Admin Server is running.
+> ❌ If the request fails, check the container logs (`docker logs -f kafnus-ngsi`) and ensure `KAFNUS_NGSI_ADMIN_PORT` is correctly set.
+
+---
+
+### 2.4 Ports Overview (Optional Table for Operators)
+
+| Service        | Default Port | Purpose                                           |
+| -------------- | ------------ | ------------------------------------------------- |
+| Kafka          | 9092         | Broker                                            |
+| Kafnus Connect | 8083         | Connect REST API                                  |
+| Orion          | 1026         | Context Broker                                    |
+| MongoDB        | 27017        | Database                                          |
+| PostGIS        | 5432         | Database                                          |
+| Kafnus-NGSI    | 8000         | Admin Server (`/metrics`, `/logLevel`, `/health`) |
+
+> 💡 If `admin.port` is changed in the configuration, update the URLs accordingly for health checks, metrics, or log level operations.
+
 ---
 
 ## 🔍 3. Logs & Diagnostics
@@ -91,6 +128,42 @@ docker exec -it kafka \
     --from-beginning \
     --max-messages 10
 ```
+
+### 3.3 Admin Server & Log Level Management
+
+Kafnus-NGSI exposes an **Admin HTTP endpoint** to inspect and modify the log level at runtime. This is **separate from metrics** and runs on the port defined in the configuration (`admin.port`, default `8000`).
+
+**Check current log level:**
+
+```bash
+curl -s http://localhost:8000/logLevel | jq .
+```
+
+Response:
+
+```json
+{ "level": "INFO" }
+```
+
+**Change log level on the fly:**
+
+```bash
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"level": "debug"}' \
+     http://localhost:8000/logLevel | jq .
+```
+
+Response:
+
+```json
+{ "ok": true, "level": "DEBUG" }
+```
+
+> ⚠️ Valid levels: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`.
+> Changes are **effective immediately**, no need to restart the service.
+
+This endpoint is useful for troubleshooting without disrupting production flows or stopping Kafnus-NGSI.
+The Admin server is started automatically when launching the service (via `startAdminServer` in the main process).
 
 ---
 
