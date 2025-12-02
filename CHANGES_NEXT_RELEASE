@@ -1,3 +1,4 @@
+- Fix upsert mode in mutable sink and add tests (#156)
 - Fix(graphql): add config option graphql.slugUri (disabled by default) to ensure ids are sluged for use in URIs (#152)
 - Add admin endpoint for logLevel and metrics (new env var KAFNUS_NGSI_ADMIN_PORT) (#147, #150)
 - Add configuration for grafo version (graphql)
