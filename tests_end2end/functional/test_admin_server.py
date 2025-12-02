@@ -55,6 +55,15 @@ def admin_base_url(multiservice_stack):
 
     return base_url
 
+def test_health_endpoint(admin_base_url):
+    """Should return health status of the Admin Server"""
+    response = requests.get(f"{admin_base_url}/health")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert "status" in data
+    assert data["status"] == "UP"
+    assert "timestamp" in data  # Optional: just check it exists
 
 def test_get_log_level(admin_base_url):
     """Should return current log level """

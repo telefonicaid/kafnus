@@ -82,6 +82,11 @@ function startAdminServer(logger, port = 8000) {
                 return;
             }
         }
+        if (req.url === '/health' && req.method === 'GET') {
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ status: 'UP', timestamp: new Date().toISOString() }));
+            return;
+        }
         res.statusCode = 404;
         res.end();
     });
@@ -89,6 +94,7 @@ function startAdminServer(logger, port = 8000) {
     server.listen(port, () => {
         logger.info(`Metrics server listening on http://localhost:${port}/metrics`);
         logger.info(`Log leven endpoint enabled at http://localhost:${port}/logLevel`);
+        logger.info(`Health check endpoint enabled at http://localhost:${port}/health`);
     });
 
     return server;

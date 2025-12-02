@@ -52,7 +52,28 @@ Example log output:
 time=2025-09-03T11:38:21.432Z | lvl=INFO | corr=n/a | trans=n/a | op=n/a | ver=0.0.1 | ob=ES | comp=Kafnus | msg=[historic] Sent to topic 'test' (table: 'limit_sensor'): Sensor:LimitTest:12
 ```
 
-ℹ️ The environment variable `KAFNUS_NGSI_ADMIN_PORT` is used to set default port for admin (metrics and logLevel) API endpoints, set the variable in [`/docker/docker-compose.ngsi.yml`](/docker/docker-compose.ngsi.yml).
+#### Admin Server & Log Level
+
+Kafnus-NGSI exposes an **Admin HTTP endpoint** on `KAFNUS_NGSI_ADMIN_PORT` (default `8000`) to inspect or change the log level at runtime. Set the variable in [`/docker/docker-compose.ngsi.yml`](/docker/docker-compose.ngsi.yml).
+
+**Check current log level:**
+
+```bash
+curl -s http://localhost:8000/logLevel | jq .
+```
+
+**Change log level:**
+
+```bash
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"level": "DEBUG"}' \
+     http://localhost:8000/logLevel
+```
+
+> ⚠️ Levels: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`. Changes are **immediate**.
+
+**Health check:**
+A valid JSON response confirms the Admin Server is running. If it fails, check the `kafnus-ngsi` container logs and `KAFNUS_NGSI_ADMIN_PORT` setting.
 
 ---
 

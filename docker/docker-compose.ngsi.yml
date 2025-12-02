@@ -63,7 +63,7 @@ services:
 #        condition: service_completed_successfully
     environment:
       - KAFNUS_NGSI_KAFKA_BROKER=kafka:29092
-      - KAFNUS_NGSI_METRICS_PORT=8000
+      - KAFNUS_NGSI_ADMIN_PORT=8000
       - KAFNUS_NGSI_DEFAULT_TZ=UTC
       - KAFNUS_NGSI_LOG_LEVEL=INFO
     networks:
