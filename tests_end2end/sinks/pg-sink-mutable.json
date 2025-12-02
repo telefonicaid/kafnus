@@ -8,7 +8,7 @@
     "connection.user": "${env:KAFNUS_TESTS_PG_USER}",
     "connection.password": "${env:KAFNUS_TESTS_PG_PASSWORD}",
 
-    "insert.mode": "insert",
+    "insert.mode": "upsert",
     "pk.mode": "record_value",
     "pk.fields": "entityid,timeinstant",
     "table.name.format": "test.${topic}",

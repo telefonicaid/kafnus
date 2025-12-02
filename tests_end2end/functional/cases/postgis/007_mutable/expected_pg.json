@@ -1,0 +1,15 @@
+[
+    {
+    "table": "test.order_sensor_mutable",
+    "rows": [
+        {"entityid": "Sensor3", "timeinstant": "2025-12-02T12:00:00Z", "entitytype": "Sensor", "temperature": 24.0, "fiwareservicepath": "/order"},
+        {"entityid": "Sensor3", "timeinstant": "2025-12-02T12:30:00Z", "entitytype": "Sensor", "temperature": 23.0, "fiwareservicepath": "/order"}
+    ]
+    },
+    {
+    "table": "test.order_sensor_mutable",
+    "absent": [
+        {"entityid": "Sensor3", "timeinstant": "2025-12-02T12:00:00Z", "temperature": 25.0}
+    ]
+    }
+]

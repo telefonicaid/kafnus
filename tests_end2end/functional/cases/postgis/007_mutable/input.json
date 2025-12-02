@@ -1,0 +1,67 @@
+{
+  "name": "out_of_order_test_case",
+  "fiware-service": "test",
+  "fiware-servicepath": "/order",
+  "subscriptions": {
+    "mutable": {
+      "description": "Sensor:MUTABLE:order:mutable:order",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": ["TimeInstant"],
+          "alterationTypes": [
+            "entityUpdate",
+            "entityCreate",
+            "entityDelete"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "raw_mutable"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature",
+          "alterationType"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "Sensor3",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-12-02T12:00:00Z"
+      },
+      "temperature": {"value": 25.0, "type": "Float"}
+    },
+    {
+      "id": "Sensor3",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-12-02T12:30:00Z"
+      },
+      "temperature": {"value": 23.0, "type": "Float"}
+    },
+    {
+      "id": "Sensor3",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-12-02T12:00:00Z"
+      },
+      "temperature": {"value": 24.0, "type": "Float"}
+    }
+  ]
+}
