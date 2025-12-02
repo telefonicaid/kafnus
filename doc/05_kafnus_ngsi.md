@@ -246,7 +246,7 @@ Useful for upsert operations in JDBC sinks (`lastdata`, `mutable`).
 #### `raw_mutable`
 
 - Allows overwriting/updating mutable data.
-- Update rows with same `entityid` ans `timeinstant`.
+- Update rows with same `entityid` and `timeinstant`.
 - Output topic: `<service>_mutable`
 
 ---
