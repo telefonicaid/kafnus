@@ -25,11 +25,12 @@
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
-from config import logger
 import json
 import time
 import socket
 import re
+
+from common.config import logger
 
 class RequestHandler(BaseHTTPRequestHandler):
     response_code = 200

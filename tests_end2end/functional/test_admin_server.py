@@ -27,7 +27,8 @@ import requests
 import json
 import os
 import time
-from config import logger
+
+from common.config import logger
 
 
 @pytest.fixture(scope="session")

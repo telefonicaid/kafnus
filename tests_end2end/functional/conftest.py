@@ -25,7 +25,7 @@
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
-from common_test import multiservice_stack
+from common.common_test import multiservice_stack
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     """

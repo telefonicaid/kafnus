@@ -25,19 +25,18 @@
 import json
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Union, Optional
 import pytest
 import requests
 #from testcontainers.compose import DockerCompose
 from testcontainers.compose import DockerCompose as OriginalDockerCompose
 import subprocess
 import os
-from utils.kafnus_connect_loader import deploy_all_sinks
 import time
 
-from config import logger
-from typing import Optional
-from utils.wait_services import wait_for_kafnus_connect, wait_for_connector, wait_for_postgres, wait_for_orion, ensure_postgis_db_ready, wait_for_kafnus_ngsi
+from common.config import logger
+from common.utils.kafnus_connect_loader import deploy_all_sinks
+from common.utils.wait_services import wait_for_kafnus_connect, wait_for_connector, wait_for_postgres, wait_for_orion, ensure_postgis_db_ready, wait_for_kafnus_ngsi
 
 # ──────────────────────────────
 # Utils

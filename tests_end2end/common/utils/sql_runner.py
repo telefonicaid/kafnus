@@ -22,8 +22,9 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-from config import logger
 import psycopg2
+
+from common.config import logger
 
 def execute_sql_file(sql_path, db_config):
     """

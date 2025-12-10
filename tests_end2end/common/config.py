@@ -26,9 +26,6 @@ import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Directory where all scenario test cases are stored
-SCENARIOS_DIR = Path(__file__).parent / "cases"
-
 # Default database configuration used for testing, with env vars supports
 DEFAULT_DB_CONFIG = {
     "host": os.getenv("KAFNUS_TESTS_PG_HOST", "localhost"),
