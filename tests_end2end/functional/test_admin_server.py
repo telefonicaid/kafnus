@@ -37,6 +37,8 @@ def admin_base_url(multiservice_stack):
     Returns the admin server base URL (reuses the multiservice_stack).
     If not available, uses localhost:8000 as a fallback.
     """
+    logger.info("Test case to check Admin Server endpoints. This test checks health, log level and metrics endpoints.")
+
     host = getattr(multiservice_stack, "ngsiAdminHost", "localhost")
     port = getattr(multiservice_stack, "ngsiAdminPort", int(os.getenv("KAFNUS_NGSI_ADMIN_PORT", 8000)))
     base_url = f"http://{host}:{port}"

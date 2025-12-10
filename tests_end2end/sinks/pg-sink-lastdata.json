@@ -44,6 +44,8 @@
     "errors.log.enable": "true",
     "errors.log.include.messages": "true",
     "max.retries": "0",
-    "retry.backoff.ms": "0"
+    "retry.backoff.ms": "0",
+    "connection.attempts": "10",
+    "connection.backoff.ms": "10000"
   }
 }

@@ -25,6 +25,8 @@
 
     "errors.tolerance": "all",
     "errors.log.enable": true,
-    "errors.log.include.messages": true
+    "errors.log.include.messages": true,
+    "connection.attempts": "10",
+    "connection.backoff.ms": "10000"
   }
 }

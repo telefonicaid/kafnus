@@ -1,0 +1,294 @@
+# Copyright 2025 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
+# PROJECT: Kafnus
+#
+# This software and / or computer program has been developed by Telefónica Soluciones
+# de Informática y Comunicaciones de España, S.A.U (hereinafter TSOL) and is protected
+# as copyright by the applicable legislation on intellectual property.
+#
+# It belongs to TSOL, and / or its licensors, the exclusive rights of reproduction,
+# distribution, public communication and transformation, and any economic right on it,
+# all without prejudice of the moral rights of the authors mentioned above. It is expressly
+# forbidden to decompile, disassemble, reverse engineer, sublicense or otherwise transmit
+# by any means, translate or create derivative works of the software and / or computer
+# programs, and perform with respect to all or part of such programs, any type of exploitation.
+#
+# Any use of all or part of the software and / or computer program will require the
+# express written consent of TSOL. In all cases, it will be necessary to make
+# an express reference to TSOL ownership in the software and / or computer
+# program.
+#
+# Non-fulfillment of the provisions set forth herein and, in general, any violation of
+# the peaceful possession and ownership of these rights will be prosecuted by the means
+# provided in both Spanish and international law. TSOL reserves any civil or
+# criminal actions it may exercise to protect its rights.
+import time
+import pytest
+from pathlib import Path
+
+from common.common_test import OrionRequestData, ServiceOperations
+from common.config import logger, DEFAULT_DB_CONFIG
+from common.utils.sql_runner import execute_sql_file
+from common.utils.postgis_validator import PostgisValidator
+
+from resilience.utils.utils import stop_postgres, start_postgres, wait_connector_running
+
+TIMEOUT_DB_RECOVERY = 30  # seconds
+
+# ----------------------------------------------------------------------
+# MAIN TEST
+# ----------------------------------------------------------------------
+def test_db_outage_recover(multiservice_stack):
+    """
+    Simulates different Postgres outage scenarios and verifies that Kafnus Connect
+    behaves correctly in each phase.
+
+    The test is divided into three independent stages:
+
+    1. **Initial ingestion with DB available**  
+    - Postgres is running.  
+    - A first update (E1) is sent through Orion.  
+    - The JDBC sinks must write the record successfully into all target tables.
+
+    2. **DB outage without incoming messages**  
+    - Postgres is stopped.  
+    - No new messages are sent during the outage.  
+    - The connector will not fail because no poll cycle processes records.  
+    - Postgres is started again.  
+    - The connector must detect that the DB is back and transition back to RUNNING.  
+    - A second update (E2) is sent and must be successfully written to the DB.
+
+    3. **DB outage *with* incoming messages**  
+    - Postgres is stopped again.  
+    - A third update (E3) is sent while the DB is down.  
+    - This time the connector task will attempt to write, fail, and transition to FAILED.  
+    - Postgres is restarted.  
+    - The connector must recover from FAILED back to RUNNING.  
+    - All records (E1, E2, E3) must exist in the DB after recovery.
+
+    """
+
+    logger.info("Test case to verify Kafnus Connect behavior during Postgres outages. This tests covers:\n - Initial ingestion with DB available\n - DB outage without incoming messages\n - DB outage with incoming messages")
+
+    docker_dir = str(Path(__file__).resolve().parents[2] / "docker")
+
+    connector_status_url = (
+        f"http://{multiservice_stack.kafkaConnectHost}:"
+        f"{multiservice_stack.KafkaConnectPort}/connectors/jdbc-historical-sink/status"
+    )
+
+    # ------------------------------------------------------------------
+    # STEP 0: Execute setup.sql
+    # ------------------------------------------------------------------
+    setup_file = Path(__file__).resolve().parent / "utils" / "setup.sql"
+
+    logger.info(f"📜 Executing setup SQL: {setup_file}")
+    execute_sql_file(setup_file, db_config=DEFAULT_DB_CONFIG)
+
+    # ------------------------------------------------------------------
+    # STEP 1A: Send first batch (DB OK)
+    # ------------------------------------------------------------------
+    first_update = OrionRequestData(
+        name="recover1",
+        service="test",
+        subservice="/recover",
+        subscriptions={
+            "historic": {
+                "description": "Test:HISTORIC:recover_test",
+                "status": "active",
+                "subject": {
+                    "entities": [{"idPattern": ".*", "type": "Test"}],
+                    "condition": {"attrs": ["TimeInstant"]}
+                },
+                "notification": {
+                    "kafkaCustom": {
+                        "url": "kafka://kafka:29092",
+                        "topic": "raw_historic"
+                    },
+                    "attrs": ["TimeInstant", "temperature"]
+                }
+            },
+            "lastdata": {
+                "description": "Test:LASTDATA:recover_test",
+                "status": "active",
+                "subject": {
+                    "entities": [{"idPattern": ".*", "type": "Test"}],
+                    "condition": {"attrs": ["TimeInstant"]}
+                },
+                "notification": {
+                    "kafkaCustom": {
+                        "url": "kafka://kafka:29092",
+                        "topic": "raw_lastdata"
+                    },
+                    "attrs": ["TimeInstant", "temperature"]
+                }
+            },
+            "mutable": {
+                "description": "Test:mutable:recover_test",
+                "status": "active",
+                "subject": {
+                    "entities": [{"idPattern": ".*", "type": "Test"}],
+                    "condition": {"attrs": ["TimeInstant"]}
+                },
+                "notification": {
+                    "kafkaCustom": {
+                        "url": "kafka://kafka:29092",
+                        "topic": "raw_mutable"
+                    },
+                    "attrs": ["TimeInstant", "temperature"]
+                }
+            },
+        },
+        updateEntities=[
+            {
+                "id": "E1",
+                "type": "Test",
+                "TimeInstant": {
+                    "type": "DateTime",
+                    "value": "2025-06-26T11:00:00Z"
+                },
+                "temperature": {"value": 1.0, "type": "Float"}
+            }
+        ]
+    )
+
+    ops = ServiceOperations(multiservice_stack, [first_update])
+    ops.orion_set_up()
+
+    time.sleep(4)
+
+    # ------------------------------------------------------------------
+    # STEP 1B: Validate the first batch is in DB
+    # ------------------------------------------------------------------
+    validator = PostgisValidator(DEFAULT_DB_CONFIG)
+
+    ok = validator.validate("test.recover_test", [{"entityid": "E1"}])
+    assert ok, "❌ First batch not found in recover_test table"
+
+    ok = validator.validate("test.recover_test_lastdata", [{"entityid": "E1"}])
+    assert ok, "❌ First batch not found in recover_test_lastdata table"
+
+    ok = validator.validate("test.recover_test_mutable", [{"entityid": "E1"}])
+    assert ok, "❌ First batch not found in recover_test_mutable table"
+
+    logger.info("✅ First batch validated successfully")
+
+    # ------------------------------------------------------------------
+    # STEP 2A: Stop Postgres (simulate outage)
+    # ------------------------------------------------------------------
+    logger.info("⛔ Stopping Postgres…")
+    stop_postgres(docker_dir)
+    time.sleep(3)
+
+    # Give time for connector to fail
+    time.sleep(TIMEOUT_DB_RECOVERY)
+
+    # ------------------------------------------------------------------
+    # STEP 2B: Start Postgres again
+    # ------------------------------------------------------------------
+    logger.info("🟢 Starting Postgres…")
+    start_postgres(docker_dir)
+    time.sleep(5)
+
+    # ------------------------------------------------------------------
+    # STEP 2C: Wait for connector task recovery
+    # ------------------------------------------------------------------
+    wait_connector_running(connector_status_url)
+
+    # ------------------------------------------------------------------
+    # STEP 2D: Send updates after recovery
+    # ------------------------------------------------------------------
+    second_update = OrionRequestData(
+        name="recover2",
+        service="test",
+        subservice="/recover",
+        subscriptions={},   # subscriptions already exist
+        updateEntities=[
+            {
+                "id": "E2",
+                "type": "Test",
+                "TimeInstant": {"type": "DateTime", "value": "2025-06-26T12:00:00Z"},
+                "temperature": {"value": 2.0, "type": "Float"},
+            }
+        ]
+    )
+
+    ops = ServiceOperations(multiservice_stack, [second_update])
+    ops.orion_set_up()
+
+    # ------------------------------------------------------------------
+    # STEP 2E: Validate DB state (E1, E2)
+    # ------------------------------------------------------------------
+    validator = PostgisValidator(DEFAULT_DB_CONFIG)
+
+    expected_rows = [{"entityid": "E1"}, {"entityid": "E2"}]
+
+    for table in [
+        "test.recover_test",
+        "test.recover_test_lastdata",
+        "test.recover_test_mutable",
+    ]:
+        ok = validator.validate(table, expected_rows)
+        assert ok, f"❌ Not all entities were persisted in {table}"
+
+    logger.info("✅ test_db_outage_recover PASSED")
+
+
+    # ------------------------------------------------------------------
+    # STEP 3A: Stop Postgres (simulate outage)
+    # ------------------------------------------------------------------
+    logger.info("⛔ Stopping Postgres…")
+    stop_postgres(docker_dir)
+    time.sleep(3)
+
+    # ------------------------------------------------------------------
+    # STEP 3B: Send updates while DB is DOWN
+    # ------------------------------------------------------------------
+    second_update = OrionRequestData(
+        name="recover2",
+        service="test",
+        subservice="/recover",
+        subscriptions={},   # subscriptions already exist
+        updateEntities=[
+            {
+                "id": "E3",
+                "type": "Test",
+                "TimeInstant": {"type": "DateTime", "value": "2025-06-26T13:00:00Z"},
+                "temperature": {"value": 3.0, "type": "Float"},
+            }
+        ]
+    )
+
+    ops = ServiceOperations(multiservice_stack, [second_update])
+    ops.orion_set_up()
+
+    # Give time for connector to fail
+    time.sleep(TIMEOUT_DB_RECOVERY)
+
+    # ------------------------------------------------------------------
+    # STEP 3C: Start Postgres again
+    # ------------------------------------------------------------------
+    logger.info("🟢 Starting Postgres…")
+    start_postgres(docker_dir)
+    time.sleep(5)
+
+    # ------------------------------------------------------------------
+    # STEP 3D: Wait for connector task recovery
+    # ------------------------------------------------------------------
+    wait_connector_running(connector_status_url)
+
+    # ------------------------------------------------------------------
+    # STEP 3E: Validate final DB state (E1, E2, E3)
+    # ------------------------------------------------------------------
+    validator = PostgisValidator(DEFAULT_DB_CONFIG)
+
+    expected_rows = [{"entityid": "E1"}, {"entityid": "E2"}, {"entityid": "E3"}]
+
+    for table in [
+        "test.recover_test",
+        "test.recover_test_lastdata",
+        "test.recover_test_mutable",
+    ]:
+        ok = validator.validate(table, expected_rows)
+        assert ok, f"❌ Not all entities were persisted in {table}"
+
+    logger.info("✅ test_db_outage_recover PASSED")
