@@ -37,6 +37,7 @@ import time
 from common.config import logger
 from common.utils.kafnus_connect_loader import deploy_all_sinks
 from common.utils.wait_services import wait_for_kafnus_connect, wait_for_connector, wait_for_postgres, wait_for_orion, ensure_postgis_db_ready, wait_for_kafnus_ngsi
+from common.utils.utils import find_subscription_id_by_description
 
 # ──────────────────────────────
 # Utils
@@ -83,7 +84,7 @@ class OrionRequestData:
     subscriptions: dict
     updateEntities: list
     deleteEntities: Optional[list] = None
-
+    updateSubscription: Optional[list] = None
 
 @dataclass
 class KafkaMessages:
@@ -285,6 +286,7 @@ class OrionAdapter:
             }
             for g in generators
         }
+        self.subscription_ids = {}
 
     def create_subscriptions(self):
         """
@@ -300,6 +302,47 @@ class OrionAdapter:
                     data=json.dumps(subscription)
                 )
                 assert response.status_code in [201, 204], f"Subscription failed: {response.content}"
+                
+                # Store subscription ID for future reference
+                location = response.headers.get("Location")
+                if location:
+                    sub_id = location.split("/")[-1]
+                    self.subscription_ids[subscription["description"]] = sub_id
+
+    def update_subscription(self, name, changes):
+        """
+        Updates an existing subscription. If the subscription ID is not known
+        (e.g., test case is executed in a fresh process), we recover it from Orion.
+        """
+        sub_id = self.subscription_ids.get(name)
+
+        # If not in memory, try to discover it from Orion
+        if not sub_id:
+            # Pick *any* generator’s headers (same service/servicePath as test case)
+            generator = self.generators[0]
+            headers_ = self.headers[generator.name]
+
+            sub_id = find_subscription_id_by_description(self.baseUrl, name, headers_)
+            if not sub_id:
+                raise AssertionError(f"Subscription '{name}' not found in Orion")
+            
+            # Save it in memory
+            self.subscription_ids[name] = sub_id
+        else:
+            # If we DO have the ID, we still need the right headers
+            generator = self.generators[0]
+            headers_ = self.headers[generator.name]
+
+        # Perform PATCH
+        response = requests.patch(
+            f"{self.baseUrl}/subscriptions/{sub_id}",
+            headers=headers_,
+            data=json.dumps(changes)
+        )
+
+        assert response.status_code in [200, 204], (
+            f"Update failed for {name}: {response.status_code} {response.content}"
+        )
 
     def update_entities(self):
         """
@@ -395,5 +438,11 @@ class ServiceOperations:
             self.generators
         )
         orion_adapter.create_subscriptions()
+        for generator in self.generators:
+            if getattr(generator, "updateSubscription", None):
+                for update in generator.updateSubscription:
+                    desc = update["description"]
+                    changes = update["changes"]
+                    orion_adapter.update_subscription(desc, changes)
         orion_adapter.update_entities()
         orion_adapter.delete_entities()

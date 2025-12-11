@@ -109,7 +109,8 @@ def load_scenario(json_path, as_expected=False):
             subservice=data["fiware-servicepath"],
             subscriptions=data["subscriptions"],
             updateEntities=data["updateEntities"],
-            deleteEntities=data.get("deleteEntities", [])
+            deleteEntities=data.get("deleteEntities", []),
+            updateSubscription=data.get("updateSubscription", None)
         )
 
 def load_description(scenario_dir: Path) -> Optional[str]:
