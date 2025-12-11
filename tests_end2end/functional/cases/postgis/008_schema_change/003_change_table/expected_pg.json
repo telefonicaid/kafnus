@@ -1,0 +1,41 @@
+[
+  {
+    "table": "test.change_schema",
+    "rows": [
+      {
+        "entityid": "Schema1",
+        "entitytype": "Schema",
+        "timeinstant": "2025-06-26T11:00:00Z",
+        "temperature": "25.0",
+        "changecolumn": null,
+        "pressure": null
+      },
+      {
+        "entityid": "Schema1",
+        "entitytype": "Schema",
+        "timeinstant": "2025-06-26T12:00:00Z",
+        "temperature": "26.0",
+        "changecolumn": null,
+        "pressure": null
+      },
+      {
+        "entityid": "Schema1",
+        "entitytype": "Schema",
+        "timeinstant": "2025-06-26T13:00:00Z",
+        "temperature": "27.0",
+        "humidity": 40.0,
+        "changecolumn": null,
+        "pressure": null
+      },
+      {
+        "entityid": "Schema1",
+        "entitytype": "Schema",
+        "timeinstant": "2025-06-26T14:00:00Z",
+        "temperature": "28-text",
+        "humidity": 41.0,
+        "changecolumn": 123,
+        "pressure": 1010.55
+      }
+    ]
+  }
+]

@@ -1,0 +1,79 @@
+{
+  "name": "schema_change_test_case_003",
+  "fiware-service": "test",
+  "fiware-servicepath": "/change",
+
+  "subscriptions": {},
+
+  "updateSubscription": [
+    {
+      "description": "Schema:HISTORIC:simple:historic",
+      "changes": {
+        "notification": {
+          "kafkaCustom": {
+            "url": "kafka://kafka:29092",
+            "topic": "raw_historic"
+          },
+          "attrs": [
+            "TimeInstant",
+            "temperature",
+            "humidity",
+            "changecolumn",
+            "pressure"
+          ]
+        }
+      }
+    },
+    {
+      "description": "Schema:LASTDATA:simple:lastdata",
+      "changes": {
+        "notification": {
+          "kafkaCustom": {
+            "url": "kafka://kafka:29092",
+            "topic": "raw_lastdata"
+          },
+          "attrs": [
+            "TimeInstant",
+            "temperature",
+            "humidity",
+            "changecolumn",
+            "pressure"
+          ]
+        }
+      }
+    },
+    {
+      "description": "Schema:mutable:simple:mutable",
+      "changes": {
+        "notification": {
+          "kafkaCustom": {
+            "url": "kafka://kafka:29092",
+            "topic": "raw_mutable"
+          },
+          "attrs": [
+            "TimeInstant",
+            "temperature",
+            "humidity",
+            "changecolumn",
+            "pressure"
+          ]
+        }
+      }
+    }
+  ],
+
+  "updateEntities": [
+    {
+      "id": "Schema1",
+      "type": "Schema",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T14:00:00Z"
+      },
+      "temperature": {"value": "28-text", "type": "Text"},
+      "humidity": {"value": 41, "type": "Integer"},
+      "changecolumn": {"value": 123, "type": "Integer"},
+      "pressure": {"value": 1010.55, "type": "Float"}
+    }
+  ]
+}
