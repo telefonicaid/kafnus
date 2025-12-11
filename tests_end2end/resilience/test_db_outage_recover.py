@@ -247,13 +247,36 @@ def test_db_outage_recover(multiservice_stack):
         name="recover2",
         service="test",
         subservice="/recover",
-        subscriptions={},   # subscriptions already exist
+        # correct subscription already exist
+        subscriptions={
+            "historic": {
+                "description": "Test:HISTORIC:recover_test",
+                "status": "active",
+                "subject": {
+                    "entities": [{"idPattern": ".*", "type": "FAIL"}],
+                    "condition": {"attrs": ["TimeInstant"]}
+                },
+                "notification": {
+                    "kafkaCustom": {
+                        "url": "kafka://kafka:29092",
+                        "topic": "raw_historic"
+                    },
+                    "attrs": ["TimeInstant", "temperature"]
+                }
+            }
+        },
         updateEntities=[
             {
                 "id": "E3",
                 "type": "Test",
                 "TimeInstant": {"type": "DateTime", "value": "2025-06-26T13:00:00Z"},
                 "temperature": {"value": 3.0, "type": "Float"},
+            },
+            {
+                "id": "FAIL",
+                "type": "FAIL",
+                "TimeInstant": {"type": "DateTime", "value": "2025-06-26T12:00:00Z"},
+                "temperature": {"value": 2.0, "type": "Float"},
             }
         ]
     )
@@ -290,5 +313,12 @@ def test_db_outage_recover(multiservice_stack):
     ]:
         ok = validator.validate(table, expected_rows)
         assert ok, f"❌ Not all entities were persisted in {table}"
+
+    error_row = {
+        "query": { "contains": "INSERT INTO \"test\".\"recover_fail\"" },
+        "error": { "contains": "Table \"tests\".\"test\".\"recover_fail\" is missing"}
+    }
+    ok = validator.validate("test.test_error_log", [error_row])
+    assert ok, f"❌ FAIL entity should not be present in {table}"
 
     logger.info("✅ test_db_outage_recover PASSED")
