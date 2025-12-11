@@ -51,7 +51,6 @@ async function startSgtrConsumerAgent(logger) {
             try {
                 const message = JSON.parse(rawValue);
                 logger.info('[sgtr] message: %j', message);
-                const headers = message.headers || {};
                 const dataList = message.data ? message.data : [];
 
                 for (const entityObject of dataList) {
@@ -85,11 +84,11 @@ async function startSgtrConsumerAgent(logger) {
                         mutation = buildMutationCreate(type, entityObject);
                     }
                     logger.debug('[sgtr] mutation: \n%s', mutation);
-
+                    const outputTopicByService = service + '_' + outputTopic;
                     const outHeaders = [];
                     // Publish in output topic
                     producer.produce(
-                        outputTopic,
+                        outputTopicByService,
                         null, // partition null: kafka decides
                         Buffer.from(JSON.stringify(mutation)), // message
                         null, // Key (optional)
@@ -97,7 +96,7 @@ async function startSgtrConsumerAgent(logger) {
                         null, // Opaque
                         outHeaders
                     );
-                    logger.info('[sgtr] Sent to %j | mutation %j', outputTopic, mutation);
+                    logger.info('[sgtr] Sent to %j | mutation %j', outputTopicByService, mutation);
                 } // for loop
             } catch (err) {
                 logger.error(`[sgtr] Error processing event: ${err}`);
