@@ -18,7 +18,9 @@
             "TimeInstant",
             "temperature",
             "humidity",
-            "changecolumn"
+            "changecolumn",
+            "rename_column",
+            "drop_column"
           ]
         }
       }
@@ -35,7 +37,9 @@
             "TimeInstant",
             "temperature",
             "humidity",
-            "changecolumn"
+            "changecolumn",
+            "rename_column",
+            "drop_column"
           ]
         }
       }
@@ -52,7 +56,9 @@
             "TimeInstant",
             "temperature",
             "humidity",
-            "changecolumn"
+            "changecolumn",
+            "rename_column",
+            "drop_column"
           ]
         }
       }
@@ -69,7 +75,9 @@
       },
       "temperature": {"value": 27.0, "type": "Float"},
       "humidity": {"value": 40, "type": "Integer"},
-      "changecolumn": {"value": "second", "type": "Text"}
+      "changecolumn": {"value": "initial", "type": "Text"},
+      "rename_column": {"value": "to_be_renamed", "type": "Text"},
+      "drop_column": {"value": "to_be_dropped", "type": "Text"}
     }
   ]
 }

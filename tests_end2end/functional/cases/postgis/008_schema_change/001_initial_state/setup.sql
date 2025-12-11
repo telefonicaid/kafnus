@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS test.change_schema (
     temperature DOUBLE PRECISION,
     humidity DOUBLE PRECISION,
     changecolumn TEXT,
+    rename_column TEXT,
+    drop_column TEXT,
     CONSTRAINT change_schema_pkey PRIMARY KEY (timeinstant, entityid)
 );
 
@@ -52,6 +54,8 @@ CREATE TABLE IF NOT EXISTS test.change_schema_lastdata (
     temperature DOUBLE PRECISION,
     humidity DOUBLE PRECISION,
     changecolumn TEXT,
+    rename_column TEXT,
+    drop_column TEXT,
     CONSTRAINT change_schema_lastdata_pkey PRIMARY KEY (entityid)
 );
 
@@ -68,5 +72,7 @@ CREATE TABLE IF NOT EXISTS test.change_schema_mutable (
     temperature DOUBLE PRECISION,
     humidity DOUBLE PRECISION,
     changecolumn TEXT,
+    rename_column TEXT,
+    drop_column TEXT,
     CONSTRAINT change_schema_mutable_pkey PRIMARY KEY (timeinstant, entityid)
 );

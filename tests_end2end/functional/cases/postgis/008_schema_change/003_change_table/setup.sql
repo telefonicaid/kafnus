@@ -24,6 +24,7 @@
  * criminal actions it may exercise to protect its rights.
 */
 
+-- Set changecolumn to NULL
 UPDATE test.change_schema
     SET changecolumn = NULL
     WHERE changecolumn IS NOT NULL;
@@ -36,6 +37,7 @@ UPDATE test.change_schema_mutable
     SET changecolumn = NULL
     WHERE changecolumn IS NOT NULL;
 
+-- Change types and add new column
 ALTER TABLE test.change_schema
     ADD COLUMN IF NOT EXISTS pressure DOUBLE PRECISION,
     ALTER COLUMN temperature TYPE TEXT USING temperature::TEXT;
@@ -48,4 +50,22 @@ ALTER TABLE test.change_schema_mutable
     ADD COLUMN IF NOT EXISTS pressure DOUBLE PRECISION,
     ALTER COLUMN temperature TYPE TEXT USING temperature::TEXT;
 
+-- Rename column
+ALTER TABLE test.change_schema
+    RENAME COLUMN rename_column TO renamecolumn;
 
+ALTER TABLE test.change_schema_lastdata
+    RENAME COLUMN rename_column TO renamecolumn;
+
+ALTER TABLE test.change_schema_mutable
+    RENAME COLUMN rename_column TO renamecolumn;
+
+-- Drop column
+ALTER TABLE test.change_schema
+    DROP COLUMN IF EXISTS drop_column;
+
+ALTER TABLE test.change_schema_lastdata
+    DROP COLUMN IF EXISTS drop_column;
+
+ALTER TABLE test.change_schema_mutable
+    DROP COLUMN IF EXISTS drop_column;

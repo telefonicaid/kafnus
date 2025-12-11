@@ -96,8 +96,7 @@
         "type": "DateTime",
         "value": "2025-06-26T11:00:00Z"
       },
-      "temperature": {"value": 25.0, "type": "Float"},
-      "changecolumn": {"value": "initial", "type": "Text"}
+      "temperature": {"value": 25.0, "type": "Float"}
     },
     {
       "id": "Schema1",

@@ -1,0 +1,3 @@
+Expand subscriptions to include new attributes: humidity, changecolumn, rename_column, drop_column.
+Send new entities including all these attributes.
+Verify Kafka notifications include all new attributes.

@@ -19,7 +19,8 @@
             "temperature",
             "humidity",
             "changecolumn",
-            "pressure"
+            "pressure",
+            "renamecolumn"
           ]
         }
       }
@@ -37,7 +38,8 @@
             "temperature",
             "humidity",
             "changecolumn",
-            "pressure"
+            "pressure",
+            "renamecolumn"
           ]
         }
       }
@@ -55,7 +57,8 @@
             "temperature",
             "humidity",
             "changecolumn",
-            "pressure"
+            "pressure",
+            "renamecolumn"
           ]
         }
       }
@@ -73,7 +76,8 @@
       "temperature": {"value": "28-text", "type": "Text"},
       "humidity": {"value": 41, "type": "Integer"},
       "changecolumn": {"value": 123, "type": "Integer"},
-      "pressure": {"value": 1010.55, "type": "Float"}
+      "pressure": {"value": 1010.55, "type": "Float"},
+      "renamecolumn": {"value": "renamed", "type": "Text"}
     }
   ]
 }
