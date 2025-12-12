@@ -22,19 +22,41 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-from dotenv import load_dotenv
-load_dotenv(override=True)
+import psycopg2
 
-from common.common_test import multiservice_stack
+from common.config import logger
 
-def pytest_terminal_summary(terminalreporter, exitstatus, config):
+def execute_sql_file(sql_path, db_config):
     """
-    Print a summary of the test results at the end of the test run.
+    Executes the SQL statements in the given file against a PostgreSQL database.
+
+    Connects to the database using the provided configuration, reads the SQL file,
+    and executes its content within a transaction. Closes the connection after execution.
+
+    Parameters:
+    - sql_path: Path to the .sql file to execute.
+    - db_config: Dictionary with keys: dbname, user, password, host, and port.
+
+    Raises:
+    - Exception if SQL execution or database connection fails.
     """
-    terminalreporter.write_sep("=", "📋 Scenario Summary")
-    for report in terminalreporter.stats.get("passed", []):
-        if report.when == "call":
-            terminalreporter.write_line(f"✅ {report.nodeid}")
-    for report in terminalreporter.stats.get("failed", []):
-        if report.when == "call":
-            terminalreporter.write_line(f"❌ {report.nodeid}")
+    logger.debug(f"📄 Executing SQL from: {sql_path}")
+    logger.debug(f"🔗 Connecting to DB: {db_config['host']}:{db_config['port']}, DB: {db_config['dbname']}")
+
+    with open(sql_path, "r", encoding="utf-8") as f:
+        sql = f.read()
+
+    try:
+        conn = psycopg2.connect(**db_config)
+        logger.debug("✅ Connection established")
+
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(sql)
+                logger.info("✅ SQL executed successfully")
+    except Exception as e:
+        logger.error(f"❌ Error executing SQL from {sql_path}: {e}")
+        raise
+    finally:
+        conn.close()
+        logger.debug("🔌 Connection closed")

@@ -1,0 +1,111 @@
+{
+  "name": "schema_change_test_case_001",
+  "fiware-service": "test",
+  "fiware-servicepath": "/change",
+  "subscriptions": {
+    "historic": {
+      "description": "Schema:HISTORIC:simple:historic",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Schema"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "raw_historic"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature",
+          "changecolumn"
+        ]
+      }
+    },
+    "lastdata": {
+      "description": "Schema:LASTDATA:simple:lastdata",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Schema"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "raw_lastdata"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature",
+          "changecolumn"
+        ]
+      }
+    },
+    "mutable": {
+      "description": "Schema:mutable:simple:mutable",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Schema"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "raw_mutable"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature",
+          "changecolumn"
+        ]
+      }
+    }
+    },
+  "updateEntities": [
+    {
+      "id": "Schema1",
+      "type": "Schema",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T11:00:00Z"
+      },
+      "temperature": {"value": 25.0, "type": "Float"}
+    },
+    {
+      "id": "Schema1",
+      "type": "Schema",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:00:00Z"
+      },
+      "temperature": {"value": 26.0, "type": "Float"}
+    }
+  ]
+}

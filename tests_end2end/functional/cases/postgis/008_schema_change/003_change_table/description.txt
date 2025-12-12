@@ -1,0 +1,4 @@
+Alter tables: add pressure, rename rename_column to renamecolumn, change temperature type to TEXT, drop drop_column.
+Update subscriptions to include renamed/added attributes.
+Send new entities with updated types and renamed attributes.
+Verify final database state and Kafka notifications reflect schema changes.
