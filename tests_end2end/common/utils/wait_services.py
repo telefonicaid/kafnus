@@ -205,7 +205,7 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
         "raw_lastdata": "init_lastdata",
         "raw_mutable": "init_mutable",
         "raw_errors": "init_error_log",
-        "raw_sgtr": "sgtr_http"
+        "raw_sgtr": "test_sgtr_http"
     }
 
     # --- Test messages (NGSI notification style) ---
