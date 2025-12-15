@@ -23,15 +23,15 @@
 # criminal actions it may exercise to protect its rights.
 
 import pytest
-from utils.scenario_loader import load_scenario
-from utils.postgis_validator import PostgisValidator
-from utils.mongo_validator import MongoValidator
-from utils.http_validator import HttpValidator
-from utils.sql_runner import execute_sql_file
-from config import logger
-from utils.scenario_loader import discover_scenarios, load_description
-from config import DEFAULT_DB_CONFIG
 import time
+
+from functional.utils.scenario_loader import load_scenario, discover_scenarios, load_description
+from common.utils.postgis_validator import PostgisValidator
+from common.utils.mongo_validator import MongoValidator
+from common.utils.http_validator import HttpValidator
+from common.utils.sql_runner import execute_sql_file
+from common.config import logger, DEFAULT_DB_CONFIG
+from common.common_test import ServiceOperations
 
 @pytest.mark.parametrize("scenario_name, expected_list, input_json, setup", discover_scenarios())
 def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, multiservice_stack):
@@ -87,7 +87,6 @@ def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, multiserv
         time.sleep(0.5)  # tiny delay for socket readiness
 
     # Step 2.2: Send updates to Orion
-    from common_test import ServiceOperations
     service_operations = ServiceOperations(multiservice_stack, [orion_request])
     service_operations.orion_set_up()
 

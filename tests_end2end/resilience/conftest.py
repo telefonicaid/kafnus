@@ -26,15 +26,3 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 from common.common_test import multiservice_stack
-
-def pytest_terminal_summary(terminalreporter, exitstatus, config):
-    """
-    Print a summary of the test results at the end of the test run.
-    """
-    terminalreporter.write_sep("=", "📋 Scenario Summary")
-    for report in terminalreporter.stats.get("passed", []):
-        if report.when == "call":
-            terminalreporter.write_line(f"✅ {report.nodeid}")
-    for report in terminalreporter.stats.get("failed", []):
-        if report.when == "call":
-            terminalreporter.write_line(f"❌ {report.nodeid}")

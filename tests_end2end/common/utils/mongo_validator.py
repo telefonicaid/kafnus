@@ -23,12 +23,13 @@
 # criminal actions it may exercise to protect its rights.
 
 from pymongo import MongoClient
-from config import logger
 import time
 
 # Mute pymongo logging noise
 import logging
 logging.getLogger("pymongo").setLevel(logging.WARNING)
+
+from common.config import logger
 
 class MongoValidator:
     def __init__(self, uri="mongodb://localhost:27017", db_name="sth_test"):

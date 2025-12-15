@@ -58,12 +58,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('tests_end2end/functional/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('tests_end2end/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
       - name: Install dependencies
-        working-directory: tests_end2end/functional
+        working-directory: tests_end2end/
         run: |
           python -m venv .venv
           source .venv/bin/activate
@@ -95,7 +95,7 @@ jobs:
           docker build --no-cache -t kafnus-ngsi .
     
       - name: Run end-to-end tests with pytest
-        working-directory: tests_end2end/functional
+        working-directory: tests_end2end/
         run: |
           source .venv/bin/activate
-          pytest -s
+          pytest -s functional/test_pipeline.py

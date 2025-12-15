@@ -1,0 +1,3 @@
+Initial setup: create tables and subscriptions.
+Send initial entities with TimeInstant and temperature.
+Add new columns rename_column and drop_column to the schema, but do not notify them yet.

@@ -22,40 +22,33 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-from config import logger
-import psycopg2
+import requests
 
-def execute_sql_file(sql_path, db_config):
+from common.config import logger
+
+def _clean_headers_for_get(headers):
+    # Orion forbids Content-Type on GET/DELETE
+    return {k: v for k, v in headers.items() if k.lower() != "content-type"}
+
+
+def find_subscription_id_by_description(orion_baseUrl, description, headers):
     """
-    Executes the SQL statements in the given file against a PostgreSQL database.
-
-    Connects to the database using the provided configuration, reads the SQL file,
-    and executes its content within a transaction. Closes the connection after execution.
-
-    Parameters:
-    - sql_path: Path to the .sql file to execute.
-    - db_config: Dictionary with keys: dbname, user, password, host, and port.
-
-    Raises:
-    - Exception if SQL execution or database connection fails.
+    List subscriptions in Orion and search by 'description'.
+    Returns the id if found, or None.
     """
-    logger.debug(f"📄 Executing SQL from: {sql_path}")
-    logger.debug(f"🔗 Connecting to DB: {db_config['host']}:{db_config['port']}, DB: {db_config['dbname']}")
-
-    with open(sql_path, "r", encoding="utf-8") as f:
-        sql = f.read()
+    headers_ = _clean_headers_for_get(headers)
+    resp = requests.get(f"{orion_baseUrl}/subscriptions", headers=headers_)
+    if resp.status_code != 200:
+        logger.error(f"Failed to list subscriptions: {resp.status_code} {resp.content}")
+        return None
 
     try:
-        conn = psycopg2.connect(**db_config)
-        logger.debug("✅ Connection established")
+        subs = resp.json()
+    except Exception:
+        logger.exception("Failed parsing subscriptions JSON")
+        return None
 
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(sql)
-                logger.info("✅ SQL executed successfully")
-    except Exception as e:
-        logger.error(f"❌ Error executing SQL from {sql_path}: {e}")
-        raise
-    finally:
-        conn.close()
-        logger.debug("🔌 Connection closed")
+    for s in subs:
+        if s.get("description") == description:
+            return s.get("id")
+    return None

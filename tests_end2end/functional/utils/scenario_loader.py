@@ -23,13 +23,15 @@
 # criminal actions it may exercise to protect its rights.
 
 import json
-from common_test import OrionRequestData
-from config import logger
 from typing import Optional
 from pathlib import Path
 import os
 
-from config import SCENARIOS_DIR
+from common.common_test import OrionRequestData
+from common.config import logger
+
+# Directory where all scenario test cases are stored
+SCENARIOS_DIR = Path(__file__).parent.parent / "cases"
 
 def discover_scenarios():
     """
@@ -107,7 +109,8 @@ def load_scenario(json_path, as_expected=False):
             subservice=data["fiware-servicepath"],
             subscriptions=data["subscriptions"],
             updateEntities=data["updateEntities"],
-            deleteEntities=data.get("deleteEntities", [])
+            deleteEntities=data.get("deleteEntities", []),
+            updateSubscription=data.get("updateSubscription", None)
         )
 
 def load_description(scenario_dir: Path) -> Optional[str]:

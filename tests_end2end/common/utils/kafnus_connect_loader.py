@@ -26,8 +26,7 @@ import json
 import requests
 from pathlib import Path
 
-from config import logger
-from config import KAFNUS_TESTS_KAFNUS_CONNECT_URL
+from common.config import logger, KAFNUS_TESTS_KAFNUS_CONNECT_URL
 
 def deploy_all_sinks(sinks_dir: Path, kafnus_connect_url: str = KAFNUS_TESTS_KAFNUS_CONNECT_URL):
     """

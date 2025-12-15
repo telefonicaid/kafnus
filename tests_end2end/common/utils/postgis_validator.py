@@ -27,7 +27,6 @@ from dateutil import parser as dateparser
 import json
 import datetime
 import time
-from config import logger
 import math
 from shapely.wkb import loads as load_wkb
 from shapely.wkt import loads as load_wkt
@@ -36,6 +35,7 @@ import binascii
 import re
 from decimal import Decimal, InvalidOperation
 
+from common.config import logger
 
 class PostgisValidator:
     def __init__(self, db_config):
