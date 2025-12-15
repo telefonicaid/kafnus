@@ -55,7 +55,6 @@ async function startSgtrConsumerAgent(logger) {
 
                 for (const entityObject of dataList) {
                     const { service, servicepath } = getFiwareContext(headers, message);
-                    // TO DO: use service to fix tenant: "dti": "grafo" ?
                     const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
                     const recvTimeTs = String(timestamp * 1000);
                     const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
@@ -72,16 +71,16 @@ async function startSgtrConsumerAgent(logger) {
                     delete entityObject.alterationType;
                     if (alterationType === 'entityupdate' || alterationType === 'entitychange') {
                         const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
-                        mutation = buildMutationUpdate(type, id, entityObject);
+                        mutation = buildMutationUpdate(service, type, id, entityObject);
                     } else if (alterationType === 'entitydelete') {
                         const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
-                        mutation = buildMutationDelete(id);
+                        mutation = buildMutationDelete(service, id);
                     } else {
                         // case when alterationType === 'entitycreate'
                         if (entityObject.externalId && config.graphql.slugUri) {
                             entityObject.externalId = slugify(entityObject.externalId);
                         }
-                        mutation = buildMutationCreate(type, entityObject);
+                        mutation = buildMutationCreate(service, type, entityObject);
                     }
                     logger.debug('[sgtr] mutation: \n%s', mutation);
                     const outputTopicByService = service + '_' + outputTopic;
