@@ -54,8 +54,7 @@ services:
     build:
       context: ../kafnus-ngsi
       dockerfile: Dockerfile
-    # image: kafnus-ngsi # FIXME: telefonicaiot/kafnus-ngsi (at some moment we will use dockerhub image but by the moment kafnus-ngsi is evolving fast so we build in GitAction directly :)
-    #image: telefonicaiot/kafnus-ngsi:latest
+      image: kafnus-ngsi # FIXME: telefonicaiot/kafnus-ngsi (at some moment we will use dockerhub image but by the moment kafnus-ngsi is evolving fast so we build in GitAction directly :)
     depends_on:
       kafka:
         condition: service_healthy
@@ -66,7 +65,7 @@ services:
       - KAFNUS_NGSI_KAFKA_BROKER=kafka:29092
       - KAFNUS_NGSI_ADMIN_PORT=8000
       - KAFNUS_NGSI_DEFAULT_TZ=UTC
-      - KAFNUS_NGSI_LOG_LEVEL=DEBUG
+      - KAFNUS_NGSI_LOG_LEVEL=INFO
     networks:
       - kafka-postgis-net
     ports:
