@@ -346,7 +346,8 @@ These are published to topics like `<dbname>_error_log`.
 | `KAFNUS_NGSI_SASL_USERNAME`      | string   | `null`            | Username for SASL authentication (if enabled).                              |
 | `KAFNUS_NGSI_SASL_PASSWORD`      | string   | `null`            | Password for SASL authentication (if enabled).                              |
 | `KAFNUS_NGSI_AUTO_OFFSET_RESET`  | string   | `earliest`        | Kafka offset reset policy (`earliest`, `latest`).                           |
-| `KAFNUS_NGSI_GRAPHQL_GRAFO`      | string   | `grafo_v_120`      | Graph name or version used by the GraphQL service.                          |
+| `KAFNUS_NGSI_GRAPHQL_GRAFO`      | string   | `grafo`      | Graph name or version used by the GraphQL service.                          |
+| `KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE`      | boolean   | `false`      | Add '_<service>' to Graph name used by the GraphQL service.                          |
 | `KAFNUS_NGSI_GRAPHQL_SLUG_URI`   | boolean  | `false`           | Enables or disables slug-based GraphQL URIs.                                |
 
 ---
