@@ -34,7 +34,7 @@ async function startHistoricConsumerAgent(logger) {
     const groupId = 'ngsi-processor-historic';
     const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
     const producer = await createProducer(logger);
-
+    const suffix = '_historic';
     const consumer = await createConsumerAgent(logger, {
         groupId,
         topic,
@@ -50,7 +50,7 @@ async function startHistoricConsumerAgent(logger) {
                     v,
                     {
                         headers,
-                        suffix: '',
+                        suffix,
                         includeTimeinstant: true,
                         keyFields: ['entityid'],
                         datamodel
