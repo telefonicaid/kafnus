@@ -29,11 +29,10 @@ const { createProducer } = require('./sharedProducerFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 
-async function startHistoricConsumerAgent(logger) {
+async function startHistoricConsumerAgent(logger, producer) {
     const topic = 'raw_historic';
     const groupId = 'ngsi-processor-historic';
     const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
-    const producer = await createProducer(logger);
 
     const consumer = await createConsumerAgent(logger, {
         groupId,

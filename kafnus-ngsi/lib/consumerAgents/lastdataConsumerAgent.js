@@ -30,13 +30,11 @@ const { buildTargetTable, getFiwareContext, handleEntityCb } = require('../utils
 const { buildKafkaKey } = require('../utils/ngsiUtils');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 
-async function startLastdataConsumerAgent(logger) {
+async function startLastdataConsumerAgent(logger, producer) {
     const topic = 'raw_lastdata';
     const groupId = 'ngsi-processor-lastdata';
     const datamodel = 'dm-by-entity-type-database';
     const suffix = '_lastdata';
-
-    const producer = await createProducer(logger);
 
     const consumer = await createConsumerAgent(logger, {
         groupId,

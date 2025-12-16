@@ -33,12 +33,10 @@ const { messagesProcessed, processingTime } = require('../utils/admin');
 const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
 const { config } = require('../../kafnusConfig');
 
-async function startSgtrConsumerAgent(logger) {
+async function startSgtrConsumerAgent(logger, producer) {
     const topic = 'raw_sgtr';
     const outputTopic = 'sgtr_http';
     const groupId = 'ngsi-processor-sgtr';
-
-    const producer = await createProducer(logger);
 
     const consumer = await createConsumerAgent(logger, {
         groupId,

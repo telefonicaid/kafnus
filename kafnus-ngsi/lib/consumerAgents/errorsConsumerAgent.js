@@ -29,7 +29,7 @@ const { createProducer } = require('./sharedProducerFactory');
 const { formatDatetimeIso } = require('../utils/ngsiUtils');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 
-async function startErrorsConsumerAgent(logger) {
+async function startErrorsConsumerAgent(logger, producer) {
     /**
      * Processes Kafnus Connect error messages from the 'raw_errors' topic.
      * Parses failed inserts or connector issues, extracts the relevant SQL error message and context,
@@ -37,8 +37,6 @@ async function startErrorsConsumerAgent(logger) {
      */
     const topic = 'raw_errors';
     const groupId = 'ngsi-processor-errors';
-
-    const producer = await createProducer(logger);
 
     const consumer = await createConsumerAgent(logger, {
         groupId,

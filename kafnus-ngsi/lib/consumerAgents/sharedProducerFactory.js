@@ -23,41 +23,69 @@
  * provided in both Spanish and international law. TSOL reserves any civil or
  * criminal actions it may exercise to protect its rights.
  */
-
 const Kafka = require('@confluentinc/kafka-javascript');
 const { config } = require('../../kafnusConfig');
 
-function createProducer(logger) {
-    const producer = new Kafka.Producer(config.kafkaProducer);
+let producerInstance = null;
+let producerReady = false;
 
-    return new Promise((resolve, reject) => {
-        producer
+async function createProducer(logger) {
+    if (producerInstance && producerReady) {
+        return producerInstance;
+    }
+
+    producerInstance = new Kafka.Producer(config.kafkaProducer);
+
+    await new Promise((resolve, reject) => {
+        producerInstance
             .on('ready', () => {
-                logger.info('Producer ready');
-                resolve(producer);
+                producerReady = true;
+                logger.info('[producer] Global producer ready');
+                resolve();
             })
             .on('event.error', (err) => {
-                logger.error('Producer error: %j', err);
+                logger.error('[producer] error', err);
             })
-            .on('delivery-report', (err, report) => {
-                if (err) {
-                    logger.error('Delivery report error: %j', err);
-                } else {
-                    logger.info(
-                        `Message delivered to topic ${report.topic} [${report.partition}] at offset ${report.offset}`
-                    );
-                }
-            })
-            .on('disconnected', () => {
-                logger.info('Producer disconnected');
+            .on('delivery-report', (err) => {
+                if (err) logger.error('[producer] delivery error', err);
             });
 
-        try {
-            producer.connect();
-        } catch (err) {
-            reject(err);
-        }
+        producerInstance.connect();
+    });
+
+    return producerInstance;
+}
+
+function getProducer() {
+    if (!producerInstance || !producerReady) {
+        throw new Error('Producer not initialized');
+    }
+    return producerInstance;
+}
+
+async function shutdownProducer(logger, timeoutMs = 10000) {
+    const producer = producerInstance;
+    if (!producer) {
+        return;
+    }
+
+    logger.info('[shutdown] Flushing producer...');
+    producer.removeAllListeners('delivery-report');
+
+    await new Promise((resolve) => {
+        producer.flush(timeoutMs, () => {
+            logger.info('[shutdown] Producer flush completed');
+            try {
+                producer.disconnect();
+            } catch (_) {}
+            logger.info('[shutdown] Producer disconnected');
+            resolve();
+        });
     });
 }
 
-module.exports = { createProducer };
+module.exports = {
+    createProducer,
+    getProducer,
+    shutdownProducer
+};

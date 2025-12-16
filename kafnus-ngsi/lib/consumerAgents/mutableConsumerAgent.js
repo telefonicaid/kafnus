@@ -29,12 +29,11 @@ const { createProducer } = require('./sharedProducerFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 
-async function startMutableConsumerAgent(logger) {
+async function startMutableConsumerAgent(logger, producer) {
     const topic = 'raw_mutable';
     const groupId = 'ngsi-processor-mutable';
     const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
     const suffix = '_mutable';
-    const producer = await createProducer(logger);
 
     const consumer = await createConsumerAgent(logger, {
         groupId,

@@ -32,11 +32,9 @@ const { messagesProcessed, processingTime } = require('../utils/admin');
 
 const OUTPUT_TOPIC_SUFFIX = '_mongo';
 
-async function startMongoConsumerAgent(logger) {
+async function startMongoConsumerAgent(logger, producer) {
     const topic = 'raw_mongo';
     const groupId = 'ngsi-processor-mongo';
-
-    const producer = await createProducer(logger);
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
