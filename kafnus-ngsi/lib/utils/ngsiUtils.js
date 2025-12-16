@@ -101,6 +101,7 @@ function sanitizeTopic(name) {
         .trim()
         .replace(/^\/|\/$/g, '')
         .toLowerCase()
+        .replace(/historic/g, '')
         .replace(/[^a-zA-Z0-9_]/g, '_');
 }
 
@@ -137,7 +138,7 @@ function inferFieldType(name, value, attrType = null) {
     // 1. Handle special attribute types
     if (attrType) {
         // Geospatial types
-        if (attrType == "geo:json") {
+        if (attrType == 'geo:json') {
             return ['geometry', value];
         }
 
