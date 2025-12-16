@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de Espa�a, S.A.U.
+ * Copyright 2025 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
  * PROJECT: Kafnus
  *
  * This software and / or computer program has been developed by Telefónica Soluciones
@@ -33,6 +33,8 @@ const {
     getFiwareContext
 } = require('./ngsiUtils');
 
+const Kafka = require('@confluentinc/kafka-javascript');
+
 function buildTargetTable(datamodel, service, servicepath, entityid, entitytype, suffix) {
     /**
      * Determines the name of the target table based on the chosen datamodel and NGSI metadata
@@ -48,6 +50,26 @@ function buildTargetTable(datamodel, service, servicepath, entityid, entitytype,
     }
 }
 
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function safeProduce(producer, args, logger) {
+    while (true) {
+        try {
+            producer.produce(...args);
+            return;
+        } catch (err) {
+            if (err.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+                logger.warn('[producer] Queue full — waiting...');
+                await sleep(50);
+            } else {
+                throw err;
+            }
+        }
+    }
+}
+
 async function handleEntityCb(
     logger,
     rawValue,
@@ -56,17 +78,19 @@ async function handleEntityCb(
         datamodel = 'dm-by-entity-type-database',
         suffix = '',
         includeTimeinstant = true,
-        keyFields = null
+        keyFields = ['entityid']
     } = {},
     producer
 ) {
     try {
         const message = JSON.parse(rawValue);
         const entities = message.data || [];
-        if (entities.length === 0) {
-            logger.warn(`No entities found in payload`);
+
+        if (!entities.length) {
+            logger.warn('No entities found in payload');
             return;
         }
+
         const { service, servicepath } = getFiwareContext(headers, message);
 
         for (const ngsiEntity of entities) {
@@ -81,13 +105,14 @@ async function handleEntityCb(
                 entitytype: entityType,
                 fiwareservicepath: servicepath
             };
+
             const attributes = {};
             const schemaOverrides = {};
             const attributesTypes = {};
 
             for (const [attrNameRaw, attrData] of Object.entries(ngsiEntity).sort()) {
                 const attrName = attrNameRaw.toLowerCase();
-                if (['id', 'type', 'alterationtype', 'fiware-service', 'fiware-servicepath'].includes(attrName)) {
+                if (['id', 'type', 'alterationtype'].includes(attrName)) {
                     continue;
                 }
 
@@ -95,43 +120,36 @@ async function handleEntityCb(
                 const attrType = attrData?.type || '';
 
                 if (attrType.startsWith('geo:')) {
-                    const wktStr = toWktGeometry(attrType, value);
-                    if (wktStr) {
-                        const wkbStruct = toWkbStructFromWkt(wktStr, attrName);
-                        if (wkbStruct) {
-                            attributes[attrName] = wkbStruct.payload;
+                    const wkt = toWktGeometry(attrType, value);
+                    if (wkt) {
+                        const wkb = toWkbStructFromWkt(wkt, attrName);
+                        if (wkb) {
+                            attributes[attrName] = wkb.payload;
+                            schemaOverrides[attrName] = wkb.schema;
                             attributesTypes[attrName] = attrType;
-                            schemaOverrides[attrName] = wkbStruct.schema;
                             continue;
                         }
                     }
-                } else if (['json', 'jsonb'].includes(attrType)) {
-                    try {
-                        value = JSON.stringify(value);
-                    } catch (err) {
-                        logger.warn(`Error serializing field '${attrName}' as JSON: ${err}`);
-                        value = String(value);
-                    }
+                }
+
+                if (['json', 'jsonb'].includes(attrType)) {
+                    value = JSON.stringify(value);
                 }
 
                 attributes[attrName] = value;
                 attributesTypes[attrName] = attrType;
-            } // end for
-            entity = { ...entity, ...attributes };
-            if (!keyFields) {
-                keyFields = ['entityid'];
             }
+
+            entity = { ...entity, ...attributes };
+
             const kafkaMessage = toKafnusConnectSchema(entity, schemaOverrides, attributesTypes);
             const kafkaKey = buildKafkaKey(entity, keyFields, includeTimeinstant);
-            const headers = [{ target_table: Buffer.from(targetTable) }];
-            await producer.produce(
-                topicName,
-                null, // partition null: kafka decides
-                Buffer.from(JSON.stringify(kafkaMessage)), // message
-                kafkaKey,
-                Date.now(),
-                null, // opaque
-                headers
+            const headersOut = [{ target_table: Buffer.from(targetTable) }];
+
+            await safeProduce(
+                producer,
+                [topicName, null, Buffer.from(JSON.stringify(kafkaMessage)), kafkaKey, Date.now(), null, headersOut],
+                logger
             );
 
             logger.info(
