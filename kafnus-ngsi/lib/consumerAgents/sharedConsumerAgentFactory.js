@@ -25,17 +25,14 @@
  */
 
 const Kafka = require('@confluentinc/kafka-javascript');
-const { config } = require('../../kafnusConfig');
-
-const Kafka = require('@confluentinc/kafka-javascript');
 const PQueue = require('p-queue').default;
 const { config } = require('../../kafnusConfig');
 
 function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
-    const configKafka = { ...config.kafka, 'group.id': groupId };
+    const configKafka = { ...config.kafkaConsumer, 'group.id': groupId };
 
     const consumer = new Kafka.KafkaConsumer(configKafka, {
-        'auto.offset.reset': config.kafka['auto.offset.reset']
+        'auto.offset.reset': config.kafkaConsumer['auto.offset.reset']
     });
 
     // Queue for processing: just 1 message at the same time

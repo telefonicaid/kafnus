@@ -109,14 +109,60 @@ if (!valid) {
 
 const config = {
     env: envVars.NODE_ENV,
-    kafka: {
+    kafkaProducer: {
+        // Bootstrap
         'bootstrap.servers': envVars.KAFNUS_NGSI_KAFKA_BROKER,
+        // Producer reliability
+        acks: 'all',
+        'enable.idempotence': true,
+        retries: 10,
+        'retry.backoff.ms': 300,
+        // Batching & throughput
+        'linger.ms': 25,
+        'batch.num.messages': 5000,
+        'batch.size': 65536, // 64 KB
+        // Local queue
+        'queue.buffering.max.messages': 100000,
+        'queue.buffering.max.kbytes': 262144, // 256 MB
+        'queue.buffering.max.ms': 0,
+        // Timeouts
+        'request.timeout.ms': 30000,
+        'delivery.timeout.ms': 120000,
+        // Compression
+        'compression.type': 'lz4',
+        // Delivery reports (SOLO PRODUCER)
+        dr_cb: true,
+        dr_msg_cb: true,
+        // Metrics
+        'statistics.interval.ms': 30000,
+        // Security
         'security.protocol': envVars.KAFNUS_NGSI_SECURITY_PROTOCOL,
         'sasl.mechanisms': envVars.KAFNUS_NGSI_SASL_MECHANISMS,
         'sasl.username': envVars.KAFNUS_NGSI_SASL_USERNAME,
-        'sasl.password': envVars.KAFNUS_NGSI_SASL_PASSWORD,
+        'sasl.password': envVars.KAFNUS_NGSI_SASL_PASSWORD
+    },
+    kafkaConsumer: {
+        // Bootstrap
+        'bootstrap.servers': envVars.KAFNUS_NGSI_KAFKA_BROKER,
+        // Consumer group
         'group.id': envVars.KAFNUS_NGSI_GROUP_ID,
-        'auto.offset.reset': envVars.KAFNUS_NGSI_AUTO_OFFSET_RESET
+        // Offset handling
+        'enable.auto.commit': true,
+        'auto.offset.reset': envVars.KAFNUS_NGSI_AUTO_OFFSET_RESET,
+        // Fetch control
+        'fetch.min.bytes': 1,
+        'fetch.wait.max.ms': 500,
+        'max.partition.fetch.bytes': 1048576, // 1 MB
+        // Session
+        'session.timeout.ms': 30000,
+        'heartbeat.interval.ms': 3000,
+        // Metrics
+        'statistics.interval.ms': 30000,
+        // Security
+        'security.protocol': envVars.KAFNUS_NGSI_SECURITY_PROTOCOL,
+        'sasl.mechanisms': envVars.KAFNUS_NGSI_SASL_MECHANISMS,
+        'sasl.username': envVars.KAFNUS_NGSI_SASL_USERNAME,
+        'sasl.password': envVars.KAFNUS_NGSI_SASL_PASSWORD
     },
     logger: {
         level: envVars.KAFNUS_NGSI_LOG_LEVEL,

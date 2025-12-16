@@ -35,7 +35,7 @@ const { config } = require('../../kafnusConfig');
 
 async function startSgtrConsumerAgent(logger) {
     const topic = 'raw_sgtr';
-    const outputTopic = 'sgtr_http'; // Fixed topic for all services/subservices
+    const outputTopic = 'sgtr_http';
     const groupId = 'ngsi-processor-sgtr';
 
     const producer = await createProducer(logger);
@@ -43,6 +43,7 @@ async function startSgtrConsumerAgent(logger) {
     const consumer = await createConsumerAgent(logger, {
         groupId,
         topic,
+        producer,
         onData: ({ key, value, headers }) => {
             const start = Date.now();
             const k = key ? key.toString() : null;

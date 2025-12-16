@@ -79,6 +79,6 @@ async function main() {
 }
 
 main().catch((err) => {
-    logger.getBasicLogger().error('Error starting consumers: %j', err);
+    logger.getBasicLogger().error('Error starting consumers', err);
     process.exit(1);
 });

@@ -28,7 +28,7 @@ const Kafka = require('@confluentinc/kafka-javascript');
 const { config } = require('../../kafnusConfig');
 
 function createProducer(logger) {
-    const producer = new Kafka.Producer(config.kafka);
+    const producer = new Kafka.Producer(config.kafkaProducer);
 
     return new Promise((resolve, reject) => {
         producer

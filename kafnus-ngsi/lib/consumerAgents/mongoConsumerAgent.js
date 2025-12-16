@@ -41,6 +41,7 @@ async function startMongoConsumerAgent(logger) {
     const consumer = await createConsumerAgent(logger, {
         groupId,
         topic,
+        producer,
         onData: ({ key, value, headers }) => {
             const start = Date.now();
             try {

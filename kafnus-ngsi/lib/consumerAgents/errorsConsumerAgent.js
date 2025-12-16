@@ -43,6 +43,7 @@ async function startErrorsConsumerAgent(logger) {
     const consumer = await createConsumerAgent(logger, {
         groupId,
         topic,
+        producer,
         onData: async ({ key, value, headers }) => {
             const start = Date.now();
             const k = key ? key.toString() : null;
