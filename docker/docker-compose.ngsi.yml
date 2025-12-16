@@ -65,7 +65,7 @@ services:
       - KAFNUS_NGSI_KAFKA_BROKER=kafka:29092
       - KAFNUS_NGSI_ADMIN_PORT=8000
       - KAFNUS_NGSI_DEFAULT_TZ=UTC
-      - KAFNUS_NGSI_LOG_LEVEL=INFO
+      - KAFNUS_NGSI_LOG_LEVEL=DEBUG
     networks:
       - kafka-postgis-net
     ports:
