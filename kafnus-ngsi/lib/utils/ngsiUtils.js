@@ -101,7 +101,7 @@ function sanitizeTopic(name) {
         .trim()
         .replace(/^\/|\/$/g, '')
         .toLowerCase()
-        .replace(/historic/g, '')
+        .replace(/_historic/g, '')
         .replace(/[^a-zA-Z0-9_]/g, '_');
 }
 
