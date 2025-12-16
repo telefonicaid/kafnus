@@ -201,7 +201,7 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
     # Map input -> expected output
     flows = {
         "raw_mongo": "init_mongo",
-        "raw_historic": "init",
+        "raw_historic": "init_historic",
         "raw_lastdata": "init_lastdata",
         "raw_mutable": "init_mutable",
         "raw_errors": "init_error_log",
