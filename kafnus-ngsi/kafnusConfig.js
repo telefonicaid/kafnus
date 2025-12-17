@@ -139,8 +139,8 @@ const config = {
         slugUri: envVars.KAFNUS_NGSI_GRAPHQL_SLUG_URI
     },
     ngsi: {
-        prefix: KAFNUS_NGSI_PREFIX_TOPIC,
-        suffix: KAFNUS_NGSI_SUFFIX_TOPIC
+        prefix: envVars.KAFNUS_NGSI_PREFIX_TOPIC,
+        suffix: envVars.KAFNUS_NGSI_SUFFIX_TOPIC
     }
 };
 
