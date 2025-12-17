@@ -34,8 +34,8 @@ const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete }
 const { config } = require('../../kafnusConfig');
 
 async function startSgtrConsumerAgent(logger) {
-    const topic = 'raw_sgtr';
-    const outputTopic = 'sgtr_http'; // Fixed topic for all services/subservices
+    const topic = config.ngsi.prefix + 'raw_sgtr';
+    const outputTopic = config.ngsi.suffix + 'sgtr_http';
     const groupId = 'ngsi-processor-sgtr';
 
     const producer = await createProducer(logger);

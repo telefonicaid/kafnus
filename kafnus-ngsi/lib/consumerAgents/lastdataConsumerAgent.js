@@ -29,12 +29,13 @@ const { createProducer } = require('./sharedProducerFactory');
 const { buildTargetTable, getFiwareContext, handleEntityCb } = require('../utils/handleEntityCb');
 const { buildKafkaKey } = require('../utils/ngsiUtils');
 const { messagesProcessed, processingTime } = require('../utils/admin');
+const { config } = require('../../kafnusConfig');
 
 async function startLastdataConsumerAgent(logger) {
-    const topic = 'raw_lastdata';
+    const topic = config.ngsi.prefix + 'raw_lastdata';
     const groupId = 'ngsi-processor-lastdata';
     const datamodel = 'dm-by-entity-type-database';
-    const suffix = '_lastdata';
+    const suffix = config.ngsi.suffix + '_lastdata';
 
     const producer = await createProducer(logger);
 

@@ -28,6 +28,7 @@ const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { formatDatetimeIso } = require('../utils/ngsiUtils');
 const { messagesProcessed, processingTime } = require('../utils/admin');
+const { config } = require('../../kafnusConfig');
 
 async function startErrorsConsumerAgent(logger) {
     /**
@@ -35,7 +36,7 @@ async function startErrorsConsumerAgent(logger) {
      * Parses failed inserts or connector issues, extracts the relevant SQL error message and context,
      * and emits a structured error log message to a per-tenant error topic (e.g., 'clientname_error_log').
      */
-    const topic = 'raw_errors';
+    const topic = config.ngsi.prefix + 'raw_errors';
     const groupId = 'ngsi-processor-errors';
 
     const producer = await createProducer(logger);

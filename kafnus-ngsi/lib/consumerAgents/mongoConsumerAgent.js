@@ -29,11 +29,12 @@ const { createProducer } = require('./sharedProducerFactory');
 const { getFiwareContext, encodeMongo } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/admin');
+const { config } = require('../../kafnusConfig');
 
-const OUTPUT_TOPIC_SUFFIX = '_mongo';
+const OUTPUT_TOPIC_SUFFIX = config.ngsi.suffix + '_mongo';
 
 async function startMongoConsumerAgent(logger) {
-    const topic = 'raw_mongo';
+    const topic = config.ngsi.prefix + 'raw_mongo';
     const groupId = 'ngsi-processor-mongo';
 
     const producer = await createProducer(logger);

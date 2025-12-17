@@ -28,12 +28,13 @@ const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { createProducer } = require('./sharedProducerFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
 const { messagesProcessed, processingTime } = require('../utils/admin');
+const { config } = require('../../kafnusConfig');
 
 async function startMutableConsumerAgent(logger) {
-    const topic = 'raw_mutable';
+    const topic = config.ngsi.prefix + 'raw_mutable';
     const groupId = 'ngsi-processor-mutable';
     const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
-    const suffix = '_mutable';
+    const suffix = config.ngsi.suffix + '_mutable';
     const producer = await createProducer(logger);
 
     const consumer = await createConsumerAgent(logger, {
