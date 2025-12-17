@@ -32,6 +32,7 @@ const {
     sanitizeTopic,
     getFiwareContext
 } = require('./ngsiUtils');
+const { config } = require('../../kafnusConfig');
 
 function buildTargetTable(datamodel, service, servicepath, entityid, entitytype, suffix) {
     /**
@@ -74,7 +75,7 @@ async function handleEntityCb(
             const entityType = ngsiEntity.type;
 
             const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, suffix);
-            const topicName = `${service}${suffix}`;
+            const topicName = config.ngsi.prefix + `${service}${suffix}`;
 
             let entity = {
                 entityid: entityId,

@@ -35,7 +35,7 @@ const { config } = require('../../kafnusConfig');
 
 async function startSgtrConsumerAgent(logger) {
     const topic = config.ngsi.prefix + 'raw_sgtr';
-    const outputTopic = config.ngsi.suffix + 'sgtr_http';
+    const outputTopic = config.ngsi.prefix + config.ngsi.suffix + 'sgtr_http';
     const groupId = 'ngsi-processor-sgtr';
 
     const producer = await createProducer(logger);
