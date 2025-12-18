@@ -120,7 +120,7 @@ const envVarsSchema = {
         // Consumer
         KAFNUS_NGSI_ENABLE_AUTO_COMMIT: {
             type: 'boolean',
-            default: true
+            default: false
         },
         KAFNUS_NGSI_AUTO_OFFSET_RESET: {
             type: 'string',

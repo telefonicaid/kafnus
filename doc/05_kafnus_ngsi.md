@@ -16,6 +16,101 @@ Kafnus NGSI (Node.js) is a **Kafka stream processor** that:
 
 ---
 
+
+## ⚖ Design Decisions: Kafka Processing Semantics
+
+This section describes the key architectural decisions adopted in the Kafka processing layer to ensure reliability, stability, and predictable behavior under load.
+
+---
+
+### 🔁 Manual Offset Management (Explicit Commits)
+
+All Kafka consumers use **manual offset commits** (`enable.auto.commit = false`).
+
+Offsets are committed **explicitly and only after successful processing** of each message.  
+This provides **at-least-once delivery semantics** and avoids silent data loss.
+
+**Commit strategy:**
+
+- Offsets are committed **after all side effects are completed**, typically:
+  - After producing downstream Kafka messages.
+  - After completing all per-message transformations.
+- Offsets are **not committed** if:
+  - JSON parsing fails (when the message may be retried).
+  - Producer backpressure occurs.
+  - Any exception happens during processing.
+- Non-recoverable messages (e.g. malformed JSON in DLQ flows) are committed immediately to avoid infinite retries.
+
+This strategy guarantees:
+- No message is acknowledged before it is safely handled.
+- Failures result in controlled retries.
+- Processing remains deterministic and debuggable.
+
+---
+
+### 🧵 Single Global Kafka Producer
+
+The application uses a **single shared Kafka producer instance** across all consumer agents.
+
+**Rationale:**
+
+- Kafka producers are **thread-safe** and designed to handle multiple topics and partitions.
+- A single producer:
+  - Reduces open TCP connections and memory usage.
+  - Centralizes batching, retries, and delivery reports.
+  - Prevents local queue exhaustion caused by multiple independent producers.
+- Topics are selected dynamically per message, so producing to multiple topics is fully supported.
+
+This design improves stability under load and simplifies lifecycle management, especially during shutdown.
+
+---
+
+### 🚦 Backpressure and Flow Control
+
+To prevent overload and uncontrolled memory growth, explicit backpressure mechanisms are applied:
+
+- Message processing is **serialized per consumer** using an internal queue (`p-queue`).
+- When the producer local queue is full (`Local: Queue full`):
+  - The Kafka consumer is **paused**.
+  - Processing resumes automatically once the producer drains.
+- No offsets are committed while backpressure is active.
+
+This ensures:
+- The system adapts naturally to downstream throughput.
+- Kafka is not overwhelmed by uncontrolled produce calls.
+- Memory usage remains bounded.
+
+---
+
+### 🔌 Graceful Shutdown Semantics
+
+On shutdown signals (`SIGINT`, `SIGTERM`), the application performs a controlled shutdown:
+
+1. Consumers are paused to stop fetching new messages.
+2. In-flight messages complete processing.
+3. The global producer is flushed to ensure all messages are delivered.
+4. Consumers and producer are disconnected cleanly.
+5. The process exits only after all resources are released.
+
+This avoids:
+- Message loss.
+- Partial writes.
+- Segmentation faults caused by pending delivery callbacks.
+
+---
+
+### ✅ Resulting Guarantees
+
+With these decisions, Kafnus NGSI provides:
+
+- **At-least-once delivery**
+- **Controlled retries**
+- **Stable behavior under load**
+- **Predictable shutdown**
+- **No silent data loss**
+
+These trade-offs favor correctness and operational safety over raw throughput, which is aligned with the requirements of NGSI data processing and persistence pipelines.
+
 ## 🔧 Configuration
 
 ### Main Entry Point

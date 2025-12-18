@@ -39,10 +39,10 @@ async function startMutableConsumerAgent(logger, producer) {
         groupId,
         topic,
         producer,
-        onData: async ({ key, value, headers }) => {
+        onData: async (msg) => {
             const start = Date.now();
-            const k = key?.toString() || '';
-            const v = value?.toString() || '';
+            const k = msg.key?.toString() || '';
+            const v = msg.value?.toString() || '';
             logger.info(`[raw_mutable] Key: ${k}, Value: ${v}`);
 
             try {
@@ -51,7 +51,7 @@ async function startMutableConsumerAgent(logger, producer) {
                     logger,
                     v,
                     {
-                        headers,
+                        headers: msg.headers,
                         suffix,
                         includeTimeinstant: true,
                         keyFields: ['entityid'],
@@ -59,6 +59,7 @@ async function startMutableConsumerAgent(logger, producer) {
                     },
                     producer
                 );
+                consumer.commitMessage(msg);
             } catch (err) {
                 logger.error(` [mutable] Error processing event: ${err}`);
             }

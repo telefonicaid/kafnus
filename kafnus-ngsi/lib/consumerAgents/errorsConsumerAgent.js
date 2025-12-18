@@ -30,11 +30,6 @@ const { formatDatetimeIso } = require('../utils/ngsiUtils');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 
 async function startErrorsConsumerAgent(logger, producer) {
-    /**
-     * Processes Kafnus Connect error messages from the 'raw_errors' topic.
-     * Parses failed inserts or connector issues, extracts the relevant SQL error message and context,
-     * and emits a structured error log message to a per-tenant error topic (e.g., 'clientname_error_log').
-     */
     const topic = 'raw_errors';
     const groupId = 'ngsi-processor-errors';
 
@@ -42,10 +37,11 @@ async function startErrorsConsumerAgent(logger, producer) {
         groupId,
         topic,
         producer,
-        onData: async ({ key, value, headers }) => {
+        onData: async (msg) => {
             const start = Date.now();
-            const k = key ? key.toString() : null;
-            const valueRaw = value ? value.toString() : '';
+            const k = msg.key?.toString() || null;
+            const valueRaw = msg.value?.toString() || '';
+
             logger.info(`[errors] key=${k} value=${valueRaw}`);
 
             try {
@@ -53,26 +49,29 @@ async function startErrorsConsumerAgent(logger, producer) {
                 try {
                     valueJson = JSON.parse(valueRaw);
                 } catch (e) {
-                    logger.warn(`[errors] Could not parse JSON payload: ${e.message}`);
+                    logger.warn(`[errors] Invalid JSON payload, skipping: ${e.message}`);
+                    consumer.commitMessage(msg);
                     return;
                 }
 
                 const hdrs = {};
-                if (headers && headers.length > 0) {
-                    headers.forEach((headerObj) => {
+                if (msg.headers && msg.headers.length > 0) {
+                    msg.headers.forEach((headerObj) => {
                         const headerName = Object.keys(headerObj)[0];
-                        const bufferValue = headerObj[headerName];
-                        const decodedValue = Buffer.from(bufferValue);
-                        hdrs[headerName] = decodedValue.toString();
+                        hdrs[headerName] = Buffer.from(headerObj[headerName]).toString();
                     });
                 }
-                logger.info('[errors] headers==%j', hdrs);
+
+                logger.info('[errors] headers=%j', hdrs);
+
                 let fullErrorMsg = hdrs['__connect.errors.exception.message'] || 'Unknown error';
                 const causeMsg = hdrs['__connect.errors.exception.cause.message'];
                 if (causeMsg && !fullErrorMsg.includes(causeMsg)) {
                     fullErrorMsg += `\nCaused by: ${causeMsg}`;
                 }
+
                 const timestamp = formatDatetimeIso('UTC');
+
                 let dbName = hdrs['__connect.errors.topic'] || '';
                 if (!dbName) {
                     const dbMatch = fullErrorMsg.match(/INSERT INTO "([^"]+)"/);
@@ -81,7 +80,9 @@ async function startErrorsConsumerAgent(logger, producer) {
                     }
                 }
                 dbName = dbName.replace(/_(lastdata|mutable|http)$/, '');
+
                 const errorTopicName = `${dbName}_error_log`;
+
                 let errorMessage;
                 const errMatch = fullErrorMsg.match(/(ERROR: .+?)(\n|$)/);
                 if (errMatch) {
@@ -93,6 +94,7 @@ async function startErrorsConsumerAgent(logger, producer) {
                 } else {
                     errorMessage = fullErrorMsg;
                 }
+
                 let originalQuery;
                 const queryMatch = fullErrorMsg.match(/(INSERT INTO "[^"]+"[^)]+\)[^)]*\))/);
                 if (queryMatch) {
@@ -100,16 +102,14 @@ async function startErrorsConsumerAgent(logger, producer) {
                 } else {
                     const payload = valueJson.payload || {};
                     const table = hdrs.target_table || 'unknown_table';
+
                     if (Object.keys(payload).length > 0) {
                         const columns = Object.keys(payload)
                             .map((k) => `"${k}"`)
                             .join(',');
                         const values = Object.values(payload).map((v) => {
-                            if (typeof v === 'string') {
-                                return `'${v.replace(/'/g, "''")}'`;
-                            } else if (v === null || v === undefined) {
-                                return 'NULL';
-                            }
+                            if (typeof v === 'string') return `'${v.replace(/'/g, "''")}'`;
+                            if (v == null) return 'NULL';
                             return v.toString();
                         });
                         originalQuery = `INSERT INTO "${dbName}"."${table}" (${columns}) VALUES (${values.join(',')})`;
@@ -117,6 +117,7 @@ async function startErrorsConsumerAgent(logger, producer) {
                         originalQuery = JSON.stringify(valueJson);
                     }
                 }
+
                 const errorRecord = {
                     schema: {
                         type: 'struct',
@@ -133,20 +134,20 @@ async function startErrorsConsumerAgent(logger, producer) {
                         query: originalQuery
                     }
                 };
-                logger.info('[errors] errorRecord %j', errorRecord);
+
                 await producer.produce(
                     errorTopicName,
-                    null, // Partition null: kafka decides
+                    null,
                     Buffer.from(JSON.stringify(errorRecord)),
-                    null, // key optional
-                    Date.now(),
-                    null, // opaque
-                    null // headers
+                    null,
+                    Date.now()
                 );
 
-                logger.info(`[errors] Logged SQL error to '${errorTopicName}': ${errorMessage}`);
+                logger.info(`[errors] Logged SQL error to '${errorTopicName}'`);
+
+                consumer.commitMessage(msg);
             } catch (err) {
-                logger.error(' [errors] Error proccesing event: %j', err);
+                logger.error('[errors] Error processing event, offset NOT committed', err);
             }
 
             const duration = (Date.now() - start) / 1000;

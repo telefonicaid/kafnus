@@ -38,10 +38,10 @@ async function startHistoricConsumerAgent(logger, producer) {
         groupId,
         topic,
         producer,
-        onData: async ({ key, value, headers }) => {
+        onData: async (msg) => {
             const start = Date.now();
-            const k = key?.toString() || '';
-            const v = value?.toString() || '';
+            const k = msg.key?.toString() || '';
+            const v = msg.value?.toString() || '';
             logger.info(`[raw_historic] Key: ${k}, Value: ${v}`);
 
             try {
@@ -49,7 +49,7 @@ async function startHistoricConsumerAgent(logger, producer) {
                     logger,
                     v,
                     {
-                        headers,
+                        headers: msg.headers,
                         suffix: '',
                         includeTimeinstant: true,
                         keyFields: ['entityid'],
@@ -57,6 +57,7 @@ async function startHistoricConsumerAgent(logger, producer) {
                     },
                     producer
                 );
+                consumer.commitMessage(msg);
             } catch (err) {
                 logger.error(` [historic] Error processing event: ${err}`);
             }
