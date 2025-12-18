@@ -52,23 +52,101 @@ const envVarsSchema = {
             type: 'string',
             default: 'ngsi-processor'
         },
-        KAFNUS_NGSI_LOG_LEVEL: {
+        // Producer
+        KAFNUS_NGSI_ACKS: {
             type: 'string',
-            default: 'INFO',
-            enum: ['INFO', 'WARN', 'ERROR', 'DEBUG']
+            default: 'all'
         },
-        KAFNUS_NGSI_LOG_OB: {
-            type: 'string',
-            default: 'ES'
+        KAFNUS_NGSI_ENABLE_IDEMPOTENCE: {
+            type: 'boolean',
+            default: true
         },
-        KAFNUS_NGSI_LOG_COMP: {
-            type: 'string',
-            default: 'Kafnus-ngsi'
-        },
-        KAFNUS_NGSI_ADMIN_PORT: {
+        KAFNUS_NGSI_RETRIES: {
             type: 'number',
-            default: 8000
+            default: 10
         },
+        KAFNUS_NGSI_RETRY_BACKOFF_MS: {
+            type: 'number',
+            default: 300
+        },
+        KAFNUS_NGSI_LINGER_MS: {
+            type: 'number',
+            default: 50
+        },
+        KAFNUS_NGSI_BATCH_NUM_MESSAGES: {
+            type: 'number',
+            default: 10000
+        },
+        KAFNUS_NGSI_BATCH_SIZE: {
+            type: 'number',
+            default: 131072 // 128 KB
+        },
+        KAFNUS_NGSI_QUEUE_BUFFERING_MAX_MESSAGES: {
+            type: 'number',
+            default: 300000
+        },
+        KAFNUS_NGSI_QUEUE_BUFFERING_MAX_KBYTES: {
+            type: 'number',
+            default: 524268 // 512 MB
+        },
+        KAFNUS_NGSI_QUEUE_BUFFERING_MAX_MS: {
+            type: 'number',
+            default: 0
+        },
+        KAFNUS_NGSI_REQUEST_TIMEOUT_MS: {
+            type: 'number',
+            default: 30000
+        },
+        KAFNUS_NGSI_DELIVERY_TIMEOUT_MS: {
+            type: 'number',
+            default: 120000
+        },
+        KAFNUS_NGSI_COMPRESSION_TYPE: {
+            type: 'string',
+            default: 'lz4'
+        },
+        KAFNUS_NGSI_DR_CB: {
+            type: 'boolean',
+            default: true
+        },
+        KAFNUS_NGSI_DR_MSG_CB: {
+            type: 'boolean',
+            default: true
+        },
+        KAFNUS_NGSI_STATISTICS_INTERVAL_MS: {
+            type: 'number',
+            default: 30000
+        },
+        // Consumer
+        KAFNUS_NGSI_ENABLE_AUTO_COMMIT: {
+            type: 'boolean',
+            default: true
+        },
+        KAFNUS_NGSI_AUTO_OFFSET_RESET: {
+            type: 'string',
+            default: 'earliest'
+        },
+        KAFNUS_NGSI_FETCH_MIN_BYTES: {
+            type: 'number',
+            default: 1
+        },
+        KAFNUS_NGSI_FETCH_WAIT_MAX_MS: {
+            type: 'number',
+            default: 500
+        },
+        KAFNUS_NGSI_SESSION_TIMEOUT_MS: {
+            type: 'number',
+            default: 30000
+        },
+        KAFNUS_NGSI_HEARTBEAT_INTERVAL_MS: {
+            type: 'number',
+            default: 3000
+        },
+        KAFNUS_NGSI_STATISTICS_INTERVAL_MS: {
+            type: 'number',
+            default: 30000
+        },
+        // Security
         KAFNUS_NGSI_SECURITY_PROTOCOL: {
             type: 'string',
             default: 'plaintext'
@@ -85,9 +163,23 @@ const envVarsSchema = {
             type: 'string',
             default: null
         },
-        KAFNUS_NGSI_AUTO_OFFSET_RESET: {
+        // Component
+        KAFNUS_NGSI_LOG_LEVEL: {
             type: 'string',
-            default: 'earliest'
+            default: 'INFO',
+            enum: ['INFO', 'WARN', 'ERROR', 'DEBUG']
+        },
+        KAFNUS_NGSI_LOG_OB: {
+            type: 'string',
+            default: 'ES'
+        },
+        KAFNUS_NGSI_LOG_COMP: {
+            type: 'string',
+            default: 'Kafnus-ngsi'
+        },
+        KAFNUS_NGSI_ADMIN_PORT: {
+            type: 'number',
+            default: 8000
         },
         KAFNUS_NGSI_GRAPHQL_GRAFO: {
             type: 'string',
@@ -113,28 +205,28 @@ const config = {
         // Bootstrap
         'bootstrap.servers': envVars.KAFNUS_NGSI_KAFKA_BROKER,
         // Producer reliability
-        acks: 'all',
-        'enable.idempotence': true,
-        retries: 10,
-        'retry.backoff.ms': 300,
+        acks: envVars.KAFNUS_NGSI_ACKS,
+        'enable.idempotence': envVars.KAFNUS_NGSI_ENABLE_IDEMPOTENCE,
+        retries: envVars.KAFNUS_NGSI_RETRIES,
+        'retry.backoff.ms': envVars.KAFNUS_NGSI_RETRY_BACKOFF_MS,
         // Batching & throughput
-        'linger.ms': 25,
-        'batch.num.messages': 5000,
-        'batch.size': 65536, // 64 KB
+        'linger.ms': envVars.KAFNUS_NGSI_LINGER_MS,
+        'batch.num.messages': envVars.KAFNUS_NGSI_BATCH_NUM_MESSAGES,
+        'batch.size': envVars.KAFNUS_NGSI_BATCH_SIZE,
         // Local queue
-        'queue.buffering.max.messages': 100000,
-        'queue.buffering.max.kbytes': 262144, // 256 MB
-        'queue.buffering.max.ms': 0,
+        'queue.buffering.max.messages': envVars.KAFNUS_NGSI_QUEUE_BUFFERING_MAX_MESSAGES,
+        'queue.buffering.max.kbytes': envVars.KAFNUS_NGSI_QUEUE_BUFFERING_MAX_KBYTES,
+        'queue.buffering.max.ms': envVars.KAFNUS_NGSI_QUEUE_BUFFERING_MAX_MS,
         // Timeouts
-        'request.timeout.ms': 30000,
-        'delivery.timeout.ms': 120000,
+        'request.timeout.ms': envVars.KAFNUS_NGSI_REQUEST_TIMEOUT_MS,
+        'delivery.timeout.ms': envVars.KAFNUS_NGSI_DELIVERY_TIMEOUT_MS,
         // Compression
-        'compression.type': 'lz4',
-        // Delivery reports (SOLO PRODUCER)
-        dr_cb: true,
-        dr_msg_cb: true,
+        'compression.type': envVars.KAFNUS_NGSI_COMPRESSION_TYPE,
+        // Delivery reports
+        dr_cb: envVars.KAFNUS_NGSI_DR_CB,
+        dr_msg_cb: envVars.KAFNUS_NGSI_DR_MSG_CB,
         // Metrics
-        'statistics.interval.ms': 30000,
+        'statistics.interval.ms': envVars.KAFNUS_NGSI_STATISTICS_INTERVAL_MS,
         // Security
         'security.protocol': envVars.KAFNUS_NGSI_SECURITY_PROTOCOL,
         'sasl.mechanisms': envVars.KAFNUS_NGSI_SASL_MECHANISMS,
@@ -147,17 +239,17 @@ const config = {
         // Consumer group
         'group.id': envVars.KAFNUS_NGSI_GROUP_ID,
         // Offset handling
-        'enable.auto.commit': true,
+        'enable.auto.commit': envVars.KAFNUS_NGSI_ENABLE_AUTO_COMMIT,
         'auto.offset.reset': envVars.KAFNUS_NGSI_AUTO_OFFSET_RESET,
         // Fetch control
-        'fetch.min.bytes': 1,
-        'fetch.wait.max.ms': 500,
-        'max.partition.fetch.bytes': 1048576, // 1 MB
+        'fetch.min.bytes': envVars.KAFNUS_NGSI_FETCH_MIN_BYTES,
+        'fetch.wait.max.ms': envVars.KAFNUS_NGSI_FETCH_WAIT_MAX_MS,
+        'max.partition.fetch.bytes': envVars.KAFNUS_NGSI_SESSION_TIMEOUT_MS,
         // Session
-        'session.timeout.ms': 30000,
-        'heartbeat.interval.ms': 3000,
+        'session.timeout.ms': envVars.KAFNUS_NGSI_SESSION_TIMEOUT_MS,
+        'heartbeat.interval.ms': envVars.KAFNUS_NGSI_HEARTBEAT_INTERVAL_MS,
         // Metrics
-        'statistics.interval.ms': 30000,
+        'statistics.interval.ms': envVars.KAFNUS_NGSI_STATISTICS_INTERVAL_MS,
         // Security
         'security.protocol': envVars.KAFNUS_NGSI_SECURITY_PROTOCOL,
         'sasl.mechanisms': envVars.KAFNUS_NGSI_SASL_MECHANISMS,
