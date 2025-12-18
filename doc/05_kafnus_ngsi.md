@@ -425,27 +425,86 @@ These are published to topics like `<dbname>_error_log`.
 
 ---
 
+## 🐳 Docker environment variables for kafnus-ngsi
 
-## Docker environment variables for kafnus-ngsi:
-
-| Environment Variable              | Type     | Default Value     | Description                                                                 |
-|----------------------------------|----------|-------------------|-----------------------------------------------------------------------------|
-| `KAFNUS_NGSI_KAFKA_BROKER`       | string   | `kafna:9092`  | Address of the Kafka broker the service will connect to.                    |
-| `KAFNUS_NGSI_GROUP_ID`           | string   | `ngsi-processor`  | Kafka consumer group ID used by the NGSI processor.                         |
-| `KAFNUS_NGSI_LOG_LEVEL`          | string   | `INFO`           | Logging level for the application (`INFO`, `WARN`, `ERROR`, `DEBUG`).       |
-| `KAFNUS_NGSI_LOG_OB`             | string   | `ES`              | Origin or location tag used in logs.                                        |
-| `KAFNUS_NGSI_LOG_COMP`           | string   | `Kafnus-ngsi`     | Component name used in log messages.                                        |
-| `KAFNUS_NGSI_ADMIN_PORT`         | number   | `8000`            | Port where the admin or health-check server will listen.                    |
-| `KAFNUS_NGSI_SECURITY_PROTOCOL`  | string   | `plaintext`       | Kafka security protocol (e.g., `plaintext`, `SASL_PLAINTEXT`, `SASL_SSL`).  |
-| `KAFNUS_NGSI_SASL_MECHANISMS`    | string   | `PLAIN`           | SASL mechanism for Kafka authentication.                                    |
-| `KAFNUS_NGSI_SASL_USERNAME`      | string   | `null`            | Username for SASL authentication (if enabled).                              |
-| `KAFNUS_NGSI_SASL_PASSWORD`      | string   | `null`            | Password for SASL authentication (if enabled).                              |
-| `KAFNUS_NGSI_AUTO_OFFSET_RESET`  | string   | `earliest`        | Kafka offset reset policy (`earliest`, `latest`).                           |
-| `KAFNUS_NGSI_GRAPHQL_GRAFO`      | string   | `grafo_v_120`      | Graph name or version used by the GraphQL service.                          |
-| `KAFNUS_NGSI_GRAPHQL_SLUG_URI`   | boolean  | `false`           | Enables or disables slug-based GraphQL URIs.                                |
+The following environment variables configure Kafka connectivity, producer/consumer behavior, logging, security, and component-specific settings.
 
 ---
 
+### 🔧 General
+
+| Environment Variable | Type | Default Value | Description |
+|---------------------|------|---------------|-------------|
+| `NODE_ENV` | string | `development` | Application environment (`development` or `production`). |
+| `KAFNUS_NGSI_KAFKA_BROKER` | string | `kafka:9092` | Address of the Kafka broker the service connects to. |
+| `KAFNUS_NGSI_GROUP_ID` | string | `ngsi-processor` | Base Kafka consumer group ID used by NGSI processor agents. |
+
+---
+
+### 📤 Kafka Producer Configuration
+
+These variables control reliability, batching, retries, compression, and local buffering of the **global shared Kafka producer**.
+
+| Environment Variable | Type | Default Value | Description |
+|---------------------|------|---------------|-------------|
+| `KAFNUS_NGSI_ACKS` | string | `all` | Required acknowledgements for producer (`0`, `1`, `all`). |
+| `KAFNUS_NGSI_ENABLE_IDEMPOTENCE` | boolean | `true` | Enables idempotent producer to avoid duplicate writes. |
+| `KAFNUS_NGSI_RETRIES` | number | `10` | Number of retry attempts for failed produce requests. |
+| `KAFNUS_NGSI_RETRY_BACKOFF_MS` | number | `300` | Backoff time between retries (ms). |
+| `KAFNUS_NGSI_LINGER_MS` | number | `50` | Time to wait for batching messages before sending (ms). |
+| `KAFNUS_NGSI_BATCH_NUM_MESSAGES` | number | `10000` | Maximum number of messages per batch. |
+| `KAFNUS_NGSI_BATCH_SIZE` | number | `131072` | Maximum batch size in bytes (128 KB). |
+| `KAFNUS_NGSI_QUEUE_BUFFERING_MAX_MESSAGES` | number | `300000` | Maximum number of messages buffered locally by the producer. |
+| `KAFNUS_NGSI_QUEUE_BUFFERING_MAX_KBYTES` | number | `524268` | Maximum producer buffer memory in KB (~512 MB). |
+| `KAFNUS_NGSI_QUEUE_BUFFERING_MAX_MS` | number | `0` | Maximum time a message may stay in the local queue (ms). |
+| `KAFNUS_NGSI_REQUEST_TIMEOUT_MS` | number | `30000` | Timeout for broker requests (ms). |
+| `KAFNUS_NGSI_DELIVERY_TIMEOUT_MS` | number | `120000` | Maximum time to deliver a message including retries (ms). |
+| `KAFNUS_NGSI_COMPRESSION_TYPE` | string | `lz4` | Compression codec used by the producer (`lz4`, `snappy`, `gzip`, `none`). |
+| `KAFNUS_NGSI_DR_CB` | boolean | `true` | Enables delivery report callback at producer level. |
+| `KAFNUS_NGSI_DR_MSG_CB` | boolean | `true` | Enables per-message delivery report callback. |
+| `KAFNUS_NGSI_STATISTICS_INTERVAL_MS` | number | `30000` | Interval for Kafka client statistics emission (ms). |
+
+---
+
+### 📥 Kafka Consumer Configuration
+
+These variables control fetch behavior, session handling, and **manual offset management**.
+
+| Environment Variable | Type | Default Value | Description |
+|---------------------|------|---------------|-------------|
+| `KAFNUS_NGSI_ENABLE_AUTO_COMMIT` | boolean | `false` | Enables or disables Kafka auto-commit (disabled for manual commits). |
+| `KAFNUS_NGSI_AUTO_OFFSET_RESET` | string | `earliest` | Offset reset policy when no committed offset exists. |
+| `KAFNUS_NGSI_FETCH_MIN_BYTES` | number | `1` | Minimum bytes per fetch request. |
+| `KAFNUS_NGSI_FETCH_WAIT_MAX_MS` | number | `500` | Maximum wait time for fetch requests (ms). |
+| `KAFNUS_NGSI_SESSION_TIMEOUT_MS` | number | `30000` | Consumer session timeout (ms). |
+| `KAFNUS_NGSI_HEARTBEAT_INTERVAL_MS` | number | `3000` | Heartbeat interval to Kafka broker (ms). |
+| `KAFNUS_NGSI_STATISTICS_INTERVAL_MS` | number | `30000` | Interval for consumer statistics emission (ms). |
+
+---
+
+### 🔐 Security (Kafka)
+
+| Environment Variable | Type | Default Value | Description |
+|---------------------|------|---------------|-------------|
+| `KAFNUS_NGSI_SECURITY_PROTOCOL` | string | `plaintext` | Kafka security protocol (`plaintext`, `SASL_PLAINTEXT`, `SASL_SSL`). |
+| `KAFNUS_NGSI_SASL_MECHANISMS` | string | `PLAIN` | SASL authentication mechanism. |
+| `KAFNUS_NGSI_SASL_USERNAME` | string | `null` | SASL username (if authentication is enabled). |
+| `KAFNUS_NGSI_SASL_PASSWORD` | string | `null` | SASL password (if authentication is enabled). |
+
+---
+
+### 🧩 Component & Runtime
+
+| Environment Variable | Type | Default Value | Description |
+|---------------------|------|---------------|-------------|
+| `KAFNUS_NGSI_LOG_LEVEL` | string | `INFO` | Logging level (`INFO`, `WARN`, `ERROR`, `DEBUG`). |
+| `KAFNUS_NGSI_LOG_OB` | string | `ES` | Origin or location tag included in logs. |
+| `KAFNUS_NGSI_LOG_COMP` | string | `Kafnus-ngsi` | Component name used in structured logs. |
+| `KAFNUS_NGSI_ADMIN_PORT` | number | `8000` | Port for admin, metrics, health and log-level endpoints. |
+| `KAFNUS_NGSI_GRAPHQL_GRAFO` | string | `grafo_v_120` | Graph name or version used by the GraphQL integration. |
+| `KAFNUS_NGSI_GRAPHQL_SLUG_URI` | boolean | `false` | Enables slug-based URIs for GraphQL identifiers. |
+
+---
 
 ## 🧭 Navigation
 
