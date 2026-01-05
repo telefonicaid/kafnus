@@ -25,12 +25,44 @@
  */
 
 const Kafka = require('@confluentinc/kafka-javascript');
+const PQueue = require('p-queue').default;
 const { config } = require('../../kafnusConfig');
 
-function createConsumerAgent(logger, { groupId, topic, onData }) {
-    const configKafka = { ...config.kafka, 'group.id': groupId };
+function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
+    const configKafka = { ...config.kafkaConsumer, 'group.id': groupId };
+
     const consumer = new Kafka.KafkaConsumer(configKafka, {
-        'auto.offset.reset': config.kafka['auto.offset.reset']
+        'auto.offset.reset': config.kafkaConsumer['auto.offset.reset']
+    });
+
+    // Queue for processing: just 1 message at the same time
+    const queue = new PQueue({ concurrency: 1 });
+
+    let paused = false;
+    let producerQueueFull = false;
+
+    function pauseConsumer() {
+        if (!paused) {
+            consumer.pause([{ topic }]);
+            paused = true;
+            logger.warn(`[consumer] Paused due to producer backpressure`);
+        }
+    }
+
+    function resumeConsumer() {
+        if (paused) {
+            consumer.resume([{ topic }]);
+            paused = false;
+            logger.info(`[consumer] Resumed`);
+        }
+    }
+
+    // Listen delivery-reports to release presure
+    producer.on('delivery-report', () => {
+        if (producerQueueFull) {
+            producerQueueFull = false;
+            resumeConsumer();
+        }
     });
 
     return new Promise((resolve, reject) => {
@@ -38,10 +70,28 @@ function createConsumerAgent(logger, { groupId, topic, onData }) {
             .on('ready', () => {
                 consumer.subscribe([topic]);
                 consumer.consume();
-                logger.info(`ConsumerAgent ready — topic=${topic} group=${configKafka['group.id']}`);
+                logger.info(`ConsumerAgent ready — topic=${topic} group=${groupId}`);
                 resolve(consumer);
             })
-            .on('data', onData)
+            .on('data', (message) => {
+                queue.add(async () => {
+                    if (producerQueueFull) {
+                        pauseConsumer();
+                        return;
+                    }
+
+                    try {
+                        await onData(message);
+                    } catch (err) {
+                        if (err.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+                            producerQueueFull = true;
+                            pauseConsumer();
+                        } else {
+                            logger.error(`[consumer] Processing error: %j`, err);
+                        }
+                    }
+                });
+            })
             .on('event.error', (err) => {
                 logger.error(`Event error on topic ${topic}:`, err);
             })

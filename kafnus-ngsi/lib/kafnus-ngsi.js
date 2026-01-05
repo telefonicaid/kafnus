@@ -38,39 +38,56 @@ const startSgtrConsumerAgent = require('./consumerAgents/sgtrConsumerAgent');
 
 const { startAdminServer } = require('./utils/admin');
 
+const { createProducer } = require('./consumerAgents/sharedProducerFactory');
+const { shutdownConsumer } = require('./consumerAgents/consumer');
+
 async function main() {
     const log = logger.getBasicLogger();
+
+    log.info('Starting application...');
+
+    // 1 global producer
+    const producer = await createProducer(log);
 
     log.info('Starting all consumers...');
 
     const started = await Promise.all([
         startAdminServer(log, config.admin.port),
-        startHistoricConsumerAgent(log),
-        startLastdataConsumerAgent(log),
-        startMutableConsumerAgent(log),
-        startErrorsConsumerAgent(log),
-        startMongoConsumerAgent(log),
-        startSgtrConsumerAgent(log)
+
+        // Use the same producer
+        startHistoricConsumerAgent(log, producer),
+        startLastdataConsumerAgent(log, producer),
+        startMutableConsumerAgent(log, producer),
+        startErrorsConsumerAgent(log, producer),
+        startMongoConsumerAgent(log, producer),
+        startSgtrConsumerAgent(log, producer)
     ]);
 
     const consumers = started.filter(Boolean);
 
-    // Graceful shutdown
-    const shutdown = async () => {
-        log.info('Shutting down consumers(agents)...');
-        await Promise.all(
-            consumers.map(
-                (c) =>
-                    new Promise((resolve) => {
-                        try {
-                            c.disconnect();
-                        } catch (err) {
-                            /* ignore */
-                        }
-                        resolve();
-                    })
-            )
-        );
+    // Shutdown
+    const shutdown = async (signal) => {
+        log.info(`[shutdown] Received ${signal}`);
+
+        // Pause all consumers
+        for (const consumer of consumers) {
+            try {
+                consumer.pause();
+            } catch (_) {}
+        }
+
+        // Wait for all messages on the fly
+        await new Promise((r) => setTimeout(r, 1000));
+
+        // Disconnect each consumer
+        for (const consumer of consumers) {
+            await shutdownConsumer(consumer, log, consumer.topic || 'unknown');
+        }
+
+        // Flush and disconnect from global producer
+        await shutdownProducer(log);
+
+        log.info('[shutdown] Completed');
         process.exit(0);
     };
 
@@ -79,6 +96,6 @@ async function main() {
 }
 
 main().catch((err) => {
-    logger.getBasicLogger().error('Error starting consumers: %j', err);
+    logger.getBasicLogger().error('Error starting consumers', err);
     process.exit(1);
 });
