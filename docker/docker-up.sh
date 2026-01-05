@@ -29,7 +29,7 @@ COMPOSE_FILES=(
   -f docker-compose.ngsi.yml
   -f docker-compose.orion.yml
   # -f docker-compose.monitoring.yml
-  # -f docker-compose.postgis.yml
+  -f docker-compose.postgis.yml
 )
 
 docker compose "${COMPOSE_FILES[@]}" up --build "$@"
