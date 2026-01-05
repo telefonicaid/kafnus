@@ -29,19 +29,19 @@ const { createProducer } = require('./sharedProducerFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 
-async function startHistoricConsumerAgent(logger) {
+async function startHistoricConsumerAgent(logger, producer) {
     const topic = 'raw_historic';
     const groupId = 'ngsi-processor-historic';
     const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
-    const producer = await createProducer(logger);
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
         topic,
-        onData: async ({ key, value, headers }) => {
+        producer,
+        onData: async (msg) => {
             const start = Date.now();
-            const k = key?.toString() || '';
-            const v = value?.toString() || '';
+            const k = msg.key?.toString() || '';
+            const v = msg.value?.toString() || '';
             logger.info(`[raw_historic] Key: ${k}, Value: ${v}`);
 
             try {
@@ -49,7 +49,7 @@ async function startHistoricConsumerAgent(logger) {
                     logger,
                     v,
                     {
-                        headers,
+                        headers: msg.headers,
                         suffix: '',
                         includeTimeinstant: true,
                         keyFields: ['entityid'],
@@ -57,6 +57,7 @@ async function startHistoricConsumerAgent(logger) {
                     },
                     producer
                 );
+                consumer.commitMessage(msg);
             } catch (err) {
                 logger.error(` [historic] Error processing event: ${err}`);
             }

@@ -33,16 +33,91 @@ const { messagesProcessed, processingTime } = require('../utils/admin');
 const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
 const { config } = require('../../kafnusConfig');
 
-async function startSgtrConsumerAgent(logger) {
+async function startSgtrConsumerAgent(logger, producer) {
     const topic = 'raw_sgtr';
-    const outputTopic = 'sgtr_http'; // Fixed topic for all services/subservices
+    const outputTopic = 'sgtr_http';
     const groupId = 'ngsi-processor-sgtr';
-
-    const producer = await createProducer(logger);
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
         topic,
+        producer,
+        onData: async (msg) => {
+            const start = Date.now();
+            const k = msg.key?.toString() || null;
+            const rawValue = msg.value?.toString() || null;
+
+            logger.info(`[sgtr] key=${k} value=${rawValue}`);
+
+            try {
+                const message = JSON.parse(rawValue);
+                logger.info('[sgtr] message: %j', message);
+
+                const headers = message.headers || {};
+                const dataList = message.data || [];
+
+                for (const entityObject of dataList) {
+                    const { service, servicepath } = getFiwareContext(headers, message);
+
+                    const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
+                    const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
+
+                    logger.debug('[sgtr] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
+
+                    const type = entityObject.type;
+                    delete entityObject.type;
+
+                    let mutation;
+                    const alterationType = entityObject.alterationType?.value
+                        ? entityObject.alterationType.value.toLowerCase()
+                        : entityObject.alterationType.toLowerCase();
+
+                    delete entityObject.alterationType;
+
+                    if (alterationType === 'entityupdate' || alterationType === 'entitychange') {
+                        const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
+                        mutation = buildMutationUpdate(type, id, entityObject);
+                    } else if (alterationType === 'entitydelete') {
+                        const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
+                        mutation = buildMutationDelete(id);
+                    } else {
+                        if (entityObject.externalId && config.graphql.slugUri) {
+                            entityObject.externalId = slugify(entityObject.externalId);
+                        }
+                        mutation = buildMutationCreate(type, entityObject);
+                    }
+
+                    logger.debug('[sgtr] mutation:\n%s', mutation);
+
+                    producer.produce(outputTopic, null, Buffer.from(JSON.stringify(mutation)), null, Date.now());
+
+                    logger.info('[sgtr] Sent to %s', outputTopic);
+                }
+
+                // Commit just when all mutations were ok
+                consumer.commitMessage(msg);
+            } catch (err) {
+                logger.error('[sgtr] Error processing event, offset NOT committed', err);
+            }
+
+            const duration = (Date.now() - start) / 1000;
+            messagesProcessed.labels({ flow: 'sgtr' }).inc();
+            processingTime.labels({ flow: 'sgtr' }).set(duration);
+        }
+    });
+
+    return consumer;
+}
+
+async function startSgtrConsumerAgent(logger, producer) {
+    const topic = 'raw_sgtr';
+    const outputTopic = 'sgtr_http';
+    const groupId = 'ngsi-processor-sgtr';
+
+    const consumer = await createConsumerAgent(logger, {
+        groupId,
+        topic,
+        producer,
         onData: ({ key, value, headers }) => {
             const start = Date.now();
             const k = key ? key.toString() : null;

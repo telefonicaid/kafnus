@@ -29,20 +29,20 @@ const { createProducer } = require('./sharedProducerFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 
-async function startMutableConsumerAgent(logger) {
+async function startMutableConsumerAgent(logger, producer) {
     const topic = 'raw_mutable';
     const groupId = 'ngsi-processor-mutable';
     const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
     const suffix = '_mutable';
-    const producer = await createProducer(logger);
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
         topic,
-        onData: async ({ key, value, headers }) => {
+        producer,
+        onData: async (msg) => {
             const start = Date.now();
-            const k = key?.toString() || '';
-            const v = value?.toString() || '';
+            const k = msg.key?.toString() || '';
+            const v = msg.value?.toString() || '';
             logger.info(`[raw_mutable] Key: ${k}, Value: ${v}`);
 
             try {
@@ -51,7 +51,7 @@ async function startMutableConsumerAgent(logger) {
                     logger,
                     v,
                     {
-                        headers,
+                        headers: msg.headers,
                         suffix,
                         includeTimeinstant: true,
                         keyFields: ['entityid'],
@@ -59,6 +59,7 @@ async function startMutableConsumerAgent(logger) {
                     },
                     producer
                 );
+                consumer.commitMessage(msg);
             } catch (err) {
                 logger.error(` [mutable] Error processing event: ${err}`);
             }
