@@ -102,7 +102,7 @@ def test_db_outage_recover(multiservice_stack):
                 "notification": {
                     "kafkaCustom": {
                         "url": "kafka://kafka:29092",
-                        "topic": "raw_historic"
+                        "topic": "smc_raw_historic"
                     },
                     "attrs": ["TimeInstant", "temperature"]
                 }
@@ -117,7 +117,7 @@ def test_db_outage_recover(multiservice_stack):
                 "notification": {
                     "kafkaCustom": {
                         "url": "kafka://kafka:29092",
-                        "topic": "raw_lastdata"
+                        "topic": "smc_raw_lastdata"
                     },
                     "attrs": ["TimeInstant", "temperature"]
                 }
@@ -132,7 +132,7 @@ def test_db_outage_recover(multiservice_stack):
                 "notification": {
                     "kafkaCustom": {
                         "url": "kafka://kafka:29092",
-                        "topic": "raw_mutable"
+                        "topic": "smc_raw_mutable"
                     },
                     "attrs": ["TimeInstant", "temperature"]
                 }
@@ -259,7 +259,7 @@ def test_db_outage_recover(multiservice_stack):
                 "notification": {
                     "kafkaCustom": {
                         "url": "kafka://kafka:29092",
-                        "topic": "raw_historic"
+                        "topic": "smc_raw_historic"
                     },
                     "attrs": ["TimeInstant", "temperature"]
                 }
