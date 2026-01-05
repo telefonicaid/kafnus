@@ -185,7 +185,7 @@ def wait_for_orion(host, port, timeout=60):
         time.sleep(2)
     raise RuntimeError("Orion did not become ready in time")
 
-def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
+def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300, prefix_topic="smc_", suffix_topic="_sink"):
     """
     Sends NGSI-like test messages to Kafnus input topics and waits until all
     NGSI agents produce messages on their respective output topics.
@@ -200,12 +200,12 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
 
     # Map input -> expected output
     flows = {
-        "raw_mongo": "init_mongo",
-        "raw_historic": "init_historic",
-        "raw_lastdata": "init_lastdata",
-        "raw_mutable": "init_mutable",
-        "raw_errors": "init_error_log",
-        "raw_sgtr": "sgtr_http"
+        f"{prefix_topic}raw_mongo": f"{prefix_topic}init_mongo{suffix_topic}",
+        f"{prefix_topic}raw_historic": f"{prefix_topic}init_historic{suffix_topic}",
+        f"{prefix_topic}raw_lastdata": f"{prefix_topic}init_lastdata{suffix_topic}",
+        f"{prefix_topic}raw_mutable": f"{prefix_topic}init_mutable{suffix_topic}",
+        f"{prefix_topic}raw_errors": f"{prefix_topic}init_error_log{suffix_topic}",
+        f"{prefix_topic}raw_sgtr": f"{prefix_topic}sgtr_http{suffix_topic}"
     }
 
     # --- Test messages (NGSI notification style) ---
@@ -256,7 +256,7 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
     }
 
     # Topics that reuse the shared NGSI message
-    ngsi_inputs = ["raw_historic", "raw_lastdata", "raw_mutable", "raw_mongo"]
+    ngsi_inputs = [f"{prefix_topic}raw_historic", f"{prefix_topic}raw_lastdata", f"{prefix_topic}raw_mutable", f"{prefix_topic}raw_mongo"]
 
     # Common headers required for routing
     headers = [
@@ -283,12 +283,12 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
         ("target_table", b"init")
     ]
     producer.produce(
-        "raw_errors",
+        f"{prefix_topic}raw_errors",
         key=error_msg["key"],
         value=json.dumps(error_msg["value"]),
         headers=error_headers
     )
-    logger.debug(f"➡️ Sent initial error message to raw_errors with headers {error_headers}")
+    logger.debug(f"➡️ Sent initial error message to {prefix_topic}raw_errors with headers {error_headers}")
 
     # SGTR flow separately
     sgtr_headers = [
@@ -297,12 +297,12 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
     ]
 
     producer.produce(
-        "raw_sgtr",
+        f"{prefix_topic}raw_sgtr",
         key=sgtr_msg["key"],
         value=json.dumps(sgtr_msg["value"]),
         headers=sgtr_headers
     )
-    logger.debug(f"➡️ Sent SGTR test message to raw_sgtr with headers {sgtr_headers}")
+    logger.debug(f"➡️ Sent SGTR test message to {prefix_topic}raw_sgtr with headers {sgtr_headers}")
 
     producer.flush()
 
@@ -336,13 +336,13 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300):
                 logger.debug(f"✅ Got message from {topic}: {val}")
 
                 # Minimal validations per flow
-                if topic == flows["raw_errors"]:
+                if topic == flows[f"{prefix_topic}raw_errors"]:
                     if "payload" in val and "error" in val["payload"]:
                         processed[topic] = True
-                elif topic == flows["raw_mongo"]:
+                elif topic == flows[f"{prefix_topic}raw_mongo"]:
                     if "entityId" in val:
                         processed[topic] = True
-                elif topic == flows["raw_sgtr"]:
+                elif topic == flows[f"{prefix_topic}raw_sgtr"]:
                     if "query" in val:
                         processed[topic] = True
                 else:

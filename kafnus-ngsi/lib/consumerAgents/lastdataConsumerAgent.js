@@ -25,7 +25,6 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { createProducer } = require('./sharedProducerFactory');
 const { buildTargetTable, getFiwareContext, handleEntityCb } = require('../utils/handleEntityCb');
 const { buildKafkaKey } = require('../utils/ngsiUtils');
 const { messagesProcessed, processingTime } = require('../utils/admin');
@@ -35,7 +34,7 @@ async function startLastdataConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_lastdata';
     const groupId = 'ngsi-processor-lastdata';
     const datamodel = 'dm-by-entity-type-database';
-    const suffix = config.ngsi.suffix + '_lastdata';
+    const suffix = '_lastdata' + config.ngsi.suffix;
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
@@ -104,6 +103,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                         {
                             headers: msg.headers,
                             suffix: suffix,
+                            flowSuffix: '_lastdata',
                             includeTimeinstant: false,
                             keyFields: ['entityid'],
                             datamodel

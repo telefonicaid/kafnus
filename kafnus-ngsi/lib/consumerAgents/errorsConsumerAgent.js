@@ -25,7 +25,6 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { createProducer } = require('./sharedProducerFactory');
 const { formatDatetimeIso } = require('../utils/ngsiUtils');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
@@ -33,6 +32,7 @@ const { config } = require('../../kafnusConfig');
 async function startErrorsConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_errors';
     const groupId = 'ngsi-processor-errors';
+    const suffix = config.ngsi.suffix;
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
@@ -82,7 +82,7 @@ async function startErrorsConsumerAgent(logger, producer) {
                 }
                 dbName = dbName.replace(/_(lastdata|mutable|http)$/, '');
 
-                const errorTopicName = `${dbName}_error_log`;
+                const errorTopicName = `${config.ngsi.prefix}${dbName}_error_log` + suffix;
 
                 let errorMessage;
                 const errMatch = fullErrorMsg.match(/(ERROR: .+?)(\n|$)/);

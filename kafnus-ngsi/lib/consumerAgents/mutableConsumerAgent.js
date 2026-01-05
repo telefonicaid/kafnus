@@ -25,7 +25,6 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { createProducer } = require('./sharedProducerFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
@@ -34,7 +33,7 @@ async function startMutableConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_mutable';
     const groupId = 'ngsi-processor-mutable';
     const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
-    const suffix = config.ngsi.suffix + '_mutable';
+    const suffix = '_mutable' + config.ngsi.suffix;
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
@@ -54,6 +53,7 @@ async function startMutableConsumerAgent(logger, producer) {
                     {
                         headers: msg.headers,
                         suffix,
+                        flowSuffix: '_mutable',
                         includeTimeinstant: true,
                         keyFields: ['entityid'],
                         datamodel
