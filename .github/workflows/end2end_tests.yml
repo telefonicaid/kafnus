@@ -45,7 +45,7 @@ jobs:
       KAFNUS_DBPATH_POSTGIS: /data/postgis
       KAFNUS_POSTGIS_IMAGE: postgis/postgis:15-3.3
       KAFNUS_NGSI_PREFIX_TOPIC: "smc_"
-      KAFNUS_NGSI_SUFFIX_TOPIC: "_sink"
+      KAFNUS_NGSI_SUFFIX_TOPIC: "_processed"
 
     steps:
       - name: Checkout code

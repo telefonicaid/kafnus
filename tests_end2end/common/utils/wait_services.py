@@ -185,7 +185,7 @@ def wait_for_orion(host, port, timeout=60):
         time.sleep(2)
     raise RuntimeError("Orion did not become ready in time")
 
-def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300, prefix_topic="smc_", suffix_topic="_sink"):
+def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300, prefix_topic="smc_", suffix_topic="_processed"):
     """
     Sends NGSI-like test messages to Kafnus input topics and waits until all
     NGSI agents produce messages on their respective output topics.

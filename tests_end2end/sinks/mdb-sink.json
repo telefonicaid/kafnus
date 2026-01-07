@@ -4,7 +4,7 @@
     "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
     "tasks.max": "1",
     
-    "topics": "smc_test_mongo_sink",
+    "topics": "smc_test_mongo_processed",
 
     "connection.uri": "mongodb://${env:KAFNUS_TESTS_MONGO_HOST}:${env:KAFNUS_TESTS_MONGO_PORT}",
     "database": "dummy",
@@ -21,7 +21,7 @@
     "value.converter.schemas.enable": false,
 
     "errors.tolerance": "all",
-    "errors.deadletterqueue.topic.name": "smc_mongo_error_log_sink",
+    "errors.deadletterqueue.topic.name": "smc_mongo_error_log_processed",
     "errors.deadletterqueue.context.headers.enable": true,
     "errors.deadletterqueue.topic.replication.factor": "1",
     "errors.deadletterqueue.topic.partitions": "1"

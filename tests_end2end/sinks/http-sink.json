@@ -3,7 +3,7 @@
   "config": {
     "connector.class": "io.aiven.kafka.connect.http.HttpSinkConnector",
     "tasks.max": "1",
-    "topics": "smc_sgtr_http_sink",
+    "topics": "smc_sgtr_http_processed",
     "http.url": "http://172.17.0.1:3333",
     "http.authorization.type": "none",
     "http.headers.content.type": "application/json",

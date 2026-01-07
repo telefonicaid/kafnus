@@ -231,7 +231,7 @@ def multiservice_stack():
         wait_for_connector("mongo-sink")
 
         KAFNUS_NGSI_PREFIX_TOPIC = os.getenv("KAFNUS_NGSI_PREFIX_TOPIC", "smc_")
-        KAFNUS_NGSI_SUFFIX_TOPIC = os.getenv("KAFNUS_NGSI_SUFFIX_TOPIC", "_sink")
+        KAFNUS_NGSI_SUFFIX_TOPIC = os.getenv("KAFNUS_NGSI_SUFFIX_TOPIC", "_processed")
         wait_for_kafnus_ngsi(f"{kafka_host}:{kafka_port}", prefix_topic=KAFNUS_NGSI_PREFIX_TOPIC, suffix_topic=KAFNUS_NGSI_SUFFIX_TOPIC)
 
         yield MultiServiceContainer(
@@ -426,7 +426,7 @@ class ServiceOperations:
         """
         self.multi_service_container = multi_service_container
         KAFNUS_NGSI_PREFIX_TOPIC = os.getenv("KAFNUS_NGSI_PREFIX_TOPIC", "smc_")
-        KAFNUS_NGSI_SUFFIX_TOPIC = os.getenv("KAFNUS_NGSI_SUFFIX_TOPIC", "_sink")
+        KAFNUS_NGSI_SUFFIX_TOPIC = os.getenv("KAFNUS_NGSI_SUFFIX_TOPIC", "_processed")
         self.topics_raw = [f"{KAFNUS_NGSI_PREFIX_TOPIC}raw_historic", f"{KAFNUS_NGSI_PREFIX_TOPIC}raw_lastdata", f"{KAFNUS_NGSI_PREFIX_TOPIC}raw_mutable", f"{KAFNUS_NGSI_PREFIX_TOPIC}raw_mongo", f"{KAFNUS_NGSI_PREFIX_TOPIC}raw_sgtr"]
         self.generators = generated_data
 
