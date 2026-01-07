@@ -168,3 +168,4 @@ async function handleEntityCb(
 module.exports.handleEntityCb = handleEntityCb;
 module.exports.getFiwareContext = getFiwareContext;
 module.exports.buildTargetTable = buildTargetTable;
+module.exports.safeProduce = safeProduce;
