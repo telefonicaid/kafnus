@@ -22,7 +22,7 @@
       "notification": {
         "kafkaCustom": {
           "url": "kafka://kafka:29092",
-          "topic": "topic_raw_mongo_tests"
+          "topic": "smc_raw_mongo"
         },
         "attrs": [
           "TimeInstant",
