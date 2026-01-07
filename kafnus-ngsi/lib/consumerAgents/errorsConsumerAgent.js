@@ -84,7 +84,7 @@ async function startErrorsConsumerAgent(logger, producer) {
                 if (config.ngsi.prefix && dbName.startsWith(config.ngsi.prefix)) {
                     dbName = dbName.slice(config.ngsi.prefix.length);
                 }
-                dbName = dbName.replace(/_(historic|lastdata|mutable).*$/, '');
+                dbName = dbName.replace(/_(historic|lastdata|mutable|http).*$/, '');
 
 
                 const errorTopicName = `${config.ngsi.prefix}${dbName}_error_log` + suffix;

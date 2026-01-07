@@ -17,7 +17,11 @@
     "value.converter.schemas.enable": true,
     "key.converter": "org.apache.kafka.connect.json.JsonConverter",
 
-    "transforms": "convertTimestamp",
+    "transforms": "HeaderRouter,convertTimestamp",
+
+    "transforms.HeaderRouter.type": "com.telefonica.HeaderRouter",
+    "transforms.HeaderRouter.header.key": "target_table",
+
     "transforms.convertTimestamp.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
     "transforms.convertTimestamp.target.type": "Timestamp",
     "transforms.convertTimestamp.field": "timestamp",
