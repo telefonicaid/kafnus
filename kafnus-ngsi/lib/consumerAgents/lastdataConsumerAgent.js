@@ -34,6 +34,8 @@ async function startLastdataConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_lastdata';
     const groupId = 'ngsi-processor-lastdata';
     const datamodel = 'dm-by-entity-type-database';
+    const prefix = config.ngsi.prefix;
+    const flowSuffix = '_lastdata';
     const suffix = '_lastdata' + config.ngsi.suffix;
 
     const consumer = await createConsumerAgent(logger, {
@@ -77,8 +79,8 @@ async function startLastdataConsumerAgent(logger, producer) {
                         entitytype: entityType,
                         fiwareservicepath: servicepath
                     };
-                    const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, suffix);
-                    const topicName = `${service}${suffix}`;
+                    const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, flowSuffix);
+                    const topicName = `${prefix}${service}${suffix}`;
                     const kafkaKey = buildKafkaKey(deleteEntity, ['entityid'], false);
                     const outHeaders = [{ target_table: Buffer.from(targetTable) }];
                     producer.produce(
