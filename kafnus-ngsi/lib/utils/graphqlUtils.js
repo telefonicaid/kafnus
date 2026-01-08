@@ -28,10 +28,10 @@ const theLogger = require('./logger');
 const logger = theLogger.getBasicLogger();
 const { config } = require('../../kafnusConfig');
 
-const GRAFO = config.graphql['grafo'];
-const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO}/resource/`;
+const GRAFO_PREFIX = config.graphql['grafo'];
+const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO_PREFIX}/resource/`;
 const PREFIX_KOS = 'https://ontologia.segittur.es/turismo/kos/';
-const GRAFO_STR = `"${GRAFO}"`;
+const GRAFO_PREFIX_STR = `"${GRAFO_PREFIX}"`;
 
 function slugify(text) {
     // Normalize Unicode using NFKD (e.g., "é" → "é")
@@ -97,10 +97,19 @@ function capitalEntityType(entityType) {
     return entityType.charAt(0).toUpperCase() + entityType.slice(1).toLowerCase();
 }
 
-function buildMutationCreate(entityType, entityObject) {
+function getGrafo(service) {
+    if (config.graphql.grafoByService) {
+        return GRAFO_PREFIX_STR + '_' + service;
+    } else {
+        return GRAFO_PREFIX_STR;
+    }
+}
+
+function buildMutationCreate(service, entityType, entityObject) {
     // Convert object to string for GraphQL
     const objectString = toGraphQLValue(entityObject);
     const capEntityType = capitalEntityType(entityType);
+    const GRAFO_STR = getGrafo(service);
 
     const templateMutationCreate = {
         query: `
@@ -119,9 +128,10 @@ function buildMutationCreate(entityType, entityObject) {
     return templateMutationCreate;
 }
 
-function buildMutationUpdate(entityType, id, entityObject) {
+function buildMutationUpdate(service, entityType, id, entityObject) {
     const objectString = toGraphQLValue(entityObject);
     const capEntityType = capitalEntityType(entityType);
+    const GRAFO_STR = getGrafo(service);
     // const uri = addPrefix(PREFIX_RESOURCE, id);
     // const uriString = toGraphQLValue(uri);
     // const idString = toGraphQLValue(id);
@@ -141,8 +151,9 @@ function buildMutationUpdate(entityType, id, entityObject) {
     };
 }
 
-function buildMutationDelete(/*entityType,*/ id) {
+function buildMutationDelete(service, /*entityType,*/ id) {
     const uri = addPrefix(PREFIX_RESOURCE, id);
+    const GRAFO_STR = getGrafo(service);
     // return {
     //     query: `
     //         mutation {

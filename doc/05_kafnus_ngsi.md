@@ -503,7 +503,8 @@ These variables control fetch behavior, session handling, and **manual offset ma
 | `KAFNUS_NGSI_LOG_OB` | string | `ES` | Origin or location tag included in logs. |
 | `KAFNUS_NGSI_LOG_COMP` | string | `Kafnus-ngsi` | Component name used in structured logs. |
 | `KAFNUS_NGSI_ADMIN_PORT` | number | `8000` | Port for admin, metrics, health and log-level endpoints. |
-| `KAFNUS_NGSI_GRAPHQL_GRAFO` | string | `grafo_v_120` | Graph name or version used by the GraphQL integration. |
+| `KAFNUS_NGSI_GRAPHQL_GRAFO` | string | `grafo` | Graph name or version used by the GraphQL integration. |
+| `KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE`      | boolean   | `false`      | Add '_<service>' to Graph name used by the GraphQL service.                          |
 | `KAFNUS_NGSI_GRAPHQL_SLUG_URI` | boolean | `false` | Enables slug-based URIs for GraphQL identifiers. |
 
 ---

@@ -33,17 +33,17 @@ const { config } = require('../../kafnusConfig');
 
 async function startSgtrConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_sgtr';
-    const outputTopic = config.ngsi.prefix + 'sgtr_http' + config.ngsi.suffix;
+    let outputTopic;
     const groupId = 'ngsi-processor-sgtr';
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
         topic,
         producer,
-        onData: async (msg) => {
+        onData: async ({ key, value, headers }) => {
             const start = Date.now();
-            const k = msg.key?.toString() || null;
-            const rawValue = msg.value?.toString() || null;
+            const k = key?.toString() || null;
+            const rawValue = value?.toString() || null;
 
             logger.info(`[sgtr] key=${k} value=${rawValue}`);
 
@@ -51,12 +51,10 @@ async function startSgtrConsumerAgent(logger, producer) {
                 const message = JSON.parse(rawValue);
                 logger.info('[sgtr] message: %j', message);
 
-                const headers = message.headers || {};
-                const dataList = message.data || [];
+                const dataList = message.data ? message.data : [];
 
                 for (const entityObject of dataList) {
                     const { service, servicepath } = getFiwareContext(headers, message);
-
                     const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
                     const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
 
@@ -74,26 +72,35 @@ async function startSgtrConsumerAgent(logger, producer) {
 
                     if (alterationType === 'entityupdate' || alterationType === 'entitychange') {
                         const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
-                        mutation = buildMutationUpdate(type, id, entityObject);
+                        mutation = buildMutationUpdate(service, type, id, entityObject);
                     } else if (alterationType === 'entitydelete') {
                         const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
-                        mutation = buildMutationDelete(id);
+                        mutation = buildMutationDelete(service, id);
                     } else {
                         if (entityObject.externalId && config.graphql.slugUri) {
                             entityObject.externalId = slugify(entityObject.externalId);
                         }
-                        mutation = buildMutationCreate(type, entityObject);
+                        mutation = buildMutationCreate(service, type, entityObject);
                     }
-
-                    logger.debug('[sgtr] mutation:\n%s', mutation);
-
-                    producer.produce(outputTopic, null, Buffer.from(JSON.stringify(mutation)), null, Date.now());
-
-                    logger.info('[sgtr] Sent to %s', outputTopic);
-                }
-
-                // Commit just when all mutations were ok
-                consumer.commitMessage(msg);
+                    logger.debug('[sgtr] mutation: \n%s', mutation);
+                    if (config.graphql.grafoByService) {
+                        outputTopic = config.ngsi.prefix + service + '_' + 'sgtr_http' + config.ngsi.suffix;
+                    } else {
+                        outputTopic = config.ngsi.prefix + 'sgtr_http' + config.ngsi.suffix;
+                    }
+                    const outHeaders = [];
+                    // Publish in output topic
+                    producer.produce(
+                        outputTopic,
+                        null, // partition null: kafka decides
+                        Buffer.from(JSON.stringify(mutation)), // message
+                        null, // Key (optional)
+                        Date.now(), // timestamp
+                        null, // Opaque
+                        outHeaders
+                    );
+                    logger.info('[sgtr] Sent to %j | mutation %j', outputTopicByService, mutation);
+                } // for loop
             } catch (err) {
                 logger.error('[sgtr] Error processing event, offset NOT committed', err);
             }

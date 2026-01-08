@@ -79,7 +79,14 @@ async function startLastdataConsumerAgent(logger, producer) {
                         entitytype: entityType,
                         fiwareservicepath: servicepath
                     };
-                    const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, flowSuffix);
+                    const targetTable = buildTargetTable(
+                        datamodel,
+                        service,
+                        servicepath,
+                        entityId,
+                        entityType,
+                        flowSuffix
+                    );
                     const topicName = `${prefix}${service}${suffix}`;
                     const kafkaKey = buildKafkaKey(deleteEntity, ['entityid'], false);
                     const outHeaders = [{ target_table: Buffer.from(targetTable) }];

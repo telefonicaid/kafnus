@@ -86,7 +86,6 @@ async function startErrorsConsumerAgent(logger, producer) {
                 }
                 dbName = dbName.replace(/_(historic|lastdata|mutable|http).*$/, '');
 
-
                 const errorTopicName = `${config.ngsi.prefix}${dbName}_error_log` + suffix;
 
                 let errorMessage;
@@ -140,15 +139,21 @@ async function startErrorsConsumerAgent(logger, producer) {
                         query: originalQuery
                     }
                 };
-                
+
                 const targetTable = `${dbName}_error_log`;
-                const headersOut = [
-                    { target_table: Buffer.from(targetTable) }
-                ];
+                const headersOut = [{ target_table: Buffer.from(targetTable) }];
 
                 await safeProduce(
                     producer,
-                    [errorTopicName, null, Buffer.from(JSON.stringify(errorRecord)), null, Date.now(), null, headersOut],
+                    [
+                        errorTopicName,
+                        null,
+                        Buffer.from(JSON.stringify(errorRecord)),
+                        null,
+                        Date.now(),
+                        null,
+                        headersOut
+                    ],
                     logger
                 );
 

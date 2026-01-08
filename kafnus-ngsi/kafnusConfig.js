@@ -183,7 +183,11 @@ const envVarsSchema = {
         },
         KAFNUS_NGSI_GRAPHQL_GRAFO: {
             type: 'string',
-            default: 'grafo_v_120'
+            default: 'grafo'
+        },
+        KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE: {
+            type: 'boolean',
+            default: false
         },
         KAFNUS_NGSI_GRAPHQL_SLUG_URI: {
             type: 'boolean',
@@ -274,6 +278,7 @@ const config = {
     },
     graphql: {
         grafo: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO,
+        grafoByService: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE,
         slugUri: envVars.KAFNUS_NGSI_GRAPHQL_SLUG_URI
     },
     ngsi: {
