@@ -27,7 +27,7 @@
       "notification": {
         "kafkaCustom": {
           "url": "kafka://kafka:29092",
-          "topic": "raw_lastdata"
+          "topic": "smc_raw_lastdata"
         },
         "attrs": [
           "TimeInstant",

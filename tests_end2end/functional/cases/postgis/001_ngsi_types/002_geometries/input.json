@@ -22,7 +22,7 @@
       "notification": {
         "kafkaCustom": {
           "url": "kafka://kafka:29092",
-          "topic": "raw_historic"
+          "topic": "smc_raw_historic"
         },
         "attrs": [
           "name",
@@ -65,7 +65,7 @@
       "notification": {
         "kafkaCustom": {
           "url": "kafka://kafka:29092",
-          "topic": "raw_lastdata"
+          "topic": "smc_raw_lastdata"
         },
         "attrs": [
           "name",

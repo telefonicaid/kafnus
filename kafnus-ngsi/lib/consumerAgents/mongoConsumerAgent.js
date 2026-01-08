@@ -25,47 +25,52 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { createProducer } = require('./sharedProducerFactory');
 const { getFiwareContext, encodeMongo } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/admin');
+const { config } = require('../../kafnusConfig');
 
-const OUTPUT_TOPIC_SUFFIX = '_mongo';
+const OUTPUT_TOPIC_SUFFIX = '_mongo' + config.ngsi.suffix;
 
-async function startMongoConsumerAgent(logger) {
-    const topic = 'raw_mongo';
+async function startMongoConsumerAgent(logger, producer) {
+    const topic = config.ngsi.prefix + 'raw_mongo';
     const groupId = 'ngsi-processor-mongo';
-
-    const producer = await createProducer(logger);
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
         topic,
-        onData: ({ key, value, headers }) => {
+        producer,
+        onData: async (msg) => {
             const start = Date.now();
-            try {
-                const rawValue = value ? value.toString() : null;
-                if (!rawValue) return;
 
-                const k = key ? key.toString() : null;
+            try {
+                const rawValue = msg.value?.toString();
+                if (!rawValue) {
+                    // Nothing to process
+                    consumer.commitMessage(msg);
+                    return;
+                }
+
+                const k = msg.key?.toString();
                 logger.info(`[mongo] key=${k} value=${rawValue}`);
 
                 const message = JSON.parse(rawValue);
 
-                // Extract Fiware-Service and Fiware-ServicePath from headers (for routing)
-                const { service: fiwareService, servicepath: servicePath } = getFiwareContext(headers, message);
+                const { service: fiwareService, servicepath: servicePath } = getFiwareContext(msg.headers, message);
 
-                // Encode database and collection
                 const mongoDb = `sth_${encodeMongo(fiwareService)}`;
                 const mongoCollection = `sth_${encodeMongo(servicePath)}`;
+                const outputTopic = `${config.ngsi.prefix}${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
 
-                // Define output topic
-                const outputTopic = `${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
-
-                const timestamp = Math.floor(Date.now() / 1000);
-                const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
+                const recvTime = DateTime.utc().toISO();
 
                 const entities = message.data || [];
+                if (entities.length === 0) {
+                    // Valid payload but empty
+                    consumer.commitMessage(msg);
+                    return;
+                }
+
                 for (const entity of entities) {
                     const doc = {
                         recvTime,
@@ -73,35 +78,34 @@ async function startMongoConsumerAgent(logger) {
                         entityType: entity.type
                     };
 
-                    // Add plain attributes
                     for (const [attrName, attrObj] of Object.entries(entity)) {
                         if (attrName !== 'id' && attrName !== 'type') {
-                            doc[attrName] = attrObj.value;
-                            if (attrObj.metadata && Object.keys(attrObj.metadata).length > 0) {
+                            doc[attrName] = attrObj?.value;
+                            if (attrObj?.metadata && Object.keys(attrObj.metadata).length > 0) {
                                 doc[`${attrName}_md`] = attrObj.metadata;
                             }
                         }
                     }
 
-                    logger.info(
-                        `[mongo] topic=${topic} | database=${mongoDb} | collection=${mongoCollection} | doc=${JSON.stringify(
-                            doc
-                        )}`
-                    );
-
-                    // Send to outputTopic
                     producer.produce(
                         outputTopic,
-                        null, // partition
+                        null,
                         Buffer.from(JSON.stringify(doc)),
-                        Buffer.from(JSON.stringify({ database: mongoDb, collection: mongoCollection })),
+                        Buffer.from(
+                            JSON.stringify({
+                                database: mongoDb,
+                                collection: mongoCollection
+                            })
+                        ),
                         Date.now()
                     );
 
-                    logger.info(`[mongo] Sent to '${outputTopic}' | DB: ${mongoDb}, Collection: ${mongoCollection}`);
+                    logger.info(`[mongo] Sent to '${outputTopic}' | DB=${mongoDb} | Collection=${mongoCollection}`);
                 }
+
+                consumer.commitMessage(msg);
             } catch (err) {
-                logger.error(`[mongo] Error processing event: ${err.message}`);
+                logger.error('[mongo] Error processing event, offset NOT committed', err);
             }
 
             const duration = (Date.now() - start) / 1000;

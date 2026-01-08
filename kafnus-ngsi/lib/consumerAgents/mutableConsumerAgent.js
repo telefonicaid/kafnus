@@ -25,24 +25,24 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { createProducer } = require('./sharedProducerFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
 const { messagesProcessed, processingTime } = require('../utils/admin');
+const { config } = require('../../kafnusConfig');
 
-async function startMutableConsumerAgent(logger) {
-    const topic = 'raw_mutable';
+async function startMutableConsumerAgent(logger, producer) {
+    const topic = config.ngsi.prefix + 'raw_mutable';
     const groupId = 'ngsi-processor-mutable';
     const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
-    const suffix = '_mutable';
-    const producer = await createProducer(logger);
+    const suffix = '_mutable' + config.ngsi.suffix;
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
         topic,
-        onData: async ({ key, value, headers }) => {
+        producer,
+        onData: async (msg) => {
             const start = Date.now();
-            const k = key?.toString() || '';
-            const v = value?.toString() || '';
+            const k = msg.key?.toString() || '';
+            const v = msg.value?.toString() || '';
             logger.info(`[raw_mutable] Key: ${k}, Value: ${v}`);
 
             try {
@@ -51,14 +51,16 @@ async function startMutableConsumerAgent(logger) {
                     logger,
                     v,
                     {
-                        headers,
+                        headers: msg.headers,
                         suffix,
+                        flowSuffix: '_mutable',
                         includeTimeinstant: true,
                         keyFields: ['entityid'],
                         datamodel
                     },
                     producer
                 );
+                consumer.commitMessage(msg);
             } catch (err) {
                 logger.error(` [mutable] Error processing event: ${err}`);
             }

@@ -25,50 +25,51 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { createProducer } = require('./sharedProducerFactory');
 const { getFiwareContext } = require('../utils/handleEntityCb');
-const { buildKafkaKey } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
 const { config } = require('../../kafnusConfig');
 
-async function startSgtrConsumerAgent(logger) {
-    const topic = 'raw_sgtr';
-    const outputTopic = 'sgtr_http'; // Fixed topic for all services/subservices
+async function startSgtrConsumerAgent(logger, producer) {
+    const topic = config.ngsi.prefix + 'raw_sgtr';
+    const outputTopic = config.ngsi.prefix + 'sgtr_http' + config.ngsi.suffix;
     const groupId = 'ngsi-processor-sgtr';
-
-    const producer = await createProducer(logger);
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
         topic,
-        onData: ({ key, value, headers }) => {
+        producer,
+        onData: async ({ key, value, headers }) => {
             const start = Date.now();
-            const k = key ? key.toString() : null;
-            const rawValue = value ? value.toString() : null;
+            const k = key?.toString() || null;
+            const rawValue = alue?.toString() || null;
+
             logger.info(`[sgtr] key=${k} value=${rawValue}`);
+
             try {
                 const message = JSON.parse(rawValue);
                 logger.info('[sgtr] message: %j', message);
+
                 const dataList = message.data ? message.data : [];
 
                 for (const entityObject of dataList) {
                     const { service, servicepath } = getFiwareContext(headers, message);
                     const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
-                    const recvTimeTs = String(timestamp * 1000);
                     const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
-                    logger.info(`[sgtr] topic: ${topic}`);
-                    logger.debug('[sgtr] entityObject: \n%s', JSON.stringify(entityObject, null, 2));
+
+                    logger.debug('[sgtr] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
 
                     const type = entityObject.type;
                     delete entityObject.type;
 
                     let mutation;
-                    const alterationType = entityObject.alterationType.value
+                    const alterationType = entityObject.alterationType?.value
                         ? entityObject.alterationType.value.toLowerCase()
                         : entityObject.alterationType.toLowerCase();
+
                     delete entityObject.alterationType;
+
                     if (alterationType === 'entityupdate' || alterationType === 'entitychange') {
                         const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
                         mutation = buildMutationUpdate(service, type, id, entityObject);
@@ -76,14 +77,14 @@ async function startSgtrConsumerAgent(logger) {
                         const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
                         mutation = buildMutationDelete(service, id);
                     } else {
-                        // case when alterationType === 'entitycreate'
                         if (entityObject.externalId && config.graphql.slugUri) {
                             entityObject.externalId = slugify(entityObject.externalId);
                         }
                         mutation = buildMutationCreate(service, type, entityObject);
                     }
                     logger.debug('[sgtr] mutation: \n%s', mutation);
-                    const outputTopicByService = service + '_' + outputTopic;
+                    const outputTopicByService = config.ngsi.prefix + service + '_' + 'sgtr_http' + config.ngsi.suffix;
+
                     const outHeaders = [];
                     // Publish in output topic
                     producer.produce(
@@ -98,7 +99,7 @@ async function startSgtrConsumerAgent(logger) {
                     logger.info('[sgtr] Sent to %j | mutation %j', outputTopicByService, mutation);
                 } // for loop
             } catch (err) {
-                logger.error(`[sgtr] Error processing event: ${err}`);
+                logger.error('[sgtr] Error processing event, offset NOT committed', err);
             }
 
             const duration = (Date.now() - start) / 1000;

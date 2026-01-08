@@ -3,7 +3,7 @@
   "config": {
     "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
     "tasks.max": "1",
-    "topics": "mongo_error_log",
+    "topics": "smc_mongo_error_log_processed",
     "connection.url": "jdbc:postgresql://${env:KAFNUS_TESTS_PG_HOST}:${env:KAFNUS_TESTS_PG_PORT}/${env:KAFNUS_TESTS_PG_DBNAME}",
     "connection.user": "${env:KAFNUS_TESTS_PG_USER}",
     "connection.password": "${env:KAFNUS_TESTS_PG_PASSWORD}",

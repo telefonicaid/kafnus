@@ -15,7 +15,7 @@
       "notification": {
         "kafkaCustom": {
           "url": "kafka://kafka:29092",
-          "topic": "raw_mongo"
+          "topic": "smc_raw_mongo"
         },
         "attrs": ["temperature"]
       }

@@ -25,26 +25,27 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { createProducer } = require('./sharedProducerFactory');
 const { buildTargetTable, getFiwareContext, handleEntityCb } = require('../utils/handleEntityCb');
 const { buildKafkaKey } = require('../utils/ngsiUtils');
 const { messagesProcessed, processingTime } = require('../utils/admin');
+const { config } = require('../../kafnusConfig');
 
-async function startLastdataConsumerAgent(logger) {
-    const topic = 'raw_lastdata';
+async function startLastdataConsumerAgent(logger, producer) {
+    const topic = config.ngsi.prefix + 'raw_lastdata';
     const groupId = 'ngsi-processor-lastdata';
     const datamodel = 'dm-by-entity-type-database';
-    const suffix = '_lastdata';
-
-    const producer = await createProducer(logger);
+    const prefix = config.ngsi.prefix;
+    const flowSuffix = '_lastdata';
+    const suffix = '_lastdata' + config.ngsi.suffix;
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
         topic,
-        onData: async ({ key, value, headers }) => {
+        producer,
+        onData: async (msg) => {
             const start = Date.now();
-            const k = key ? key.toString() : null;
-            const rawValue = value ? value.toString() : null;
+            const k = msg.key?.toString() || '';
+            const rawValue = msg.value?.toString() || '';
             logger.info(`[lastdata] key=${k} value=${rawValue}`);
 
             try {
@@ -52,9 +53,10 @@ async function startLastdataConsumerAgent(logger) {
                 const dataList = message.data ? message.data : [];
                 if (dataList && dataList.length === 0) {
                     logger.warn('[lastdata] No data found in payload');
+                    consumer.commitMessage(msg);
                     return;
                 }
-                const { service, servicepath } = getFiwareContext(headers, message);
+                const { service, servicepath } = getFiwareContext(msg.headers, message);
 
                 const entityRaw = dataList[0];
                 const entityId = entityRaw.id;
@@ -77,8 +79,15 @@ async function startLastdataConsumerAgent(logger) {
                         entitytype: entityType,
                         fiwareservicepath: servicepath
                     };
-                    const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, suffix);
-                    const topicName = `${service}${suffix}`;
+                    const targetTable = buildTargetTable(
+                        datamodel,
+                        service,
+                        servicepath,
+                        entityId,
+                        entityType,
+                        flowSuffix
+                    );
+                    const topicName = `${prefix}${service}${suffix}`;
                     const kafkaKey = buildKafkaKey(deleteEntity, ['entityid'], false);
                     const outHeaders = [{ target_table: Buffer.from(targetTable) }];
                     producer.produce(
@@ -90,6 +99,7 @@ async function startLastdataConsumerAgent(logger) {
                         null, // opaque
                         outHeaders
                     );
+                    consumer.commitMessage(msg);
                     logger.info(
                         `[${
                             suffix.replace(/^_/, '') || 'lastdata'
@@ -100,14 +110,16 @@ async function startLastdataConsumerAgent(logger) {
                         logger,
                         rawValue, // rawValue has all entities, no just first
                         {
-                            headers,
-                            suffix,
+                            headers: msg.headers,
+                            suffix: suffix,
+                            flowSuffix: '_lastdata',
                             includeTimeinstant: false,
                             keyFields: ['entityid'],
                             datamodel
                         },
                         producer
                     );
+                    consumer.commitMessage(msg);
                 }
             } catch (err) {
                 logger.error('[lastdata] Error processing event: %j', err);

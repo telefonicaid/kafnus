@@ -194,6 +194,9 @@ curl -X PUT -H "Content-Type: application/json" \
      http://localhost:8083/connectors/<name>/config
 ```
 
+> **Note:** In the update case, the name must not be present in the config.json
+
+
 ### 4.3 Delete a Connector
 
 ```bash
