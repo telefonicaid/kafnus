@@ -188,6 +188,14 @@ const envVarsSchema = {
         KAFNUS_NGSI_GRAPHQL_SLUG_URI: {
             type: 'boolean',
             default: false
+        },
+        KAFNUS_NGSI_PREFIX_TOPIC: {
+            type: 'string',
+            default: ''
+        },
+        KAFNUS_NGSI_SUFFIX_TOPIC: {
+            type: 'string',
+            default: ''
         }
     }
 };
@@ -267,6 +275,10 @@ const config = {
     graphql: {
         grafo: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO,
         slugUri: envVars.KAFNUS_NGSI_GRAPHQL_SLUG_URI
+    },
+    ngsi: {
+        prefix: envVars.KAFNUS_NGSI_PREFIX_TOPIC,
+        suffix: envVars.KAFNUS_NGSI_SUFFIX_TOPIC
     }
 };
 

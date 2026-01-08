@@ -25,13 +25,15 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { createProducer } = require('./sharedProducerFactory');
 const { formatDatetimeIso } = require('../utils/ngsiUtils');
+const { safeProduce } = require('../utils/handleEntityCb');
 const { messagesProcessed, processingTime } = require('../utils/admin');
+const { config } = require('../../kafnusConfig');
 
 async function startErrorsConsumerAgent(logger, producer) {
-    const topic = 'raw_errors';
+    const topic = config.ngsi.prefix + 'raw_errors';
     const groupId = 'ngsi-processor-errors';
+    const suffix = config.ngsi.suffix;
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
@@ -79,9 +81,13 @@ async function startErrorsConsumerAgent(logger, producer) {
                         dbName = dbMatch[1].split('.')[0];
                     }
                 }
-                dbName = dbName.replace(/_(lastdata|mutable|http)$/, '');
+                if (config.ngsi.prefix && dbName.startsWith(config.ngsi.prefix)) {
+                    dbName = dbName.slice(config.ngsi.prefix.length);
+                }
+                dbName = dbName.replace(/_(historic|lastdata|mutable|http).*$/, '');
 
-                const errorTopicName = `${dbName}_error_log`;
+
+                const errorTopicName = `${config.ngsi.prefix}${dbName}_error_log` + suffix;
 
                 let errorMessage;
                 const errMatch = fullErrorMsg.match(/(ERROR: .+?)(\n|$)/);
@@ -134,13 +140,16 @@ async function startErrorsConsumerAgent(logger, producer) {
                         query: originalQuery
                     }
                 };
+                
+                const targetTable = `${dbName}_error_log`;
+                const headersOut = [
+                    { target_table: Buffer.from(targetTable) }
+                ];
 
-                await producer.produce(
-                    errorTopicName,
-                    null,
-                    Buffer.from(JSON.stringify(errorRecord)),
-                    null,
-                    Date.now()
+                await safeProduce(
+                    producer,
+                    [errorTopicName, null, Buffer.from(JSON.stringify(errorRecord)), null, Date.now(), null, headersOut],
+                    logger
                 );
 
                 logger.info(`[errors] Logged SQL error to '${errorTopicName}'`);

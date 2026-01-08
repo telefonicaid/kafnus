@@ -66,6 +66,8 @@ services:
       - KAFNUS_NGSI_ADMIN_PORT=8000
       - KAFNUS_NGSI_DEFAULT_TZ=UTC
       - KAFNUS_NGSI_LOG_LEVEL=INFO
+      - KAFNUS_NGSI_PREFIX_TOPIC=smc_
+      - KAFNUS_NGSI_SUFFIX_TOPIC=_processed
     networks:
       - kafka-postgis-net
     ports:

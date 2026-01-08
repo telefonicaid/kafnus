@@ -25,14 +25,15 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { createProducer } = require('./sharedProducerFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
 const { messagesProcessed, processingTime } = require('../utils/admin');
+const { config } = require('../../kafnusConfig');
 
 async function startHistoricConsumerAgent(logger, producer) {
-    const topic = 'raw_historic';
+    const topic = config.ngsi.prefix + 'raw_historic';
     const groupId = 'ngsi-processor-historic';
     const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
+    const suffix = '_historic' + config.ngsi.suffix;
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
@@ -50,7 +51,8 @@ async function startHistoricConsumerAgent(logger, producer) {
                     v,
                     {
                         headers: msg.headers,
-                        suffix: '',
+                        suffix: suffix,
+                        flowSuffix: '_historic',
                         includeTimeinstant: true,
                         keyFields: ['entityid'],
                         datamodel

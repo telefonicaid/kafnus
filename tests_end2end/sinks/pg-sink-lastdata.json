@@ -3,7 +3,7 @@
   "config": {
     "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
     "tasks.max": "1",
-    "topics": "test_lastdata",
+    "topics": "smc_test_lastdata_processed",
     "connection.url": "jdbc:postgresql://${env:KAFNUS_TESTS_PG_HOST}:${env:KAFNUS_TESTS_PG_PORT}/${env:KAFNUS_TESTS_PG_DBNAME}",
     "connection.user": "${env:KAFNUS_TESTS_PG_USER}",
     "connection.password": "${env:KAFNUS_TESTS_PG_PASSWORD}",
@@ -38,7 +38,7 @@
     "auto.evolve": false,
 
     "errors.tolerance": "all",
-    "errors.deadletterqueue.topic.name": "raw_errors",
+    "errors.deadletterqueue.topic.name": "smc_raw_errors",
     "errors.deadletterqueue.context.headers.enable": "true",
     "errors.deadletterqueue.topic.replication.factor": "1",
     "errors.log.enable": "true",

@@ -438,6 +438,8 @@ The following environment variables configure Kafka connectivity, producer/consu
 | `NODE_ENV` | string | `development` | Application environment (`development` or `production`). |
 | `KAFNUS_NGSI_KAFKA_BROKER` | string | `kafka:9092` | Address of the Kafka broker the service connects to. |
 | `KAFNUS_NGSI_GROUP_ID` | string | `ngsi-processor` | Base Kafka consumer group ID used by NGSI processor agents. |
+| `KAFNUS_NGSI_PREFIX_TOPIC` | string | `` | Prefix used in all kafka topics (by default no prefix is used). |
+| `KAFNUS_NGSI_SUFFIX_TOPIC` | string | `` | Suffix used in all kafka topics (by default no suffix is used). |
 
 ---
 

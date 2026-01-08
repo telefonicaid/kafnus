@@ -32,19 +32,20 @@ const {
     sanitizeTopic,
     getFiwareContext
 } = require('./ngsiUtils');
+const { config } = require('../../kafnusConfig');
 
 const Kafka = require('@confluentinc/kafka-javascript');
 
-function buildTargetTable(datamodel, service, servicepath, entityid, entitytype, suffix) {
+function buildTargetTable(datamodel, service, servicepath, entityid, entitytype, flowSuffix) {
     /**
      * Determines the name of the target table based on the chosen datamodel and NGSI metadata
      * (service, service path, entity ID, entity type).
      * It could be studied to move this logic to a custom SMT.
      */
     if (datamodel === 'dm-by-entity-type-database') {
-        return sanitizeTopic(`${servicepath}_${entitytype}${suffix}`);
+        return sanitizeTopic(`${servicepath}_${entitytype}${flowSuffix}`);
     } else if (datamodel === 'dm-by-fixed-entity-type-database-schema') {
-        return sanitizeTopic(`${entitytype}${suffix}`);
+        return sanitizeTopic(`${entitytype}${flowSuffix}`);
     } else {
         throw new Error(`Unsupported datamodel: ${datamodel}`);
     }
@@ -77,6 +78,7 @@ async function handleEntityCb(
         headers = [],
         datamodel = 'dm-by-entity-type-database',
         suffix = '',
+        flowSuffix = '_historic',
         includeTimeinstant = true,
         keyFields = ['entityid']
     } = {},
@@ -97,8 +99,8 @@ async function handleEntityCb(
             const entityId = ngsiEntity.id;
             const entityType = ngsiEntity.type;
 
-            const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, suffix);
-            const topicName = `${service}${suffix}`;
+            const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, flowSuffix);
+            const topicName = config.ngsi.prefix + `${service}${suffix}`;
 
             let entity = {
                 entityid: entityId,
@@ -166,3 +168,4 @@ async function handleEntityCb(
 module.exports.handleEntityCb = handleEntityCb;
 module.exports.getFiwareContext = getFiwareContext;
 module.exports.buildTargetTable = buildTargetTable;
+module.exports.safeProduce = safeProduce;

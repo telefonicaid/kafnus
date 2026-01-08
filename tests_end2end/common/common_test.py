@@ -230,7 +230,9 @@ def multiservice_stack():
         wait_for_connector("jdbc-historical-sink")
         wait_for_connector("mongo-sink")
 
-        wait_for_kafnus_ngsi(f"{kafka_host}:{kafka_port}")
+        KAFNUS_NGSI_PREFIX_TOPIC = os.getenv("KAFNUS_NGSI_PREFIX_TOPIC", "smc_")
+        KAFNUS_NGSI_SUFFIX_TOPIC = os.getenv("KAFNUS_NGSI_SUFFIX_TOPIC", "_processed")
+        wait_for_kafnus_ngsi(f"{kafka_host}:{kafka_port}", prefix_topic=KAFNUS_NGSI_PREFIX_TOPIC, suffix_topic=KAFNUS_NGSI_SUFFIX_TOPIC)
 
         yield MultiServiceContainer(
             orionHost=orion_host,
@@ -423,7 +425,9 @@ class ServiceOperations:
         - generated_data: List of OrionRequestData objects containing the test scenario data.
         """
         self.multi_service_container = multi_service_container
-        self.topics_raw = ["raw_historic", "raw_lastdata", "raw_mutable", "raw_mongo", "raw_sgtr"]
+        KAFNUS_NGSI_PREFIX_TOPIC = os.getenv("KAFNUS_NGSI_PREFIX_TOPIC", "smc_")
+        KAFNUS_NGSI_SUFFIX_TOPIC = os.getenv("KAFNUS_NGSI_SUFFIX_TOPIC", "_processed")
+        self.topics_raw = [f"{KAFNUS_NGSI_PREFIX_TOPIC}raw_historic", f"{KAFNUS_NGSI_PREFIX_TOPIC}raw_lastdata", f"{KAFNUS_NGSI_PREFIX_TOPIC}raw_mutable", f"{KAFNUS_NGSI_PREFIX_TOPIC}raw_mongo", f"{KAFNUS_NGSI_PREFIX_TOPIC}raw_sgtr"]
         self.generators = generated_data
 
     def orion_set_up(self):

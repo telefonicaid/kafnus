@@ -25,16 +25,18 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { createProducer } = require('./sharedProducerFactory');
 const { buildTargetTable, getFiwareContext, handleEntityCb } = require('../utils/handleEntityCb');
 const { buildKafkaKey } = require('../utils/ngsiUtils');
 const { messagesProcessed, processingTime } = require('../utils/admin');
+const { config } = require('../../kafnusConfig');
 
 async function startLastdataConsumerAgent(logger, producer) {
-    const topic = 'raw_lastdata';
+    const topic = config.ngsi.prefix + 'raw_lastdata';
     const groupId = 'ngsi-processor-lastdata';
     const datamodel = 'dm-by-entity-type-database';
-    const suffix = '_lastdata';
+    const prefix = config.ngsi.prefix;
+    const flowSuffix = '_lastdata';
+    const suffix = '_lastdata' + config.ngsi.suffix;
 
     const consumer = await createConsumerAgent(logger, {
         groupId,
@@ -77,8 +79,8 @@ async function startLastdataConsumerAgent(logger, producer) {
                         entitytype: entityType,
                         fiwareservicepath: servicepath
                     };
-                    const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, suffix);
-                    const topicName = `${service}${suffix}`;
+                    const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, flowSuffix);
+                    const topicName = `${prefix}${service}${suffix}`;
                     const kafkaKey = buildKafkaKey(deleteEntity, ['entityid'], false);
                     const outHeaders = [{ target_table: Buffer.from(targetTable) }];
                     producer.produce(
@@ -103,6 +105,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                         {
                             headers: msg.headers,
                             suffix: suffix,
+                            flowSuffix: '_lastdata',
                             includeTimeinstant: false,
                             keyFields: ['entityid'],
                             datamodel

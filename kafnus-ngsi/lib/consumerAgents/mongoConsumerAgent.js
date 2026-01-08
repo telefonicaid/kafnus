@@ -25,15 +25,15 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { createProducer } = require('./sharedProducerFactory');
 const { getFiwareContext, encodeMongo } = require('../utils/ngsiUtils');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/admin');
+const { config } = require('../../kafnusConfig');
 
-const OUTPUT_TOPIC_SUFFIX = '_mongo';
+const OUTPUT_TOPIC_SUFFIX = '_mongo' + config.ngsi.suffix;
 
 async function startMongoConsumerAgent(logger, producer) {
-    const topic = 'raw_mongo';
+    const topic = config.ngsi.prefix + 'raw_mongo';
     const groupId = 'ngsi-processor-mongo';
 
     const consumer = await createConsumerAgent(logger, {
@@ -60,7 +60,7 @@ async function startMongoConsumerAgent(logger, producer) {
 
                 const mongoDb = `sth_${encodeMongo(fiwareService)}`;
                 const mongoCollection = `sth_${encodeMongo(servicePath)}`;
-                const outputTopic = `${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
+                const outputTopic = `${config.ngsi.prefix}${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
 
                 const recvTime = DateTime.utc().toISO();
 
