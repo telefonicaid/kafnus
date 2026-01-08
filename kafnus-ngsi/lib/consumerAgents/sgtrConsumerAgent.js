@@ -33,7 +33,7 @@ const { config } = require('../../kafnusConfig');
 
 async function startSgtrConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_sgtr';
-    const outputTopic = config.ngsi.prefix + 'sgtr_http' + config.ngsi.suffix;
+    let outputTopic;
     const groupId = 'ngsi-processor-sgtr';
 
     const consumer = await createConsumerAgent(logger, {
@@ -83,12 +83,15 @@ async function startSgtrConsumerAgent(logger, producer) {
                         mutation = buildMutationCreate(service, type, entityObject);
                     }
                     logger.debug('[sgtr] mutation: \n%s', mutation);
-                    const outputTopicByService = config.ngsi.prefix + service + '_' + 'sgtr_http' + config.ngsi.suffix;
-
+                    if (config.graphql.grafoByService) {
+                        outputTopic = config.ngsi.prefix + service + '_' + 'sgtr_http' + config.ngsi.suffix;
+                    } else {
+                        outputTopic = config.ngsi.prefix + 'sgtr_http' + config.ngsi.suffix;
+                    }
                     const outHeaders = [];
                     // Publish in output topic
                     producer.produce(
-                        outputTopicByService,
+                        outputTopic,
                         null, // partition null: kafka decides
                         Buffer.from(JSON.stringify(mutation)), // message
                         null, // Key (optional)
