@@ -1,3 +1,4 @@
+- Standardize topic output names with prefix and suffix (#168)
 - Add  Backpressure Handling (#159)
 - Add single global producer (#159)
 - Add Safe Shutdown Procedure (#159)
