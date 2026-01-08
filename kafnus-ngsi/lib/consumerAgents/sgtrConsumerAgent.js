@@ -43,7 +43,7 @@ async function startSgtrConsumerAgent(logger, producer) {
         onData: async ({ key, value, headers }) => {
             const start = Date.now();
             const k = key?.toString() || null;
-            const rawValue = alue?.toString() || null;
+            const rawValue = value?.toString() || null;
 
             logger.info(`[sgtr] key=${k} value=${rawValue}`);
 
