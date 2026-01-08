@@ -1,67 +1,73 @@
-# 🧪 End-to-End Testing
+# 🧪**Testing**
 
-This document explains how functional end-to-end tests are designed and executed in Kafnus using **Pytest** and **Testcontainers**.
+Kafnus provides a complete automated test suite validating the entire data pipeline, from **Orion notifications** to **database persistence**, including **HTTP behavior**, **MongoDB**, **PostGIS**, and now **resilience under database outages**.
 
----
+Tests are organized into three main categories:
 
-## 🎯 Goal
+* **Functional tests (End-to-End scenarios)**
+* **Admin Server tests**
+* **Resilience tests (database outage recovery)**
 
-Validate the full data processing pipeline, from **Context Broker notification** ingestion to **PostGIS persistence**, by:
-
-- Automatically deploying services (Orion, Kafka, Kafnus-Connect, Kafnus-NGSI, PostGIS).
-- Sending notifications as test input.
-- Verifying final DB state against expected outputs.
+This document explains the structure, purpose, and execution of each category.
 
 ---
 
-## 🗂️ Directory Structure
+## 🗂️**Test Folder Structure**
 
-Tests are located in:
-
-- `tests_end2end/functional/`
-  - `cases/`: Each test scenario has its own directory
-  - `test_pipeline.py`: End-to-end test for a given scenario
-  - `common_test.py`: Core functionalities (raise containers, subs to CB...)
-  - `config.py`: Database configuration, kafnus-connect endpoint...
-  - `utils/`: Scenario loader, DB validator, SQL runner, Kafka loader
-
-```plaintext
-tests_end2end/functional/
-├── cases/
-│   ├── http/
-│   ├── mongo/
-│   └── postgis/
-│       ├── 000_basic/
-│       │   ├── 001_simple/
-│       │   │   ├── description.txt
-│       │   │   ├── input.json
-│       │   │   ├── expected_pg.json
-│       │   │   └── setup.sql
-│       │   └── ...
-├── test_pipeline.py
-├── test_admin_server.py
-├── common_test.py
-├── config.py
-├── conftest.py
-└── utils/
+```
+tests_end2end/
+├── common/                     # Shared utilities used across all test groups
+│   ├── common_test.py
+│   ├── config.py
+│   └── utils/
+│       ├── http_validator.py
+│       ├── kafnus_connect_loader.py
+│       ├── mongo_validator.py
+│       ├── postgis_validator.py
+│       ├── setup_tests.sql
+│       ├── sql_runner.py
+│       └── wait_services.py
+│
+├── functional/                # End-to-end scenario-driven tests
+│   ├── cases/
+│   │   ├── http/             # HTTP-output scenarios
+│   │   ├── mongo/            # MongoDB-output scenarios
+│   │   └── postgis/          # PostGIS-output scenarios
+│   ├── test_pipeline.py      # Scenario runner (functional E2E)
+│   ├── test_admin_server.py  # Admin server /health, /connectors, etc.
+│   └── utils/scenario_loader.py
+│
+├── resilience/               # Failure & recovery tests
+│   ├── test_db_outage_recover.py
+│   └── utils/
+│       ├── setup.sql
+│       └── utils.py
+│
+└── sinks/                    # Test sink connector definitions
 ```
 
-> Note: The `sinks/` directory, which contains connector configuration files (e.g. pg-sink, mongo-sink, http-sink), is located under `tests_end2end/` and it is used for testing purposes.
+---
+
+## 1. **Functional Tests (End-to-End `test_pipeline.py`)**
+
+The functional suite validates the full path of a real NGSI flow:
+
+```
+Orion → Kafka → Kafnus NGSI → Kafka → Kafnus Connect → PostGIS / MongoDB / HTTP
+```
+
+### 🧪 Test Scenario Format
+
+Each scenario folder contains:
+
+* `input.json` → subscriptions + updateEntities
+* `expected_pg.json` / `expected_mongo.json` / `expected_http.json`
+* `setup.sql` (optional)
+* `description.txt` (optional)
 
 ---
 
-## 🧪 Test Scenario Format
-
-Each test case directory under `cases/` includes:
-
-- `input.json`: CB subscriptions and update entities
-- `expected_pg.json`: Expected DB rows after processing
-- `setup.sql`: (optional) SQL schema/tables setup
-- `description.txt`: (optional) Human-readable test description shown in logs
-
----
-
-## 🏗️ How It Works
+### 🏗️ How It Works
 
 1. The test runner discovers directorys under `cases/`.
 2. Each case is parametrized into a Pytest test.
@@ -72,9 +78,39 @@ Each test case directory under `cases/` includes:
    - `input.json` is parsed to send CB subscriptions and entity updates
    - The resulting DB state is validated against `expected_{sink}.json`
 
----
+### **Pipeline Execution Process**
 
-## ⚙️ Services Launched
+`test_pipeline.py` automatically performs:
+
+1. Execute optional SQL setup
+2. Load scenario and send subscriptions + updates to Orion
+3. Pre-create HTTP mocks when needed
+4. Validate expected PostGIS / MongoDB / HTTP outputs
+5. Tear down temporary services
+
+This test suite ensures correctness of:
+
+* NGSI → Kafka mapping
+* Processing performed by Kafnus-NGSI
+* Persistence using JDBC / MongoDB / HTTP sinks
+
+```python
+@pytest.mark.parametrize(...)
+def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multiservice_stack):
+    if setup_sql:
+        execute_sql_file(setup_sql)
+
+    service_operations.orion_set_up()  # send subscriptions + updates
+    expected_data = load_scenario(expected_json, as_expected=True)
+    
+    validator = PostgisValidator(...)
+    assert validator.validate(...) is True
+
+    validator = MongoValidator()
+    assert validator.validate(...) is True
+```
+
+### ⚙️ Services Launched
 
 All necessary services are deployed dynamically via Docker using the `docker-compose.*.yml` files:
 
@@ -87,34 +123,7 @@ All necessary services are deployed dynamically via Docker using the `docker-com
 
 You don’t need to manually start any service.
 
-### 💡 Environment Variables in Test Sinks
-
-During end-to-end tests, **sink connectors** (PostGIS, MongoDB, HTTP) use environment variables to dynamically resolve their connection settings through the Kafka Connect `EnvVarConfigProvider`.
-
-Example usage inside connector definitions:
-
-```json
-"connection.url": "jdbc:postgresql://${env:KAFNUS_TESTS_PG_HOST}:${env:KAFNUS_TESTS_PG_PORT}/${env:KAFNUS_TESTS_PG_DBNAME}",
-"connection.uri": "mongodb://${env:KAFNUS_TESTS_MONGO_HOST}:${env:KAFNUS_TESTS_MONGO_PORT}"
-```
-
-These variables are defined in the `kafnus-connect` service within `docker-compose.kafka.yml`:
-
-```yaml
-KAFNUS_TESTS_PG_HOST: iot-postgis
-KAFNUS_TESTS_PG_PORT: "5432"
-KAFNUS_TESTS_PG_DBNAME: tests
-KAFNUS_TESTS_PG_USER: postgres
-KAFNUS_TESTS_PG_PASSWORD: postgres
-KAFNUS_TESTS_MONGO_HOST: mongo
-KAFNUS_TESTS_MONGO_PORT: "27017"
-```
-
-> ✅ This approach avoids hardcoded credentials, improves portability, and keeps test configurations cleaner and safer.
-
----
-
-## ⚡ Dynamic PostGIS Handling
+### ⚡ Dynamic PostGIS Handling
 
 The test suite **always checks** whether the required PostGIS database exists, and **creates it if missing**, including:
 
@@ -142,72 +151,10 @@ KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=true   # to use an external PostGIS instance
 > # or
 > POSTGIS_IMAGE=telefonicaiot/iotp-postgis:12.14-3.3.2-2  # Internal Telefónica image
 > ```
->
 
 ---
 
-## ▶️ Running the Tests
-
-To run **all scenarios**:
-
-```bash
-pytest -s test_pipeline.py
-```
-
-You can filter scenarios using `-k` and their directory names or tags. To run specific scenarios:
-
-```bash
-pytest -s test_pipeline.py -k "postgis"
-pytest -s test_pipeline.py -k "000A or 000B"
-```
-
-
-> ⚠️ Remember that a warning could be displayed if the images have not been built.
-
-## 🐞 Debugging & Logging
-
-The test suite uses **structured logging** with the following severity levels:
-
-- `DEBUG`: Detailed internal flow (DB polling, Kafka setup, validation attempts).
-- `INFO`: General scenario progress and operational status.
-- `WARN`: Unexpected but recoverable situations (e.g., connector not ready yet).
-- `ERROR`: Failures that don’t stop the test runner.
-- `FATAL`: Critical errors that require immediate termination.
-
-> ℹ️ Note: Log level names in `.env` follow platform conventions (`WARN`, `FATAL`), but are internally mapped to standard Python logging levels.
-
-To enable `DEBUG` logs, set this in your `.env` file:
-
-```
-KAFNUS_TESTS_LOG_LEVEL=DEBUG
-```
-
-Logs are printed to standard output in the following format:
-
-```
-time=2025-07-16 14:26:55,580 | lvl=DEBUG | comp=KAFNUS-TESTS | op=kafnus-tests:postgis_validator.py[50]:_query_table | msg=📦 Rows found in test.simple_sensor_mutable: 1
-time=2025-07-16 14:26:55,581 | lvl=DEBUG | comp=KAFNUS-TESTS | op=kafnus-tests:postgis_validator.py[67]:validate | msg=✅ Validation successful: all expected data found in test.simple_sensor_mutable
-time=2025-07-16 14:26:55,581 | lvl=DEBUG | comp=KAFNUS-TESTS | op=kafnus-tests:test_pipeline.py[115]:test_e2e_pipeline | msg=✅ Table test.simple_sensor_mutable validated successfully
-time=2025-07-16 14:26:55,581 | lvl=INFO | comp=KAFNUS-TESTS | op=kafnus-tests:test_pipeline.py[118]:test_e2e_pipeline | msg=✅ Scenario 000A_simple passed successfully.
-```
-
-If no log level is defined, the default is `INFO`.
-
-## ▶️ Optional Manual Inspection Pause
-
-For manual inspection before test containers shut down, enable the `KAFNUS_TESTS_E2E_MANUAL_INSPECTION` flag in your `.env` file:
-
-```env
-KAFNUS_TESTS_E2E_MANUAL_INSPECTION=true
-```
-
-When enabled, tests will pause for up to 1 hour (or until you press `Ctrl + C`), allowing manual inspection of the running services.
-
----
-
-## 🧬 Example Scenario Files
-
-### 🛑 MongoValidator Test Constraint
+### 🧬 Example Scenario Files
 
 > ⚠️ **Important:** The `MongoValidator` is hardcoded to connect **only** to the database `sth_test`.  
 > Therefore, in Mongo-related end-to-end test scenarios, the `fiware-service` **must be set to `"test"`** to ensure documents are correctly published to the database that the validator inspects.
@@ -283,35 +230,7 @@ CREATE TABLE test.simple_sensor (
 
 ---
 
-## ✅ Validation Features
-
-- Partial row validation (you only define key columns to check).
-- Output asserts by table.
-- DB setup is idempotent.
-
----
-
-## 🧪 Test Lifecycle (simplified)
-
-```python
-@pytest.mark.parametrize(...)
-def test_e2e_pipeline(scenario_name, input_json, expected_json, setup_sql, multiservice_stack):
-    if setup_sql:
-        execute_sql_file(setup_sql)
-
-    service_operations.orion_set_up()  # send subscriptions + updates
-    expected_data = load_scenario(expected_json, as_expected=True)
-    
-    validator = PostgisValidator(...)
-    assert validator.validate(...) is True
-
-    validator = MongoValidator()
-    assert validator.validate(...) is True
-```
-
----
-
-## 🧪 Copilot Extended Test Coverage
+### 🧪 Copilot Extended Test Coverage
 
 The e2e test battery has been extended to cover additional real-world scenarios and edge cases:
 
@@ -347,16 +266,10 @@ All new tests follow the established pattern with `description.txt`, `input.json
 
 ---
 
-## 📌 Notes
 
-- You can inspect Kafka and DB manually during pause (3600s sleep).
-- Logs show useful debug output at each step.
-- TestContainers ensures full isolation and cleanup.
-- The test suite now includes **16 scenarios** covering core functionality, data types, error handling, performance, and subscription patterns.
+## 2. **Admin Server Tests (`test_admin_server.py`)**
 
-### Admin Server Tests
-
-Kafnus-NGSI now includes **a separate test suite for the Admin Server** (`test_admin_server.py`), which covers:
+This test is **a separate test suite for the Admin Server**, which covers:
 
 - `/logLevel`: GET and POST to check and change log levels.
 - `/metrics`: GET to expose Prometheus metrics.
@@ -364,6 +277,158 @@ Kafnus-NGSI now includes **a separate test suite for the Admin Server** (`test_a
 
 > ⚡ This is a lightweight check to ensure the Admin Server is running. Most end-to-end tests remain focused on PostGIS, Kafka, and pipeline validation.
 
+
+---
+
+## 3. **Resilience Tests (`test_db_outage_recover.py`)**
+
+This is the newest test category and validates **Kafnus Connect’s behavior when Postgres goes DOWN and later comes BACK**.
+
+It ensures:
+
+* Failed JDBC connections are detected
+* Tasks transition to `FAILED` when expected
+* Auto-recovery after DB restart works
+* No data loss occurs, even if messages arrive during the outage
+
+---
+
+### **Phase 1 — Initial write while DB is UP**
+
+1. Execute `setup.sql` to prepare recovery tables.
+2. Create subscriptions (`historic`, `mutable`, `lastdata`).
+3. Send entity **E1**.
+4. Verify all sinks write correctly into:
+
+   * `test.recover_test`
+   * `test.recover_test_lastdata`
+   * `test.recover_test_mutable`
+
+This establishes a correct baseline.
+
+---
+
+### **Phase 2 — Database outage without incoming data**
+
+1. Stop Postgres.
+2. Wait for the JDBC sink to detect the outage.
+3. Start Postgres.
+4. Wait until the connector returns to `RUNNING`.
+5. Send entity **E2**.
+6. Validate DB contains: **E1, E2**.
+
+This validates recovery **without queued messages**.
+
+---
+
+### **Phase 3 — Database outage *with* incoming data**
+
+1. Stop Postgres again.
+2. Send entity **E3** while DB is DOWN.
+3. Sink task fails (expected).
+4. Start Postgres.
+5. Connector auto-recovers.
+6. Validate DB contains: **E1, E2, E3**.
+
+This simulates real production outages with in-flight data.
+
+---
+
+## Sinks
+During end-to-end and recovery tests, **sink connectors** (PostGIS, MongoDB, HTTP) use environment variables to dynamically resolve their connection settings through the Kafka Connect `EnvVarConfigProvider`.
+
+Example usage inside connector definitions:
+
+```json
+"connection.url": "jdbc:postgresql://${env:KAFNUS_TESTS_PG_HOST}:${env:KAFNUS_TESTS_PG_PORT}/${env:KAFNUS_TESTS_PG_DBNAME}",
+"connection.uri": "mongodb://${env:KAFNUS_TESTS_MONGO_HOST}:${env:KAFNUS_TESTS_MONGO_PORT}"
+```
+
+These variables are defined in the `kafnus-connect` service within `docker-compose.kafka.yml`:
+
+```yaml
+KAFNUS_TESTS_PG_HOST: iot-postgis
+KAFNUS_TESTS_PG_PORT: "5432"
+KAFNUS_TESTS_PG_DBNAME: tests
+KAFNUS_TESTS_PG_USER: postgres
+KAFNUS_TESTS_PG_PASSWORD: postgres
+KAFNUS_TESTS_MONGO_HOST: mongo
+KAFNUS_TESTS_MONGO_PORT: "27017"
+```
+
+> ✅ This approach avoids hardcoded credentials, improves portability, and keeps test configurations cleaner and safer.
+
+
+## ▶️ Running the Tests
+
+To run **all tests**:
+
+```bash
+pytest -s -v
+```
+Executes specific tests by providing the path to the test file.
+
+```bash
+pytest -s functional/test_pipeline.py
+```
+
+You can filter scenarios using `-k` and their directory names or tags. To run specific scenarios:
+
+```bash
+pytest -s test_pipeline.py -k "postgis"
+pytest -s test_pipeline.py -k "000A or 000B"
+```
+
+> ⚠️ Remember that a warning could be displayed if the images have not been built.
+
+### ▶️ Optional Manual Inspection Pause
+
+For manual inspection before test containers shut down, enable the `KAFNUS_TESTS_E2E_MANUAL_INSPECTION` flag in your `.env` file:
+
+```env
+KAFNUS_TESTS_E2E_MANUAL_INSPECTION=true
+```
+
+When enabled, tests will pause for up to 1 hour (or until you press `Ctrl + C`), allowing manual inspection of the running services.
+
+
+## 🐞 Debugging & Logging
+
+The test suite uses **structured logging** with the following severity levels:
+
+- `DEBUG`: Detailed internal flow (DB polling, Kafka setup, validation attempts).
+- `INFO`: General scenario progress and operational status.
+- `WARN`: Unexpected but recoverable situations (e.g., connector not ready yet).
+- `ERROR`: Failures that don’t stop the test runner.
+- `FATAL`: Critical errors that require immediate termination.
+
+> ℹ️ Note: Log level names in `.env` follow platform conventions (`WARN`, `FATAL`), but are internally mapped to standard Python logging levels.
+
+To enable `DEBUG` logs, set this in your `.env` file:
+
+```
+KAFNUS_TESTS_LOG_LEVEL=DEBUG
+```
+
+Logs are printed to standard output in the following format:
+
+```
+time=2025-07-16 14:26:55,580 | lvl=DEBUG | comp=KAFNUS-TESTS | op=kafnus-tests:postgis_validator.py[50]:_query_table | msg=📦 Rows found in test.simple_sensor_mutable: 1
+time=2025-07-16 14:26:55,581 | lvl=DEBUG | comp=KAFNUS-TESTS | op=kafnus-tests:postgis_validator.py[67]:validate | msg=✅ Validation successful: all expected data found in test.simple_sensor_mutable
+time=2025-07-16 14:26:55,581 | lvl=DEBUG | comp=KAFNUS-TESTS | op=kafnus-tests:test_pipeline.py[115]:test_e2e_pipeline | msg=✅ Table test.simple_sensor_mutable validated successfully
+time=2025-07-16 14:26:55,581 | lvl=INFO | comp=KAFNUS-TESTS | op=kafnus-tests:test_pipeline.py[118]:test_e2e_pipeline | msg=✅ Scenario 000A_simple passed successfully.
+```
+
+If no log level is defined, the default is `INFO`.
+
+---
+
+## 📌 Notes
+
+- You can inspect Kafka and DB manually during pause (3600s sleep).
+- Logs show useful debug output at each step.
+- TestContainers ensures full isolation and cleanup.
+- The test suite now includes **several scenarios** covering core functionality, data types, error handling, performance, and subscription patterns.
 
 ## 🧭 Navigation
 
