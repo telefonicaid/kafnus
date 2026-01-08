@@ -1,6 +1,6 @@
 [ 
   {
-    "table": "test.test_sgtr_error_log",
+    "table": "test.sgtr_error_log",
     "rows": [
       {
         "query": { "contains": "createHotel" },
