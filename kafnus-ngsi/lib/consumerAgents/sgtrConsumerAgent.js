@@ -99,7 +99,7 @@ async function startSgtrConsumerAgent(logger, producer) {
                         null, // Opaque
                         outHeaders
                     );
-                    logger.info('[sgtr] Sent to %j | mutation %j', outputTopicByService, mutation);
+                    logger.info('[sgtr] Sent to %j | mutation %j', outputTopic, mutation);
                 } // for loop
             } catch (err) {
                 logger.error('[sgtr] Error processing event, offset NOT committed', err);
