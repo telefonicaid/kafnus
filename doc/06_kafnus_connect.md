@@ -44,7 +44,7 @@ curl -X POST http://localhost:8083/connectors \
   --data @pg-sink-historic.json
 ```
 
-The environment and plugin structure are fully described in the [kafnus-connect repository](https://github.com/telefonica/kafnus-connect)
+The environment and plugin structure are fully described in the [kafnus-connect repository](https://github.com/telefonicaid/kafnus-connect)
 
 ## 🧪 Testing and Integration
 
