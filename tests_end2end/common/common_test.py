@@ -74,6 +74,7 @@ class MultiServiceContainer:
     KafkaConnectPort: str
     ngsiAdminHost: str
     ngsiAdminPort: str
+    compose: object # DockerCompose object
 
 
 @dataclass
@@ -167,6 +168,21 @@ class DockerCompose(OriginalDockerCompose):
         except (IndexError, ValueError) as e:
             raise RuntimeError(f"Unexpected output format from docker compose port command") from e
     
+    def start(self, service_name: str = None):
+        """Start whole compose or a specific service."""
+        cmd = self._build_compose_command("start")
+        if service_name:
+            cmd.append(service_name)
+        self._call_command(cmd)
+
+    def stop(self, service_name: str = None) -> None:
+        """Stop whole compose or a specific service."""
+        cmd = self._build_compose_command("stop")
+        if service_name:
+            cmd.append(service_name)
+        self._call_command(cmd)
+        
+    
 
 @pytest.fixture(scope="session")
 def multiservice_stack():
@@ -243,6 +259,7 @@ def multiservice_stack():
             KafkaConnectPort=kafnus_connect_port,
             ngsiAdminHost=kafnus_ngsi_host,
             ngsiAdminPort=kafnus_ngsi_port,
+            compose=compose
         )
 
         # If the KAFNUS_TESTS_E2E_MANUAL_INSPECTION env var is set to "true", the test will pause
