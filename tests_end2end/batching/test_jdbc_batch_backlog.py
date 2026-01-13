@@ -30,9 +30,8 @@ from common.utils.kafnus_connect_loader import deploy_all_sinks
 from common.config import logger, DEFAULT_DB_CONFIG
 from common.utils.sql_runner import execute_sql_file
 from common.utils.postgis_validator import PostgisValidator
-from common.utils.wait_services import wait_for_kafnus_connect
+from common.utils.wait_services import wait_for_kafnus_connect, wait_for_connector
 
-from resilience.utils.utils import wait_connector_running
 from datetime import datetime, timedelta
 
 BATCH_SIZE = 10
@@ -45,15 +44,15 @@ def test_jdbc_batch_backlog(multiservice_stack):
 
     logger.info("🧪 Starting JDBC batch backlog test")
 
-    setup_file = Path(__file__).resolve().parent / "utils" / "setup.sql"
+    setup_file = Path(__file__).resolve().parent / "setup.sql"
     execute_sql_file(setup_file, db_config=DEFAULT_DB_CONFIG)
 
     # 1. Get down Kafnus NGSI and Kafnus Connect
     compose = multiservice_stack.compose
 
     logger.info("⏸ Stopping kafnus-ngsi and kafnus-connect")
-    compose.stop("kafnus-ngsi")
-    compose.stop("kafnus-connect")
+    compose.safe_stop("kafnus-ngsi")
+    compose.safe_stop("kafnus-connect")
 
     # 2. Send a large batch of entities to Orion Context Broker
     orion_request = OrionRequestData(
@@ -115,7 +114,7 @@ def test_jdbc_batch_backlog(multiservice_stack):
 
     # 3. Start Kafnus NGSI
     logger.info("▶ Starting kafnus-ngsi")
-    compose.start("kafnus-ngsi")
+    compose.safe_start("kafnus-ngsi")
     t0 = time.time()
     # Check that last messages have been processed
     # ...
@@ -124,15 +123,14 @@ def test_jdbc_batch_backlog(multiservice_stack):
 
     # 4. Start Kafnus Connect and wait for backlog to be processed
     logger.info("▶ Starting kafnus-connect")
-    compose.start("kafnus-connect")
+    compose.safe_start("kafnus-connect")
     wait_for_kafnus_connect()
     sinks_dir = Path(__file__).resolve().parent.parent / "sinks"
     deploy_all_sinks(sinks_dir)
-    connector_status_url = (
-        f"http://{multiservice_stack.kafkaConnectHost}:"
-        f"{multiservice_stack.KafkaConnectPort}/connectors/jdbc-historical-sink/status"
+    wait_for_connector(
+        name="jdbc-historical-sink",
+        url=f"http://{multiservice_stack.kafkaConnectHost}:{multiservice_stack.KafkaConnectPort}"
     )
-    wait_connector_running(connector_status_url)
     t1 = time.time()
     # Check that last messages have been persisted
     # ...
