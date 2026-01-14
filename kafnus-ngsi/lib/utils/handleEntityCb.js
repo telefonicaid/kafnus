@@ -131,7 +131,7 @@ async function handleEntityCb(
             const kafkaMessage = toKafnusConnectSchema(entity, schemaOverrides, attributesTypes);
             const kafkaKey = buildKafkaKey(entity, keyFields, includeTimeinstant);
 
-            // === Headers de Kafka ===
+            // === Headers for Header Router ===
             const headersOut = [
                 { 'fiware-service': Buffer.from(service) },
                 { 'fiware-servicepath': Buffer.from(servicepath) },
@@ -147,9 +147,9 @@ async function handleEntityCb(
             );
 
             logger.info(
-                `[${suffix.replace(/^_/, '') || 'historic'}] Sent to topic '${topicName}' (table: '${targetTable}'): ${
-                    entity.entityid
-                }`
+                `[${(suffix ?? flowSuffix).replace(/^_/, '') || 'historic'}] Sent to topic '${topicName}', headers: ${JSON.stringify(
+                    headersOut.map(h => Object.fromEntries(Object.entries(h).map(([k, v]) => [k, v.toString()])))
+                )}, entityid: ${entity.entityid}`
             );
         }
     } catch (err) {

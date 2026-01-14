@@ -25,7 +25,7 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { buildTargetTable, getFiwareContext, handleEntityCb } = require('../utils/handleEntityCb');
+const { getFiwareContext, handleEntityCb } = require('../utils/handleEntityCb');
 const { buildKafkaKey } = require('../utils/ngsiUtils');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
@@ -79,17 +79,19 @@ async function startLastdataConsumerAgent(logger, producer) {
                         entitytype: entityType,
                         fiwareservicepath: servicepath
                     };
-                    const targetTable = buildTargetTable(
-                        datamodel,
-                        service,
-                        servicepath,
-                        entityId,
-                        entityType,
-                        flowSuffix
-                    );
+
                     const topicName = `${prefix}${service}${suffix}`;
                     const kafkaKey = buildKafkaKey(deleteEntity, ['entityid'], false);
-                    const outHeaders = [{ target_table: Buffer.from(targetTable) }];
+
+                    // === Headers for Header Router ===
+                    const headersOut = [
+                        { 'fiware-service': Buffer.from(service) },
+                        { 'fiware-servicepath': Buffer.from(servicepath) },
+                        { 'entityType': Buffer.from(entityType) },
+                        { 'entityId': Buffer.from(entityId) },
+                        { 'suffix': Buffer.from(flowSuffix) }
+                    ];
+
                     producer.produce(
                         topicName,
                         null, // partition null: kafka decides
@@ -101,9 +103,9 @@ async function startLastdataConsumerAgent(logger, producer) {
                     );
                     consumer.commitMessage(msg);
                     logger.info(
-                        `[${
-                            suffix.replace(/^_/, '') || 'lastdata'
-                        }] Sent to topic '${topicName}' (table: '${targetTable}'): ${deleteEntity.entityid}`
+                        `[${(suffix ?? flowSuffix).replace(/^_/, '') || 'lastdata'}] Sent to topic '${topicName}', headers: ${JSON.stringify(
+                            headersOut.map(h => Object.fromEntries(Object.entries(h).map(([k, v]) => [k, v.toString()])))
+                        )}, entityid: ${deleteEntity.entityid}`
                     );
                 } else {
                     await handleEntityCb(
