@@ -9,7 +9,7 @@
     "connection.password": "${env:KAFNUS_TESTS_PG_PASSWORD}",
 
     "insert.mode": "insert",
-    "table.name.format": "test.${topic}",
+    "table.name.format": "${topic}",
     "auto.create": true,
     "auto.evolve": false,
 
@@ -20,7 +20,9 @@
     "transforms": "HeaderRouter,convertTimestamp",
 
     "transforms.HeaderRouter.type": "com.telefonica.HeaderRouter",
-    "transforms.HeaderRouter.header.key": "target_table",
+    "transforms.HeaderRouter.datamodel": "dm-postgis-errors",
+    "transforms.HeaderRouter.default.schema": "test",
+    "transforms.HeaderRouter.headers.service": "test",
 
     "transforms.convertTimestamp.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
     "transforms.convertTimestamp.target.type": "Timestamp",

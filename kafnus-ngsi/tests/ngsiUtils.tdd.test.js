@@ -26,7 +26,7 @@
 const {
     toWktGeometry,
     toWkbStructFromWkt,
-    sanitizeTopic,
+    sanitizeString,
     encodeMongo,
     toEpochMillis,
     formatDatetimeIso,
@@ -45,13 +45,13 @@ describe('ngsiUtils.js', () => {
     // -------------------
     // TDD STYLE TESTS
     // -------------------
-    describe('sanitizeTopic (TDD)', () => {
+    describe('sanitizeString (TDD)', () => {
         test('removes leading/trailing slashes and normalizes', () => {
-            expect(sanitizeTopic(' /Room.Temp/ ')).toBe('room_temp');
+            expect(sanitizeString(' /Room.Temp/ ')).toBe('room_temp');
         });
 
         test('converts special characters to underscores', () => {
-            expect(sanitizeTopic('My@Topic!')).toBe('my_topic_');
+            expect(sanitizeString('My@Topic!')).toBe('my_topic_');
         });
     });
 

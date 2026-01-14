@@ -29,7 +29,7 @@ const {
     toWkbStructFromWkt,
     toKafnusConnectSchema,
     buildKafkaKey,
-    sanitizeTopic,
+    sanitizeString,
     getFiwareContext
 } = require('./ngsiUtils');
 const { config } = require('../../kafnusConfig');
@@ -133,11 +133,11 @@ async function handleEntityCb(
 
             // === Headers for Header Router ===
             const headersOut = [
-                { 'fiware-service': Buffer.from(service) },
-                { 'fiware-servicepath': Buffer.from(servicepath) },
-                { 'entityType': Buffer.from(entityType) },
-                { 'entityId': Buffer.from(entityId) },
-                { 'suffix': Buffer.from(flowSuffix === '_historic' ? '' : flowSuffix) }
+                { 'fiware-service': Buffer.from(sanitizeString(service)) },
+                { 'fiware-servicepath': Buffer.from(sanitizeString(servicepath)) },
+                { 'entityType': Buffer.from(sanitizeString(entityType)) },
+                { 'entityId': Buffer.from(sanitizeString(entityId)) },
+                { 'suffix': Buffer.from(flowSuffix === '_historic' ? '' : sanitizeString(flowSuffix)) }
             ];
 
             await safeProduce(
