@@ -7,6 +7,8 @@
     "http.url": "http://172.17.0.1:3333",
     "http.authorization.type": "none",
     "http.headers.content.type": "application/json",
+    "http.authorization.type": "static",
+    "http.headers.authorization": "Bearer <TOKEN>",
     "batching.enabled": false,
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
     "key.converter.schemas.enable": false,
