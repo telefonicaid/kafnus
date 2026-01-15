@@ -97,6 +97,9 @@ function toWktGeometry(attrType, attrValue) {
 // Topic sanitization
 // -----------------
 function sanitizeString(name) {
+    if (!name) {
+        return '';
+    }
     return name
         .trim()
         .replace(/^\/|\/$/g, '')

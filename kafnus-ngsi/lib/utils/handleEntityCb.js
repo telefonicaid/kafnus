@@ -158,5 +158,4 @@ async function handleEntityCb(
 }
 
 module.exports.handleEntityCb = handleEntityCb;
-module.exports.getFiwareContext = getFiwareContext;
 module.exports.safeProduce = safeProduce;
