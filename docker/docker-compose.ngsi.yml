@@ -68,6 +68,7 @@ services:
       - KAFNUS_NGSI_LOG_LEVEL=INFO
       - KAFNUS_NGSI_PREFIX_TOPIC=smc_
       - KAFNUS_NGSI_SUFFIX_TOPIC=_processed
+      - KAFNUS_NGSI_MONGO_PREFIX=sth_
     networks:
       - kafka-postgis-net
     ports:
