@@ -189,6 +189,10 @@ const envVarsSchema = {
             type: 'boolean',
             default: false
         },
+        KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE: {
+            type: 'boolean',
+            default: false
+        },
         KAFNUS_NGSI_GRAPHQL_SLUG_URI: {
             type: 'boolean',
             default: false
@@ -279,6 +283,7 @@ const config = {
     graphql: {
         grafo: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO,
         grafoByService: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE,
+        outputTopicByService: envVars.KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE,
         slugUri: envVars.KAFNUS_NGSI_GRAPHQL_SLUG_URI
     },
     ngsi: {
