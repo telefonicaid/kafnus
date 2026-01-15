@@ -1,1 +1,1 @@
-
+- Remove encoding of special characters and add a configurable MongoDB prefix global parameter (#178)
