@@ -1,1 +1,2 @@
+- Add KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE option (false by default) to compose topic for http sink connector
 - Remove encoding of special characters and add env var  KAFNUS_NGSI_MONGO_PREFIX as a configurable MongoDB prefix global parameter (#178)
