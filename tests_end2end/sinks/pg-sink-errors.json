@@ -21,8 +21,6 @@
 
     "transforms.HeaderRouter.type": "com.telefonica.HeaderRouter",
     "transforms.HeaderRouter.datamodel": "dm-postgis-errors",
-    "transforms.HeaderRouter.default.schema": "test",
-    "transforms.HeaderRouter.headers.service": "test",
 
     "transforms.convertTimestamp.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
     "transforms.convertTimestamp.target.type": "Timestamp",

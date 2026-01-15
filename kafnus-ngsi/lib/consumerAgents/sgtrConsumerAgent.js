@@ -26,6 +26,7 @@
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { getFiwareContext } = require('../utils/ngsiUtils');
+const { safeProduce } = require('../utils/handleEntityCb');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
@@ -90,15 +91,20 @@ async function startSgtrConsumerAgent(logger, producer) {
                     }
                     const outHeaders = [];
                     // Publish in output topic
-                    producer.produce(
-                        outputTopic,
-                        null, // partition null: kafka decides
-                        Buffer.from(JSON.stringify(mutation)), // message
-                        null, // Key (optional)
-                        Date.now(), // timestamp
-                        null, // Opaque
-                        outHeaders
+                    await safeProduce(
+                        producer,
+                        [
+                            outputTopic,
+                            null, // partition null: kafka decides
+                            Buffer.from(JSON.stringify(mutation)), // message
+                            null, // Key (optional)
+                            Date.now(), // timestamp
+                            null, // Opaque
+                            outHeaders
+                        ],
+                        logger
                     );
+
                     logger.info('[sgtr] Sent to %j | mutation %j', outputTopic, mutation);
                 } // for loop
             } catch (err) {
