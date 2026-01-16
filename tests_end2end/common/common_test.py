@@ -74,6 +74,7 @@ class MultiServiceContainer:
     KafkaConnectPort: str
     ngsiAdminHost: str
     ngsiAdminPort: str
+    compose: object # DockerCompose object
 
 
 @dataclass
@@ -167,6 +168,63 @@ class DockerCompose(OriginalDockerCompose):
         except (IndexError, ValueError) as e:
             raise RuntimeError(f"Unexpected output format from docker compose port command") from e
     
+    import subprocess
+
+    def _service_exists(self, service_name: str) -> bool:
+        """
+        Check if a service exists in the current docker-compose stack.
+        Uses `docker compose config --services` for introspection.
+        """
+        cmd = self._build_compose_command("config")
+        cmd.append("--services")
+
+        # Replace docker-compose with docker compose if needed
+        if cmd and cmd[0] == "docker-compose":
+            cmd = ["docker", "compose"] + cmd[1:]
+
+        try:
+            result = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            logger.warning(
+                f"⚠️ Could not list compose services, assuming '{service_name}' does not exist. "
+                f"stderr={e.stderr}"
+            )
+            return False
+
+        services = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+        return service_name in services
+
+    def _start_service(self, service_name: str) -> None:
+        cmd = self._build_compose_command("start")
+        cmd.append(service_name)
+        self._call_command(cmd)
+
+
+    def _stop_service(self, service_name: str) -> None:
+        cmd = self._build_compose_command("stop")
+        cmd.append(service_name)
+        self._call_command(cmd)
+
+    def safe_stop(self, service_name: str) -> None:
+        if self._service_exists(service_name):
+            logger.info(f"⛔ Stopping service '{service_name}'")
+            self._stop_service(service_name)
+        else:
+            logger.debug(f"⚠️ Service '{service_name}' not present in this compose stack, skipping stop")
+
+
+    def safe_start(self, service_name: str) -> None:
+        if self._service_exists(service_name):
+            logger.info(f"▶ Starting service '{service_name}'")
+            self._start_service(service_name)
+        else:
+            logger.debug(f"⚠️ Service '{service_name}' not present in this compose stack, skipping start")
 
 @pytest.fixture(scope="session")
 def multiservice_stack():
@@ -243,6 +301,7 @@ def multiservice_stack():
             KafkaConnectPort=kafnus_connect_port,
             ngsiAdminHost=kafnus_ngsi_host,
             ngsiAdminPort=kafnus_ngsi_port,
+            compose=compose
         )
 
         # If the KAFNUS_TESTS_E2E_MANUAL_INSPECTION env var is set to "true", the test will pause

@@ -29,8 +29,7 @@ from common.common_test import OrionRequestData, ServiceOperations
 from common.config import logger, DEFAULT_DB_CONFIG
 from common.utils.sql_runner import execute_sql_file
 from common.utils.postgis_validator import PostgisValidator
-
-from resilience.utils.utils import stop_postgres, start_postgres, wait_connector_running
+from common.utils.wait_services import wait_for_connector
 
 TIMEOUT_DB_RECOVERY = 30  # seconds
 
@@ -70,6 +69,7 @@ def test_db_outage_recover(multiservice_stack):
     logger.info("Test case to verify Kafnus Connect behavior during Postgres outages. This tests covers:\n - Initial ingestion with DB available\n - DB outage without incoming messages\n - DB outage with incoming messages")
 
     docker_dir = str(Path(__file__).resolve().parents[2] / "docker")
+    compose = multiservice_stack.compose
 
     connector_status_url = (
         f"http://{multiservice_stack.kafkaConnectHost}:"
@@ -79,7 +79,7 @@ def test_db_outage_recover(multiservice_stack):
     # ------------------------------------------------------------------
     # STEP 0: Execute setup.sql
     # ------------------------------------------------------------------
-    setup_file = Path(__file__).resolve().parent / "utils" / "setup.sql"
+    setup_file = Path(__file__).resolve().parent / "setup.sql"
 
     logger.info(f"📜 Executing setup SQL: {setup_file}")
     execute_sql_file(setup_file, db_config=DEFAULT_DB_CONFIG)
@@ -176,7 +176,7 @@ def test_db_outage_recover(multiservice_stack):
     # STEP 2A: Stop Postgres (simulate outage)
     # ------------------------------------------------------------------
     logger.info("⛔ Stopping Postgres…")
-    stop_postgres(docker_dir)
+    compose.safe_stop("iot-postgis")
     time.sleep(3)
 
     # Give time for connector to fail
@@ -186,13 +186,16 @@ def test_db_outage_recover(multiservice_stack):
     # STEP 2B: Start Postgres again
     # ------------------------------------------------------------------
     logger.info("🟢 Starting Postgres…")
-    start_postgres(docker_dir)
+    compose.safe_start("iot-postgis")
     time.sleep(5)
 
     # ------------------------------------------------------------------
     # STEP 2C: Wait for connector task recovery
     # ------------------------------------------------------------------
-    wait_connector_running(connector_status_url)
+    wait_for_connector(
+        name="jdbc-historical-sink",
+        url=f"http://{multiservice_stack.kafkaConnectHost}:{multiservice_stack.KafkaConnectPort}"
+    )
 
     # ------------------------------------------------------------------
     # STEP 2D: Send updates after recovery
@@ -237,7 +240,7 @@ def test_db_outage_recover(multiservice_stack):
     # STEP 3A: Stop Postgres (simulate outage)
     # ------------------------------------------------------------------
     logger.info("⛔ Stopping Postgres…")
-    stop_postgres(docker_dir)
+    compose.safe_stop("iot-postgis")
     time.sleep(3)
 
     # ------------------------------------------------------------------
@@ -291,13 +294,16 @@ def test_db_outage_recover(multiservice_stack):
     # STEP 3C: Start Postgres again
     # ------------------------------------------------------------------
     logger.info("🟢 Starting Postgres…")
-    start_postgres(docker_dir)
+    compose.safe_start("iot-postgis")
     time.sleep(5)
 
     # ------------------------------------------------------------------
     # STEP 3D: Wait for connector task recovery
     # ------------------------------------------------------------------
-    wait_connector_running(connector_status_url)
+    wait_for_connector(
+        name="jdbc-historical-sink",
+        url=f"http://{multiservice_stack.kafkaConnectHost}:{multiservice_stack.KafkaConnectPort}"
+    )
 
     # ------------------------------------------------------------------
     # STEP 3E: Validate final DB state (E1, E2, E3)

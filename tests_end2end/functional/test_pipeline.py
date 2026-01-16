@@ -25,7 +25,7 @@
 import pytest
 import time
 
-from functional.utils.scenario_loader import load_scenario, discover_scenarios, load_description
+from functional.scenario_loader import load_scenario, discover_scenarios, load_description
 from common.utils.postgis_validator import PostgisValidator
 from common.utils.mongo_validator import MongoValidator
 from common.utils.http_validator import HttpValidator
