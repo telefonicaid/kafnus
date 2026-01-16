@@ -29,10 +29,10 @@ from kafka import KafkaProducer
 from datetime import datetime, timezone
 
 VALID_FLOWS = {
-    "historic": "raw_historic",
-    "lastdata": "raw_lastdata",
-    "mutable": "raw_mutable",
-    "errors": "errors"
+    "historic": "smc_raw_historic",
+    "lastdata": "smc_raw_lastdata",
+    "mutable": "smc_raw_mutable",
+    "errors": "smc_errors"
 }
 
 def send_notification_from_file(file_path, producer, i=0):

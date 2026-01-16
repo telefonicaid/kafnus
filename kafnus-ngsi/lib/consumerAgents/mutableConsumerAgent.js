@@ -32,7 +32,6 @@ const { config } = require('../../kafnusConfig');
 async function startMutableConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_mutable';
     const groupId = 'ngsi-processor-mutable';
-    const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
     const suffix = '_mutable' + config.ngsi.suffix;
 
     const consumer = await createConsumerAgent(logger, {
@@ -55,8 +54,7 @@ async function startMutableConsumerAgent(logger, producer) {
                         suffix,
                         flowSuffix: '_mutable',
                         includeTimeinstant: true,
-                        keyFields: ['entityid'],
-                        datamodel
+                        keyFields: ['entityid']
                     },
                     producer
                 );

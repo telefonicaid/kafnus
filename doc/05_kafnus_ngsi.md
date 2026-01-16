@@ -176,28 +176,48 @@ A valid JSON response confirms the Admin Server is running. If it fails, check t
 
 | Source Type | Table Name         | Consumer Agent              |
 |-------------|------------------|----------------------------|
-| Historic (PostGIS) | `raw_historic`     | `historicConsumerAgent.js` |
-| Lastdata (PostGIS) | `raw_lastdata`     | `lastdataConsumerAgent.js` |
-| Mutable (PostGIS)  | `raw_mutable`      | `mutableConsumerAgent.js` |
-| Errors (PostGIS)   | `raw_errors`       | `errorsConsumerAgent.js` |
-| Mongo              | `raw_mongo`        | `mongoConsumerAgent.js` |
-| HTTP               | `raw_sgtr`         | `sgtrConsumerAgent.js` |
+| Historic (PostGIS) | `<PREFIX>raw_historic`     | `historicConsumerAgent.js` |
+| Lastdata (PostGIS) | `<PREFIX>raw_lastdata`     | `lastdataConsumerAgent.js` |
+| Mutable (PostGIS)  | `<PREFIX>raw_mutable`      | `mutableConsumerAgent.js` |
+| Errors (PostGIS)   | `<PREFIX>raw_errors`       | `errorsConsumerAgent.js` |
+| Mongo              | `<PREFIX>raw_mongo`        | `mongoConsumerAgent.js` |
+| HTTP               | `<PREFIX>raw_sgtr`         | `sgtrConsumerAgent.js` |
 
 ---
 
 ## 📤 Topics Produced
 
-- `<fiware_service>` → processed historic  
-- `<fiware_service>_lastdata` → processed lastdata  
-- `<fiware_service>_mutable` → processed mutable  
-- `<db_name>_error_log` → DLQ-parsed errors  
-- Mongo output topics: `sth_<fiware_service>_<servicepath>`  
-- HTTP output topic: `test_http`  
+- `<PREFIX><fiware_service>_historic<SUFFIX>` → processed historic  
+- `<PREFIX><fiware_service>_lastdata<SUFFIX>` → processed lastdata  
+- `<PREFIX><fiware_service>_mutable<SUFFIX>` → processed mutable  
+- `<PREFIX><db_name>_error_log<SUFFIX>` → DLQ-parsed errors  
+- Mongo output topics: `<MONGO_PREFIX><fiware_service>_mongo<SUFFIX>`  
+- HTTP output topic: `<PREFIX><fiware_service>_http<SUFFIX>`  
 - Topic names are dynamic, based on Kafka record headers and entity metadata.
 
 ---
 
 ## Postgis Agents
+
+### Overview & Design Philosophy
+
+The PostgreSQL/PostGIS agents are responsible for **transforming NGSI data** but are explicitly **agnostic to SQL schema details**. 
+
+Since PR #182 ([Adapt Changes Header Router](https://github.com/telefonicaid/kafnus/pull/182)), the architecture follows a clear separation of concerns:
+
+- **Kafnus NGSI**: Emits only **NGSI standard headers** and metadata
+  - No longer calculates table names or schema logic
+  - Produces to topics based on FIWARE service and data flow
+- **Kafnus Connect & HeaderRouter SMT**: Handles **all SQL routing decisions**
+  - Determines schema and table names dynamically
+  - Applies datamodel-specific logic
+  - Configurable without modifying NGSI code
+
+This design enables:
+- Multi-tenant deployments
+- Multiple SQL schemas/layouts per service
+- Variable datamodels without code changes
+- Clear responsibility boundaries
 
 ### 🔄 Processing Flow
 
@@ -208,7 +228,7 @@ The core function is `handleEntityCb` in `lib/utils/handleEntityCb.js`:
 3. Convert `geo:*` attributes to WKB (PostGIS only).
 4. Build Kafnus Connect schema and payload.
 5. Send to output topic.
-6. Set header: `target_table = table_name`.
+6. Set NGSI-standard headers for routing (not SQL-specific headers).
 
 ```js
 async function handleEntityCb(
@@ -216,7 +236,6 @@ async function handleEntityCb(
     rawValue,
     {
         headers = [],
-        datamodel = 'dm-by-entity-type-database',
         suffix = '',
         includeTimeinstant = true,
         keyFields = null
@@ -224,6 +243,12 @@ async function handleEntityCb(
     producer
 )
 ```
+
+---
+
+### Postgis Agents - Detailed Behavior
+
+The core function is [`handleEntityCb` in `lib/utils/handleEntityCb.js`](/kafnus-ngsi/lib/utils/handleEntityCb.js):
 
 ---
 
@@ -348,26 +373,26 @@ Useful for upsert operations in JDBC sinks (`lastdata`, `mutable`).
 
 ### 🧠 Flows and Behaviors
 
-#### `raw_historic`
+#### `<PREFIX>raw_historic`
 
 - All notifications are sent downstream regardless of timestamp.
-- Output topic: `<service>`
+- Output topic: `<PREFIX><service>_historic<SUFFIX>`
 
-#### `raw_lastdata`
+#### `<PREFIX>raw_lastdata`
 
 - Maintains a Faust Table `last_seen_timestamps` to filter old records.
 - Sends only newer TimeInstant values.
-- Output topic: `<service>_lastdata`
+- Output topic: `<PREFIX><service>_lastdata<SUFFIX>`
 
-#### `raw_mutable`
+#### `<PREFIX>raw_mutable`
 
 - Allows overwriting/updating mutable data.
 - Update rows with same `entityid` and `timeinstant`.
-- Output topic: `<service>_mutable`
+- Output topic: `<PREFIX><service>_mutable<SUFFIX>`
 
 ---
 
-### 🚨 DLQ Handling (`raw_errors`)
+### 🚨 DLQ Handling (`<PREFIX>raw_errors`)
 
 Kafnus NGSI parses Kafnus Connect DLQ messages and reconstructs error logs:
 
@@ -391,13 +416,15 @@ Output schema:
 }
 ```
 
-These are published to topics like `<dbname>_error_log`.
+These are published to topics like `<PREFIX><dbname>_error_log<SUFFIX>`.
 
 ---
 
 ## Mongo Agent
 
-- Maps `Fiware-Service` and `Fiware-ServicePath` to database and collection names.
+### Overview
+
+- Maps `Fiware-Service` and `Fiware-ServicePath` to database and collection names using a **configurable prefix**.
 - Each entity in `message.data` produces a **document**.
 - Example document structure:
 
@@ -412,15 +439,58 @@ These are published to topics like `<dbname>_error_log`.
 }
 ```
 
-- Output topic is dynamic, named as `<Fiware-Service>_mongo` by default
-- Database is `sth_<encoded Fiware-Service>`.
-- Collection is `sth_<encoded Fiware-ServicePath>`.
+- Output topic is dynamic, named as `<MONGO_PREFIX><fiware_service>_mongo<SUFFIX>` by default
+- Database name: `<MONGO_PREFIX><Fiware-Service>` (default prefix: `sth_`)
+- Collection name: `<MONGO_PREFIX><Fiware-ServicePath>` (default prefix: `sth_`)
+
+### MongoDB Namespace Prefix Configuration
+
+#### Background & Motivation
+
+Historically, MongoDB database and collection names used a hardcoded `sth_` prefix directly in the code. This limitation made it impossible to adapt MongoDB namespaces to different environments without code changes.
+
+The MongoDB Kafka Sink does **not support dynamic prefix composition** in its configuration (see [MongoDB Kafka Connector Documentation](https://www.mongodb.com/docs/kafka-connector/current/sink-connector/configuration-properties/mongodb-namespace/)). Therefore, prefix handling must occur **within kafnus-ngsi** before data reaches the sink.
+
+#### Solution Implemented (PR #178)
+
+A new environment variable allows configuration of the MongoDB namespace prefix at the **application level**:
+
+```bash
+KAFNUS_NGSI_MONGO_PREFIX=sth_
+```
+
+**Type:** `string`  
+**Default value:** `sth_`  
+**Description:** Prefix prepended to all MongoDB database and collection names derived from FIWARE service and service path.
+
+Example with custom prefix:
+
+```bash
+# With custom prefix
+KAFNUS_NGSI_MONGO_PREFIX=custom_prefix_
+
+# Results in:
+# Database: custom_prefix_myservice
+# Collection: custom_prefix_mypath
+```
+
+#### Current Limitation & Open Requirement (Issue #179)
+
+Although PR #178 improved flexibility, it is **not yet sufficient for all use cases**.
+
+The requirement identified in **Issue #179** is to support a **MongoDB prefix configurable per FIWARE service**, rather than a single global prefix shared by all services.
+
+**Status:**
+- ✅ Hardcoded MongoDB prefix removed
+- ✅ Prefix made configurable at application level (global)
+- ❌ Prefix not yet configurable per FIWARE service
+- 🔄 Issue #179 remains open to define and implement service-level prefix support
 
 ---
 
 ## HTTP Agent (`sgtrConsumerAgent.js`)
 
-- Consumes `raw_sgtr` and produces HTTP-compatible output (`test_http`).
+- Consumes `<PREFIX>raw_sgtr` and produces HTTP-compatible output (`<PREFIX><fiware_service>_http<SUFFIX>`).
 - Generates GraphQL mutations per entity using `buildMutationCreate`.
 
 ---
@@ -503,6 +573,7 @@ These variables control fetch behavior, session handling, and **manual offset ma
 | `KAFNUS_NGSI_LOG_OB` | string | `ES` | Origin or location tag included in logs. |
 | `KAFNUS_NGSI_LOG_COMP` | string | `Kafnus-ngsi` | Component name used in structured logs. |
 | `KAFNUS_NGSI_ADMIN_PORT` | number | `8000` | Port for admin, metrics, health and log-level endpoints. |
+| `KAFNUS_NGSI_MONGO_PREFIX` | string | `sth_` | Prefix prepended to MongoDB database and collection names (see [MongoDB Namespace Prefix Configuration](#mongodb-namespace-prefix-configuration)). |
 | `KAFNUS_NGSI_GRAPHQL_GRAFO` | string | `grafo` | Graph name or version used by the GraphQL integration. |
 | `KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE`      | boolean   | `false`      | Add '_<service>' to Graph name used by the GraphQL service.                          |
 | `KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE`      | boolean   | `false`      | Add '<service>_' to outputTopic used by the HTTP connector sink.                          |

@@ -275,7 +275,7 @@ curl -X POST http://localhost:1026/v2/subscriptions \
     "notification": {
         "kafkaCustom": {
             "url": "kafka://kafka:29092",
-            "topic": "raw_historic"
+            "topic": "smc_raw_historic"
         },
         "attrs": ["TimeInstant", "temperature"]
     }

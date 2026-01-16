@@ -255,6 +255,108 @@ This needs to be clearly documented as part of the onboarding process for new te
 
 ---
 
+### 4.6 Configuring HeaderRouter SMT for PostGIS
+
+The **HeaderRouter** Single Message Transform (SMT) is responsible for dynamically determining the schema and table names for PostGIS persistence based on NGSI headers and a configurable datamodel.
+
+#### What is HeaderRouter?
+
+HeaderRouter intercepts messages in transit and:
+
+1. Reads NGSI headers (`fiware-service`, `fiware-servicepath`, `entityType`, etc.)
+2. Applies a **datamodel** to compute `schema.table`
+3. Overwrites the Kafka topic with this value
+4. The JDBC Sink then uses standard `table.name.format: ${topic}` to write to the correct table
+
+This decouples **NGSI** (which remains schema-agnostic) from **SQL routing logic** (which is now configurable in Kafka Connect).
+
+#### Supported Datamodels
+
+| Datamodel | Schema | Table | Use Case |
+|-----------|--------|-------|----------|
+| `dm-by-entity-type-database` | `fiware-service` | `<fiware-servicepath>_<entityType>` | **Primary** – one table per entity type per service path |
+| `dm-by-fixed-entity-type-database-schema` | `fiware-servicepath` | `<entityType>` | Pre-created schema with fixed structure |
+| `dm-postgis-errors` | `fiware-service` | `<fiware-service>_error_log` | Error/DLQ logging |
+
+#### Example Configuration in Sink JSON
+
+```json
+{
+  "name": "pg-sink-historic",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+    "topics": "test",
+    "connection.url": "jdbc:postgresql://iot-postgis:5432/smartcity",
+    "table.name.format": "${topic}",
+    "transforms": "HeaderRouter",
+    "transforms.HeaderRouter.type": "com.telefonica.HeaderRouter",
+    "transforms.HeaderRouter.datamodel": "dm-by-entity-type-database",
+    "transforms.HeaderRouter.suffix": "_historic"
+  }
+}
+```
+
+**Key parameters:**
+
+- `transforms.HeaderRouter.datamodel`: Choose from the supported datamodels.
+- `transforms.HeaderRouter.suffix`: Optional suffix to append to table names (e.g., `_historic`, `_lastdata`).
+- `transforms.HeaderRouter.headers.schema`: Optional override to force a specific schema (useful for tests or multi-schema deployments).
+
+For complete reference, see the [Kafnus Connect documentation](/doc/06_kafnus_connect.md#headerrouter-smt--dynamic-sql-routing).
+
+---
+
+### 4.7 Configuring MongoDB Namespace Prefix
+
+The **MongoDB namespace prefix** (environment variable `KAFNUS_NGSI_MONGO_PREFIX`) determines how database and collection names are built from FIWARE service and service path.
+
+#### Setting the Prefix
+
+In the `docker-compose.ngsi.yml` file (or equivalent environment configuration):
+
+```yaml
+environment:
+  KAFNUS_NGSI_MONGO_PREFIX: "sth_"
+```
+
+- **Default value:** `sth_` (standard Cygnus convention)
+- **Type:** string
+
+#### How It's Used
+
+When a Mongo message is processed:
+
+```
+Database  = <KAFNUS_NGSI_MONGO_PREFIX><fiware-service>
+Collection = <KAFNUS_NGSI_MONGO_PREFIX><fiware-servicepath>
+```
+
+**Examples:**
+
+With `KAFNUS_NGSI_MONGO_PREFIX=sth_`:
+```
+fiware-service=myservice, fiware-servicepath=/sensors
+→ Database: sth_myservice
+→ Collection: sth_sensors
+```
+
+With `KAFNUS_NGSI_MONGO_PREFIX=custom_`:
+```
+fiware-service=myservice, fiware-servicepath=/sensors
+→ Database: custom_myservice
+→ Collection: custom_sensors
+```
+
+#### Current Limitations & Future Plans
+
+- ✅ Global prefix: configurable per deployment
+- ❌ Per-service prefix: not yet supported
+- 🔄 See [Issue #179](https://github.com/telefonicaid/kafnus/issues/179) for service-level prefix support
+
+For more details, see [MongoDB Namespace Prefix Configuration](/doc/05_kafnus_ngsi.md#mongodb-namespace-prefix-configuration) in the Kafnus NGSI documentation.
+
+---
+
 ## 📊 5. Topic & Data Verification
 
 ### 5.1 Inspect Topics
