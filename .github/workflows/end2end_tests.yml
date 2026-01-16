@@ -88,7 +88,7 @@ jobs:
           docker pull postgis/postgis:15-3.3
           docker pull apache/kafka:4.1.0
           docker pull telefonicaiot/fiware-orion:latest
-          docker pull telefonicaiot/kafnus-connect:new-header-router 
+          docker pull telefonicaiot/kafnus-connect:latest 
           docker pull mongo:8.0
 
       - name: Build kafnus-ngsi image
