@@ -1,6 +1,6 @@
 [
   {
-    "collection": "sth_x002fmongo",
+    "collection": "sth_/mongo",
     "documents": [
       {
         "entityId": "Device:001",

@@ -59,8 +59,8 @@ async function startMongoConsumerAgent(logger, producer) {
 
                 const { service: fiwareService, servicepath: servicePath } = getFiwareContext(msg.headers, message);
 
-                const mongoDb = `sth_${encodeMongo(fiwareService)}`;
-                const mongoCollection = `sth_${encodeMongo(servicePath)}`;
+                const mongoDb = `${config.mongo.prefix}${fiwareService}`;
+                const mongoCollection = `${config.mongo.prefix}${servicePath}`;
                 const outputTopic = `${config.ngsi.prefix}${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
 
                 const recvTime = DateTime.utc().toISO();

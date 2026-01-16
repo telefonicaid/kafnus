@@ -84,7 +84,7 @@ async function startSgtrConsumerAgent(logger, producer) {
                         mutation = buildMutationCreate(service, type, entityObject);
                     }
                     logger.debug('[sgtr] mutation: \n%s', mutation);
-                    if (config.graphql.grafoByService) {
+                    if (config.graphql.outputTopicByService) {
                         outputTopic = config.ngsi.prefix + service + '_' + 'sgtr_http' + config.ngsi.suffix;
                     } else {
                         outputTopic = config.ngsi.prefix + 'sgtr_http' + config.ngsi.suffix;

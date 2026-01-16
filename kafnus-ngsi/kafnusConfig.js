@@ -189,6 +189,10 @@ const envVarsSchema = {
             type: 'boolean',
             default: false
         },
+        KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE: {
+            type: 'boolean',
+            default: false
+        },
         KAFNUS_NGSI_GRAPHQL_SLUG_URI: {
             type: 'boolean',
             default: false
@@ -200,6 +204,10 @@ const envVarsSchema = {
         KAFNUS_NGSI_SUFFIX_TOPIC: {
             type: 'string',
             default: ''
+        },
+        KAFNUS_NGSI_MONGO_PREFIX: {
+            type: 'string',
+            default: 'sth_'
         }
     }
 };
@@ -279,11 +287,15 @@ const config = {
     graphql: {
         grafo: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO,
         grafoByService: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE,
+        outputTopicByService: envVars.KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE,
         slugUri: envVars.KAFNUS_NGSI_GRAPHQL_SLUG_URI
     },
     ngsi: {
         prefix: envVars.KAFNUS_NGSI_PREFIX_TOPIC,
         suffix: envVars.KAFNUS_NGSI_SUFFIX_TOPIC
+    },
+    mongo: {
+        prefix: envVars.KAFNUS_NGSI_MONGO_PREFIX
     }
 };
 
