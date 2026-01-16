@@ -27,12 +27,12 @@ import argparse
 from kafka import KafkaProducer
 
 VALID_FLOWS = {
-    "historic": "raw_historic",
-    "lastdata": "raw_lastdata",
-    "mutable": "raw_mutable",
-    "errors": "errors",
-    "mongo": "raw_mongo",
-    "sgtr": "raw_sgtr"
+    "historic": "smc_raw_historic",
+    "lastdata": "smc_raw_lastdata",
+    "mutable": "smc_raw_mutable",
+    "errors": "smc_errors",
+    "mongo": "smc_raw_mongo",
+    "sgtr": "smc_raw_sgtr"
 }
 
 DEFAULT_SUBSCRIPTION_ID = "DefaultSubscriptionId"
