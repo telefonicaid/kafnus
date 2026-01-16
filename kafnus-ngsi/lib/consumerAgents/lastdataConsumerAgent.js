@@ -25,8 +25,8 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { buildTargetTable, getFiwareContext, handleEntityCb } = require('../utils/handleEntityCb');
-const { buildKafkaKey } = require('../utils/ngsiUtils');
+const { handleEntityCb, safeProduce } = require('../utils/handleEntityCb');
+const { buildKafkaKey, sanitizeString, getFiwareContext } = require('../utils/ngsiUtils');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
 
@@ -60,14 +60,8 @@ async function startLastdataConsumerAgent(logger, producer) {
 
                 const entityRaw = dataList[0];
                 const entityId = entityRaw.id;
-                const entityType = entityRaw.type ? entityRaw.type.toLowerCase() : undefined;
-                const alteration = entityRaw.alterationType;
-                let alterationType = null;
-                if (alteration !== undefined) {
-                    alterationType = alteration.value ? alteration.value.toLowerCase() : alteration.toLowerCase();
-                } else {
-                    alterationType = 'entityupdate';
-                }
+                const entityType = entityRaw.type?.toLowerCase();
+                const alterationType = entityRaw.alterationType?.value?.toLowerCase() ?? 'entityupdate';
                 if (!entityId) {
                     logger.warn('[lastdata] No entity ID  found');
                     return;
@@ -79,31 +73,38 @@ async function startLastdataConsumerAgent(logger, producer) {
                         entitytype: entityType,
                         fiwareservicepath: servicepath
                     };
-                    const targetTable = buildTargetTable(
-                        datamodel,
-                        service,
-                        servicepath,
-                        entityId,
-                        entityType,
-                        flowSuffix
-                    );
+
                     const topicName = `${prefix}${service}${suffix}`;
                     const kafkaKey = buildKafkaKey(deleteEntity, ['entityid'], false);
-                    const outHeaders = [{ target_table: Buffer.from(targetTable) }];
-                    producer.produce(
-                        topicName,
-                        null, // partition null: kafka decides
-                        null, // message
-                        kafkaKey,
-                        Date.now(),
-                        null, // opaque
-                        outHeaders
+
+                    // === Headers for Header Router ===
+                    const headersOut = [
+                        { 'fiware-service': Buffer.from(sanitizeString(service)) },
+                        { 'fiware-servicepath': Buffer.from(sanitizeString(servicepath)) },
+                        { 'entityType': Buffer.from(sanitizeString(entityType)) },
+                        { 'entityId': Buffer.from(sanitizeString(entityId)) },
+                        { 'suffix': Buffer.from(sanitizeString(flowSuffix)) }
+                    ];
+
+                    await safeProduce(
+                        producer,
+                        [
+                            topicName,
+                            null,        // partition
+                            null,        // message
+                            kafkaKey,
+                            Date.now(),
+                            null,        // opaque
+                            headersOut
+                        ],
+                        logger
                     );
+
                     consumer.commitMessage(msg);
                     logger.info(
-                        `[${
-                            suffix.replace(/^_/, '') || 'lastdata'
-                        }] Sent to topic '${topicName}' (table: '${targetTable}'): ${deleteEntity.entityid}`
+                        `['lastdata'] Sent to topic '${topicName}', headers: ${JSON.stringify(
+                            headersOut.map(h => Object.fromEntries(Object.entries(h).map(([k, v]) => [k, v.toString()])))
+                        )}, entityid: ${deleteEntity.entityid}`
                     );
                 } else {
                     await handleEntityCb(
@@ -122,7 +123,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                     consumer.commitMessage(msg);
                 }
             } catch (err) {
-                logger.error('[lastdata] Error processing event: %j', err);
+                logger.error('[lastdata] Error processing event:', err);
             }
 
             const duration = (Date.now() - start) / 1000;

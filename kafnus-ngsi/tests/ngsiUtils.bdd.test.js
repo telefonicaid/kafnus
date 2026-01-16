@@ -26,7 +26,7 @@
 const {
     toWktGeometry,
     toWkbStructFromWkt,
-    sanitizeTopic,
+    sanitizeString,
     encodeMongo,
     toEpochMillis,
     formatDatetimeIso,

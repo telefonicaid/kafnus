@@ -140,8 +140,7 @@ async function startErrorsConsumerAgent(logger, producer) {
                     }
                 };
 
-                const targetTable = `${dbName}_error_log`;
-                const headersOut = [{ target_table: Buffer.from(targetTable) }];
+                const headersOut = [{ 'fiware-service': Buffer.from(dbName) }];
 
                 await safeProduce(
                     producer,

@@ -12,13 +12,13 @@
     "update.if.newer.field": "timeinstant",
     "pk.mode": "record_key",
     "pk.fields": "entityid",
-    "table.name.format": "test.${topic}",
+    "table.name.format": "${topic}",
     "delete.enabled": true,
 
     "transforms": "HeaderRouter,convertTimestamp,convertRecvTime",
 
     "transforms.HeaderRouter.type": "com.telefonica.HeaderRouter",
-    "transforms.HeaderRouter.header.key": "target_table",
+    "transforms.HeaderRouter.datamodel": "dm-by-entity-type-database",
 
     "transforms.convertTimestamp.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
     "transforms.convertTimestamp.target.type": "Timestamp",

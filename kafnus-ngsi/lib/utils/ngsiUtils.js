@@ -96,12 +96,14 @@ function toWktGeometry(attrType, attrValue) {
 // -----------------
 // Topic sanitization
 // -----------------
-function sanitizeTopic(name) {
+function sanitizeString(name) {
+    if (!name) {
+        return '';
+    }
     return name
         .trim()
         .replace(/^\/|\/$/g, '')
         .toLowerCase()
-        .replace(/_historic/g, '')
         .replace(/[^a-zA-Z0-9_]/g, '_');
 }
 
@@ -309,7 +311,7 @@ exports.toWktGeometry = toWktGeometry;
 exports.toWkbStructFromWkt = toWkbStructFromWkt;
 exports.toKafnusConnectSchema = toKafnusConnectSchema;
 exports.buildKafkaKey = buildKafkaKey;
-exports.sanitizeTopic = sanitizeTopic;
+exports.sanitizeString = sanitizeString;
 exports.encodeMongo = encodeMongo;
 exports.formatDatetimeIso = formatDatetimeIso;
 exports.toEpochMillis = toEpochMillis;
