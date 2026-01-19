@@ -36,7 +36,7 @@ from common.utils.wait_services import wait_for_kafnus_connect, wait_for_connect
 
 from datetime import datetime, timedelta
 
-BATCH_SIZE = 10000
+BATCH_SIZE = 3000 * 4 # Must be multiple of 4
 SENTINEL_ID = "__END__"
 
 def test_jdbc_batch_backlog(multiservice_stack):
@@ -145,7 +145,7 @@ def test_jdbc_batch_backlog(multiservice_stack):
         name="batch4_backlog",
         service="test",
         subservice="/batch2",
-        subscriptions=subscriptions_template,
+        subscriptions={},
         updateEntities=generate_entities(BATCH_SIZE//4, start_ts=start_ts, start_index=3*(BATCH_SIZE//4))
     )
     ops = ServiceOperations(multiservice_stack, [orion_request])
@@ -186,8 +186,6 @@ def test_jdbc_batch_backlog(multiservice_stack):
     )
     ops = ServiceOperations(multiservice_stack, [orion_request])
     ops.orion_set_up()
-
-    time.sleep(10)  # give some time for the messages to be in Kafka
 
     # 3. Start Kafnus NGSI
     logger.info("▶ Starting kafnus-ngsi")
