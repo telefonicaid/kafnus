@@ -61,7 +61,6 @@ async function handleEntityCb(
     rawValue,
     {
         headers = [],
-        datamodel = 'dm-by-entity-type-database',
         suffix = '',
         flowSuffix = '_historic',
         includeTimeinstant = true,

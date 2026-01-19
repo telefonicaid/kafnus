@@ -101,10 +101,10 @@ Kafnus NGSI is organized into multiple **agents**, each dedicated to processing 
 
 | Agent        | Input Topic        | Output Topic(s)         | Purpose                         |
 |--------------|--------------------|--------------------------|----------------------------------|
-| `historic`   | `raw_historic`     | `<service>`              | Store full historical records   |
-| `lastdata`   | `raw_lastdata`     | `<service>_lastdata`     | Store latest entity state       |
-| `mutable`    | `raw_mutable`      | `<service>_mutable`      | Allow overwrites / updates      |
-| `errors`     | `raw_errors`       | `<db>_error_log`         | Reconstruct and log DB errors   |
+| `historic`   | `<PREFIX>raw_historic`     | `<PREFIX><service><SUFFIX>`              | Store full historical records   |
+| `lastdata`   | `<PREFIX>raw_lastdata`     | `<PREFIX><service>_lastdata<SUFFIX>`     | Store latest entity state       |
+| `mutable`    | `<PREFIX>raw_mutable`      | `<PREFIX><service>_mutable<SUFFIX>`      | Allow overwrites / updates      |
+| `errors`     | `<PREFIX>raw_errors`       | `<PREFIX><db>_error_log<SUFFIX>`         | Reconstruct and log DB errors   |
 
 Each agent:
 
@@ -219,7 +219,7 @@ If using a Java version (e.g., Kafka Streams or custom implementation), the reco
 
 ## 📐 Partitioning Guidelines
 
-When defining Kafka topics (e.g., `raw_historic`, `raw_lastdata`, `raw_mutable`), consider:
+When defining Kafka topics (e.g., `<PREFIX>raw_historic`, `<PREFIX>raw_lastdata`, `<PREFIX>raw_mutable`), consider:
 
 - Initial number of partitions per topic: **4–8** (adjustable later).
 - Use Kafka metrics (consumer lag, throughput) to decide when to **increase partitions**.

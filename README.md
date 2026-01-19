@@ -2,7 +2,7 @@
 
 **Kafnus** is a smart city data persistence system, designed as a modern replacement for Cygnus, built on top of **Kafka**.
 
-It processes NGSI notifications from the Context Broker (CB) and stores them in **PostGIS** and **MongoDB**, leveraging technologies like **Faust**, **Kafka Connect**, and custom connectors.
+It processes NGSI notifications from the Context Broker (CB) and stores them in **PostGIS** and **MongoDB**, leveraging technologies like **Kafka Stream**, **Kafka Connect**, and custom connectors.
 
 ---
 

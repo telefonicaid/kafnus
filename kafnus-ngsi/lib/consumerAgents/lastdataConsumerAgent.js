@@ -33,7 +33,6 @@ const { config } = require('../../kafnusConfig');
 async function startLastdataConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_lastdata';
     const groupId = 'ngsi-processor-lastdata';
-    const datamodel = 'dm-by-entity-type-database';
     const prefix = config.ngsi.prefix;
     const flowSuffix = '_lastdata';
     const suffix = '_lastdata' + config.ngsi.suffix;
@@ -115,8 +114,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                             suffix: suffix,
                             flowSuffix: '_lastdata',
                             includeTimeinstant: false,
-                            keyFields: ['entityid'],
-                            datamodel
+                            keyFields: ['entityid']
                         },
                         producer
                     );

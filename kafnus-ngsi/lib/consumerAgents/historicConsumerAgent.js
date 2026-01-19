@@ -32,7 +32,6 @@ const { config } = require('../../kafnusConfig');
 async function startHistoricConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_historic';
     const groupId = 'ngsi-processor-historic';
-    const datamodel = /*process.env.DATAMODEL ||*/ 'dm-by-entity-type-database';
     const suffix = '_historic' + config.ngsi.suffix;
 
     const consumer = await createConsumerAgent(logger, {
@@ -54,8 +53,7 @@ async function startHistoricConsumerAgent(logger, producer) {
                         suffix: suffix,
                         flowSuffix: '_historic',
                         includeTimeinstant: true,
-                        keyFields: ['entityid'],
-                        datamodel
+                        keyFields: ['entityid']
                     },
                     producer
                 );
