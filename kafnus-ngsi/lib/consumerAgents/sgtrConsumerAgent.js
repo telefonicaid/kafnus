@@ -25,7 +25,8 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { getFiwareContext } = require('../utils/handleEntityCb');
+const { getFiwareContext } = require('../utils/ngsiUtils');
+const { safeProduce } = require('../utils/handleEntityCb');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
@@ -83,22 +84,27 @@ async function startSgtrConsumerAgent(logger, producer) {
                         mutation = buildMutationCreate(service, type, entityObject);
                     }
                     logger.debug('[sgtr] mutation: \n%s', mutation);
-                    if (config.graphql.grafoByService) {
+                    if (config.graphql.outputTopicByService) {
                         outputTopic = config.ngsi.prefix + service + '_' + 'sgtr_http' + config.ngsi.suffix;
                     } else {
                         outputTopic = config.ngsi.prefix + 'sgtr_http' + config.ngsi.suffix;
                     }
                     const outHeaders = [];
                     // Publish in output topic
-                    producer.produce(
-                        outputTopic,
-                        null, // partition null: kafka decides
-                        Buffer.from(JSON.stringify(mutation)), // message
-                        null, // Key (optional)
-                        Date.now(), // timestamp
-                        null, // Opaque
-                        outHeaders
+                    await safeProduce(
+                        producer,
+                        [
+                            outputTopic,
+                            null, // partition null: kafka decides
+                            Buffer.from(JSON.stringify(mutation)), // message
+                            null, // Key (optional)
+                            Date.now(), // timestamp
+                            null, // Opaque
+                            outHeaders
+                        ],
+                        logger
                     );
+
                     logger.info('[sgtr] Sent to %j | mutation %j', outputTopic, mutation);
                 } // for loop
             } catch (err) {

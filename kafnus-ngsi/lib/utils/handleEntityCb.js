@@ -29,27 +29,12 @@ const {
     toWkbStructFromWkt,
     toKafnusConnectSchema,
     buildKafkaKey,
-    sanitizeTopic,
+    sanitizeString,
     getFiwareContext
 } = require('./ngsiUtils');
 const { config } = require('../../kafnusConfig');
 
 const Kafka = require('@confluentinc/kafka-javascript');
-
-function buildTargetTable(datamodel, service, servicepath, entityid, entitytype, flowSuffix) {
-    /**
-     * Determines the name of the target table based on the chosen datamodel and NGSI metadata
-     * (service, service path, entity ID, entity type).
-     * It could be studied to move this logic to a custom SMT.
-     */
-    if (datamodel === 'dm-by-entity-type-database') {
-        return sanitizeTopic(`${servicepath}_${entitytype}${flowSuffix}`);
-    } else if (datamodel === 'dm-by-fixed-entity-type-database-schema') {
-        return sanitizeTopic(`${entitytype}${flowSuffix}`);
-    } else {
-        throw new Error(`Unsupported datamodel: ${datamodel}`);
-    }
-}
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -76,7 +61,6 @@ async function handleEntityCb(
     rawValue,
     {
         headers = [],
-        datamodel = 'dm-by-entity-type-database',
         suffix = '',
         flowSuffix = '_historic',
         includeTimeinstant = true,
@@ -99,7 +83,6 @@ async function handleEntityCb(
             const entityId = ngsiEntity.id;
             const entityType = ngsiEntity.type;
 
-            const targetTable = buildTargetTable(datamodel, service, servicepath, entityId, entityType, flowSuffix);
             const topicName = config.ngsi.prefix + `${service}${suffix}`;
 
             let entity = {
@@ -146,7 +129,15 @@ async function handleEntityCb(
 
             const kafkaMessage = toKafnusConnectSchema(entity, schemaOverrides, attributesTypes);
             const kafkaKey = buildKafkaKey(entity, keyFields, includeTimeinstant);
-            const headersOut = [{ target_table: Buffer.from(targetTable) }];
+
+            // === Headers for Header Router ===
+            const headersOut = [
+                { 'fiware-service': Buffer.from(sanitizeString(service)) },
+                { 'fiware-servicepath': Buffer.from(sanitizeString(servicepath)) },
+                { 'entityType': Buffer.from(sanitizeString(entityType)) },
+                { 'entityId': Buffer.from(sanitizeString(entityId)) },
+                { 'suffix': Buffer.from(flowSuffix === '_historic' ? '' : sanitizeString(flowSuffix)) }
+            ];
 
             await safeProduce(
                 producer,
@@ -155,9 +146,9 @@ async function handleEntityCb(
             );
 
             logger.info(
-                `[${suffix.replace(/^_/, '') || 'historic'}] Sent to topic '${topicName}' (table: '${targetTable}'): ${
-                    entity.entityid
-                }`
+                `[${(suffix ?? flowSuffix).replace(/^_/, '') || 'historic'}] Sent to topic '${topicName}', headers: ${JSON.stringify(
+                    headersOut.map(h => Object.fromEntries(Object.entries(h).map(([k, v]) => [k, v.toString()])))
+                )}, entityid: ${entity.entityid}`
             );
         }
     } catch (err) {
@@ -166,6 +157,4 @@ async function handleEntityCb(
 }
 
 module.exports.handleEntityCb = handleEntityCb;
-module.exports.getFiwareContext = getFiwareContext;
-module.exports.buildTargetTable = buildTargetTable;
 module.exports.safeProduce = safeProduce;

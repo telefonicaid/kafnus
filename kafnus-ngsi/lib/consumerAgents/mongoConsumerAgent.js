@@ -26,6 +26,7 @@
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { getFiwareContext, encodeMongo } = require('../utils/ngsiUtils');
+const { safeProduce } = require('../utils/handleEntityCb');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
@@ -58,8 +59,8 @@ async function startMongoConsumerAgent(logger, producer) {
 
                 const { service: fiwareService, servicepath: servicePath } = getFiwareContext(msg.headers, message);
 
-                const mongoDb = `sth_${encodeMongo(fiwareService)}`;
-                const mongoCollection = `sth_${encodeMongo(servicePath)}`;
+                const mongoDb = `${config.mongo.prefix}${fiwareService}`;
+                const mongoCollection = `${config.mongo.prefix}${servicePath}`;
                 const outputTopic = `${config.ngsi.prefix}${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
 
                 const recvTime = DateTime.utc().toISO();
@@ -87,17 +88,21 @@ async function startMongoConsumerAgent(logger, producer) {
                         }
                     }
 
-                    producer.produce(
-                        outputTopic,
-                        null,
-                        Buffer.from(JSON.stringify(doc)),
-                        Buffer.from(
-                            JSON.stringify({
-                                database: mongoDb,
-                                collection: mongoCollection
-                            })
-                        ),
-                        Date.now()
+                    await safeProduce(
+                        producer,
+                        [
+                            outputTopic,
+                            null,
+                            Buffer.from(JSON.stringify(doc)),
+                            Buffer.from(
+                                JSON.stringify({
+                                    database: mongoDb,
+                                    collection: mongoCollection
+                                })
+                            ),
+                            Date.now()
+                        ],
+                        logger
                     );
 
                     logger.info(`[mongo] Sent to '${outputTopic}' | DB=${mongoDb} | Collection=${mongoCollection}`);

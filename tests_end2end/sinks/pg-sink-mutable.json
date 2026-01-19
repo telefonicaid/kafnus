@@ -11,7 +11,7 @@
     "insert.mode": "upsert",
     "pk.mode": "record_value",
     "pk.fields": "entityid,timeinstant",
-    "table.name.format": "test.${topic}",
+    "table.name.format": "${topic}",
 
     "delete.enabled": false,
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
@@ -22,7 +22,7 @@
     "transforms": "HeaderRouter,convertTimestamp,convertRecvTime",
 
     "transforms.HeaderRouter.type": "com.telefonica.HeaderRouter",
-    "transforms.HeaderRouter.header.key": "target_table",
+    "transforms.HeaderRouter.datamodel": "dm-by-entity-type-database",
 
     "transforms.convertTimestamp.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
     "transforms.convertTimestamp.target.type": "Timestamp",
