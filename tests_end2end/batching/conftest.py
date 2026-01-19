@@ -22,36 +22,7 @@
 # provided in both Spanish and international law. TSOL reserves any civil or
 # criminal actions it may exercise to protect its rights.
 
-services:
-  orion:
-    image: telefonicaiot/fiware-orion:latest
-    container_name: orion
-    ports:
-      - "1026:1026"
-    depends_on:
-      - mongo
-      - kafka
-    environment:
-      - KAFKA_PORT=29092
-    networks:
-      - kafka-postgis-net
-    command: -dbURI mongodb://mongo:27017
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:1026/version" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+from dotenv import load_dotenv
+load_dotenv(override=True)
 
-  mongo:
-    image: mongo:8.0
-    container_name: mongo
-    ports:
-      - "27017:27017"
-    networks:
-      - kafka-postgis-net
-
-networks:
-  kafka-postgis-net:
-    external: true
-
+from common.common_test import multiservice_stack

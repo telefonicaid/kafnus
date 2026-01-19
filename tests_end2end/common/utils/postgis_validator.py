@@ -285,4 +285,31 @@ class PostgisValidator:
             dt = dt.astimezone(datetime.timezone.utc)
 
         return dt
+    
+    def count_rows(self, table):
+        """
+        Count the number of rows in a table.
+        """
+        query = f"SELECT COUNT(*) FROM {table}"
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query)
+                return cur.fetchone()[0]
+    
+    def wait_until_row_present(self, table, row, timeout=60, poll=1):
+        """
+        Wait until a specific row is present in the table.
+        
+        - `row`: dict with keys that must match in a single row.
+        - Returns True if the row is found within the timeout, False otherwise.
+        """
+        logger.info(f"⏳ Waiting for row to appear in {table} (timeout={timeout}s)")
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            if self.validate(table, [row], timeout=0.1):
+                logger.debug(f"✅ Row found in {table}")
+                return True
+            time.sleep(poll)
+        logger.error(f"❌ Row not found in {table} within {timeout}s")
+        return False
 

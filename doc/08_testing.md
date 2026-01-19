@@ -37,6 +37,12 @@ tests_end2end/
 │   ├── test_admin_server.py  # Admin server /health, /connectors, etc.
 │   └── utils/scenario_loader.py
 │
+├── batching/                  # JDBC batch processing and error handling tests
+│   ├── test_jdbc_batch_backlog.py  # Validates batch processing of large message backlogs
+│   ├── test_jdbc_batch_errors.py   # Validates batch processing with errors
+│   ├── setup.sql
+│   └── conftest.py
+│
 ├── resilience/               # Failure & recovery tests
 │   ├── test_db_outage_recover.py
 │   └── utils/
@@ -334,6 +340,59 @@ This simulates real production outages with in-flight data.
 
 ---
 
+## 4. **Batching Tests (`test_jdbc_batch_backlog.py` and `test_jdbc_batch_errors.py`)**
+
+This test category validates **JDBC sink batch processing** and error handling under high-volume data scenarios.
+
+### **Test Purpose**
+
+- **Backlog Processing**: Validates that the JDBC sink correctly processes large backlogs of messages using batch mechanics when Kafnus services are momentarily stopped.
+- **Error Handling During Batches**: Ensures the system gracefully handles errors (duplicate IDs, schema mismatches) mixed within a large batch without losing data or stalling processing.
+
+### **Phase 1 — Backlog Accumulation (`test_jdbc_batch_backlog`)**
+
+1. Stop `kafnus-ngsi` and `kafnus-connect` services.
+2. Send a large batch of entities (~12,000 messages) to Orion Context Broker across multiple requests.
+3. Create subscriptions for `historic`, `lastdata`, and `mutable` sinks.
+4. Send a **sentinel entity** (ID: `__END__`) to mark the end of the batch.
+5. Start `kafnus-ngsi` to process the accumulated Kafka messages.
+6. Start `kafnus-connect` to write the backlog to PostGIS.
+7. Verify that all entities (including the sentinel) are correctly written to the database tables.
+
+This ensures:
+- JDBC batch mechanics work correctly under high volume
+- No messages are lost during backlog processing
+- Sentinel entities can be used to detect when processing is complete
+
+### **Phase 2 — Error Handling in Batches (`test_jdbc_batch_errors`)**
+
+Similar to the backlog test, but with **error injection**:
+
+1. Stop Kafnus services.
+2. Send batches of valid entities.
+3. **Inject error scenarios** (duplicate IDs, invalid data types, schema mismatches) within the batch.
+4. Resume Kafnus services.
+5. Verify that:
+   - Valid messages are correctly persisted
+   - Invalid messages are logged or routed to error handlers
+   - Processing continues without stalling
+   - No data loss occurs
+
+This validates resilience and error tolerance under realistic conditions.
+
+### **Test Configuration**
+
+Both tests use:
+
+- **Batch Size**: 12,000 messages (configurable via `BATCH_SIZE` constant)
+- **Subscriptions**: Multiple services and subservices to test routing across different Kafka topics
+- **Database Tables**: 
+  - `batch_test` (historic data)
+  - `batch_test_lastdata` (last known values)
+  - `batch_test_mutable` (mutable data)
+
+---
+
 ## Sinks
 During end-to-end and recovery tests, **sink connectors** (PostGIS, MongoDB, HTTP) use environment variables to dynamically resolve their connection settings through the Kafka Connect `EnvVarConfigProvider`.
 
@@ -366,10 +425,19 @@ To run **all tests**:
 ```bash
 pytest -s -v
 ```
+
 Executes specific tests by providing the path to the test file.
 
 ```bash
 pytest -s functional/test_pipeline.py
+```
+
+To run **batching tests**:
+
+```bash
+pytest -s batching/test_jdbc_batch_backlog.py      # Run large backlog processing test
+pytest -s batching/test_jdbc_batch_errors.py       # Run error handling within batches test
+pytest -s batching/                                 # Run all batching tests
 ```
 
 You can filter scenarios using `-k` and their directory names or tags. To run specific scenarios:

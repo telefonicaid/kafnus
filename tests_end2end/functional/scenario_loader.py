@@ -31,7 +31,7 @@ from common.common_test import OrionRequestData
 from common.config import logger
 
 # Directory where all scenario test cases are stored
-SCENARIOS_DIR = Path(__file__).parent.parent / "cases"
+SCENARIOS_DIR = Path(__file__).parent / "cases"
 
 def discover_scenarios():
     """
