@@ -64,3 +64,59 @@ CREATE TABLE IF NOT EXISTS test.batch_test_mutable (
     temperature DOUBLE PRECISION,
     CONSTRAINT batch_test_mutable_pkey PRIMARY KEY (timeinstant, entityid)
 );
+
+-- Drop table
+DROP TABLE IF EXISTS test.batch2_test;
+
+-- Create table
+CREATE TABLE IF NOT EXISTS test.batch2_test (
+    recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
+    fiwareservicepath TEXT,
+    entityid TEXT,
+    entitytype TEXT,
+    timeinstant TIMESTAMPTZ,
+    temperature DOUBLE PRECISION,
+    CONSTRAINT batch2_test_pkey PRIMARY KEY (timeinstant, entityid)
+);
+
+-- Drop table
+DROP TABLE IF EXISTS test.batch2_test_lastdata;
+
+-- Create table
+CREATE TABLE IF NOT EXISTS test.batch2_test_lastdata (
+    recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
+    fiwareservicepath TEXT,
+    entityid TEXT,
+    entitytype TEXT,
+    timeinstant TIMESTAMPTZ,
+    temperature DOUBLE PRECISION,
+    CONSTRAINT batch2_test_lastdata_pkey PRIMARY KEY (entityid)
+);
+
+-- Drop table
+DROP TABLE IF EXISTS test.batch2_test_mutable;
+
+-- Create table
+CREATE TABLE IF NOT EXISTS test.batch2_test_mutable (
+    recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
+    fiwareservicepath TEXT,
+    entityid TEXT,
+    entitytype TEXT,
+    timeinstant TIMESTAMPTZ,
+    temperature DOUBLE PRECISION,
+    CONSTRAINT batch2_test_mutable_pkey PRIMARY KEY (timeinstant, entityid)
+);
+
+-- Drop table
+DROP TABLE IF EXISTS test.sentinel_test;
+
+-- Create table
+CREATE TABLE IF NOT EXISTS test.sentinel_test (
+    recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
+    fiwareservicepath TEXT,
+    entityid TEXT,
+    entitytype TEXT,
+    timeinstant TIMESTAMPTZ,
+    temperature DOUBLE PRECISION,
+    CONSTRAINT sentinel_test_pkey PRIMARY KEY (timeinstant, entityid)
+);
