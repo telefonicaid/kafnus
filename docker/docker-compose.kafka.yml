@@ -58,7 +58,7 @@ services:
 
   kafnus-connect:
     container_name: kafnus-connect
-    image: telefonicaiot/kafnus-connect:mongo-prefix
+    image: telefonicaiot/kafnus-connect:latest
     ports:
       - "8083:8083"
       - "9100:9100"
