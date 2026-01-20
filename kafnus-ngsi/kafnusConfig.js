@@ -204,10 +204,6 @@ const envVarsSchema = {
         KAFNUS_NGSI_SUFFIX_TOPIC: {
             type: 'string',
             default: ''
-        },
-        KAFNUS_NGSI_MONGO_PREFIX: {
-            type: 'string',
-            default: 'sth_'
         }
     }
 };
@@ -293,9 +289,6 @@ const config = {
     ngsi: {
         prefix: envVars.KAFNUS_NGSI_PREFIX_TOPIC,
         suffix: envVars.KAFNUS_NGSI_SUFFIX_TOPIC
-    },
-    mongo: {
-        prefix: envVars.KAFNUS_NGSI_MONGO_PREFIX
     }
 };
 
