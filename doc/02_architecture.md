@@ -58,14 +58,11 @@ The system supports multiple data flows (`historic`, `lastdata`, `mutable`) and 
 ### 🍃 MongoDB Flow (simpler)
 
 - Input arrives via `raw_mongo` Kafka topic.  
-- The **Mongo agent** parses the event, extracts `fiware-service` and `fiware-servicepath` from headers, and builds the **target DB/collection**.
-- The namespace prefix is **configurable** via `KAFNUS_NGSI_MONGO_PREFIX` (default: `sth_`), allowing different MongoDB naming conventions per deployment.
-- Example database/collection naming: `<MONGO_PREFIX><service>.<MONGO_PREFIX><servicepath>` 
+- The **Mongo agent** parses the event, extracts `fiware-service` and `fiware-servicepath` from headers, and builds the **target DB/collection** without prefix.
 - Documents are enriched with `recvTime`.  
 - A producer publishes the final document to the `test_mongo` topic, from where the **MongoDB sink connector** persists into the right collection.
 
-👉 Unlike JDBC, Mongo does **not** use the `HeaderRouter` SMT. Routing is embedded in the agent logic
-(`namespace.mapper` handles DB/collection mapping). See [MongoDB Namespace Prefix Configuration](/doc/05_kafnus_ngsi.md#mongodb-namespace-prefix-configuration) for details.
+> Similar to JDBC, MongoDB uses a custom Single Message Transform (SMT) that adds a prefix to the database and collection names. This transformation is applied during message processing to ensure consistent naming conventions across different environments or logical groupings.
 
 ---
 
@@ -76,7 +73,7 @@ The system supports multiple data flows (`historic`, `lastdata`, `mutable`) and 
 - The mutation is published to the `test_http` Kafka topic.  
 - The **HTTP sink connector** (Aiven implementation) forwards the payload to the configured external API.
 
-👉 Again, no `HeaderRouter` is involved. The logic is limited to transforming the NGSI entity into the desired HTTP
+👉 No `HeaderRouter` is involved. The logic is limited to transforming the NGSI entity into the desired HTTP
 payload before forwarding.
 
 
@@ -84,7 +81,7 @@ payload before forwarding.
 
 ✅ **Summary:**  
 - **PostGIS**: Two-tier routing (NGSI → Kafka topic, HeaderRouter SMT → SQL schema.table), with configurable datamodels and schema override support.  
-- **MongoDB**: Direct mapping in NGSI agent (headers → DB/collection names), prefix-configurable.  
+- **MongoDB**: Namespace routing in Kafka Connect (MongoNamespacePrefix SMT → prefix application), with configurable prefixes for multi-tenant deployments.  
 - **HTTP**: Direct mapping in NGSI agent (entity → mutation → HTTP endpoint).  
 
 ---

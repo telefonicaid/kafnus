@@ -424,7 +424,7 @@ These are published to topics like `<PREFIX><dbname>_error_log<SUFFIX>`.
 
 ### Overview
 
-- Maps `Fiware-Service` and `Fiware-ServicePath` to database and collection names using a **configurable prefix**.
+- Maps `Fiware-Service` and `Fiware-ServicePath` to database and collection names via Kafka record headers.
 - Each entity in `message.data` produces a **document**.
 - Example document structure:
 
@@ -439,44 +439,61 @@ These are published to topics like `<PREFIX><dbname>_error_log<SUFFIX>`.
 }
 ```
 
-- Output topic is dynamic, named as `<MONGO_PREFIX><fiware_service>_mongo<SUFFIX>` by default
-- Database name: `<MONGO_PREFIX><Fiware-Service>` (default prefix: `sth_`)
-- Collection name: `<MONGO_PREFIX><Fiware-ServicePath>` (default prefix: `sth_`)
+- Output topic is dynamic, named as `<PREFIX><fiware_service>_mongo<SUFFIX>` (example: `smc_myservice_mongo_processed`)
+- **Database name header:** Derived from `Fiware-Service` (without prefix at this stage)
+- **Collection name header:** Derived from `Fiware-ServicePath` (without prefix at this stage)
 
 ### MongoDB Namespace Prefix Configuration
 
-#### Background & Motivation
+#### Background & Evolution
 
-Historically, MongoDB database and collection names used a hardcoded `sth_` prefix directly in the code. This limitation made it impossible to adapt MongoDB namespaces to different environments without code changes.
+Historically, MongoDB database and collection names used a hardcoded `sth_` prefix directly in the Kafnus NGSI code. This made it impossible to adapt MongoDB namespaces to different environments without code changes.
 
-The MongoDB Kafka Sink does **not support dynamic prefix composition** in its configuration (see [MongoDB Kafka Connector Documentation](https://www.mongodb.com/docs/kafka-connector/current/sink-connector/configuration-properties/mongodb-namespace/)). Therefore, prefix handling must occur **within kafnus-ngsi** before data reaches the sink.
+**Problem:** The MongoDB Kafka Sink connector does **not support dynamic prefix composition** in its configuration (see [MongoDB Kafka Connector Documentation](https://www.mongodb.com/docs/kafka-connector/current/sink-connector/configuration-properties/mongodb-namespace/)). Namespace mapping can only use field values as-is.
 
-#### Solution Implemented (PR #178)
+#### Solution: MongoNamespacePrefix SMT (Current)
 
-A new environment variable allows configuration of the MongoDB namespace prefix at the **application level**:
+As of the latest update, prefix handling has been **moved from Kafnus NGSI to Kafka Connect**, following the same architectural pattern as JDBC with `HeaderRouter`.
 
-```bash
-KAFNUS_NGSI_MONGO_PREFIX=sth_
+**The Kafnus NGSI Mongo Agent now:**
+
+1. Emits database and collection names **without prefixes** in Kafka record headers
+2. Passes these headers unchanged to Kafka Connect
+3. Does **not** apply any prefix logic
+
+**The Kafnus Connect pipeline then:**
+
+1. Applies the **`MongoNamespacePrefix` SMT** (custom Single Message Transform)
+2. Reads database and collection names from headers
+3. Prepends the configured prefix to each value
+4. Rewrites the headers with the final, prefixed namespace values
+5. Passes them to the MongoDB Sink connector
+
+This approach:
+- ✅ Separates concerns: NGSI is namespace-agnostic
+- ✅ Centralizes all persistence logic in Kafka Connect
+- ✅ Aligns MongoDB routing with JDBC routing patterns
+- ✅ Allows per-service or per-deployment prefix customization via Kafka Connect
+
+#### Configuration
+
+The prefix is now configured in the **Kafka Connect sink connector definition**:
+
+```json
+{
+  "name": "mongodb-sink",
+  "transforms": "MongoPrefix",
+  "transforms.MongoPrefix.type": "com.telefonica.MongoNamespacePrefix",
+  "transforms.MongoPrefix.database.prefix": "sth_",
+  "transforms.MongoPrefix.collection.prefix": "sth_"
+}
 ```
 
-**Type:** `string`  
-**Default value:** `sth_`  
-**Description:** Prefix prepended to all MongoDB database and collection names derived from FIWARE service and service path.
+See [MongoNamespacePrefix SMT documentation](/doc/06_kafnus_connect.md#-mongonamespaceprefix-smt--dynamic-mongodb-namespace-routing) for full configuration details.
 
-Example with custom prefix:
+#### Historical Note: KAFNUS_NGSI_MONGO_PREFIX (Deprecated)
 
-```bash
-# With custom prefix
-KAFNUS_NGSI_MONGO_PREFIX=custom_prefix_
-
-# Results in:
-# Database: custom_prefix_myservice
-# Collection: custom_prefix_mypath
-```
-
-#### Current Limitation & Open Requirement (Issue #179)
-
-Although PR #178 improved flexibility, it is **not yet sufficient for all use cases**.
+Prior to this change, the environment variable `KAFNUS_NGSI_MONGO_PREFIX` was used to configure the prefix at the NGSI level. This is now **deprecated** in favor of the Kafka Connect SMT approach.
 
 The requirement identified in **Issue #179** is to support a **MongoDB prefix configurable per FIWARE service**, rather than a single global prefix shared by all services.
 
