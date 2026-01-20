@@ -10,6 +10,10 @@
     "database": "dummy",
     "collection": "dummy",
 
+    "transforms": "MongoPrefix",
+    "transforms.MongoPrefix.type": "com.telefonica.MongoNamespacePrefix",
+    "transforms.MongoPrefix.prefix": "sth_",
+
     "namespace.mapper": "com.mongodb.kafka.connect.sink.namespace.mapping.FieldPathNamespaceMapper",
     "namespace.mapper.key.database.field": "database",
     "namespace.mapper.key.collection.field": "collection",

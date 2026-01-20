@@ -211,6 +211,86 @@ This directly addresses **Issue #177 – Study support for variable schema in JD
 
 ---
 
+## 🌱 MongoNamespacePrefix SMT – Dynamic MongoDB Namespace Routing
+
+### Purpose
+
+The **MongoNamespacePrefix** SMT handles a limitation of the MongoDB Kafka Sink connector: it does **not support string composition** (e.g., `prefix + field`) via configuration.
+
+Namespace mapping can only use field values as-is, so any logic for **prefixing database or collection names must be handled before the record reaches the MongoDB Sink**.
+
+**Key principle:** Similar to `HeaderRouter`, this SMT moves **all MongoDB namespace routing logic** into Kafka Connect, keeping upstream components (Kafnus NGSI) agnostic of persistence details.
+
+### How It Works
+
+1. **Reads** the MongoDB database and collection names from Kafka record headers
+2. **Prepends** a configurable prefix to each
+3. **Writes** the resulting values back to the same headers
+4. **Leaves** the Kafka topic unchanged
+
+The MongoDB Sink connector then uses standard `FieldPathNamespaceMapper` configuration:
+
+```properties
+transforms=MongoPrefix
+transforms.MongoPrefix.type=com.telefonica.MongoNamespacePrefix
+transforms.MongoPrefix.database.prefix=sth_
+transforms.MongoPrefix.collection.prefix=sth_
+
+# Sink configuration (unchanged)
+namespace.mapper=FieldPathNamespaceMapper
+namespace.mapper.key.database.field=database
+namespace.mapper.key.collection.field=collection
+```
+
+### Configuration Parameters
+
+| Parameter | Example | Description |
+|-----------|---------|-------------|
+| `database.prefix` | `sth_` | Prefix to prepend to database names from headers |
+| `collection.prefix` | `sth_` | Prefix to prepend to collection names from headers |
+
+### Example
+
+**Before SMT:**
+
+```
+Headers:
+  database: myservice
+  collection: sensor_data
+
+Message reaches MongoDB Sink with:
+  db: myservice
+  col: sensor_data
+```
+
+**After MongoNamespacePrefix SMT:**
+
+```
+Headers:
+  database: sth_myservice
+  collection: sth_sensor_data
+
+Message reaches MongoDB Sink with:
+  db: sth_myservice
+  col: sth_sensor_data
+```
+
+### Relationship with HeaderRouter
+
+Both SMTs follow the **same architectural principle**:
+
+| Aspect | HeaderRouter (JDBC) | MongoNamespacePrefix (MongoDB) |
+|--------|-------|--------|
+| **Connector limitation** | JDBC needs fixed topic → table mapping | MongoDB Sink cannot compose namespace strings |
+| **Where logic lives** | Kafka Connect SMT | Kafka Connect SMT |
+| **Input** | NGSI headers (service, servicepath, entityType) | MongoDB namespace headers (database, collection) |
+| **Output** | Physical SQL destination (topic) | Physical MongoDB namespace (headers) |
+| **Upstream awareness** | Not required | Not required |
+
+This keeps **all physical persistence logic inside Kafka Connect**, ensuring consistent architecture across JDBC and MongoDB sinks.
+
+---
+
 ## 🧱 Deployment and Configuration
 
 Kafnus Connect runs as a standalone **Kafka Connect distributed worker**.  
