@@ -19,6 +19,8 @@
 * Authors: 
 *  - Álvaro Vega
 *  - Gregorio Blázquez
+*  - Fermín Galán
+*  - Oriana Romero
 */
 -- Drop and create complex data sensor tables
 DROP TABLE IF EXISTS test.complexdata_device;

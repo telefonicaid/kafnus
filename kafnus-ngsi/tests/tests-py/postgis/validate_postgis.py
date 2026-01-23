@@ -18,6 +18,8 @@
 # Authors: 
 #  - Álvaro Vega
 #  - Gregorio Blázquez
+#  - Fermín Galán
+#  - Oriana Romero
 
 import psycopg2
 import json

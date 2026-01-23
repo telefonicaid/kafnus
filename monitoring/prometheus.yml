@@ -18,6 +18,8 @@
 # Authors: 
 #  - Álvaro Vega
 #  - Gregorio Blázquez
+#  - Fermín Galán
+#  - Oriana Romero
 
 global:
   scrape_interval: 10s

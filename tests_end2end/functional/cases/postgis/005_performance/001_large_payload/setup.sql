@@ -19,6 +19,8 @@
 * Authors: 
 *  - Álvaro Vega
 *  - Gregorio Blázquez
+*  - Fermín Galán
+*  - Oriana Romero
 */
 -- Drop and create performance test tables
 DROP TABLE IF EXISTS test.performance_sensor;

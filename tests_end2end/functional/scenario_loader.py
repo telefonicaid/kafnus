@@ -18,6 +18,8 @@
 # Authors: 
 #  - Álvaro Vega
 #  - Gregorio Blázquez
+#  - Fermín Galán
+#  - Oriana Romero
 
 import json
 from typing import Optional

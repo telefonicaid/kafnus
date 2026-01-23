@@ -18,6 +18,8 @@
 # Authors: 
 #  - Álvaro Vega
 #  - Gregorio Blázquez
+#  - Fermín Galán
+#  - Oriana Romero
 
 from dotenv import load_dotenv
 load_dotenv(override=True)

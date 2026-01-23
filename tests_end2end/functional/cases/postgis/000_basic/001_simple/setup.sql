@@ -19,6 +19,8 @@
 * Authors: 
 *  - Álvaro Vega
 *  - Gregorio Blázquez
+*  - Fermín Galán
+*  - Oriana Romero
 */
 -- Drop table
 DROP TABLE IF EXISTS test.simple_sensor;

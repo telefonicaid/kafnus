@@ -20,6 +20,8 @@
 # Authors: 
 #  - Álvaro Vega
 #  - Gregorio Blázquez
+#  - Fermín Galán
+#  - Oriana Romero
 
 COMPOSE_FILES=(
   -f docker-compose.kafka.yml

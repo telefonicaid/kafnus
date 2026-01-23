@@ -19,6 +19,8 @@
 * Authors: 
 *  - Álvaro Vega
 *  - Gregorio Blázquez
+*  - Fermín Galán
+*  - Oriana Romero
 */
 -- Drop and create subscription pattern test tables
 DROP TABLE IF EXISTS test.pattern_sensor;
