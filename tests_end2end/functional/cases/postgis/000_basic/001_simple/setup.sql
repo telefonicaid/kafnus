@@ -15,12 +15,6 @@
 *
 * You should have received a copy of the GNU Affero General Public License
 * along with kafnus. If not, see http://www.gnu.org/licenses/.
-*
-* Authors: 
-*  - Álvaro Vega
-*  - Gregorio Blázquez
-*  - Fermín Galán
-*  - Oriana Romero
 */
 -- Drop table
 DROP TABLE IF EXISTS test.simple_sensor;

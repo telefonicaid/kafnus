@@ -16,12 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with kafnus. If not, see http://www.gnu.org/licenses/.
-#
-# Authors: 
-#  - Álvaro Vega
-#  - Gregorio Blázquez
-#  - Fermín Galán
-#  - Oriana Romero
+
 
 COMPOSE_FILES=(
   -f docker-compose.kafka.yml
