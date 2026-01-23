@@ -146,6 +146,38 @@
       }
     },
     {
+      "id": "Zone-Polygon",
+      "type": "Zone",
+      "name": {
+        "value": "Zone Polygon",
+        "type": "Text"
+      },
+      "TimeInstant": {
+        "value": "2025-05-15T13:00:01Z",
+        "type": "DateTime"
+      },
+      "polygon": {
+        "value": {
+          "type": "Polygon",
+          "coordinates": [[
+            [-1.7040, 1.4168],
+            [-1.7030, 1.4175],
+            [-1.7020, 1.4162],
+            [-1.7040, 1.4168]
+          ]]
+        },
+        "type": "Polygon"
+      },
+      "zone": {
+        "value": "Zone-Polygon",
+        "type": "Text"
+      },
+      "zip": {
+        "value": "12345",
+        "type": "Text"
+      }
+    },
+    {
       "id": "Zone-LineString",
       "type": "Zone",
       "name": {
