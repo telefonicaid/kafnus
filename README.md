@@ -69,6 +69,11 @@ Complete documentation is available in the [`doc/`](./doc) directory:
 > - [Kafnus NGSI (processing)](https://github.com/telefonicaid/kafnus)
 > - [Kafnus Connect (persistence)](https://github.com/telefonicaid/kafnus-connect)
 
+## 👥 Contributors
+
+The list of contributors to the Kafnus project can be found in
+[`CONTRIBUTORS.md`](./CONTRIBUTORS.md).
+
 ## License
 
 Kafnus is licensed under [Affero General Public License (GPL)
