@@ -1,3 +1,5 @@
+![FIWARE Incubating](https://fiware.github.io/catalogue/badges/statuses/status-incubating.svg)
+
 # 🛰️ Kafnus
 
 **Kafnus** is a smart city data persistence system, designed as a modern replacement for Cygnus, built on top of **Kafka**.
