@@ -4,6 +4,15 @@
 
 It processes NGSI notifications from the Context Broker (CB) and stores them in **PostGIS** and **MongoDB**, leveraging technologies like **Kafka Stream**, **Kafka Connect**, and custom connectors.
 
+This project is part of [FIWARE](https://www.fiware.org/). For more information
+check the FIWARE Catalogue entry for the
+[Core Context Management](https://github.com/Fiware/catalogue/tree/master/core).
+
+
+| :whale: [Docker Hub](https://hub.docker.com/r/telefonicaiot/kafnus) |
+|---|
+
+
 ---
 
 ## 📦 Main Components
