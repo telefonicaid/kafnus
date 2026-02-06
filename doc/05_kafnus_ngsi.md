@@ -181,7 +181,7 @@ A valid JSON response confirms the Admin Server is running. If it fails, check t
 | Mutable (PostGIS)  | `<PREFIX>raw_mutable`      | `mutableConsumerAgent.js` |
 | Errors (PostGIS)   | `<PREFIX>raw_errors`       | `errorsConsumerAgent.js` |
 | Mongo              | `<PREFIX>raw_mongo`        | `mongoConsumerAgent.js` |
-| HTTP               | `<PREFIX>raw_sgtr`         | `sgtrConsumerAgent.js` |
+| HTTP (GraphQL)     | `<PREFIX>raw_sgtr`         | `sgtrConsumerAgent.js` |
 
 ---
 
@@ -192,7 +192,7 @@ A valid JSON response confirms the Admin Server is running. If it fails, check t
 - `<PREFIX><fiware_service>_mutable<SUFFIX>` → processed mutable  
 - `<PREFIX><db_name>_error_log<SUFFIX>` → DLQ-parsed errors  
 - Mongo output topics: `<MONGO_PREFIX><fiware_service>_mongo<SUFFIX>`  
-- HTTP output topic: `<PREFIX><fiware_service>_http<SUFFIX>`  
+- HTTP output topic: `<PREFIX>sgtr_http<SUFFIX>` or `<PREFIX><fiware_service>_sgtr_http<SUFFIX>` depending on configuration boolean flag `KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE`.
 - Topic names are dynamic, based on Kafka record headers and entity metadata.
 
 ---
@@ -507,8 +507,20 @@ The requirement identified in **Issue #179** is to support a **MongoDB prefix co
 
 ## HTTP Agent (`sgtrConsumerAgent.js`)
 
-- Consumes `<PREFIX>raw_sgtr` and produces HTTP-compatible output (`<PREFIX><fiware_service>_http<SUFFIX>`).
-- Generates GraphQL mutations per entity using `buildMutationCreate`.
+- Consumes `<PREFIX>raw_sgtr` and produces HTTP-compatible output (`<PREFIX><fiware_service>_sgtr_http<SUFFIX>`) when KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE is true, otherwise output is (`<PREFIX>sgtr_http<SUFFIX>`).
+- Generates GraphQL mutations per entity using `buildMutationCreate`, `buildMutationCreate`, `buildMutationUpdate`, `buildMutationDelete`.
+
+These mutations, like:
+```
+{
+  query:
+    mutation {
+      deleteData(dti: "grafo", uris: ["http://endpoint/grafo/resource/Class1"])
+    }
+}
+```
+contains a dti defined by default as `grafo` by `KAFNUS_NGSI_GRAPHQL_GRAFO` env conf and could be extended to `grafo_<fiware_service>` enabling boolean flag option `KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE`.
+
 
 ---
 
