@@ -67,26 +67,29 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
                 resolve(consumer);
             })
             .on('data', (message) => {
-                if (queue.size >= MAX_BUFFERED_TASKS) {
+                if (queue.size >= MAX_BUFFERED_TASKS && !paused) {
                     pauseConsumer();
-                    // Check: message could be already delivered; queue or discard
+                    logger.warn(`[consumer] Internal queue high-watermark (${queue.size})`);
                 }
                 queue.add(async () => {
+                    if (producerQueueFull) {
+                        pauseConsumer();
+                        return;
+                    }
                     try {
                         await onData(message);
+                        // If all OK and was paused by internal queue, resume when down
+                        if (paused && !producerQueueFull && queue.size < MAX_BUFFERED / 2) {
+                            resumeConsumer();
+                        }
                     } catch (err) {
                         if (err.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
                             producerQueueFull = true;
                             pauseConsumer();
-                            throw err; // do not continue
+                        } else {
+                            logger.error(`[consumer] Processing error: %s`, err?.stack || err);
                         }
-                        logger.error(`[consumer] Processing error: %s`, err?.stack || err);
                         throw err;
-                    } finally {
-                        // when queue is low then resume
-                        if (paused && !producerQueueFull && queue.size < MAX_BUFFERED_TASKS / 2) {
-                            resumeConsumer();
-                        }
                     }
                 });
             })

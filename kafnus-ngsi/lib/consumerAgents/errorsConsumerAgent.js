@@ -54,7 +54,8 @@ async function startErrorsConsumerAgent(logger, producer) {
                 if (msg.headers && msg.headers.length > 0) {
                     msg.headers.forEach((headerObj) => {
                         const headerName = Object.keys(headerObj)[0];
-                        hdrs[headerName] = Buffer.from(headerObj[headerName]).toString();
+                        const v = headerObj[headerName];
+                        hdrs[headerName] = Buffer.isBuffer(v) ? v.toString() : String(v);
                     });
                 }
 
