@@ -45,10 +45,8 @@ async function startMongoConsumerAgent(logger, producer) {
                     consumer.commitMessage(msg);
                     return;
                 }
-
                 const k = msg.key?.toString();
                 logger.info(`[mongo] key=${k} value=${rawValue}`);
-
                 let message;
                 try {
                     message = JSON.parse(rawValue);
@@ -57,29 +55,23 @@ async function startMongoConsumerAgent(logger, producer) {
                     consumer.commitMessage(msg);
                     return;
                 }
-
                 const { service: fiwareService, servicepath: servicePath } = getFiwareContext(msg.headers, message);
-
                 const mongoDb = `${fiwareService}`;
                 const mongoCollection = `${servicePath}`;
                 const outputTopic = `${config.ngsi.prefix}${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
-
                 const recvTime = DateTime.utc().toISO();
-
                 const entities = message.data || [];
                 if (entities.length === 0) {
                     // Valid payload but empty
                     consumer.commitMessage(msg);
                     return;
                 }
-
                 for (const entity of entities) {
                     const doc = {
                         recvTime,
                         entityId: entity.id,
                         entityType: entity.type
                     };
-
                     for (const [attrName, attrObj] of Object.entries(entity)) {
                         if (attrName !== 'id' && attrName !== 'type') {
                             doc[attrName] = attrObj?.value;
@@ -88,7 +80,6 @@ async function startMongoConsumerAgent(logger, producer) {
                             }
                         }
                     }
-
                     await safeProduce(producer, [
                         outputTopic,
                         null, // partition null: kafka decides
@@ -101,12 +92,10 @@ async function startMongoConsumerAgent(logger, producer) {
                         ), // Key (optional)
                         Date.now(), // timestamp
                         null, // Opaque
-                        outHeaders
+                        null
                     ]);
-
                     logger.info(`[mongo] Sent to '${outputTopic}' | DB=${mongoDb} | Collection=${mongoCollection}`);
                 }
-
                 consumer.commitMessage(msg);
             } catch (err) {
                 if (err?.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
