@@ -35,15 +35,22 @@ async function startSgtrConsumerAgent(logger, producer) {
         groupId,
         topic,
         producer,
-        onData: async ({ key, value, headers }) => {
+        onData: async (msg) => {
             const start = Date.now();
-            const k = key?.toString() || null;
-            const rawValue = value?.toString() || null;
+            const k = msg.key?.toString() || '';
+            const rawValue = msg.value?.toString() || '';
 
             logger.info(`[sgtr] key=${k} value=${rawValue}`);
 
             try {
-                const message = JSON.parse(rawValue);
+                let message;
+                try {
+                    message = JSON.parse(rawValue);
+                } catch (e) {
+                    logger.warn('[sgtr] Invalid JSON, committing: %s', e.message);
+                    consumer.commitMessage(msg);
+                    return;
+                }
                 logger.info('[sgtr] message: %j', message);
 
                 const dataList = message.data ? message.data : [];
@@ -94,9 +101,9 @@ async function startSgtrConsumerAgent(logger, producer) {
                         null, // Opaque
                         outHeaders
                     ]);
-
                     logger.info('[sgtr] Sent to %j | mutation %j', outputTopic, mutation);
                 } // for loop
+                consumer.commitMessage(msg);
             } catch (err) {
                 if (err?.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
                     // No Log, rethrow to createConsumerAgent pause

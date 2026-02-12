@@ -49,7 +49,14 @@ async function startMongoConsumerAgent(logger, producer) {
                 const k = msg.key?.toString();
                 logger.info(`[mongo] key=${k} value=${rawValue}`);
 
-                const message = JSON.parse(rawValue);
+                let message;
+                try {
+                    message = JSON.parse(rawValue);
+                } catch (e) {
+                    logger.warn('[mongo] Invalid JSON, committing: %s', e.message);
+                    consumer.commitMessage(msg);
+                    return;
+                }
 
                 const { service: fiwareService, servicepath: servicePath } = getFiwareContext(msg.headers, message);
 
@@ -84,15 +91,17 @@ async function startMongoConsumerAgent(logger, producer) {
 
                     await safeProduce(producer, [
                         outputTopic,
-                        null,
-                        Buffer.from(JSON.stringify(doc)),
+                        null, // partition null: kafka decides
+                        Buffer.from(JSON.stringify(doc)), // message
                         Buffer.from(
                             JSON.stringify({
                                 database: mongoDb,
                                 collection: mongoCollection
                             })
-                        ),
-                        Date.now()
+                        ), // Key (optional)
+                        Date.now(), // timestamp
+                        null, // Opaque
+                        outHeaders
                     ]);
 
                     logger.info(`[mongo] Sent to '${outputTopic}' | DB=${mongoDb} | Collection=${mongoCollection}`);
