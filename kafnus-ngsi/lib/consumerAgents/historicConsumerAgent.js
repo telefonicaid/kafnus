@@ -1,21 +1,21 @@
 /*
-* Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
-*
-* This file is part of kafnus
-*
-* kafnus is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Affero General Public License as
-* published by the Free Software Foundation, either version 3 of the
-* License, or (at your option) any later version.
-*
-* kafnus is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
-* General Public License for more details.
-*
-* You should have received a copy of the GNU Affero General Public License
-* along with kafnus. If not, see http://www.gnu.org/licenses/.
-*/
+ * Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
+ *
+ * This file is part of kafnus
+ *
+ * kafnus is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * kafnus is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with kafnus. If not, see http://www.gnu.org/licenses/.
+ */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
@@ -52,12 +52,20 @@ async function startHistoricConsumerAgent(logger, producer) {
                 );
                 consumer.commitMessage(msg);
             } catch (err) {
-                logger.error(` [historic] Error processing event: ${err}`);
+                if (err?.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+                    // No Log, rethrow to createConsumerAgent pause
+                    throw err;
+                }
+                logger.error(`[historic] Error processing event: ${err?.stack || err}`);
+                // Policy decision:
+                // - if no retries, then commit here (to avoid infinite loop)
+                // consumer.commitMessage(msg);
+                // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
+            } finally {
+                const duration = (Date.now() - start) / 1000;
+                messagesProcessed.labels({ flow: 'historic' }).inc();
+                processingTime.labels({ flow: 'historic' }).set(duration);
             }
-
-            const duration = (Date.now() - start) / 1000;
-            messagesProcessed.labels({ flow: 'historic' }).inc();
-            processingTime.labels({ flow: 'historic' }).set(duration);
         }
     });
 
