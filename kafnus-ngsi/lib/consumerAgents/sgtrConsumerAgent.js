@@ -24,6 +24,7 @@ const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
 const { config } = require('../../kafnusConfig');
+const Kafka = require('@confluentinc/kafka-javascript');
 
 async function startSgtrConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_sgtr';
@@ -97,12 +98,20 @@ async function startSgtrConsumerAgent(logger, producer) {
                     logger.info('[sgtr] Sent to %j | mutation %j', outputTopic, mutation);
                 } // for loop
             } catch (err) {
-                logger.error('[sgtr] Error processing event, offset NOT committed', err);
+                if (err?.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+                    // No Log, rethrow to createConsumerAgent pause
+                    throw err;
+                }
+                logger.error(`[sgtr] Error processing event: ${err?.stack || err}, offset NOT committed`);
+                // Policy decision:
+                // - if no retries, then commit here (to avoid infinite loop)
+                // consumer.commitMessage(msg);
+                // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
+            } finally {
+                const duration = (Date.now() - start) / 1000;
+                messagesProcessed.labels({ flow: 'sgtr' }).inc();
+                processingTime.labels({ flow: 'sgtr' }).set(duration);
             }
-
-            const duration = (Date.now() - start) / 1000;
-            messagesProcessed.labels({ flow: 'sgtr' }).inc();
-            processingTime.labels({ flow: 'sgtr' }).set(duration);
         }
     });
 

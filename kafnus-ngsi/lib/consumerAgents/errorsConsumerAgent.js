@@ -22,6 +22,7 @@ const { formatDatetimeIso } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
+const Kafka = require('@confluentinc/kafka-javascript');
 
 async function startErrorsConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_errors';
@@ -149,12 +150,20 @@ async function startErrorsConsumerAgent(logger, producer) {
 
                 consumer.commitMessage(msg);
             } catch (err) {
-                logger.error('[errors] Error processing event, offset NOT committed', err);
+                if (err?.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+                    // No Log, rethrow to createConsumerAgent pause
+                    throw err;
+                }
+                logger.error(`[errors] Error processing event: ${err?.stack || err}`);
+                // Policy decision:
+                // - if no retries, then commit here (to avoid infinite loop)
+                consumer.commitMessage(msg);
+                // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
+            } finally {
+                const duration = (Date.now() - start) / 1000;
+                messagesProcessed.labels({ flow: 'errors' }).inc();
+                processingTime.labels({ flow: 'errors' }).set(duration);
             }
-
-            const duration = (Date.now() - start) / 1000;
-            messagesProcessed.labels({ flow: 'errors' }).inc();
-            processingTime.labels({ flow: 'errors' }).set(duration);
         }
     });
 

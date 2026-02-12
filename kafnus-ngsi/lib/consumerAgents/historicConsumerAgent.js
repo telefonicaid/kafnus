@@ -21,6 +21,7 @@ const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
+const Kafka = require('@confluentinc/kafka-javascript');
 
 async function startHistoricConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_historic';

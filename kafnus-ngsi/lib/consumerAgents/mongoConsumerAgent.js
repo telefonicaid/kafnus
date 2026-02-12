@@ -23,6 +23,7 @@ const { safeProduce } = require('../utils/handleEntityCb');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
+const Kafka = require('@confluentinc/kafka-javascript');
 
 const OUTPUT_TOPIC_SUFFIX = '_mongo' + config.ngsi.suffix;
 
@@ -99,12 +100,20 @@ async function startMongoConsumerAgent(logger, producer) {
 
                 consumer.commitMessage(msg);
             } catch (err) {
-                logger.error('[mongo] Error processing event, offset NOT committed', err);
+                if (err?.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+                    // No Log, rethrow to createConsumerAgent pause
+                    throw err;
+                }
+                logger.error(`[mongo] Error processing event: ${err?.stack || err} offset NOT committed`);
+                // Policy decision:
+                // - if no retries, then commit here (to avoid infinite loop)
+                // consumer.commitMessage(msg);
+                // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
+            } finally {
+                const duration = (Date.now() - start) / 1000;
+                messagesProcessed.labels({ flow: 'mongo' }).inc();
+                processingTime.labels({ flow: 'mongo' }).set(duration);
             }
-
-            const duration = (Date.now() - start) / 1000;
-            messagesProcessed.labels({ flow: 'mongo' }).inc();
-            processingTime.labels({ flow: 'mongo' }).set(duration);
         }
     });
 
