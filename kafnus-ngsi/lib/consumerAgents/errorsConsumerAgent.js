@@ -18,7 +18,7 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { formatDatetimeIso } = require('../utils/ngsiUtils');
+const { formatDatetimeIso, truncate } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
@@ -93,7 +93,6 @@ async function startErrorsConsumerAgent(logger, producer) {
                 } else {
                     errorMessage = fullErrorMsg;
                 }
-
                 let originalQuery;
                 const queryMatch = fullErrorMsg.match(/(INSERT INTO "[^"]+"[^)]+\)[^)]*\))/);
                 if (queryMatch) {
@@ -116,7 +115,8 @@ async function startErrorsConsumerAgent(logger, producer) {
                         originalQuery = JSON.stringify(valueJson);
                     }
                 }
-
+                errorMessage = truncate(errorMessage, 4000);
+                originalQuery = truncate(originalQuery, 8000);
                 const errorRecord = {
                     schema: {
                         type: 'struct',
