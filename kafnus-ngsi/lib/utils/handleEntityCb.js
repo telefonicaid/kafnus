@@ -1,21 +1,21 @@
 /*
-* Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
-*
-* This file is part of kafnus
-*
-* kafnus is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Affero General Public License as
-* published by the Free Software Foundation, either version 3 of the
-* License, or (at your option) any later version.
-*
-* kafnus is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
-* General Public License for more details.
-*
-* You should have received a copy of the GNU Affero General Public License
-* along with kafnus. If not, see http://www.gnu.org/licenses/.
-*/
+ * Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
+ *
+ * This file is part of kafnus
+ *
+ * kafnus is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * kafnus is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with kafnus. If not, see http://www.gnu.org/licenses/.
+ */
 
 const {
     toWktGeometry,
@@ -33,32 +33,22 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function safeProduce(producer, args, logger) {
-    while (true) {
-        try {
-            producer.produce(...args);
-            return;
-        } catch (err) {
-            if (err.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
-                logger.warn('[producer] Queue full — waiting...');
-                await sleep(50);
-            } else {
-                throw err;
-            }
+async function safeProduce(producer, args) {
+    try {
+        producer.produce(...args);
+    } catch (err) {
+        if (err.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+            // Without logs to avoid duplicates
+            throw err; // raise backpressure
         }
+        throw err;
     }
 }
 
 async function handleEntityCb(
     logger,
     rawValue,
-    {
-        headers = [],
-        suffix = '',
-        flowSuffix = '_historic',
-        includeTimeinstant = true,
-        keyFields = ['entityid']
-    } = {},
+    { headers = [], suffix = '', flowSuffix = '_historic', includeTimeinstant = true, keyFields = ['entityid'] } = {},
     producer
 ) {
     try {
@@ -127,25 +117,35 @@ async function handleEntityCb(
             const headersOut = [
                 { 'fiware-service': Buffer.from(sanitizeString(service)) },
                 { 'fiware-servicepath': Buffer.from(sanitizeString(servicepath)) },
-                { 'entityType': Buffer.from(sanitizeString(entityType)) },
-                { 'entityId': Buffer.from(sanitizeString(entityId)) },
-                { 'suffix': Buffer.from(flowSuffix === '_historic' ? '' : sanitizeString(flowSuffix)) }
+                { entityType: Buffer.from(sanitizeString(entityType)) },
+                { entityId: Buffer.from(sanitizeString(entityId)) },
+                { suffix: Buffer.from(flowSuffix === '_historic' ? '' : sanitizeString(flowSuffix)) }
             ];
 
-            await safeProduce(
-                producer,
-                [topicName, null, Buffer.from(JSON.stringify(kafkaMessage)), kafkaKey, Date.now(), null, headersOut],
-                logger
-            );
+            await safeProduce(producer, [
+                topicName,
+                null,
+                Buffer.from(JSON.stringify(kafkaMessage)),
+                kafkaKey,
+                Date.now(),
+                null,
+                headersOut
+            ]);
 
             logger.info(
-                `[${(suffix ?? flowSuffix).replace(/^_/, '') || 'historic'}] Sent to topic '${topicName}', headers: ${JSON.stringify(
-                    headersOut.map(h => Object.fromEntries(Object.entries(h).map(([k, v]) => [k, v.toString()])))
+                `[${
+                    (suffix ?? flowSuffix).replace(/^_/, '') || 'historic'
+                }] Sent to topic '${topicName}', headers: ${JSON.stringify(
+                    headersOut.map((h) => Object.fromEntries(Object.entries(h).map(([k, v]) => [k, v.toString()])))
                 )}, entityid: ${entity.entityid}`
             );
         }
     } catch (err) {
-        logger.error(`Error in handleEntityCb: ${err}`);
+        if (err?.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+            throw err; // allow consumer pause
+        }
+        logger.error(`Error in handleEntityCb: ${err?.stack || err}`);
+        throw err;
     }
 }
 

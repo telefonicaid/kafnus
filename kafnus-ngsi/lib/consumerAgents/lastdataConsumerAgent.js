@@ -1,27 +1,28 @@
 /*
-* Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
-*
-* This file is part of kafnus
-*
-* kafnus is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Affero General Public License as
-* published by the Free Software Foundation, either version 3 of the
-* License, or (at your option) any later version.
-*
-* kafnus is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
-* General Public License for more details.
-*
-* You should have received a copy of the GNU Affero General Public License
-* along with kafnus. If not, see http://www.gnu.org/licenses/.
-*/
+ * Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
+ *
+ * This file is part of kafnus
+ *
+ * kafnus is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * kafnus is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with kafnus. If not, see http://www.gnu.org/licenses/.
+ */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { handleEntityCb, safeProduce } = require('../utils/handleEntityCb');
 const { buildKafkaKey, sanitizeString, getFiwareContext } = require('../utils/ngsiUtils');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
+const Kafka = require('@confluentinc/kafka-javascript');
 
 async function startLastdataConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_lastdata';
@@ -73,29 +74,27 @@ async function startLastdataConsumerAgent(logger, producer) {
                     const headersOut = [
                         { 'fiware-service': Buffer.from(sanitizeString(service)) },
                         { 'fiware-servicepath': Buffer.from(sanitizeString(servicepath)) },
-                        { 'entityType': Buffer.from(sanitizeString(entityType)) },
-                        { 'entityId': Buffer.from(sanitizeString(entityId)) },
-                        { 'suffix': Buffer.from(sanitizeString(flowSuffix)) }
+                        { entityType: Buffer.from(sanitizeString(entityType)) },
+                        { entityId: Buffer.from(sanitizeString(entityId)) },
+                        { suffix: Buffer.from(sanitizeString(flowSuffix)) }
                     ];
 
-                    await safeProduce(
-                        producer,
-                        [
-                            topicName,
-                            null,        // partition
-                            null,        // message
-                            kafkaKey,
-                            Date.now(),
-                            null,        // opaque
-                            headersOut
-                        ],
-                        logger
-                    );
+                    await safeProduce(producer, [
+                        topicName,
+                        null, // partition
+                        null, // message
+                        kafkaKey,
+                        Date.now(),
+                        null, // opaque
+                        headersOut
+                    ]);
 
                     consumer.commitMessage(msg);
                     logger.info(
                         `['lastdata'] Sent to topic '${topicName}', headers: ${JSON.stringify(
-                            headersOut.map(h => Object.fromEntries(Object.entries(h).map(([k, v]) => [k, v.toString()])))
+                            headersOut.map((h) =>
+                                Object.fromEntries(Object.entries(h).map(([k, v]) => [k, v.toString()]))
+                            )
                         )}, entityid: ${deleteEntity.entityid}`
                     );
                 } else {
@@ -114,12 +113,20 @@ async function startLastdataConsumerAgent(logger, producer) {
                     consumer.commitMessage(msg);
                 }
             } catch (err) {
-                logger.error('[lastdata] Error processing event:', err);
+                if (err?.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+                    // No Log, rethrow to createConsumerAgent pause
+                    throw err;
+                }
+                logger.error(`[lastdata] Error processing event: ${err?.stack || err}`);
+                // Policy decision:
+                // - if no retries, then commit here (to avoid infinite loop)
+                // consumer.commitMessage(msg);
+                // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
+            } finally {
+                const duration = (Date.now() - start) / 1000;
+                messagesProcessed.labels({ flow: 'lastdata' }).inc();
+                processingTime.labels({ flow: 'lastdata' }).set(duration);
             }
-
-            const duration = (Date.now() - start) / 1000;
-            messagesProcessed.labels({ flow: 'lastdata' }).inc();
-            processingTime.labels({ flow: 'lastdata' }).set(duration);
         }
     });
 

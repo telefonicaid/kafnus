@@ -1,21 +1,21 @@
 /*
-* Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
-*
-* This file is part of kafnus
-*
-* kafnus is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Affero General Public License as
-* published by the Free Software Foundation, either version 3 of the
-* License, or (at your option) any later version.
-*
-* kafnus is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
-* General Public License for more details.
-*
-* You should have received a copy of the GNU Affero General Public License
-* along with kafnus. If not, see http://www.gnu.org/licenses/.
-*/
+ * Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
+ *
+ * This file is part of kafnus
+ *
+ * kafnus is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * kafnus is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with kafnus. If not, see http://www.gnu.org/licenses/.
+ */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { getFiwareContext } = require('../utils/ngsiUtils');
@@ -24,6 +24,7 @@ const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
 const { config } = require('../../kafnusConfig');
+const Kafka = require('@confluentinc/kafka-javascript');
 
 async function startSgtrConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_sgtr';
@@ -34,22 +35,29 @@ async function startSgtrConsumerAgent(logger, producer) {
         groupId,
         topic,
         producer,
-        onData: async ({ key, value, headers }) => {
+        onData: async (msg) => {
             const start = Date.now();
-            const k = key?.toString() || null;
-            const rawValue = value?.toString() || null;
+            const k = msg.key?.toString() || '';
+            const rawValue = msg.value?.toString() || '';
 
             logger.info(`[sgtr] key=${k} value=${rawValue}`);
 
             try {
-                const message = JSON.parse(rawValue);
+                let message;
+                try {
+                    message = JSON.parse(rawValue);
+                } catch (e) {
+                    logger.warn('[sgtr] Invalid JSON, committing: %s', e.message);
+                    consumer.commitMessage(msg);
+                    return;
+                }
                 logger.info('[sgtr] message: %j', message);
 
                 const dataList = message.data ? message.data : [];
 
                 for (const entityObject of dataList) {
-                    const { service, servicepath } = getFiwareContext(headers, message);
-                    const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
+                    const { service, servicepath } = getFiwareContext(msg.headers, message);
+                    const timestamp = msg.headers.timestamp || Math.floor(Date.now() / 1000);
                     const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
 
                     logger.debug('[sgtr] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
@@ -84,29 +92,33 @@ async function startSgtrConsumerAgent(logger, producer) {
                     }
                     const outHeaders = [];
                     // Publish in output topic
-                    await safeProduce(
-                        producer,
-                        [
-                            outputTopic,
-                            null, // partition null: kafka decides
-                            Buffer.from(JSON.stringify(mutation)), // message
-                            null, // Key (optional)
-                            Date.now(), // timestamp
-                            null, // Opaque
-                            outHeaders
-                        ],
-                        logger
-                    );
-
+                    await safeProduce(producer, [
+                        outputTopic,
+                        null, // partition null: kafka decides
+                        Buffer.from(JSON.stringify(mutation)), // message
+                        null, // Key (optional)
+                        Date.now(), // timestamp
+                        null, // Opaque
+                        outHeaders
+                    ]);
                     logger.info('[sgtr] Sent to %j | mutation %j', outputTopic, mutation);
                 } // for loop
+                consumer.commitMessage(msg);
             } catch (err) {
-                logger.error('[sgtr] Error processing event, offset NOT committed', err);
+                if (err?.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+                    // No Log, rethrow to createConsumerAgent pause
+                    throw err;
+                }
+                logger.error(`[sgtr] Error processing event: ${err?.stack || err}, offset NOT committed`);
+                // Policy decision:
+                // - if no retries, then commit here (to avoid infinite loop)
+                // consumer.commitMessage(msg);
+                // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
+            } finally {
+                const duration = (Date.now() - start) / 1000;
+                messagesProcessed.labels({ flow: 'sgtr' }).inc();
+                processingTime.labels({ flow: 'sgtr' }).set(duration);
             }
-
-            const duration = (Date.now() - start) / 1000;
-            messagesProcessed.labels({ flow: 'sgtr' }).inc();
-            processingTime.labels({ flow: 'sgtr' }).set(duration);
         }
     });
 
