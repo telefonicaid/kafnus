@@ -79,7 +79,7 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
                     try {
                         await onData(message);
                         // If all OK and was paused by internal queue, resume when down
-                        if (paused && !producerQueueFull && queue.size < MAX_BUFFERED / 2) {
+                        if (paused && !producerQueueFull && queue.size < MAX_BUFFERED_TASKS / 2) {
                             resumeConsumer();
                         }
                     } catch (err) {
