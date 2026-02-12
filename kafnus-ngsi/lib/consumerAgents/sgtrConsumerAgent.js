@@ -56,8 +56,8 @@ async function startSgtrConsumerAgent(logger, producer) {
                 const dataList = message.data ? message.data : [];
 
                 for (const entityObject of dataList) {
-                    const { service, servicepath } = getFiwareContext(headers, message);
-                    const timestamp = headers.timestamp || Math.floor(Date.now() / 1000);
+                    const { service, servicepath } = getFiwareContext(msg.headers, message);
+                    const timestamp = msg.headers.timestamp || Math.floor(Date.now() / 1000);
                     const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
 
                     logger.debug('[sgtr] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
