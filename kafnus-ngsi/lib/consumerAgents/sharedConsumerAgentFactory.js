@@ -35,18 +35,29 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
     let producerQueueFull = false;
 
     function pauseConsumer() {
-        if (!paused) {
+        if (paused) {
+            return;
+        }
+        try {
             consumer.pause([{ topic }]);
             paused = true;
-            logger.warn(`[consumer] Paused due to producer backpressure`);
+            logger.warn('[consumer] Paused due to producer backpressure');
+        } catch (err) {
+            // NO rethrow: pausing is best-effort
+            logger.error('[consumer] Failed to pause consumer', err?.stack || err);
         }
     }
 
     function resumeConsumer() {
-        if (paused) {
+        if (!paused) {
+            return;
+        }
+        try {
             consumer.resume([{ topic }]);
             paused = false;
-            logger.info(`[consumer] Resumed`);
+            logger.info('[consumer] Resumed');
+        } catch (err) {
+            logger.error('[consumer] Failed to resume consumer', err?.stack || err);
         }
     }
 
@@ -83,7 +94,7 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
                             resumeConsumer();
                         }
                     } catch (err) {
-                        if (err.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+                        if (err.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
                             producerQueueFull = true;
                             pauseConsumer();
                         } else {
