@@ -1,33 +1,27 @@
 /*
- * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de Espa�a, S.A.U.
- * PROJECT: Kafnus
+ * Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
  *
- * This software and / or computer program has been developed by Telefónica Soluciones
- * de Informática y Comunicaciones de España, S.A.U (hereinafter TSOL) and is protected
- * as copyright by the applicable legislation on intellectual property.
+ * This file is part of kafnus
  *
- * It belongs to TSOL, and / or its licensors, the exclusive rights of reproduction,
- * distribution, public communication and transformation, and any economic right on it,
- * all without prejudice of the moral rights of the authors mentioned above. It is expressly
- * forbidden to decompile, disassemble, reverse engineer, sublicense or otherwise transmit
- * by any means, translate or create derivative works of the software and / or computer
- * programs, and perform with respect to all or part of such programs, any type of exploitation.
+ * kafnus is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * Any use of all or part of the software and / or computer program will require the
- * express written consent of TSOL. In all cases, it will be necessary to make
- * an express reference to TSOL ownership in the software and / or computer
- * program.
+ * kafnus is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+ * General Public License for more details.
  *
- * Non-fulfillment of the provisions set forth herein and, in general, any violation of
- * the peaceful possession and ownership of these rights will be prosecuted by the means
- * provided in both Spanish and international law. TSOL reserves any civil or
- * criminal actions it may exercise to protect its rights.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with kafnus. If not, see http://www.gnu.org/licenses/.
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
+const Kafka = require('@confluentinc/kafka-javascript');
 
 async function startHistoricConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_historic';
@@ -59,12 +53,20 @@ async function startHistoricConsumerAgent(logger, producer) {
                 );
                 consumer.commitMessage(msg);
             } catch (err) {
-                logger.error(` [historic] Error processing event: ${err}`);
+                if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
+                    // No Log, rethrow to createConsumerAgent pause
+                    throw err;
+                }
+                logger.error(`[historic] Error processing event: ${err?.stack || err}`);
+                // Policy decision:
+                // - if no retries, then commit here (to avoid infinite loop)
+                // consumer.commitMessage(msg);
+                // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
+            } finally {
+                const duration = (Date.now() - start) / 1000;
+                messagesProcessed.labels({ flow: 'historic' }).inc();
+                processingTime.labels({ flow: 'historic' }).set(duration);
             }
-
-            const duration = (Date.now() - start) / 1000;
-            messagesProcessed.labels({ flow: 'historic' }).inc();
-            processingTime.labels({ flow: 'historic' }).set(duration);
         }
     });
 

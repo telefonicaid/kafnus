@@ -20,7 +20,7 @@
     "errors.deadletterqueue.topic.replication.factor": "1",
     "errors.log.enable": false,
     "errors.log.include.messages": false,
-    "max.retries": "0",
-    "retry.backoff.ms": "0"
+    "max.retries": "1",
+    "retry.backoff.ms": "500"
   }
 }

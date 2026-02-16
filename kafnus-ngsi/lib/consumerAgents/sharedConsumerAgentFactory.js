@@ -1,27 +1,20 @@
 /*
- * Copyright 2025 Telefonica Soluciones de Informatica y Comunicaciones de España, S.A.U.
- * PROJECT: Kafnus
+ * Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
  *
- * This software and / or computer program has been developed by TelefÃ³nica Soluciones
- * de InformÃ¡tica y Comunicaciones de EspaÃ±a, S.A.U (hereinafter TSOL) and is protected
- * as copyright by the applicable legislation on intellectual property.
+ * This file is part of kafnus
  *
- * It belongs to TSOL, and / or its licensors, the exclusive rights of reproduction,
- * distribution, public communication and transformation, and any economic right on it,
- * all without prejudice of the moral rights of the authors mentioned above. It is expressly
- * forbidden to decompile, disassemble, reverse engineer, sublicense or otherwise transmit
- * by any means, translate or create derivative works of the software and / or computer
- * programs, and perform with respect to all or part of such programs, any type of exploitation.
+ * kafnus is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * Any use of all or part of the software and / or computer program will require the
- * express written consent of TSOL. In all cases, it will be necessary to make
- * an express reference to TSOL ownership in the software and / or computer
- * program.
+ * kafnus is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+ * General Public License for more details.
  *
- * Non-fulfillment of the provisions set forth herein and, in general, any violation of
- * the peaceful possession and ownership of these rights will be prosecuted by the means
- * provided in both Spanish and international law. TSOL reserves any civil or
- * criminal actions it may exercise to protect its rights.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with kafnus. If not, see http://www.gnu.org/licenses/.
  */
 
 const Kafka = require('@confluentinc/kafka-javascript');
@@ -37,23 +30,34 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
 
     // Queue for processing: just 1 message at the same time
     const queue = new PQueue({ concurrency: 1 });
-
+    const MAX_BUFFERED_TASKS = 1000;
     let paused = false;
     let producerQueueFull = false;
 
     function pauseConsumer() {
-        if (!paused) {
+        if (paused) {
+            return;
+        }
+        try {
             consumer.pause([{ topic }]);
             paused = true;
-            logger.warn(`[consumer] Paused due to producer backpressure`);
+            logger.warn('[consumer] Paused due to producer backpressure');
+        } catch (err) {
+            // NO rethrow: pausing is best-effort
+            logger.error('[consumer] Failed to pause consumer', err?.stack || err);
         }
     }
 
     function resumeConsumer() {
-        if (paused) {
+        if (!paused) {
+            return;
+        }
+        try {
             consumer.resume([{ topic }]);
             paused = false;
-            logger.info(`[consumer] Resumed`);
+            logger.info('[consumer] Resumed');
+        } catch (err) {
+            logger.error('[consumer] Failed to resume consumer', err?.stack || err);
         }
     }
 
@@ -74,21 +78,29 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
                 resolve(consumer);
             })
             .on('data', (message) => {
+                if (queue.size >= MAX_BUFFERED_TASKS && !paused) {
+                    pauseConsumer();
+                    logger.warn(`[consumer] Internal queue high-watermark (${queue.size})`);
+                }
                 queue.add(async () => {
                     if (producerQueueFull) {
                         pauseConsumer();
                         return;
                     }
-
                     try {
                         await onData(message);
+                        // If all OK and was paused by internal queue, resume when down
+                        if (paused && !producerQueueFull && queue.size < MAX_BUFFERED_TASKS / 2) {
+                            resumeConsumer();
+                        }
                     } catch (err) {
-                        if (err.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+                        if (err.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
                             producerQueueFull = true;
                             pauseConsumer();
                         } else {
-                            logger.error(`[consumer] Processing error: %j`, err);
+                            logger.error(`[consumer] Processing error: %s`, err?.stack || err);
                         }
+                        throw err;
                     }
                 });
             })
