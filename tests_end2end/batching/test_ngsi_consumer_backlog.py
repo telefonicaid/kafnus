@@ -19,10 +19,12 @@ import os
 import time
 import json
 from datetime import datetime, timedelta
+from pathlib import Path
 from confluent_kafka import Consumer
 
 from common.common_test import OrionRequestData, ServiceOperations
-from common.config import logger
+from common.config import logger, DEFAULT_DB_CONFIG
+from common.utils.sql_runner import execute_sql_file
 
 DEFAULT_NOTIF_COUNT = 1000
 SENTINEL_ID = "__END__"
@@ -44,6 +46,10 @@ def test_ngsi_consumer_backlog(multiservice_stack):
 
     compose = multiservice_stack.compose
     logger.info(f"🧪 Starting NGSI consumer backlog test: N={notif_count}")
+
+    # 0) Prepare tables in DB for test
+    setup_file = Path(__file__).resolve().parent / "setup.sql"
+    execute_sql_file(setup_file, db_config=DEFAULT_DB_CONFIG)
 
     # 1) Stops kafnus-ngsi to acumulate in backlog
     logger.info("⏸ Stopping kafnus-ngsi to build backlog")

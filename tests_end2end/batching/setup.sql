@@ -127,8 +127,8 @@ CREATE TABLE IF NOT EXISTS test.ngsi_backlog_test (
     CONSTRAINT ngsi_backlog_test_pkey PRIMARY KEY (timeinstant, entityid)
 );
 
-DROP TABLE IF EXISTS test.ngsi_sentinel_test;
-CREATE TABLE IF NOT EXISTS test.ngsi_sentinel_test (
+DROP TABLE IF EXISTS test.ngsi_backlog_sentinel_test;
+CREATE TABLE IF NOT EXISTS test.ngsi_backlog_sentinel_test (
     recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
     fiwareservicepath TEXT,
     entityid TEXT,
@@ -136,5 +136,5 @@ CREATE TABLE IF NOT EXISTS test.ngsi_sentinel_test (
     timeinstant TIMESTAMPTZ,
     temperature DOUBLE PRECISION,
     seq INTEGER,
-    CONSTRAINT ngsi_sentinel_test_pkey PRIMARY KEY (timeinstant, entityid)
+    CONSTRAINT ngsi_backlog_sentinel_test_pkey PRIMARY KEY (timeinstant, entityid)
 );
