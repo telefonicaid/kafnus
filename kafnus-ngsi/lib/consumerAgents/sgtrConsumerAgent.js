@@ -105,7 +105,7 @@ async function startSgtrConsumerAgent(logger, producer) {
                 } // for loop
                 consumer.commitMessage(msg);
             } catch (err) {
-                if (err?.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+                if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
                 }

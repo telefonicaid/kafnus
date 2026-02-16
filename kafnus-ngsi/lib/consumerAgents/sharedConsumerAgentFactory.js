@@ -83,7 +83,7 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
                             resumeConsumer();
                         }
                     } catch (err) {
-                        if (err.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
+                        if (err.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
                             producerQueueFull = true;
                             pauseConsumer();
                         } else {
