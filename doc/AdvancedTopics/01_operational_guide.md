@@ -413,4 +413,5 @@ SELECT * FROM test.simple_sensor LIMIT 5;
 ## 🧭 Navigation
 
 - [⬅️ Back: Advanced Topics](/doc/03_advanced_topics.md)
-
+- [🏠 Main index](/README.md#documentation)
+- [➡️ Next: Security](/doc/AdvancedTopics/02_security.md)

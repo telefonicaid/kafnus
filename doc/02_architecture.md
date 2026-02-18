@@ -150,5 +150,5 @@ Kafnus Connect configurations are defined in JSON files under `sinks/`.
 ## 🧭 Navigation
 
 - [⬅️ Previous: Installation](/doc/01_installation.md)
-- [🏠 Main index](../README.md#documentation)
-- [➡️ Next: Operational-Guide](/doc/03_advanced_topics.md)
+- [🏠 Main index](/README.md#documentation)
+- [➡️ Next: Advanced Topics](/doc/03_advanced_topics.md)

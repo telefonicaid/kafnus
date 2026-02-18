@@ -205,5 +205,5 @@ Refer to the [08_testing.md](./08_testing.md) guide for full details.
 ## 🧭 Navigation
 
 - [⬅️ Previous: Operational Guide](/doc/03_advanced_topics.md)
-- [🏠 Main index](../README.md#documentation)
+- [🏠 Main index](/README.md#documentation)
 - [➡️ Next: Kafnus NGSI](/doc/05_kafnus_ngsi.md)

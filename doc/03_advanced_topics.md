@@ -29,7 +29,7 @@ Refer to the [Operational Guide](/doc/AdvancedTopics/01_operational_guide.md) fo
 * Connector management: registering, updating, and deleting sinks
 * Multi-tenant deployments: adapting topic prefixes, database schemas, and connectors per service
 
-> 💡 This section provides practical operational commands, but **security considerations should always be applied first** (see Section 1).
+> 💡 This section provides practical operational commands, but **security considerations are in a separated file** (see Section 1).
 
 ---
 
@@ -59,33 +59,15 @@ Kafnus uses structured topic naming and dynamic routing:
 
 Operators should regularly verify:
 
-* Kafka topic existence and sample messages:
-
-```bash
-docker exec kafka kafka-topics --list --bootstrap-server kafka:9092
-docker exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
-  --bootstrap-server kafka:9092 --topic <topic-name> --from-beginning --max-messages 5
-```
-
+* Kafka topic existence and sample messages.
 * PostGIS and MongoDB inserts to confirm data persistence.
 * Connector health via Kafka Connect REST API (`/connectors/<name>/status`).
 * Admin server endpoints (`/health`, `/logLevel`) for NGSI monitoring.
 
 ---
 
-## 5️⃣ References
-
-* [Kafka Security Guide](./03_kafka_security.md) – Authentication, SASL, ACLs, operational notes
-* [Operational Guide](./00_operational_guide.md) – Start/stop, health checks, logs, connectors
-* [Kafnus NGSI](./05_kafnus_ngsi.md) – NGSI stream processor details
-* [Kafnus Connect](./06_kafnus_connect.md) – Connect sinks, HeaderRouter, MongoDB/PostGIS routing
-
-> ⚠️ **Recommendation:** Review security settings before enabling multi-tenant connectors or new topics.
-
----
-
 ## 🧭 Navigation
 
 - [⬅️ Previous: Architecture](/doc/02_architecture.md)
-- [🏠 Main index](../README.md#documentation)
+- [🏠 Main index](/README.md#documentation)
 - [➡️ Next: Docker](/doc/04_docker.md)

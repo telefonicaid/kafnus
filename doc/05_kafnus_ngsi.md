@@ -614,5 +614,5 @@ These variables control fetch behavior, session handling, and **manual offset ma
 ## 🧭 Navigation
 
 - [⬅️ Previous: Docker](/doc/04_docker.md)
-- [🏠 Main index](../README.md#documentation)
+- [🏠 Main index](/README.md#documentation)
 - [➡️ Next: Kafnus-Connect](/doc/06_kafnus_connect.md)

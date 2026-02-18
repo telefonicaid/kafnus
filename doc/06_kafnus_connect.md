@@ -326,5 +326,5 @@ The configuration ensures reproducible and isolated testing environments for all
 ## 🧭 Navigation
 
 - [⬅️ Previous: Kafnus NGSI](/doc/05_kafnus_ngsi.md)
-- [🏠 Main index](../README.md#documentation)
+- [🏠 Main index](/README.md#documentation)
 - [➡️ Next: Monitoring](/doc/07_monitoring.md)

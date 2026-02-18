@@ -6,6 +6,34 @@ This section provides a complete operational reference for enabling and managing
 
 ---
 
+## Required Broker Settings
+
+Kafka brokers must be configured for SASL authentication, for example:
+
+```yaml
+KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+KAFKA_SASL_MECHANISM_CONTROLLER_PROTOCOL: PLAIN
+KAFKA_OPTS: -Djava.security.auth.login.config=/opt/kafka/config/kafka_server_jaas.conf
+KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+```
+
+Example `kafka_server_jaas.conf`:
+
+```properties
+KafkaServer {
+  org.apache.kafka.common.security.plain.PlainLoginModule required
+  username="admin"
+  password="admin-secret"
+  user_admin="admin-secret"
+  user_ngsi-user="ngsi-pass"
+  user_connect-user="connect-pass";
+};
+```
+
+---
+
 ## 1️⃣ Kafnus NGSI – Kafka Authentication
 
 `Kafnus NGSI` is a Node.js service built on [`@confluentinc/kafka-javascript`](https://www.npmjs.com/package/@confluentinc/kafka-js), supporting SASL authentication out of the box. No code changes are required.
@@ -33,34 +61,6 @@ This section provides a complete operational reference for enabling and managing
 
 `Kafnus Connect` is based on Kafka Connect. Enabling SASL required minor modifications to the `docker-entrypoint.sh` script to configure **all internal clients** (Worker, Producer, Consumer).
 
-### 🔧 Required Broker Settings
-
-Kafka brokers must be configured for SASL authentication:
-
-```yaml
-KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
-KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
-KAFKA_SASL_MECHANISM_CONTROLLER_PROTOCOL: PLAIN
-KAFKA_OPTS: -Djava.security.auth.login.config=/opt/kafka/config/kafka_server_jaas.conf
-KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
-KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-```
-
-Example `kafka_server_jaas.conf`:
-
-```properties
-KafkaServer {
-  org.apache.kafka.common.security.plain.PlainLoginModule required
-  username="admin"
-  password="admin-secret"
-  user_admin="admin-secret"
-  user_ngsi-user="ngsi-pass"
-  user_connect-user="connect-pass";
-};
-```
-
----
-
 ### 🔧 Connect Environment Variables
 
 | Variable                             | Description                           |
@@ -76,30 +76,6 @@ KafkaServer {
 | `CONNECT_CONSUMER_SASL_JAAS_CONFIG`  | JAAS config for internal consumer     |
 
 > **Important:** All three clients must be configured; omitting any will result in SASL handshake failures.
-
----
-
-### 🔧 Entrypoint Modification
-
-```bash
-# Security (optional)
-if [ -n "${CONNECT_SECURITY_PROTOCOL}" ]; then
-cat >> "${CONFIG_FILE}" <<EOF
-
-security.protocol=${CONNECT_SECURITY_PROTOCOL}
-sasl.mechanism=${CONNECT_SASL_MECHANISM}
-sasl.jaas.config=${CONNECT_SASL_JAAS_CONFIG}
-
-producer.security.protocol=${CONNECT_PRODUCER_SECURITY_PROTOCOL}
-producer.sasl.mechanism=${CONNECT_PRODUCER_SASL_MECHANISM}
-producer.sasl.jaas.config=${CONNECT_PRODUCER_SASL_JAAS_CONFIG}
-
-consumer.security.protocol=${CONNECT_CONSUMER_SECURITY_PROTOCOL}
-consumer.sasl.mechanism=${CONNECT_CONSUMER_SASL_MECHANISM}
-consumer.sasl.jaas.config=${CONNECT_CONSUMER_SASL_JAAS_CONFIG}
-EOF
-fi
-```
 
 ---
 
@@ -167,7 +143,7 @@ In a secure Kafnus deployment, ACLs should be configured to match the **data flo
   --operation Read --topic smc_ --resource-pattern-type prefixed
 ```
 
-Repeat for all required operations (`Write`, `Create`) and users.
+Repeat for all required operations (`Read`, `Write`, `Create`) and users.
 
 ---
 
@@ -183,3 +159,5 @@ Repeat for all required operations (`Write`, `Create`) and users.
 ## 🧭 Navigation
 
 - [⬅️ Back: Advanced Topics](/doc/03_advanced_topics.md)
+- [🏠 Main index](/README.md#documentation)
+- [➡️ Next: Docker](/doc/04_docker.md)
