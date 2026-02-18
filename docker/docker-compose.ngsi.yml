@@ -23,9 +23,9 @@ services:
       context: ../kafnus-ngsi
       dockerfile: Dockerfile
     image: kafnus-ngsi # FIXME: telefonicaiot/kafnus-ngsi (at some moment we will use dockerhub image but by the moment kafnus-ngsi is evolving fast so we build in GitAction directly :)
-    depends_on:
-      kafka:
-        condition: service_healthy
+#    depends_on:
+#      kafka:
+#        condition: service_healthy
 #      FIXME: If the create-topics service is repurposed, uncomment the following lines
 #      create-topics:
 #        condition: service_completed_successfully
@@ -36,6 +36,12 @@ services:
       - KAFNUS_NGSI_LOG_LEVEL=INFO
       - KAFNUS_NGSI_PREFIX_TOPIC=smc_
       - KAFNUS_NGSI_SUFFIX_TOPIC=_processed
+
+      - KAFNUS_NGSI_KAFKA_BROKER=kafka:29092
+      - KAFNUS_NGSI_SECURITY_PROTOCOL=SASL_PLAINTEXT
+      - KAFNUS_NGSI_SASL_MECHANISMS=PLAIN
+      - KAFNUS_NGSI_SASL_USERNAME=ngsi-user
+      - KAFNUS_NGSI_SASL_PASSWORD=ngsi-pass
     networks:
       - kafka-postgis-net
     ports:
