@@ -412,7 +412,5 @@ SELECT * FROM test.simple_sensor LIMIT 5;
 
 ## 🧭 Navigation
 
-- [⬅️ Previous: Architecture](/doc//02_architecture.md)
-- [🏠 Main index](../README.md#documentation)
-- [➡️ Next: Docker Details](/doc//04_docker.md)
+- [⬅️ Back: Advanced Topics](/doc/03_advanced_topics.md)
 
