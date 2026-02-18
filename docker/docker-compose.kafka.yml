@@ -34,25 +34,45 @@ services:
       - CLUSTER_ID=kafka-docker-cluster-1
       - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:29093
 
-      - KAFKA_LISTENERS=PLAINTEXT_HOST://0.0.0.0:9092,PLAINTEXT_DOCKER://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT_HOST://localhost:9092,PLAINTEXT_DOCKER://kafka:29092
-      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT_HOST:PLAINTEXT,PLAINTEXT_DOCKER:PLAINTEXT,CONTROLLER:PLAINTEXT
-      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT_DOCKER
+      - KAFKA_LISTENERS=SASL_PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093
+      - KAFKA_ADVERTISED_LISTENERS=SASL_PLAINTEXT://kafka:29092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=SASL_PLAINTEXT:SASL_PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=SASL_PLAINTEXT
       - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+      # SASL config
+      - KAFKA_SASL_ENABLED_MECHANISMS=PLAIN
+      - KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAIN
+
+      - KAFKA_OPTS=-Djava.security.auth.login.config=/opt/kafka/config/kafka_server_jaas.conf
 
       - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+
+    volumes:
+      - ./kafka_server_jaas.conf:/opt/kafka/config/kafka_server_jaas.conf
+      - ./client.properties:/opt/kafka/config/client.properties
+
     networks:
       - kafka-postgis-net
     healthcheck:
-      test: ["CMD", "sh", "-c", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          "/opt/kafka/bin/kafka-broker-api-versions.sh \
+          --bootstrap-server localhost:29092 \
+          --command-config /opt/kafka/config/client.properties \
+          >/dev/null 2>&1"
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
 
   kafnus-connect:
     container_name: kafnus-connect
-    image: telefonicaiot/kafnus-connect:latest
+    image: kafnus-connect:latest
     ports:
       - "8083:8083"
       - "9100:9100"
@@ -84,8 +104,29 @@ services:
       # Monitoring
       KAFKA_JMX_PORT: 9100
       JMX_PROMETHEUS_PORT: 9100
-    depends_on:
-      kafka:
-        condition: service_healthy
+
+      # Security
+      CONNECT_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      CONNECT_SASL_MECHANISM: PLAIN
+      CONNECT_SASL_JAAS_CONFIG: >
+        org.apache.kafka.common.security.plain.PlainLoginModule required
+        username="connect-user"
+        password="connect-pass";
+
+      CONNECT_PRODUCER_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      CONNECT_PRODUCER_SASL_MECHANISM: PLAIN
+      CONNECT_PRODUCER_SASL_JAAS_CONFIG: >
+        org.apache.kafka.common.security.plain.PlainLoginModule required
+        username="connect-user"
+        password="connect-pass";
+
+      CONNECT_CONSUMER_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      CONNECT_CONSUMER_SASL_MECHANISM: PLAIN
+      CONNECT_CONSUMER_SASL_JAAS_CONFIG: >
+        org.apache.kafka.common.security.plain.PlainLoginModule required
+        username="connect-user"
+        password="connect-pass";
+    volumes:
+      - ./client.properties:/opt/kafka/config/client.properties
     networks:
       - kafka-postgis-net
