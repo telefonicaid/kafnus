@@ -56,7 +56,7 @@ Complete documentation is available in the [`doc/`](./doc) directory:
 - [`00_overview.md`](./doc/00_overview.md) – Project overview
 - [`01_installation.md`](./doc/01_installation.md) – How to install & build
 - [`02_architecture.md`](./doc/02_architecture.md) – System architecture
-- [`03_operational_guide.md`](./doc/03_operational_guide.md) – Operational guide
+- [`03_advanced_topics.md`](./doc/03_advanced_topics.md) – Advanced topics with Operational guide
 - [`04_docker.md`](./doc/04_docker.md) – Docker details
 - [`05_kafnus_ngsi.md`](./doc/05_kafnus_ngsi.md) – Kafnus NGSI stream processor
 - [`06_kafnus_connect.md`](./doc/06_kafnus_connect.md) – Kafnus Connect and sinks details
