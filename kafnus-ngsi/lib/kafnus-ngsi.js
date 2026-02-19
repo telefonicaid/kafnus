@@ -41,6 +41,7 @@ async function main() {
 
     // 1 global producer
     const producer = await createProducer(log);
+    producer.setPollInterval(10); // process delivery reports allow not fill internal queue
 
     const adminServer = await startAdminServer(log, config.admin.port);
 

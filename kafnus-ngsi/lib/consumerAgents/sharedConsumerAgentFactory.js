@@ -85,28 +85,32 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
                     pauseConsumer();
                     logger.warn(`[consumer] backlog high (${backlog}) size=${queue.size} pending=${queue.pending}`);
                 }
-                queue.add(async () => {
-                    if (producerQueueFull) {
-                        pauseConsumer();
-                        return;
-                    }
-                    try {
-                        await onData(message);
-                        // If all OK and was paused by internal queue, resume when down
-                        const backlog = queue.size + queue.pending;
-                        if (paused && !producerQueueFull && backlog < MAX_BUFFERED_TASKS / 2) {
-                            resumeConsumer();
-                        }
-                    } catch (err) {
-                        if (err.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
-                            producerQueueFull = true;
+                queue
+                    .add(async () => {
+                        if (producerQueueFull) {
                             pauseConsumer();
-                        } else {
-                            logger.error(`[consumer] Processing error: %s`, err?.stack || err);
+                            return;
                         }
-                        throw err;
-                    }
-                });
+                        try {
+                            await onData(message);
+                            // If all OK and was paused by internal queue, resume when down
+                            const backlog = queue.size + queue.pending;
+                            if (paused && !producerQueueFull && backlog < MAX_BUFFERED_TASKS / 2) {
+                                resumeConsumer();
+                            }
+                        } catch (err) {
+                            if (err.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
+                                producerQueueFull = true;
+                                pauseConsumer();
+                            } else {
+                                logger.error(`[consumer] Processing error: %s`, err?.stack || err);
+                            }
+                            throw err;
+                        }
+                    })
+                    .catch((err) => {
+                        // Avoid unhandled rejection.
+                    });
             })
             .on('event.error', (err) => {
                 logger.error(`Event error on topic ${topic}:`, err);
