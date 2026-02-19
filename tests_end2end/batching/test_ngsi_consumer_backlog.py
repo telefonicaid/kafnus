@@ -111,7 +111,7 @@ def test_ngsi_consumer_backlog(multiservice_stack):
     sentinel_req = OrionRequestData(
         name="ngsi_backlog_sentinel",
         service="test",
-        subservice="/ngsi_backlog_sentinel",
+        subservice="/ngsi_backlog",
         subscriptions={},  # no recreate subs
         updateEntities=[{
             "id": SENTINEL_ID,
