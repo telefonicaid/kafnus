@@ -1,3 +1,4 @@
+- Fix shutdown procedure
 - Fix handle of QUEUE_FULL and pause queue when full (#199)
 - Change from fixed mongo prefix to new custom SMT prefix: move MongoDB namespace prefix handling from Kafnus NGSI to Kafka Connect MongoNamespacePrefix SMT (#185)
 - Adapt producers and sinks for the new Header Router (send headers without building target_table) (#182)
