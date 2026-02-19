@@ -27,21 +27,37 @@ const {
 } = require('./ngsiUtils');
 const { config } = require('../../kafnusConfig');
 
+const { once } = require('events');
 const Kafka = require('@confluentinc/kafka-javascript');
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function safeProduce(producer, args) {
-    try {
-        producer.produce(...args);
-    } catch (err) {
-        if (err.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
-            // Without logs to avoid duplicates
-            throw err; // raise backpressure
+async function safeProduce(producer, args, { maxWaitMs = 30000 } = {}) {
+    const deadline = Date.now() + maxWaitMs;
+
+    while (true) {
+        try {
+            producer.produce(...args);
+            return;
+        } catch (err) {
+            if (err?.code !== Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
+                throw err;
+            }
+
+            // Wait to will be released (delivery-report releases internal queue)
+            const remaining = deadline - Date.now();
+            if (remaining <= 0) {
+                throw err;
+            }
+
+            await Promise.race([
+                once(producer, 'delivery-report'),
+                new Promise((_, rej) => setTimeout(() => rej(err), Math.min(1000, remaining)))
+            ]);
+            // retry
         }
-        throw err;
     }
 }
 

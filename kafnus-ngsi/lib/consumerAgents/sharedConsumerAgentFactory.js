@@ -39,7 +39,8 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
             return;
         }
         try {
-            consumer.pause([{ topic }]);
+            const a = consumer.assignments();
+            consumer.pause(a);
             paused = true;
             logger.warn('[consumer] Paused due to producer backpressure');
         } catch (err) {
@@ -53,7 +54,8 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
             return;
         }
         try {
-            consumer.resume([{ topic }]);
+            const a = consumer.assignments();
+            consumer.resume(a);
             paused = false;
             logger.info('[consumer] Resumed');
         } catch (err) {
@@ -78,9 +80,10 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
                 resolve(consumer);
             })
             .on('data', (message) => {
-                if (queue.size >= MAX_BUFFERED_TASKS && !paused) {
+                const backlog = queue.size + queue.pending;
+                if (backlog >= MAX_BUFFERED_TASKS && !paused) {
                     pauseConsumer();
-                    logger.warn(`[consumer] Internal queue high-watermark (${queue.size})`);
+                    logger.warn(`[consumer] backlog high (${backlog}) size=${queue.size} pending=${queue.pending}`);
                 }
                 queue.add(async () => {
                     if (producerQueueFull) {
@@ -90,7 +93,8 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
                     try {
                         await onData(message);
                         // If all OK and was paused by internal queue, resume when down
-                        if (paused && !producerQueueFull && queue.size < MAX_BUFFERED_TASKS / 2) {
+                        const backlog = queue.size + queue.pending;
+                        if (paused && !producerQueueFull && backlog < MAX_BUFFERED_TASKS / 2) {
                             resumeConsumer();
                         }
                     } catch (err) {
