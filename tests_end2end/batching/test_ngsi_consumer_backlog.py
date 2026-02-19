@@ -31,7 +31,6 @@ SENTINEL_ID = "__END__"
 RAW_TOPIC = "smc_raw_historic"
 PROCESSED_TOPIC = "smc_test_historic_processed"
 
-
 def test_ngsi_consumer_backlog(multiservice_stack):
     """
     Stress consumer queue of kafnus-ngsi:
@@ -46,7 +45,7 @@ def test_ngsi_consumer_backlog(multiservice_stack):
 
     compose = multiservice_stack.compose
     logger.info(f"🧪 Starting NGSI consumer backlog test: N={notif_count}")
-
+    logger.info(f"Kafka bootstrap used by test consumer: {multiservice_stack.kafkaHost}:{multiservice_stack.kafkaPort}")
     # 0) Prepare tables in DB for test
     setup_file = Path(__file__).resolve().parent / "setup.sql"
     execute_sql_file(setup_file, db_config=DEFAULT_DB_CONFIG)
@@ -91,16 +90,20 @@ def test_ngsi_consumer_backlog(multiservice_stack):
         })
 
     # 2a) Crate subscription and put into Orion backlog
-    orion_request = OrionRequestData(
-        name="ngsi_backlog_setup",
-        service="test",
-        subservice="/ngsi_backlog",
-        subscriptions=subscriptions,
-        updateEntities=updates,
-    )
-    ops = ServiceOperations(multiservice_stack, [orion_request])
     t_send0 = time.time()
-    ops.orion_set_up()
+    BATCH = int(os.getenv("NGSI_UPDATE_BATCH", "100"))  # ajusta
+    for i in range(0, len(updates), BATCH):
+        batch = updates[i:i+BATCH]
+        orion_request = OrionRequestData(
+            name=f"ngsi_backlog_setup_{i//BATCH}",
+            service="test",
+            subservice="/ngsi_backlog",
+            subscriptions=subscriptions if i == 0 else {},
+            updateEntities=batch,
+        )
+        ops = ServiceOperations(multiservice_stack, [orion_request])
+        ops.orion_set_up()
+
     t_send = time.time() - t_send0
     logger.info(f"📤 Sent {notif_count} updates (and backlog to RAW) in {t_send:.2f}s")
 
