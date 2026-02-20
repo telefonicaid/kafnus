@@ -501,5 +501,5 @@ If no log level is defined, the default is `INFO`.
 ## 🧭 Navigation
 
 - [⬅️ Previous: Monitoring](/doc/07_monitoring.md)
-- [🏠 Main index](../README.md#documentation)
+- [🏠 Main index](/README.md#documentation)
 - [➡️ Next: Scaling](/doc/09_scaling.md)

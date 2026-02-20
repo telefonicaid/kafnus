@@ -115,5 +115,5 @@ wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0
 ## 🧭 Navigation
 
 - [⬅️ Previous: Kafnus-Connect](/doc/06_kafnus_connect.md)
-- [🏠 Main index](../README.md#documentation)
+- [🏠 Main index](/README.md#documentation)
 - [➡️ Next: Testing](/doc/08_testing.md)

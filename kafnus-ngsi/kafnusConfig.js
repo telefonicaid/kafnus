@@ -71,11 +71,11 @@ const envVarsSchema = {
         },
         KAFNUS_NGSI_LINGER_MS: {
             type: 'number',
-            default: 50
+            default: 100
         },
         KAFNUS_NGSI_BATCH_NUM_MESSAGES: {
             type: 'number',
-            default: 10000
+            default: 1000
         },
         KAFNUS_NGSI_BATCH_SIZE: {
             type: 'number',
@@ -83,7 +83,7 @@ const envVarsSchema = {
         },
         KAFNUS_NGSI_QUEUE_BUFFERING_MAX_MESSAGES: {
             type: 'number',
-            default: 300000
+            default: 30000
         },
         KAFNUS_NGSI_QUEUE_BUFFERING_MAX_KBYTES: {
             type: 'number',
@@ -128,7 +128,7 @@ const envVarsSchema = {
         },
         KAFNUS_NGSI_FETCH_MIN_BYTES: {
             type: 'number',
-            default: 1
+            default: 16384
         },
         KAFNUS_NGSI_FETCH_WAIT_MAX_MS: {
             type: 'number',
