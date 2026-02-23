@@ -91,7 +91,7 @@ function capitalEntityType(entityType) {
 }
 
 function getGrafo(service) {
-    let grafo = config.graphql.grafoByService ? `${GRAFO_PREFIX_STR}_${service}` : GRAFO_PREFIX_STR;
+    let grafo = config.graphql.grafoByService ? `${GRAFO_PREFIX_STR}${service}` : GRAFO_PREFIX_STR;
 
     if (config.graphql.grafoSuffix !== undefined) {
         grafo += config.graphql.grafoSuffix;
