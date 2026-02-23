@@ -100,21 +100,29 @@ function getGrafo(service) {
     return grafo;
 }
 
+function getStaging() {
+    let staging = config.graphql.staging ? true : false;
+    return staging;
+}
+
 function buildMutationCreate(service, entityType, entityObject) {
     // Convert object to string for GraphQL
     const objectString = toGraphQLValue(entityObject);
     const capEntityType = capitalEntityType(entityType);
     const GRAFO_STR = getGrafo(service);
+    const STAGING_STR = getStaging();
 
     const templateMutationCreate = {
         query: `
             mutation {
-                create${capEntityType}(dti: ${GRAFO_STR},
+                create${capEntityType}(
+                    dti: ${GRAFO_STR},
+                    staging: ${STAGING_STR},
                     input: {
                         object: ${objectString}
                     }
                 ) { 
-                    uri 
+                    uri
                 }
             }
         `
@@ -127,14 +135,14 @@ function buildMutationUpdate(service, entityType, id, entityObject) {
     const objectString = toGraphQLValue(entityObject);
     const capEntityType = capitalEntityType(entityType);
     const GRAFO_STR = getGrafo(service);
-    // const uri = addPrefix(PREFIX_RESOURCE, id);
-    // const uriString = toGraphQLValue(uri);
-    // const idString = toGraphQLValue(id);
+    const STAGING_STR = getStaging();
 
     return {
         query: `
             mutation {
-                update${capEntityType}(dti: ${GRAFO_STR},
+                update${capEntityType}(
+                    dti: ${GRAFO_STR},
+                    staging: ${STAGING_STR},
                     input: {
                         object: ${objectString}
                     }
@@ -149,6 +157,7 @@ function buildMutationUpdate(service, entityType, id, entityObject) {
 function buildMutationDelete(service, /*entityType,*/ id) {
     const uri = addPrefix(PREFIX_RESOURCE, id);
     const GRAFO_STR = getGrafo(service);
+    const STAGING_STR = getStaging();
     // return {
     //     query: `
     //         mutation {
@@ -159,7 +168,11 @@ function buildMutationDelete(service, /*entityType,*/ id) {
     return {
         query: `
             mutation {
-                deleteData(dti: ${GRAFO_STR}, uris: ["${uri}"])
+                deleteData(
+                    dti: ${GRAFO_STR},
+                    staging: ${STAGING_STR},
+                    uris: ["${uri}"]
+                )
             }
         `
     };
