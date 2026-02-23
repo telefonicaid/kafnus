@@ -182,7 +182,7 @@ const envVarsSchema = {
         },
         KAFNUS_NGSI_GRAPHQL_STAGING: {
             type: 'boolean',
-            default: true
+            default: false
         },
         KAFNUS_NGSI_GRAPHQL_SLUG_URI: {
             type: 'boolean',
