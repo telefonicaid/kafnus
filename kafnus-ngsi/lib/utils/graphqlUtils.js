@@ -163,9 +163,9 @@ function buildMutation(type, entityType, args = {}, returnFields = ['uri']) {
     const selectionSet = Array.isArray(returnFields) && returnFields.length > 0 ? ` { ${returnFields.join(' ')} }` : '';
     return {
         query: `
-           mutation {
-               ${type}${capEntityType}(${argsString})${selectionSet}
-           }
+            mutation {
+                ${type}${capEntityType}(${argsString})${selectionSet}
+            }
         `
     };
 }
