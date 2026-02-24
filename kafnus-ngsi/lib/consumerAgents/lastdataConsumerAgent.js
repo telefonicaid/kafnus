@@ -49,7 +49,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                     consumer.commitMessage(msg);
                     return;
                 }
-                const { service, servicepath, datamodel } = getFiwareContext(headers, message);
+                const { service, servicepath, datamodel } = getFiwareContext(msg.headers, message);
 
                 const entityRaw = dataList[0];
                 const entityId = entityRaw.id;
