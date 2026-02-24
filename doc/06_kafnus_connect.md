@@ -39,6 +39,13 @@ The **HeaderRouter** SMT (introduced in [PR #13 of kafnus-connect](https://githu
 
 **Key principle:** NGSI emits only standard NGSI headers and metadata. HeaderRouter uses these headers to determine the final schema and table names according to a **configurable datamodel**.
 
+The effective datamodel can be overridden per record using the `fiware-datamodel` Kafka header.
+
+Resolution order:
+1. If `fiware-datamodel` header exists and is not empty → it overrides the configured datamodel
+2. Otherwise → the connector-level `transforms.HeaderRouter.datamodel` is used
+3. If neither is defined → `dm-by-entity-type-database` is applied as default
+
 ### Minimal Configuration
 
 ```properties
@@ -79,10 +86,28 @@ Headers:
   fiware-servicepath: /sensors
   entityType: TemperatureSensor
 
-Resulting topic: mycompany.sensors_TemperatureSensor
+Resulting topic: mycompany.sensors_temperaturesensor
 ```
 
-#### 2. `dm-by-fixed-entity-type-database-schema` (Planned)
+#### 2. `dm-by-entity-type-database-schema`
+
+| Element | Resolved Value |
+|---------|---|
+| **Schema** | `fiware-servicepath` header value |
+| **Table** | `<fiware-servicepath>_<entityType>` |
+
+This model isolates data by service path at schema level instead of service level.
+
+```
+Headers:
+  fiware-service: mycompany
+  fiware-servicepath: /sensors
+  entityType: TemperatureSensor
+
+Resulting topic: sensors.sensors_temperaturesensor
+```
+
+#### 3. `dm-by-fixed-entity-type-database-schema`
 
 Used for pre-created schema structures where entity type is the table name.
 
@@ -99,10 +124,10 @@ Headers:
   fiware-servicepath: /sensors
   entityType: TemperatureSensor
 
-Resulting topic: sensors.TemperatureSensor
+Resulting topic: sensors.temperaturesensor
 ```
 
-#### 3. `dm-postgis-errors` (Error DLQ Handling)
+#### 4. `dm-postgis-errors` (Error DLQ Handling)
 
 Special datamodel for error logs from failed JDBC operations.
 
@@ -128,6 +153,7 @@ Each field in the HeaderRouter supports flexible resolution:
 
 - `service` (maps to `fiware-service` header)
 - `servicepath` (maps to `fiware-servicepath` header)
+- `datamodel` (maps to `fiware-datamodel` header if present)
 - `entitytype` (maps to `entityType` header)
 - `entityid` (maps to `entityId` header)
 - `suffix` (maps to `suffix` header, or static value)

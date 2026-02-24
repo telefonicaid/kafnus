@@ -263,6 +263,7 @@ function buildKafkaKey(entity, keyFields, includeTimeinstant = false) {
 function getFiwareContext(headers, fallbackEvent) {
     let service = null;
     let servicepath = null;
+    let datamodel = null;
     if (headers && headers.length > 0) {
         const hdict = {};
         headers.forEach((headerObj) => {
@@ -273,6 +274,7 @@ function getFiwareContext(headers, fallbackEvent) {
         });
         service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
         servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
+        datamodel = hdict['datamodel'] ? hdict['datamodel'] : null;
     } else {
         const hdrs = fallbackEvent.headers ? fallbackEvent.headers : fallbackEvent;
         service = (hdrs['fiware-service'] ? hdrs['fiware-service'] : 'default').toLowerCase();
@@ -281,7 +283,7 @@ function getFiwareContext(headers, fallbackEvent) {
     if (!servicepath.startsWith('/')) {
         servicepath = '/' + servicepath;
     }
-    return { service, servicepath };
+    return { service, servicepath, datamodel };
 }
 
 // -----------------
