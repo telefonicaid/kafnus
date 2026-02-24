@@ -22,9 +22,8 @@ const logger = theLogger.getBasicLogger();
 const { config } = require('../../kafnusConfig');
 
 const GRAFO_PREFIX = config.graphql['grafo'];
-const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO_PREFIX}/resource/`;
+const GRAFO_SUFFIX = config.graphql['grafoSuffix'];
 const PREFIX_KOS = 'https://ontologia.segittur.es/turismo/kos/';
-const GRAFO_PREFIX_STR = `"${GRAFO_PREFIX}"`;
 
 function slugify(text) {
     // Normalize Unicode using NFKD (e.g., "é" → "é")
@@ -97,13 +96,16 @@ function capitalEntityType(entityType) {
     return entityType.charAt(0).toUpperCase() + entityType.slice(1).toLowerCase();
 }
 
-function getGrafo(service) {
-    let grafo = config.graphql.grafoByService ? `${GRAFO_PREFIX_STR}${service}` : GRAFO_PREFIX_STR;
+function getGrafoName(service) {
+    let grafo = config.graphql.grafoByService
+        ? `"${GRAFO_PREFIX}${service}${GRAFO_SUFFIX}"`
+        : `"${GRAFO_PREFIX}${GRAFO_SUFFIX}"`;
 
-    if (config.graphql.grafoSuffix !== undefined) {
-        grafo += config.graphql.grafoSuffix;
-    }
-    return gqlRaw(grafo);
+    return grafo;
+}
+
+function getGrafo(service) {
+    return gqlRaw(getGrafoName(service));
 }
 
 function getStaging() {
@@ -142,6 +144,9 @@ function buildMutationUpdate(service, entityType, id, entityObject) {
 }
 
 function buildMutationDelete(service, id) {
+    const GRAFO_NAME = getGrafoName(service);
+    const GRAFO_NAME_CLEAN = GRAFO_NAME.replace(/^"+|"+$/g, '');
+    const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO_NAME_CLEAN}/resource/`;
     const uri = addPrefix(PREFIX_RESOURCE, id);
     const GRAFO_STR = getGrafo(service);
     const STAGING_STR = getStaging();
