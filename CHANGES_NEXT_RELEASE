@@ -1,3 +1,4 @@
+- Fix compose grafo with service: prefix + service + suffix without separators (could be included into prefix o suffix)
 - Upgrade dep @confluentinc/kafka-javascript from 1.5.0 to 1.8.0
 - Fix shutdown procedure
 - Fix handle of QUEUE_FULL and pause queue when full (#199)
