@@ -603,8 +603,8 @@ These variables control fetch behavior, session handling, and **manual offset ma
 | `KAFNUS_NGSI_LOG_COMP` | string | `Kafnus-ngsi` | Component name used in structured logs. |
 | `KAFNUS_NGSI_ADMIN_PORT` | number | `8000` | Port for admin, metrics, health and log-level endpoints. |
 | `KAFNUS_NGSI_MONGO_PREFIX` | string | `sth_` | Prefix prepended to MongoDB database and collection names (see [MongoDB Namespace Prefix Configuration](#mongodb-namespace-prefix-configuration)). |
-| `KAFNUS_NGSI_GRAPHQL_GRAFO` | string | `grafo` | Graph name or version used by the GraphQL integration. |
-| `KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE`      | boolean   | `false`      | Add '_`<service>`' to Graph name used by the GraphQL service.  
+| `KAFNUS_NGSI_GRAPHQL_GRAFO` | string | `grafo` | Graph name prefix or version used by the GraphQL integration. |
+| `KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE`      | boolean   | `false`      | Add '`<service>`' to Graph name used by the GraphQL service.
 | `KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX`      | string   | ``      | Add '`<suffix>`' to Graph name used by the GraphQL service.        |
 | `KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE`      | boolean   | `false`      | Add '`<service>`_' to outputTopic used by the HTTP connector sink.                          |
 | `KAFNUS_NGSI_GRAPHQL_STAGING`      | boolean   | `false`      | Add '`staging=true`' into mutations for graphql.                          |
