@@ -1,3 +1,4 @@
+- Add staging flag to graphql mutations (#208)
 - Upgrade dep @confluentinc/kafka-javascript from 1.5.0 to 1.8.0
 - Fix shutdown procedure
 - Fix handle of QUEUE_FULL and pause queue when full (#199)
