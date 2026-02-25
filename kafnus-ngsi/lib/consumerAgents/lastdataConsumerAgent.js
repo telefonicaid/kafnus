@@ -74,7 +74,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                     const headersOut = [
                         { 'fiware-service': Buffer.from(sanitizeString(service)) },
                         { 'fiware-servicepath': Buffer.from(sanitizeString(servicepath)) },
-                        { 'fiware-datamodel': Buffer.from(sanitizeString(datamodel || '')) },
+                        { 'fiware-datamodel': Buffer.from(datamodel || '') },
                         { entityType: Buffer.from(sanitizeString(entityType)) },
                         { entityId: Buffer.from(sanitizeString(entityId)) },
                         { suffix: Buffer.from(sanitizeString(flowSuffix)) }
