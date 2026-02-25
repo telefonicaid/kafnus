@@ -7,6 +7,7 @@
 - Change from fixed mongo prefix to new custom SMT prefix: move MongoDB namespace prefix handling from Kafnus NGSI to Kafka Connect MongoNamespacePrefix SMT (#185)
 - Adapt producers and sinks for the new Header Router (send headers without building target_table) (#182)
 - Upgrade dep @confluentinc/kafka-javascript from 1.5.0 to 1.8.0
+- Upgrade dep ajv from 1.17.1 to 1.18.0 due to CVE-2025-69873
 - Remove encoding of special characters and add env var  KAFNUS_NGSI_MONGO_PREFIX as a configurable MongoDB prefix global parameter (#178)
 - Fix compose grafo with service: prefix + service + suffix without separators (could be included into prefix o suffix)
 - Fix shutdown procedure
