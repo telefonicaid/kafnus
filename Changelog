@@ -1,17 +1,17 @@
-1.2.0 (February 24th, 2026)
+1.2.0 (February 25th, 2026)
 
-- Add KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE option (false by default) to compose topic for http sink connector (#180)
-- Add KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX option (empty by default) to compose grafo for http sink connector
-- Add fiware-datamodel header propagation (#190)
-- Add staging flag to graphql mutations (#208)
-- Change from fixed mongo prefix to new custom SMT prefix: move MongoDB namespace prefix handling from Kafnus NGSI to Kafka Connect MongoNamespacePrefix SMT (#185)
-- Adapt producers and sinks for the new Header Router (send headers without building target_table) (#182)
+- Add: KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE option (false by default) to compose topic for http sink connector (#180)
+- Add: KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX option (empty by default) to compose grafo for http sink connector
+- Add: fiware-datamodel header propagation (#190)
+- Add: staging flag to graphql mutations (#208)
+- Fix: change from fixed mongo prefix to new custom SMT prefix: move MongoDB namespace prefix handling from Kafnus NGSI to Kafka Connect MongoNamespacePrefix SMT (#185)
+- Fix: adapt producers and sinks for the new Header Router (send headers without building target_table) (#182)
+- Fix: remove encoding of special characters and add env var  KAFNUS_NGSI_MONGO_PREFIX as a configurable MongoDB prefix global parameter (#178)
+- Fix: compose grafo with service: prefix + service + suffix without separators (could be included into prefix o suffix)
+- Fix: shutdown procedure
+- Fix: handle of QUEUE_FULL and pause queue when full (#199)
 - Upgrade dep @confluentinc/kafka-javascript from 1.5.0 to 1.8.0
 - Upgrade dep ajv from 1.17.1 to 1.18.0 due to CVE-2025-69873
-- Remove encoding of special characters and add env var  KAFNUS_NGSI_MONGO_PREFIX as a configurable MongoDB prefix global parameter (#178)
-- Fix compose grafo with service: prefix + service + suffix without separators (could be included into prefix o suffix)
-- Fix shutdown procedure
-- Fix handle of QUEUE_FULL and pause queue when full (#199)
 
 1.1.0 (January 9th, 2026)
 
