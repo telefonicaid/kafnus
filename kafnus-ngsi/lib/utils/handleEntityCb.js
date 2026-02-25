@@ -76,7 +76,7 @@ async function handleEntityCb(
             return;
         }
 
-        const { service, servicepath } = getFiwareContext(headers, message);
+        const { service, servicepath, datamodel } = getFiwareContext(headers, message);
 
         for (const ngsiEntity of entities) {
             const entityId = ngsiEntity.id;
@@ -133,6 +133,7 @@ async function handleEntityCb(
             const headersOut = [
                 { 'fiware-service': Buffer.from(sanitizeString(service)) },
                 { 'fiware-servicepath': Buffer.from(sanitizeString(servicepath)) },
+                { 'fiware-datamodel': Buffer.from(sanitizeString(datamodel || '')) },
                 { entityType: Buffer.from(sanitizeString(entityType)) },
                 { entityId: Buffer.from(sanitizeString(entityId)) },
                 { suffix: Buffer.from(flowSuffix === '_historic' ? '' : sanitizeString(flowSuffix)) }

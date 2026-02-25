@@ -1,3 +1,7 @@
+- Fix compose grafo with service: prefix + service + suffix without separators (could be included into prefix o suffix)
+- Add fiware-datamodel header propagation (#190)
+- Add staging flag to graphql mutations (#208)
+- Upgrade dep @confluentinc/kafka-javascript from 1.5.0 to 1.8.0
 - Fix shutdown procedure
 - Fix handle of QUEUE_FULL and pause queue when full (#199)
 - Change from fixed mongo prefix to new custom SMT prefix: move MongoDB namespace prefix handling from Kafnus NGSI to Kafka Connect MongoNamespacePrefix SMT (#185)

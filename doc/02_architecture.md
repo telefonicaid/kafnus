@@ -26,7 +26,7 @@ The system supports multiple data flows (`historic`, `lastdata`, `mutable`) and 
    The NGSI processor consumes these raw topics. Each flow is handled by a dedicated agent. Processing includes:
    - Enrichment (`recvtime`)
    - Conversion of `geo:*` fields to WKB
-   - Emitting NGSI-standard headers (fiware-service, fiware-servicepath, entityType, etc.)
+   - Emitting NGSI-standard headers (fiware-service, fiware-servicepath, fiware-datamodel, entityType, etc.)
    - No SQL-specific logic (schema/table decisions deferred to Kafka Connect)
 
 3. **Kafnus NGSI → Kafka**  
@@ -34,13 +34,14 @@ The system supports multiple data flows (`historic`, `lastdata`, `mutable`) and 
 
 4. **Kafka → Kafnus Connect (HeaderRouter SMT)**  
    The **HeaderRouter** SMT intercepts each message:
-   - Reads NGSI headers (fiware-service, fiware-servicepath, entityType, etc.)
-   - Applies the configured **SQL datamodel** (e.g., `dm-by-entity-type-database`)
+   - Reads NGSI headers (fiware-service, fiware-servicepath, fiware-datamodel, entityType, etc.)
+   - Applies the configured **SQL datamodel** (fiware-datamodel if present, connector or default if not)
    - Constructs the final `schema.table` name
    - Overwrites the Kafka topic with this value
    
    Supported datamodels:
    - `dm-by-entity-type-database`: `<service>.<servicepath>_<entityType>`
+   - `dm-by-entity-type-database-schema`: `<servicepath>.<servicepath>_<entityType>`
    - `dm-by-fixed-entity-type-database-schema`: `<servicepath>.<entityType>`
    - `dm-postgis-errors`: `<service>.<service>_error_log` (for error DLQ)
    - `dm-http-errors`: `<service>.<service>_error_log` (evolving)

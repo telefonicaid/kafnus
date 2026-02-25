@@ -22,9 +22,8 @@ const logger = theLogger.getBasicLogger();
 const { config } = require('../../kafnusConfig');
 
 const GRAFO_PREFIX = config.graphql['grafo'];
-const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO_PREFIX}/resource/`;
+const GRAFO_SUFFIX = config.graphql['grafoSuffix'];
 const PREFIX_KOS = 'https://ontologia.segittur.es/turismo/kos/';
-const GRAFO_PREFIX_STR = `"${GRAFO_PREFIX}"`;
 
 function slugify(text) {
     // Normalize Unicode using NFKD (e.g., "é" → "é")
@@ -52,7 +51,14 @@ function slugifyUri(uri) {
     return [...parts, slugified].join('/');
 }
 
+function gqlRaw(value) {
+    return { __gqlRaw: true, value };
+}
+
 function toGraphQLValue(value) {
+    if (value && typeof value === 'object' && value.__gqlRaw === true) {
+        return value.value;
+    }
     if (typeof value === 'string') {
         return `"${
             value
@@ -90,95 +96,81 @@ function capitalEntityType(entityType) {
     return entityType.charAt(0).toUpperCase() + entityType.slice(1).toLowerCase();
 }
 
-function getGrafo(service) {
-    let grafo = config.graphql.grafoByService ? `${GRAFO_PREFIX_STR}_${service}` : GRAFO_PREFIX_STR;
-
-    if (config.graphql.grafoSuffix !== undefined) {
-        grafo += config.graphql.grafoSuffix;
-    }
+function getGrafoName(service) {
+    let grafo = config.graphql.grafoByService
+        ? `"${GRAFO_PREFIX}${service}${GRAFO_SUFFIX}"`
+        : `"${GRAFO_PREFIX}${GRAFO_SUFFIX}"`;
 
     return grafo;
 }
 
+function getGrafo(service) {
+    return gqlRaw(getGrafoName(service));
+}
+
+function getStaging() {
+    let staging = config.graphql.staging ? true : false;
+    return staging;
+}
+
 function buildMutationCreate(service, entityType, entityObject) {
-    // Convert object to string for GraphQL
-    const objectString = toGraphQLValue(entityObject);
-    const capEntityType = capitalEntityType(entityType);
     const GRAFO_STR = getGrafo(service);
-
-    const templateMutationCreate = {
-        query: `
-            mutation {
-                create${capEntityType}(dti: ${GRAFO_STR},
-                    input: {
-                        object: ${objectString}
-                    }
-                ) { 
-                    uri 
-                }
-            }
-        `
+    const STAGING_VALUE = getStaging();
+    const args = {
+        dti: GRAFO_STR,
+        input: {
+            object: entityObject
+        }
     };
-
-    return templateMutationCreate;
+    if (config?.graphql?.staging === true) {
+        args.staging = STAGING_VALUE;
+    }
+    return buildMutation('create', entityType, args, ['uri']);
 }
 
 function buildMutationUpdate(service, entityType, id, entityObject) {
-    const objectString = toGraphQLValue(entityObject);
-    const capEntityType = capitalEntityType(entityType);
     const GRAFO_STR = getGrafo(service);
-    // const uri = addPrefix(PREFIX_RESOURCE, id);
-    // const uriString = toGraphQLValue(uri);
-    // const idString = toGraphQLValue(id);
-
-    return {
-        query: `
-            mutation {
-                update${capEntityType}(dti: ${GRAFO_STR},
-                    input: {
-                        object: ${objectString}
-                    }
-                ) {
-                    uri
-                }
-            }
-        `
+    const STAGING_STR = getStaging();
+    const args = {
+        dti: GRAFO_STR,
+        input: {
+            object: entityObject
+        }
     };
+    if (config?.graphql?.staging === true) {
+        args.staging = STAGING_STR;
+    }
+    return buildMutation('update', entityType, args, ['uri']);
 }
 
-function buildMutationDelete(service, /*entityType,*/ id) {
+function buildMutationDelete(service, id) {
+    const GRAFO_NAME = getGrafoName(service);
+    const GRAFO_NAME_CLEAN = GRAFO_NAME.replace(/^"+|"+$/g, '');
+    const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO_NAME_CLEAN}/resource/`;
     const uri = addPrefix(PREFIX_RESOURCE, id);
     const GRAFO_STR = getGrafo(service);
-    // return {
-    //     query: `
-    //         mutation {
-    //             delete${entityType}(dti: ${GRAFO_STR}, id: "${id}")
-    //         }
-    //     `
-    // };
-    return {
-        query: `
-            mutation {
-                deleteData(dti: ${GRAFO_STR}, uris: ["${uri}"])
-            }
-        `
+    const STAGING_STR = getStaging();
+    const args = {
+        dti: GRAFO_STR,
+        uris: [uri]
     };
+    if (config?.graphql?.staging === true) {
+        args.staging = STAGING_STR;
+    }
+    return buildMutation('delete', 'Data', args, []);
 }
 
 function buildMutation(type, entityType, args = {}, returnFields = ['uri']) {
     const argsString = Object.entries(args)
         .map(([k, v]) => `${k}: ${toGraphQLValue(v)}`)
         .join(', ');
-
     const returnFieldsString = returnFields.join(' ');
     const capEntityType = capitalEntityType(entityType);
-
+    const selectionSet = Array.isArray(returnFields) && returnFields.length > 0 ? ` { ${returnFields.join(' ')} }` : '';
     return {
         query: `
             mutation {
-                ${type}${capEntityType}(${argsString}) {
-                    ${returnFieldsString}
-                }
+                ${type}${capEntityType}(${argsString})${selectionSet}
             }
         `
     };

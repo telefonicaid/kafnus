@@ -18,7 +18,7 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@confluentinc/kafka-javascript": "1.5.0",
+    "@confluentinc/kafka-javascript": "1.8.0",
     "ajv": "~8.17.1",
     "ajv-formats": "~3.0.1",
     "betterknown": "1.0.5",
