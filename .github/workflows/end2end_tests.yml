@@ -95,4 +95,6 @@ jobs:
         working-directory: tests_end2end/
         run: |
           source .venv/bin/activate
-          pytest -s -v
+          pytest -s functional/test_pipeline.py
+          pytest -s batching/test_jdbc_batch_backlog.py 
+          pytest -s batching/test_ngsi_consumer_backlog.py
