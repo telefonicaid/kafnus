@@ -135,7 +135,9 @@ async function startErrorsConsumerAgent(logger, producer) {
                     }
                 };
 
-                const headersOut = [{ 'fiware-service': Buffer.from(dbName) }];
+                const headersOut = [{ 'fiware-service': Buffer.from(dbName)}, {'fiware-datamodel': Buffer.from('dm-postgis-errors') }];
+                // Fallback to default datamodel
+                headersOut.push({ 'fiware-servicepath': Buffer.from(dbName) }, { entityType: Buffer.from('_error_log')});
 
                 await safeProduce(producer, [
                     errorTopicName,
