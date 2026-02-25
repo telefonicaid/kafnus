@@ -1,0 +1,1 @@
+Minimal test case for testing use of fiware-datamodel header, it uses dm-by-entity-type-database-schema and persist in <servicepath>.<servicepath>_<entityType>.

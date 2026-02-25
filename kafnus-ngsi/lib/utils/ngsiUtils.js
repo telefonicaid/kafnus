@@ -274,7 +274,7 @@ function getFiwareContext(headers, fallbackEvent) {
         });
         service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
         servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
-        datamodel = hdict['datamodel'] ? hdict['datamodel'] : null;
+        datamodel = hdict['fiware-datamodel'] ? hdict['fiware-datamodel'] : null;
     } else {
         const hdrs = fallbackEvent.headers ? fallbackEvent.headers : fallbackEvent;
         service = (hdrs['fiware-service'] ? hdrs['fiware-service'] : 'default').toLowerCase();
