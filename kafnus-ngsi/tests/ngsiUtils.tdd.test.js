@@ -64,4 +64,20 @@ describe('ngsiUtils.js', () => {
             expect(toEpochMillis('2020-01-01T00:00:00Z')).toBe(1577836800000);
         });
     });
+
+    describe('inferFieldType (TDD)', () => {
+        test('maps MultiRelation arrays to Kafka Connect array schema', () => {
+            const [schema, value] = inferFieldType('relatedTo', ['A:1', 'B:2'], 'MultiRelation');
+
+            expect(schema).toEqual({ type: 'array', items: 'string' });
+            expect(value).toEqual(['A:1', 'B:2']);
+        });
+
+        test('normalizes scalar MultiRelation values to single-item arrays', () => {
+            const [schema, value] = inferFieldType('offers', 'Event:001', 'MultiRelation');
+
+            expect(schema).toEqual({ type: 'array', items: 'string' });
+            expect(value).toEqual(['Event:001']);
+        });
+    });
 });
