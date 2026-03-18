@@ -1,0 +1,1 @@
+- Add: support for `MultiRelation` ngsi-type as an array in db (#219)

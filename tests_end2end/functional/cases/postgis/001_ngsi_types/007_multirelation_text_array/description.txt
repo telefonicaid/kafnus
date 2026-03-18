@@ -1,0 +1,1 @@
+Validates NGSI MultiRelation attributes are mapped to Kafka Connect string arrays and persisted into PostgreSQL text[] columns, even when the incoming value is a scalar string.
