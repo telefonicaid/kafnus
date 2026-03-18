@@ -119,11 +119,43 @@ function formatDatetimeIso(tz = 'UTC') {
     return DateTime.now().setZone(tz).toISO();
 }
 
+function normalizeToStringArray(value) {
+    if (value === null || value === undefined) {
+        return null;
+    }
+
+    const toStringValue = (item) => {
+        if (item === null || item === undefined) {
+            return null;
+        }
+        if (typeof item === 'object') {
+            try {
+                return JSON.stringify(item);
+            } catch (err) {
+                return String(item);
+            }
+        }
+        return String(item);
+    };
+
+    if (Array.isArray(value)) {
+        return value.map(toStringValue);
+    }
+
+    return [toStringValue(value)];
+}
+
 // -----------------
 // Type inference
 // -----------------
 function inferFieldType(name, value, attrType = null) {
     const nameLc = name.toLowerCase();
+    const attrTypeLc = typeof attrType === 'string' ? attrType.toLowerCase() : '';
+
+    // Keep schema as array for MultiRelation values, including null values.
+    if (attrTypeLc === 'multirelation') {
+        return [{ type: 'array', items: 'string' }, normalizeToStringArray(value)];
+    }
 
     // 0. Null or undefined values: return string with null value
     if (value === null || value === undefined) {
@@ -133,12 +165,12 @@ function inferFieldType(name, value, attrType = null) {
     // 1. Handle special attribute types
     if (attrType) {
         // Geospatial types
-        if (attrType == 'geo:json') {
+        if (attrTypeLc === 'geo:json') {
             return ['geometry', value];
         }
 
         // DateTime and ISO8601 types
-        if (attrType === 'DateTime' || attrType === 'ISO8601') {
+        if (attrTypeLc === 'datetime' || attrTypeLc === 'iso8601') {
             // Special case for timeinstant/recvtime: always treat as string
             // because they are processed specially in Kafnus-Connect sinks
             if (['timeinstant', 'recvtime'].includes(nameLc)) {
