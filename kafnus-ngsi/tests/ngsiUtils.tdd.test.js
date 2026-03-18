@@ -69,14 +69,14 @@ describe('ngsiUtils.js', () => {
         test('maps MultiRelation arrays to Kafka Connect array schema', () => {
             const [schema, value] = inferFieldType('relatedTo', ['A:1', 'B:2'], 'MultiRelation');
 
-            expect(schema).toEqual({ type: 'array', items: 'string' });
+            expect(schema).toEqual({ type: 'array', items: { type: 'string' } });
             expect(value).toEqual(['A:1', 'B:2']);
         });
 
         test('normalizes scalar MultiRelation values to single-item arrays', () => {
             const [schema, value] = inferFieldType('offers', 'Event:001', 'MultiRelation');
 
-            expect(schema).toEqual({ type: 'array', items: 'string' });
+            expect(schema).toEqual({ type: 'array', items: { type: 'string' } });
             expect(value).toEqual(['Event:001']);
         });
     });
