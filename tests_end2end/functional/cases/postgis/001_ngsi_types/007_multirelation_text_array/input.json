@@ -1,0 +1,74 @@
+{
+  "name": "multirelation_text_array_lastdata",
+  "fiware-service": "test",
+  "fiware-servicepath": "/tourism",
+  "subscriptions": {
+    "lastdata": {
+      "description": "Accommodation:LASTDATA:tourism_accommodation:lastdata:tourism",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Accommodation"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ],
+          "alterationTypes": [
+            "entityUpdate",
+            "entityCreate"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_lastdata"
+        },
+        "attrs": [
+          "TimeInstant",
+          "accommodationContainedIn",
+          "hasTourismOrRelatedFacility",
+          "offers",
+          "hasAdditionalInformation",
+          "name"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "Accommodation:001",
+      "type": "Accommodation",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-10-03T12:00:12.002Z"
+      },
+      "accommodationContainedIn": {
+        "type": "MultiRelation",
+        "value": [
+          "Accommodation:001"
+        ]
+      },
+      "hasTourismOrRelatedFacility": {
+        "type": "MultiRelation",
+        "value": "Hotel:001"
+      },
+      "offers": {
+        "type": "MultiRelation",
+        "value": "Event:001"
+      },
+      "hasAdditionalInformation": {
+        "type": "Relation",
+        "value": "AdditionalInformation:001"
+      },
+      "name": {
+        "type": "String",
+        "value": "example01"
+      }
+    }
+  ]
+}
