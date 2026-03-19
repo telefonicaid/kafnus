@@ -1,1 +1,1 @@
-- Add: support for `MultiRelation` ngsi-type as an array in db (#219)
+- Add: support for `MultiRelation` and `MultiString` ngsi-type as an string array in db (#219, #220)
