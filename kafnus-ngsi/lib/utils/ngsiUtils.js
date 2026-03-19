@@ -155,7 +155,7 @@ function inferFieldType(name, value, attrType = null) {
     // Keep schema as array for MultiRelation values, including null values.
     // items must be a full schema descriptor object (not a plain string) for
     // Kafka Connect JsonConverter to parse the array schema correctly.
-    if (attrTypeLc === 'multirelation') {
+    if (attrTypeLc === 'multirelation' || attrTypeLc === 'multistring') {
         return [{ type: 'array', items: { type: 'string' } }, normalizeToStringArray(value)];
     }
 
