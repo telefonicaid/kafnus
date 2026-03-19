@@ -69,6 +69,36 @@
         "type": "String",
         "value": "example01"
       }
+    },
+    {
+      "id": "Accommodation:002",
+      "type": "Accommodation",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-10-03T12:00:12.002Z"
+      },
+      "accommodationContainedIn": {
+        "type": "MultiString",
+        "value": [
+          "Accommodation:002"
+        ]
+      },
+      "hasTourismOrRelatedFacility": {
+        "type": "MultiString",
+        "value": "Hotel:002"
+      },
+      "offers": {
+        "type": "MultiString",
+        "value": "Event:002"
+      },
+      "hasAdditionalInformation": {
+        "type": "Relation",
+        "value": "AdditionalInformation:002"
+      },
+      "name": {
+        "type": "String",
+        "value": "example02"
+      }
     }
   ]
 }
