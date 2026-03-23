@@ -268,16 +268,15 @@ function inferFieldType(name, value, attrType = null)
 |---------------------------------|---------------------------------------------------|-----------------------------------------------------------------------|
 | `geo:json` (`attrType`)         | `"geometry"`                                      | Processed externally as PostGIS-compatible geometry.                   |
 | `DateTime`, `ISO8601` (`attrType`) | Kafka `Timestamp` schema (`int64`)             | Converted to epoch millis, **except** `timeInstant` and `recvTime` which remain strings. |
-| `MultiRelation`, `MultiString` (`attrType`)    | Kafka `array` of `string`                         | Normalized to array payload. Scalar values are converted to one-item arrays. |
 | JS-native string value          | `"string"`                                        | Any value inferred as string is passed through as-is.                  |
 | JS-native boolean value         | `"boolean"`                                       |                                                                       |
 | JS-native number value          | `"double"`                                        | All numeric values are handled as JS float64 (double precision).       |
-| JS-native object/array          | `"string"` (JSON)                                 | Serialized to JSON string (except explicit handlers like `MultiRelation`). |
+| JS-native object/array          | `"string"` (JSON)                                 | Serialized to JSON string                                             |
 | Unknown / untyped value         | `"string"`                                        | Fallback for unsupported types or nulls.                               |
 
 #### ⚠️ Null handling
 
-- All `null` or `undefined` values are normalized to `['string', null]`, except explicit `MultiRelation` and `MultiString` fields that keep array schema with `null` payload.  
+- All `null` or `undefined` values are normalized to `['string', null]`.
 - This guarantees schema compatibility in Kafka Connect.  
 - For numeric columns, constraint errors (e.g. `NOT NULL`) are raised correctly by the sink connector.
 
@@ -285,22 +284,8 @@ function inferFieldType(name, value, attrType = null)
 
 - Unlike earlier versions, **no attempt is made to distinguish between `int32`, `int64`, and `double`**.  
   All numbers are treated as **`double`** for consistency and simplicity.  
-- **`DateTime/ISO8601`**, **`geo:json`**, and **`MultiRelation`, `MultiString`** are treated as special types.  
+- **`DateTime/ISO8601`** and **`geo:json`** are treated as special types.
 - All other NGSI attributes are mapped directly to their JS-native type or serialized as strings.
-
-#### 🧩 Why generic JS arrays are not always emitted as Kafka Connect arrays
-
-Kafnus does **not** automatically convert every JavaScript array into a Kafka Connect `array` type.
-
-This is intentional.
-
-- Some NGSI attributes containing arrays are expected to be persisted as **JSON/JSONB**.
-- Other attributes, such as **`MultiRelation`** and **`MultiString`**, are expected to be persisted as **PostgreSQL `text[]`**.
-- From the raw value alone, Kafnus cannot safely infer which persistence model is intended.
-
-Because of this ambiguity, automatic array mapping is only applied when the NGSI attribute type provides clear semantics, such as `MultiRelation` or `MultiString`.
-
-This avoids breaking existing scenarios where array-shaped values are intentionally stored as JSON rather than SQL arrays.
 
 #### ⚠️ Known Limitations
 
