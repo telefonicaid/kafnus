@@ -202,11 +202,11 @@ function inferFieldType(name, value, attrType = null) {
     // Arrays
     if (Array.isArray(value)) {
         if (value.length === 0) {
-            return [{ type: 'array', items: 'string' }, value];
+            return [{ type: 'array', items: 'string' }, normalizeToStringArray(value)];
         }
         const allStrings = value.every((v) => typeof v === 'string');
         if (allStrings) {
-            return [{ type: 'array', items: 'string' }, value];
+            return [{ type: 'array', items: 'string' }, normalizeToStringArray(value)];
         }
         const allNumbers = value.every((v) => typeof v === 'number');
         if (allNumbers) {
@@ -216,7 +216,8 @@ function inferFieldType(name, value, attrType = null) {
         if (allBooleans) {
             return [{ type: 'array', items: 'boolean' }, value];
         }
-        return ['string', JSON.stringify(value)];
+        // fallback: mixed arrays => array<string>
+        return [{ type: 'array', items: 'string' }, normalizeToStringArray(value)];
     }
 
     // Objects: serialize to string (fallback)
