@@ -194,7 +194,10 @@ function inferFieldType(name, value, attrType = null) {
             return [{ type: 'array', items: { type: 'boolean', optional: false } }, value];
         }
 
-        return [{ type: 'array', items: { type: 'string', optional: false } }, value];
+        // Maybe
+        // return [{ type: 'array', items: { type: 'string', optional: false } }, value];
+        // but, for array_col -> JSONB
+        return ['string', JSON.stringify(value)];
     }
 
     // Objects: serialize to string (fallback)
