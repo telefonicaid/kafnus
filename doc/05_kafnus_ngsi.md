@@ -297,6 +297,7 @@ function inferFieldType(name, value, attrType = null)
 
 - JavaScript numbers are IEEE-754 doubles. Values above ~`9e15` may lose precision, but this is acceptable since PostgreSQL sinks typically use `double`.  
 - Invalid dates or malformed JSON are logged and tryed to store as strings.  
+- When using a JSONB target (e.g. PostgreSQL with `jsonb` column), arrays inferred as `array<type>` will be sent as Kafka Connect arrays. If the target expects a JSONB value, insertion will fail. This is relevant when NGSI arrays contain mixed types (which become JSON strings) vs homogeneous types (which become native arrays). Ensure the sink mapping aligns with the expected target type.
 
 ---
 
