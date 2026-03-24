@@ -119,45 +119,12 @@ function formatDatetimeIso(tz = 'UTC') {
     return DateTime.now().setZone(tz).toISO();
 }
 
-function normalizeToStringArray(value) {
-    if (value === null || value === undefined) {
-        return null;
-    }
-
-    const toStringValue = (item) => {
-        if (item === null || item === undefined) {
-            return null;
-        }
-        if (typeof item === 'object') {
-            try {
-                return JSON.stringify(item);
-            } catch (err) {
-                return String(item);
-            }
-        }
-        return String(item);
-    };
-
-    if (Array.isArray(value)) {
-        return value.map(toStringValue);
-    }
-
-    return [toStringValue(value)];
-}
-
 // -----------------
 // Type inference
 // -----------------
 function inferFieldType(name, value, attrType = null) {
     const nameLc = name.toLowerCase();
     const attrTypeLc = typeof attrType === 'string' ? attrType.toLowerCase() : '';
-
-    // Keep schema as array for MultiRelation values, including null values.
-    // items must be a full schema descriptor object (not a plain string) for
-    // Kafka Connect JsonConverter to parse the array schema correctly.
-    if (attrTypeLc === 'multirelation' || attrTypeLc === 'multistring') {
-        return [{ type: 'array', items: { type: 'string' } }, normalizeToStringArray(value)];
-    }
 
     // 0. Null or undefined values: return string with null value
     if (value === null || value === undefined) {
@@ -204,6 +171,33 @@ function inferFieldType(name, value, attrType = null) {
     // Number handling: return as double (type  in JS is always float64)
     if (typeof value === 'number') {
         return ['double', value];
+    }
+
+    // Arrays
+    if (Array.isArray(value)) {
+        if (value.length === 0) {
+            return [{ type: 'array', items: { type: 'string', optional: true } }, value];
+        }
+
+        const allStrings = value.every((v) => typeof v === 'string');
+        if (allStrings) {
+            return [{ type: 'array', items: { type: 'string', optional: false } }, value];
+        }
+
+        const allNumbers = value.every((v) => typeof v === 'number');
+        if (allNumbers) {
+            return [{ type: 'array', items: { type: 'double', optional: false } }, value];
+        }
+
+        const allBooleans = value.every((v) => typeof v === 'boolean');
+        if (allBooleans) {
+            return [{ type: 'array', items: { type: 'boolean', optional: false } }, value];
+        }
+
+        // Maybe
+        // return [{ type: 'array', items: { type: 'string', optional: false } }, value];
+        // but, for array_col -> JSONB
+        return ['string', JSON.stringify(value)];
     }
 
     // Objects: serialize to string (fallback)

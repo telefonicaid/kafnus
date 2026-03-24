@@ -1,1 +1,1 @@
-- Add: support for `MultiRelation` and `MultiString` ngsi-type as an string array in db (#219, #220)
+- Fix: allow use array of string as Text[] in PSQL db
