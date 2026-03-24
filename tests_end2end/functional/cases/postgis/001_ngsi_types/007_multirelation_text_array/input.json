@@ -55,11 +55,15 @@
       },
       "hasTourismOrRelatedFacility": {
         "type": "MultiRelation",
-        "value": "Hotel:001"
+        "value": [
+          "Hotel:001"
+        ]
       },
       "offers": {
         "type": "MultiRelation",
-        "value": "Event:001"
+        "value": [
+          "Event:001"
+        ]
       },
       "hasAdditionalInformation": {
         "type": "Relation",
@@ -85,11 +89,15 @@
       },
       "hasTourismOrRelatedFacility": {
         "type": "MultiString",
-        "value": "Hotel:002"
+        "value": [
+          "Hotel:002"
+        ]
       },
       "offers": {
         "type": "MultiString",
-        "value": "Event:002"
+        "value": [
+          "Event:002"
+        ]
       },
       "hasAdditionalInformation": {
         "type": "Relation",
