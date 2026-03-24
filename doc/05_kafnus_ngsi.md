@@ -266,13 +266,19 @@ function inferFieldType(name, value, attrType = null)
 
 | Mechanism / Source              | Kafka Connect Type                                | Notes                                                                 |
 |---------------------------------|---------------------------------------------------|-----------------------------------------------------------------------|
-| `geo:json` (`attrType`)         | `"geometry"`                                      | Processed externally as PostGIS-compatible geometry.                   |
+| `geo:json` (`attrType`)         | `"geometry"`                                      | Processed externally as PostGIS-compatible geometry.                  |
 | `DateTime`, `ISO8601` (`attrType`) | Kafka `Timestamp` schema (`int64`)             | Converted to epoch millis, **except** `timeInstant` and `recvTime` which remain strings. |
-| JS-native string value          | `"string"`                                        | Any value inferred as string is passed through as-is.                  |
+| JS-native string value          | `"string"`                                        | Any value inferred as string is passed through as-is.                 |
 | JS-native boolean value         | `"boolean"`                                       |                                                                       |
-| JS-native number value          | `"double"`                                        | All numeric values are handled as JS float64 (double precision).       |
-| JS-native object/array          | `"string"` (JSON)                                 | Serialized to JSON string                                             |
-| Unknown / untyped value         | `"string"`                                        | Fallback for unsupported types or nulls.                               |
+| JS-native number value          | `"double"`                                        | All numeric values are handled as JS float64 (double precision).      |
+| Homogeneous array of strings    | `array<string>`                                   | Encoded as Kafka Connect array schema.                                |
+| Homogeneous array of numbers    | `array<double>`                                   | Encoded as Kafka Connect array schema.                                |
+| Homogeneous array of booleans   | `array<boolean>`                                  | Encoded as Kafka Connect array schema.                                |
+| Empty array                     | `array<string>`                                   | Defaults to optional string items.                                    |
+| Non-homogeneous array           | `"string"` (JSON)                                 | Serialized to JSON string                                             |
+| JS-native object                | `"string"` (JSON)                                 | Serialized to JSON string                                             |
+| `null` / `undefined`            | `"string"` with `null` payload                    | Default representation for missing values.                            |
+| Unknown / untyped value         | `"string"`                                        | Fallback for unsupported types or nulls.                              |
 
 #### ⚠️ Null handling
 
