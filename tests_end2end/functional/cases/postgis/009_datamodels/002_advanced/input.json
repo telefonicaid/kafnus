@@ -1,0 +1,132 @@
+{
+  "name": "datamodel_precedence_advanced",
+  "fiware-service": "testdatamodel",
+  "fiware-servicepath": "/simple",
+  "subscriptions": {
+    "lastdata_cfg_default": {
+      "description": "Sensor:LASTDATA:advanced:cfg-default",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": "^SensorCfg$",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_lastdata"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature"
+        ]
+      }
+    },
+    "lastdata_hdr_schema": {
+      "description": "Sensor:LASTDATA:advanced:hdr-schema",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": "^SensorHdrSchema$",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_lastdata",
+          "headers": {
+            "fiware-datamodel": "dm-by-entity-type-database-schema"
+          }
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature"
+        ]
+      }
+    },
+    "lastdata_hdr_db": {
+      "description": "Sensor:LASTDATA:advanced:hdr-db",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": "^SensorHdrDb$",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_lastdata",
+          "headers": {
+            "fiware-datamodel": "dm-by-entity-type-database"
+          }
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "SensorCfg",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T11:00:00Z"
+      },
+      "temperature": {
+        "value": 25.0,
+        "type": "Float"
+      }
+    },
+    {
+      "id": "SensorHdrSchema",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:00:00Z"
+      },
+      "temperature": {
+        "value": 26.0,
+        "type": "Float"
+      }
+    },
+    {
+      "id": "SensorHdrDb",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T13:00:00Z"
+      },
+      "temperature": {
+        "value": 27.0,
+        "type": "Float"
+      }
+    }
+  ]
+}
