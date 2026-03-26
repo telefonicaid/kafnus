@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with kafnus. If not, see http://www.gnu.org/licenses/.
 
-name: Kafnus NGSI Coverage
+name: Kafnus NGSI CI
 
 permissions:
   contents: read
@@ -35,7 +35,45 @@ on:
       - '.github/workflows/kafnus_ngsi_coverage.yml'
 
 jobs:
-  unit-tests-coverage:
+  lint-dockerfile:
+    name: Lint Dockerfile
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Hadolint Dockerfile Linter
+        uses: burdzwastaken/hadolint-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HADOLINT_ACTION_DOCKERFILE_FOLDER: kafnus-ngsi
+
+  lint-code:
+    name: Lint JavaScript
+    runs-on: ubuntu-24.04
+
+    defaults:
+      run:
+        working-directory: kafnus-ngsi
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint
+
+  coverage:
+    name: Test coverage
     runs-on: ubuntu-24.04
 
     defaults:
@@ -55,7 +93,14 @@ jobs:
         run: npm install
 
       - name: Run unit tests with coverage
-        run: npm test -- --coverageReporters=text-summary --coverageReporters=lcov
+        run: npm run test:coverage
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kafnus-ngsi-coverage
+          path: kafnus-ngsi/coverage
+          if-no-files-found: error
 
       - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@v2
