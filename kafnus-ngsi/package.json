@@ -8,11 +8,14 @@
   "scripts": {
     "clean": "rm -rf package-lock.json && rm -rf node_modules",
     "dev": "nodemon index.js",
-    "lint": "eslint lib/ --cache",
+    "lint": "npm run lint:src && npm run lint:test",
+    "lint:src": "eslint lib/ --cache",
+    "lint:test": "eslint tests/ --cache",
     "lint:fix": "eslint  lib/ --cache --fix",
     "prettier": "prettier --config .prettierrc.json --write '**/**/**/**/*.js' '**/**/**/*.js' '**/**/*.js' '**/*.js' '*.js'",      
     "start": "node index.js",
-    "test": "jest --coverage"
+    "test": "jest --runInBand",
+    "test:coverage": "jest --runInBand --coverage --coverageReporters=text-summary --coverageReporters=lcov"
   },
   "engines": {
     "node": ">=24"

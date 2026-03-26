@@ -104,7 +104,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                         rawValue, // rawValue has all entities, no just first
                         {
                             headers: msg.headers,
-                            suffix: suffix,
+                            suffix,
                             flowSuffix: '_lastdata',
                             includeTimeinstant: false,
                             keyFields: ['entityid']
