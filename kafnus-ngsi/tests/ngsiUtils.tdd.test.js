@@ -25,8 +25,6 @@ const {
     toEpochMillis,
     formatDatetimeIso,
     inferFieldType,
-    toKafnusConnectSchema,
-    buildKafkaKey,
     getFiwareContext,
     truncate
 } = require('../lib/utils/ngsiUtils');
