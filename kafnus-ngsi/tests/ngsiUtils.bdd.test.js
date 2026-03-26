@@ -1,21 +1,21 @@
 /*
-* Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
-*
-* This file is part of kafnus
-*
-* kafnus is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Affero General Public License as
-* published by the Free Software Foundation, either version 3 of the
-* License, or (at your option) any later version.
-*
-* kafnus is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
-* General Public License for more details.
-*
-* You should have received a copy of the GNU Affero General Public License
-* along with kafnus. If not, see http://www.gnu.org/licenses/.
-*/
+ * Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
+ *
+ * This file is part of kafnus
+ *
+ * kafnus is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * kafnus is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with kafnus. If not, see http://www.gnu.org/licenses/.
+ */
 
 const {
     toWktGeometry,
@@ -30,9 +30,11 @@ const {
 } = require('../lib/utils/ngsiUtils');
 
 jest.mock('../lib/utils/logger', () => ({
-    error: () => {},
-    warn: (...args) => console.warn(...args),
-    info: (...args) => console.log(...args)
+    getBasicLogger: () => ({
+        error: () => {},
+        warn: (...args) => console.warn(...args),
+        info: (...args) => console.log(...args)
+    })
 }));
 
 describe('ngsiUtils.js', () => {
@@ -66,15 +68,15 @@ describe('ngsiUtils.js', () => {
     });
 
     describe('inferFieldType (BDD)', () => {
-        test("Given attrType Float, When parsing '3.14', Then returns float type", () => {
+        test('Given non-special attrType Float and string value, Then keeps string type', () => {
             const [t, v] = inferFieldType('temp', '3.14', 'Float');
-            expect(t).toBe('float');
-            expect(v).toBeCloseTo(3.14);
+            expect(t).toBe('string');
+            expect(v).toBe('3.14');
         });
 
-        test('Given attrType Number with int32, When parsing, Then returns int32', () => {
+        test('Given non-special attrType Number and numeric value, Then generic number inference applies', () => {
             const [t, v] = inferFieldType('count', 100, 'Number');
-            expect(t).toBe('int32');
+            expect(t).toBe('double');
             expect(v).toBe(100);
         });
 
