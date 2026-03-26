@@ -219,34 +219,34 @@ describe('handleEntityCb.js', () => {
             await expect(handleEntityCb(logger, rawValue, { headers: [] }, producer)).rejects.toThrow(
                 'producer failure'
             );
-
-            test('rethrows ERR__QUEUE_FULL from safeProduce without calling logger.error', async () => {
-                // Make deadline expire immediately on the second Date.now() call so safeProduce
-                // throws QUEUE_FULL synchronously; handleEntityCb must rethrow it without logging.
-                let nowCount = 0;
-                const baseTime = Date.now();
-                const dateSpy = jest
-                    .spyOn(Date, 'now')
-                    .mockImplementation(() => (nowCount++ === 0 ? baseTime : baseTime + 30001));
-                try {
-                    const producer = new EventEmitter();
-                    producer.produce = jest.fn(() => {
-                        const err = new Error('queue full');
-                        err.code = QUEUE_FULL;
-                        throw err;
-                    });
-
-                    const rawValue = JSON.stringify({ data: [{ id: 'Room:001', type: 'Room' }] });
-
-                    await expect(handleEntityCb(logger, rawValue, { headers: [] }, producer)).rejects.toMatchObject({
-                        code: QUEUE_FULL
-                    });
-                    expect(logger.error).not.toHaveBeenCalled();
-                } finally {
-                    dateSpy.mockRestore();
-                }
-            });
             expect(logger.error).toHaveBeenCalled();
+        });
+
+        test('rethrows ERR__QUEUE_FULL from safeProduce without calling logger.error', async () => {
+            // Make deadline expire immediately on the second Date.now() call so safeProduce
+            // throws QUEUE_FULL synchronously; handleEntityCb must rethrow it without logging.
+            let nowCount = 0;
+            const baseTime = Date.now();
+            const dateSpy = jest
+                .spyOn(Date, 'now')
+                .mockImplementation(() => (nowCount++ === 0 ? baseTime : baseTime + 30001));
+            try {
+                const producer = new EventEmitter();
+                producer.produce = jest.fn(() => {
+                    const err = new Error('queue full');
+                    err.code = QUEUE_FULL;
+                    throw err;
+                });
+
+                const rawValue = JSON.stringify({ data: [{ id: 'Room:001', type: 'Room' }] });
+
+                await expect(handleEntityCb(logger, rawValue, { headers: [] }, producer)).rejects.toMatchObject({
+                    code: QUEUE_FULL
+                });
+                expect(logger.error).not.toHaveBeenCalled();
+            } finally {
+                dateSpy.mockRestore();
+            }
         });
     });
 });
