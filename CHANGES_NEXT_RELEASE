@@ -1,1 +1,2 @@
 - Fix: allow use array of string as Text[] in PSQL db
+- Feat: add Kafnus NGSI unit tests and CI coverage reporting (#224)
