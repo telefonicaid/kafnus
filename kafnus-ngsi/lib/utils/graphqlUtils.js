@@ -17,13 +17,10 @@
  * along with kafnus. If not, see http://www.gnu.org/licenses/.
  */
 
-const theLogger = require('./logger');
-const logger = theLogger.getBasicLogger();
 const { config } = require('../../kafnusConfig');
 
-const GRAFO_PREFIX = config.graphql['grafo'];
-const GRAFO_SUFFIX = config.graphql['grafoSuffix'];
-const PREFIX_KOS = 'https://ontologia.segittur.es/turismo/kos/';
+const GRAFO_PREFIX = config.graphql.grafo;
+const GRAFO_SUFFIX = config.graphql.grafoSuffix;
 
 function slugify(text) {
     // Normalize Unicode using NFKD (e.g., "é" → "é")
@@ -92,12 +89,14 @@ function addPrefix(prefix, root) {
 }
 
 function capitalEntityType(entityType) {
-    if (!entityType) return '';
+    if (!entityType) {
+        return '';
+    }
     return entityType.charAt(0).toUpperCase() + entityType.slice(1).toLowerCase();
 }
 
 function getGrafoName(service) {
-    let grafo = config.graphql.grafoByService
+    const grafo = config.graphql.grafoByService
         ? `"${GRAFO_PREFIX}${service}${GRAFO_SUFFIX}"`
         : `"${GRAFO_PREFIX}${GRAFO_SUFFIX}"`;
 
@@ -109,7 +108,7 @@ function getGrafo(service) {
 }
 
 function getStaging() {
-    let staging = config.graphql.staging ? true : false;
+    const staging = !!config.graphql.staging;
     return staging;
 }
 
@@ -164,7 +163,6 @@ function buildMutation(type, entityType, args = {}, returnFields = ['uri']) {
     const argsString = Object.entries(args)
         .map(([k, v]) => `${k}: ${toGraphQLValue(v)}`)
         .join(', ');
-    const returnFieldsString = returnFields.join(' ');
     const capEntityType = capitalEntityType(entityType);
     const selectionSet = Array.isArray(returnFields) && returnFields.length > 0 ? ` { ${returnFields.join(' ')} }` : '';
     return {

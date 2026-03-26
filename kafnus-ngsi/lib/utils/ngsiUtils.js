@@ -103,14 +103,6 @@ function sanitizeString(name) {
 // -----------------
 // Datetime helpers
 // -----------------
-function isPossibleDatetime(value) {
-    if (!value) {
-        return false;
-    }
-    //return !isNaN(Date.parse(value)); // TBD: Date.parse("NO-101") is non nan!!!
-    return false;
-}
-
 function toEpochMillis(value) {
     return DateTime.fromISO(value, { zone: 'utc' }).toMillis();
 }
@@ -336,7 +328,9 @@ function encodeMongo(value) {
 }
 
 function truncate(s, max = 4000) {
-    if (!s || s.length <= max) return s;
+    if (!s || s.length <= max) {
+        return s;
+    }
     return s.slice(0, max) + `... [truncated ${s.length - max} chars]`;
 }
 

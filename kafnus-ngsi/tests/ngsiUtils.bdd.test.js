@@ -20,10 +20,6 @@
 const {
     toWktGeometry,
     toWkbStructFromWkt,
-    sanitizeString,
-    encodeMongo,
-    toEpochMillis,
-    formatDatetimeIso,
     inferFieldType,
     toKafnusConnectSchema,
     buildKafkaKey

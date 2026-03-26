@@ -108,7 +108,7 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
                             throw err;
                         }
                     })
-                    .catch((err) => {
+                    .catch(() => {
                         // Avoid unhandled rejection.
                     });
             })

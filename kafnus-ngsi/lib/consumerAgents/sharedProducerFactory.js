@@ -29,7 +29,7 @@ async function createProducer(logger) {
 
     producerInstance = new Kafka.Producer(config.kafkaProducer);
 
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve) => {
         producerInstance
             .on('ready', () => {
                 producerReady = true;
@@ -40,7 +40,9 @@ async function createProducer(logger) {
                 logger.error('[producer] error', err);
             })
             .on('delivery-report', (err) => {
-                if (err) logger.error('[producer] delivery error', err);
+                if (err) {
+                    logger.error('[producer] delivery error', err);
+                }
             });
 
         producerInstance.connect();

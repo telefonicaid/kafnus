@@ -32,7 +32,7 @@ async function shutdownConsumer(consumer, logger, name) {
             if (err) {
                 return reject(err);
             }
-            resolve();
+            return resolve();
         });
     });
 }

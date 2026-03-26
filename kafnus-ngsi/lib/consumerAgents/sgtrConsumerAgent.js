@@ -20,7 +20,6 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { getFiwareContext } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
-const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/admin');
 const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
 const { config } = require('../../kafnusConfig');
@@ -56,9 +55,7 @@ async function startSgtrConsumerAgent(logger, producer) {
                 const dataList = message.data ? message.data : [];
 
                 for (const entityObject of dataList) {
-                    const { service, servicepath } = getFiwareContext(msg.headers, message);
-                    const timestamp = msg.headers.timestamp || Math.floor(Date.now() / 1000);
-                    const recvTime = DateTime.fromSeconds(timestamp, { zone: 'utc' }).toISO();
+                    const { service } = getFiwareContext(msg.headers, message);
 
                     logger.debug('[sgtr] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
 
@@ -86,7 +83,7 @@ async function startSgtrConsumerAgent(logger, producer) {
                     }
                     logger.debug('[sgtr] mutation: \n%s', mutation);
                     if (config.graphql.outputTopicByService) {
-                        outputTopic = config.ngsi.prefix + service + '_' + 'sgtr_http' + config.ngsi.suffix;
+                        outputTopic = config.ngsi.prefix + service + '_sgtr_http' + config.ngsi.suffix;
                     } else {
                         outputTopic = config.ngsi.prefix + 'sgtr_http' + config.ngsi.suffix;
                     }
