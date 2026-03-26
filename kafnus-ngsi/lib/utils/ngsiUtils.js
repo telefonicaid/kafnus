@@ -150,7 +150,12 @@ function inferFieldType(name, value, attrType = null) {
                     return ['string', null];
                 }
                 // Use Kafka Connect Timestamp logical type
-                return [{ type: 'int64', name: 'org.apache.kafka.connect.data.Timestamp' }, toEpochMillis(value)];
+                const millis = toEpochMillis(value);
+                if (isNaN(millis)) {
+                    logger.warn(`Invalid datetime value for field '${name}': '${value}'`);
+                    return ['string', String(value)];
+                }
+                return [{ type: 'int64', name: 'org.apache.kafka.connect.data.Timestamp' }, millis];
             } catch (err) {
                 logger.warn(`Error parsing datetime for field '${name}': ${err}`);
                 return ['string', String(value)];
