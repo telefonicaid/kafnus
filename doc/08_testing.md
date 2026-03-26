@@ -1,12 +1,14 @@
 # 🧪**Testing**
 
-Kafnus provides a complete automated test suite validating the entire data pipeline, from **Orion notifications** to **database persistence**, including **HTTP behavior**, **MongoDB**, **PostGIS**, and now **resilience under database outages**.
+Kafnus provides an automated test strategy combining **JavaScript unit tests** for `kafnus-ngsi` and **Python integration/end-to-end tests** for the full pipeline, from **Orion notifications** to **database persistence**, including **HTTP behavior**, **MongoDB**, **PostGIS**, and **resilience under database outages**.
 
-Tests are organized into three main categories:
+Tests are organized into five main categories:
 
+* **Unit tests (`kafnus-ngsi/tests/`)**
 * **Functional tests (End-to-End scenarios)**
 * **Admin Server tests**
 * **Resilience tests (database outage recovery)**
+* **Batching tests**
 
 This document explains the structure, purpose, and execution of each category.
 
@@ -15,6 +17,9 @@ This document explains the structure, purpose, and execution of each category.
 ## 🗂️**Test Folder Structure**
 
 ```
+kafnus-ngsi/
+└── tests/                     # Jest unit tests for NGSI mapping and helpers
+
 tests_end2end/
 ├── common/                     # Shared utilities used across all test groups
 │   ├── common_test.py
@@ -54,7 +59,50 @@ tests_end2end/
 
 ---
 
-## 1. **Functional Tests (End-to-End `test_pipeline.py`)**
+## 1. **Unit Tests (`kafnus-ngsi/tests/`)**
+
+The `kafnus-ngsi` module includes a Jest-based unit test suite focused on **fast validation of transformation logic** without starting the full Docker stack.
+
+These tests currently cover areas such as:
+
+* NGSI attribute type inference
+* Kafka payload/schema generation
+* Kafka key generation
+* FIWARE header extraction
+* Geo conversion helpers
+* Producer retry/error handling in `handleEntityCb`
+
+### Why unit tests were added
+
+Coverage reporting is generated from the Jest suite because the main integration suite is implemented in **Python/Pytest** and exercises the system through containers and external services.
+
+This means the Python end-to-end tests are excellent for **functional validation**, but they do not contribute directly to the JavaScript line coverage reported by tools such as **Coveralls** in the same way as in FIWARE Data Access.
+
+To obtain actionable coverage metrics for `kafnus-ngsi`, a dedicated unit test suite was added around the Node.js codebase.
+
+If full combined coverage for the processing code were required from integration tests as well, those tests would need to be migrated or instrumented in a very different way, which would add significant complexity for limited practical benefit.
+
+### Coverage workflow
+
+The repository includes a GitHub Actions workflow for `kafnus-ngsi` that runs:
+
+* Dockerfile linting
+* JavaScript linting
+* Jest unit tests with LCOV coverage export
+* Coveralls upload
+
+### Running unit tests locally
+
+From the `kafnus-ngsi/` directory:
+
+```bash
+npm test
+npm run test:coverage
+```
+
+---
+
+## 2. **Functional Tests (End-to-End `test_pipeline.py`)**
 
 The functional suite validates the full path of a real NGSI flow:
 
@@ -273,7 +321,7 @@ All new tests follow the established pattern with `description.txt`, `input.json
 ---
 
 
-## 2. **Admin Server Tests (`test_admin_server.py`)**
+## 3. **Admin Server Tests (`test_admin_server.py`)**
 
 This test is **a separate test suite for the Admin Server**, which covers:
 
@@ -286,7 +334,7 @@ This test is **a separate test suite for the Admin Server**, which covers:
 
 ---
 
-## 3. **Resilience Tests (`test_db_outage_recover.py`)**
+## 4. **Resilience Tests (`test_db_outage_recover.py`)**
 
 This is the newest test category and validates **Kafnus Connect’s behavior when Postgres goes DOWN and later comes BACK**.
 
@@ -340,7 +388,7 @@ This simulates real production outages with in-flight data.
 
 ---
 
-## 4. **Batching Tests (`test_jdbc_batch_backlog.py` and `test_jdbc_batch_errors.py`)**
+## 5. **Batching Tests (`test_jdbc_batch_backlog.py` and `test_jdbc_batch_errors.py`)**
 
 This test category validates **JDBC sink batch processing** and error handling under high-volume data scenarios.
 
@@ -420,7 +468,15 @@ KAFNUS_TESTS_MONGO_PORT: "27017"
 
 ## ▶️ Running the Tests
 
-To run **all tests**:
+To run the `kafnus-ngsi` unit tests:
+
+```bash
+cd kafnus-ngsi
+npm test
+npm run test:coverage
+```
+
+To run **all Python integration tests**:
 
 ```bash
 pytest -s -v
