@@ -70,18 +70,18 @@ describe('ngsiUtils.js', () => {
     });
 
     describe('inferFieldType (TDD)', () => {
-        test('maps MultiRelation arrays to Kafka Connect array schema', () => {
+        test('for non-special attrType, arrays follow generic array inference', () => {
             const [schema, value] = inferFieldType('relatedTo', ['A:1', 'B:2'], 'MultiRelation');
 
-            expect(schema).toEqual({ type: 'array', items: { type: 'string' } });
+            expect(schema).toEqual({ type: 'array', items: { type: 'string', optional: false } });
             expect(value).toEqual(['A:1', 'B:2']);
         });
 
-        test('normalizes scalar MultiRelation values to single-item arrays', () => {
+        test('for non-special attrType, scalar string remains string', () => {
             const [schema, value] = inferFieldType('offers', 'Event:001', 'MultiRelation');
 
-            expect(schema).toEqual({ type: 'array', items: { type: 'string' } });
-            expect(value).toEqual(['Event:001']);
+            expect(schema).toBe('string');
+            expect(value).toBe('Event:001');
         });
     });
 
