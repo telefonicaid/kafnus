@@ -44,7 +44,7 @@ async function startHistoricConsumerAgent(logger, producer) {
                     v,
                     {
                         headers: msg.headers,
-                        suffix: suffix,
+                        suffix,
                         flowSuffix: '_historic',
                         includeTimeinstant: true,
                         keyFields: ['entityid']

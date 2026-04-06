@@ -18,7 +18,7 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { getFiwareContext, encodeMongo } = require('../utils/ngsiUtils');
+const { getFiwareContext } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
 const { DateTime } = require('luxon');
 const { messagesProcessed, processingTime } = require('../utils/admin');

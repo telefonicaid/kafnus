@@ -103,14 +103,6 @@ function sanitizeString(name) {
 // -----------------
 // Datetime helpers
 // -----------------
-function isPossibleDatetime(value) {
-    if (!value) {
-        return false;
-    }
-    //return !isNaN(Date.parse(value)); // TBD: Date.parse("NO-101") is non nan!!!
-    return false;
-}
-
 function toEpochMillis(value) {
     return DateTime.fromISO(value, { zone: 'utc' }).toMillis();
 }
@@ -124,6 +116,7 @@ function formatDatetimeIso(tz = 'UTC') {
 // -----------------
 function inferFieldType(name, value, attrType = null) {
     const nameLc = name.toLowerCase();
+    const attrTypeLc = typeof attrType === 'string' ? attrType.toLowerCase() : '';
 
     // 0. Null or undefined values: return string with null value
     if (value === null || value === undefined) {
@@ -133,12 +126,12 @@ function inferFieldType(name, value, attrType = null) {
     // 1. Handle special attribute types
     if (attrType) {
         // Geospatial types
-        if (attrType == 'geo:json') {
+        if (attrTypeLc === 'geo:json') {
             return ['geometry', value];
         }
 
         // DateTime and ISO8601 types
-        if (attrType === 'DateTime' || attrType === 'ISO8601') {
+        if (attrTypeLc === 'datetime' || attrTypeLc === 'iso8601') {
             // Special case for timeinstant/recvtime: always treat as string
             // because they are processed specially in Kafnus-Connect sinks
             if (['timeinstant', 'recvtime'].includes(nameLc)) {
@@ -149,7 +142,12 @@ function inferFieldType(name, value, attrType = null) {
                     return ['string', null];
                 }
                 // Use Kafka Connect Timestamp logical type
-                return [{ type: 'int64', name: 'org.apache.kafka.connect.data.Timestamp' }, toEpochMillis(value)];
+                const millis = toEpochMillis(value);
+                if (isNaN(millis)) {
+                    logger.warn(`Invalid datetime value for field '${name}': '${value}'`);
+                    return ['string', String(value)];
+                }
+                return [{ type: 'int64', name: 'org.apache.kafka.connect.data.Timestamp' }, millis];
             } catch (err) {
                 logger.warn(`Error parsing datetime for field '${name}': ${err}`);
                 return ['string', String(value)];
@@ -170,6 +168,33 @@ function inferFieldType(name, value, attrType = null) {
     // Number handling: return as double (type  in JS is always float64)
     if (typeof value === 'number') {
         return ['double', value];
+    }
+
+    // Arrays
+    if (Array.isArray(value)) {
+        if (value.length === 0) {
+            return [{ type: 'array', items: { type: 'string', optional: true } }, value];
+        }
+
+        const allStrings = value.every((v) => typeof v === 'string');
+        if (allStrings) {
+            return [{ type: 'array', items: { type: 'string', optional: false } }, value];
+        }
+
+        const allNumbers = value.every((v) => typeof v === 'number');
+        if (allNumbers) {
+            return [{ type: 'array', items: { type: 'double', optional: false } }, value];
+        }
+
+        const allBooleans = value.every((v) => typeof v === 'boolean');
+        if (allBooleans) {
+            return [{ type: 'array', items: { type: 'boolean', optional: false } }, value];
+        }
+
+        // Maybe
+        // return [{ type: 'array', items: { type: 'string', optional: false } }, value];
+        // but, for array_col -> JSONB
+        return ['string', JSON.stringify(value)];
     }
 
     // Objects: serialize to string (fallback)
@@ -303,7 +328,9 @@ function encodeMongo(value) {
 }
 
 function truncate(s, max = 4000) {
-    if (!s || s.length <= max) return s;
+    if (!s || s.length <= max) {
+        return s;
+    }
     return s.slice(0, max) + `... [truncated ${s.length - max} chars]`;
 }
 

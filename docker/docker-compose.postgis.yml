@@ -17,9 +17,9 @@
 
 
 services:
-  iot-postgis:
-    container_name: iot-postgis
-    hostname: iot-postgis
+  postgis:
+    container_name: postgis
+    hostname: postgis
     # Default env variables will be used if not specify in .env
     image: ${KAFNUS_POSTGIS_IMAGE:-postgis/postgis:15-3.3}
     volumes:

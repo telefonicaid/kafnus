@@ -30,13 +30,10 @@ const { config } = require('../../kafnusConfig');
 const { once } = require('events');
 const Kafka = require('@confluentinc/kafka-javascript');
 
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 async function safeProduce(producer, args, { maxWaitMs = 30000 } = {}) {
     const deadline = Date.now() + maxWaitMs;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
         try {
             producer.produce(...args);
