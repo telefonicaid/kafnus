@@ -1,4 +1,3 @@
-- Fix: allow use array of string as Text[] in PSQL db
 - Add: Kafnus NGSI unit tests and CI coverage reporting (#224)
 - UPGRADE: requests from 2.32.4 to 2.33.0 due to CVE-2026-25645
 - Upgrade dep @confluentinc/kafka-javascript from 1.8.0 to 1.9.0

@@ -25,9 +25,9 @@ CREATE TABLE IF NOT EXISTS test.tourism_accommodation_lastdata (
     entitytype TEXT,
     timeinstant TIMESTAMPTZ,
 
-    accommodationcontainedin TEXT[],
-    hastourismorrelatedfacility TEXT[],
-    offers TEXT[],
+    accommodationcontainedin JSONB,
+    hastourismorrelatedfacility JSONB,
+    offers JSONB,
 
     hasadditionalinformation TEXT,
     name TEXT,
