@@ -170,33 +170,6 @@ function inferFieldType(name, value, attrType = null) {
         return ['double', value];
     }
 
-    // Arrays
-    if (Array.isArray(value)) {
-        if (value.length === 0) {
-            return [{ type: 'array', items: { type: 'string', optional: true } }, value];
-        }
-
-        const allStrings = value.every((v) => typeof v === 'string');
-        if (allStrings) {
-            return [{ type: 'array', items: { type: 'string', optional: false } }, value];
-        }
-
-        const allNumbers = value.every((v) => typeof v === 'number');
-        if (allNumbers) {
-            return [{ type: 'array', items: { type: 'double', optional: false } }, value];
-        }
-
-        const allBooleans = value.every((v) => typeof v === 'boolean');
-        if (allBooleans) {
-            return [{ type: 'array', items: { type: 'boolean', optional: false } }, value];
-        }
-
-        // Maybe
-        // return [{ type: 'array', items: { type: 'string', optional: false } }, value];
-        // but, for array_col -> JSONB
-        return ['string', JSON.stringify(value)];
-    }
-
     // Objects: serialize to string (fallback)
     if (typeof value === 'object') {
         try {
