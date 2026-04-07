@@ -72,7 +72,7 @@ describe('ngsiUtils.js', () => {
             const [schema, value] = inferFieldType('relatedTo', ['A:1', 'B:2'], 'MultiRelation');
 
             expect(schema).toBe('string');
-            expect(val).toBe(JSON.stringify(['A:1', 'B:2']));
+            expect(value).toBe(JSON.stringify(['A:1', 'B:2']));
         });
 
         test('for non-special attrType, scalar string remains string', () => {
@@ -144,10 +144,10 @@ describe('ngsiUtils.js', () => {
             expect(type).toBe('string');
         });
 
-        test('empty array returns undefined schema with optional items', () => {
+        test('empty array returns string schema with optional items', () => {
             const [schema, val] = inferFieldType('items', []);
-            expect(schema).toBe(undefined);
-            //expect(val).toEqual([]);
+            expect(schema).toBe(string);
+            expect(val).toEqual([]);
         });
 
         test('all-numbers array returns string schema with double items', () => {
