@@ -24,10 +24,10 @@ CREATE TABLE IF NOT EXISTS test.tourism_accommodation_lastdata (
     entityid TEXT NOT NULL,
     entitytype TEXT,
     timeinstant TIMESTAMPTZ,
-
-    accommodationcontainedin JSONB,
-    hastourismorrelatedfacility JSONB,
-    offers JSONB,
+ 
+    accommodationcontainedin JSONB, -- both JSONB or TEXT
+    hastourismorrelatedfacility JSONB, -- both JSONB or TEXT
+    offers TEXT, -- both TEXT or JSONB
 
     hasadditionalinformation TEXT,
     name TEXT,
