@@ -146,7 +146,7 @@ describe('ngsiUtils.js', () => {
 
         test('empty array returns string schema with optional items', () => {
             const [schema, val] = inferFieldType('items', []);
-            expect(schema).toBe(string);
+            expect(schema).toBe('string');
             expect(val).toEqual([]);
         });
 
