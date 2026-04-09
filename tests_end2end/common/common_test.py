@@ -267,10 +267,17 @@ def multiservice_stack():
         logger.debug(f"📁 Files found: {[f.name for f in sinks_dir.glob('*')]}")
 
         # Setup PostgreSQL DB with PostGIS extension
-        KAFNUS_TESTS_PG_HOST = os.getenv("KAFNUS_TESTS_PG_HOST", "localhost")
-        KAFNUS_TESTS_PG_PORT = int(os.getenv("KAFNUS_TESTS_PG_PORT", "5432"))
         KAFNUS_TESTS_PG_USER = os.getenv("KAFNUS_TESTS_PG_USER", "postgres")
         KAFNUS_TESTS_PG_PASSWORD = os.getenv("KAFNUS_TESTS_PG_PASSWORD", "postgres")
+
+        if use_external_pg:
+            # external DB: user-provided host/port
+            KAFNUS_TESTS_PG_HOST = os.getenv("KAFNUS_TESTS_PG_HOST", "localhost")
+            KAFNUS_TESTS_PG_PORT = int(os.getenv("KAFNUS_TESTS_PG_PORT", "5432"))
+        else:
+            # compose-managed DB: discover actual mapped host/port
+            KAFNUS_TESTS_PG_HOST = compose.get_service_host("postgis", 5432)
+            KAFNUS_TESTS_PG_PORT = int(compose.get_service_port("postgis", 5432))
 
         wait_for_orion(orion_host, orion_port)
         wait_for_postgres(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT)
