@@ -420,7 +420,7 @@ class OrionAdapter:
         response = requests.patch(
             f"{self.baseUrl}/subscriptions/{sub_id}",
             headers=headers_,
-            data=json.dumps(changes)
+            data=json.dumps(self._apply_default_kafka_auth(changes))
         )
 
         assert response.status_code in [200, 204], (
