@@ -1,0 +1,29 @@
+[
+  {
+    "table": "test.tourism_accommodation_lastdata",
+    "rows": [
+      {
+        "entityid": "Accommodation:001",
+        "entitytype": "Accommodation",
+        "fiwareservicepath": "/tourism",
+        "timeinstant": "2025-10-03T12:00:12.002Z",
+        "accommodationcontainedin": ["Accommodation:001"],
+        "hastourismorrelatedfacility": ["Hotel:001"],
+        "offers": ["Event:001"],
+        "hasadditionalinformation": "AdditionalInformation:001",
+        "name": "example01"
+      },
+      {
+        "entityid": "Accommodation:002",
+        "entitytype": "Accommodation",
+        "fiwareservicepath": "/tourism",
+        "timeinstant": "2025-10-03T12:00:12.002Z",
+        "accommodationcontainedin": ["Accommodation:002"],
+        "hastourismorrelatedfacility": ["Hotel:002"],
+        "offers": ["Event:002"],
+        "hasadditionalinformation": "AdditionalInformation:002",
+        "name": "example02"
+      }
+    ]
+  }
+]

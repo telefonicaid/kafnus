@@ -88,5 +88,5 @@ Kafnus offers a scalable, resilient, and modular system to process NGSI notifica
 
 ## 🧭 Navigation
 
-- [🏠 Main index](../README.md#documentation)
+- [🏠 Main index](/README.md#documentation)
 - [➡️ Next: Installation](/doc/01_installation.md)

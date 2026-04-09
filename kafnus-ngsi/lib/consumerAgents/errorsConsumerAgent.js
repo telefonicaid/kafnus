@@ -107,8 +107,12 @@ async function startErrorsConsumerAgent(logger, producer) {
                             .map((k) => `"${k}"`)
                             .join(',');
                         const values = Object.values(payload).map((v) => {
-                            if (typeof v === 'string') return `'${v.replace(/'/g, "''")}'`;
-                            if (v == null) return 'NULL';
+                            if (typeof v === 'string') {
+                                return `'${v.replace(/'/g, "''")}'`;
+                            }
+                            if (v == null) {
+                                return 'NULL';
+                            }
                             return v.toString();
                         });
                         originalQuery = `INSERT INTO "${dbName}"."${table}" (${columns}) VALUES (${values.join(',')})`;
@@ -135,7 +139,15 @@ async function startErrorsConsumerAgent(logger, producer) {
                     }
                 };
 
-                const headersOut = [{ 'fiware-service': Buffer.from(dbName) }];
+                const headersOut = [
+                    { 'fiware-service': Buffer.from(dbName) },
+                    { 'fiware-datamodel': Buffer.from('dm-postgis-errors') }
+                ];
+                // Fallback to default datamodel
+                headersOut.push(
+                    { 'fiware-servicepath': Buffer.from(dbName) },
+                    { entityType: Buffer.from('_error_log') }
+                );
 
                 await safeProduce(producer, [
                     errorTopicName,

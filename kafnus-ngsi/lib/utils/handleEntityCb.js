@@ -27,21 +27,34 @@ const {
 } = require('./ngsiUtils');
 const { config } = require('../../kafnusConfig');
 
+const { once } = require('events');
 const Kafka = require('@confluentinc/kafka-javascript');
 
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
+async function safeProduce(producer, args, { maxWaitMs = 30000 } = {}) {
+    const deadline = Date.now() + maxWaitMs;
 
-async function safeProduce(producer, args) {
-    try {
-        producer.produce(...args);
-    } catch (err) {
-        if (err.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
-            // Without logs to avoid duplicates
-            throw err; // raise backpressure
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        try {
+            producer.produce(...args);
+            return;
+        } catch (err) {
+            if (err?.code !== Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
+                throw err;
+            }
+
+            // Wait to will be released (delivery-report releases internal queue)
+            const remaining = deadline - Date.now();
+            if (remaining <= 0) {
+                throw err;
+            }
+
+            await Promise.race([
+                once(producer, 'delivery-report'),
+                new Promise((_, rej) => setTimeout(() => rej(err), Math.min(1000, remaining)))
+            ]);
+            // retry
         }
-        throw err;
     }
 }
 
@@ -60,7 +73,7 @@ async function handleEntityCb(
             return;
         }
 
-        const { service, servicepath } = getFiwareContext(headers, message);
+        const { service, servicepath, datamodel } = getFiwareContext(headers, message);
 
         for (const ngsiEntity of entities) {
             const entityId = ngsiEntity.id;
@@ -117,6 +130,7 @@ async function handleEntityCb(
             const headersOut = [
                 { 'fiware-service': Buffer.from(sanitizeString(service)) },
                 { 'fiware-servicepath': Buffer.from(sanitizeString(servicepath)) },
+                { 'fiware-datamodel': Buffer.from(datamodel || '') },
                 { entityType: Buffer.from(sanitizeString(entityType)) },
                 { entityId: Buffer.from(sanitizeString(entityId)) },
                 { suffix: Buffer.from(flowSuffix === '_historic' ? '' : sanitizeString(flowSuffix)) }

@@ -1,25 +1,28 @@
 {
   "name": "kafnus-ngsi",
   "license": "AGPL-3.0-only",
-  "version": "1.1.0-next",
+  "version": "1.2.0-next",
   "description": "kafnus-ngsi based on @confluentinc/kafka-javascript",
   "homepage": "https://github.com/telefonicaid/kafnus",
   "main": "index.js",
   "scripts": {
     "clean": "rm -rf package-lock.json && rm -rf node_modules",
     "dev": "nodemon index.js",
-    "lint": "eslint lib/ --cache",
+    "lint": "npm run lint:src && npm run lint:test",
+    "lint:src": "eslint lib/ --cache",
+    "lint:test": "eslint tests/ --cache",
     "lint:fix": "eslint  lib/ --cache --fix",
     "prettier": "prettier --config .prettierrc.json --write '**/**/**/**/*.js' '**/**/**/*.js' '**/**/*.js' '**/*.js' '*.js'",      
     "start": "node index.js",
-    "test": "jest --coverage"
+    "test": "jest --runInBand",
+    "test:coverage": "jest --runInBand --coverage --coverageReporters=text-summary --coverageReporters=lcov"
   },
   "engines": {
     "node": ">=24"
   },
   "dependencies": {
-    "@confluentinc/kafka-javascript": "1.5.0",
-    "ajv": "~8.17.1",
+    "@confluentinc/kafka-javascript": "1.9.0",
+    "ajv": "~8.18.0",
     "ajv-formats": "~3.0.1",
     "betterknown": "1.0.5",
     "dotenv": "~16.4.7",

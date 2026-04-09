@@ -2,6 +2,10 @@
 
 # 🛰️ Kafnus
 
+[![CI](https://github.com/telefonicaid/kafnus/actions/workflows/kafnus_ngsi_coverage.yml/badge.svg?branch=main)](https://github.com/telefonicaid/kafnus/actions/workflows/kafnus_ngsi_coverage.yml)
+[![Coverage Status](https://coveralls.io/repos/github/telefonicaid/kafnus/badge.svg?branch=main)](https://coveralls.io/github/telefonicaid/kafnus?branch=main)
+[![Docker badge](https://img.shields.io/badge/docker-telefonicaiot%2Fkafnus-blue?logo=docker)](https://hub.docker.com/r/telefonicaiot/kafnus)
+
 **Kafnus** is a smart city data persistence system, designed as a modern replacement for Cygnus, built on top of **Kafka**.
 
 It processes NGSI notifications from the Context Broker (CB) and stores them in **PostGIS** and **MongoDB**, leveraging technologies like **Kafka Stream**, **Kafka Connect**, and custom connectors.
@@ -9,11 +13,6 @@ It processes NGSI notifications from the Context Broker (CB) and stores them in 
 This project is part of [FIWARE](https://www.fiware.org/). For more information
 check the FIWARE Catalogue entry for the
 [Core Context Management](https://github.com/Fiware/catalogue/tree/master/core).
-
-
-| :whale: [Docker Hub](https://hub.docker.com/r/telefonicaiot/kafnus) |
-|---|
-
 
 ---
 
@@ -56,7 +55,7 @@ Complete documentation is available in the [`doc/`](./doc) directory:
 - [`00_overview.md`](./doc/00_overview.md) – Project overview
 - [`01_installation.md`](./doc/01_installation.md) – How to install & build
 - [`02_architecture.md`](./doc/02_architecture.md) – System architecture
-- [`03_operational_guide.md`](./doc/03_operational_guide.md) – Operational guide
+- [`03_advanced_topics.md`](./doc/03_advanced_topics.md) – Advanced topics with Operational guide
 - [`04_docker.md`](./doc/04_docker.md) – Docker details
 - [`05_kafnus_ngsi.md`](./doc/05_kafnus_ngsi.md) – Kafnus NGSI stream processor
 - [`06_kafnus_connect.md`](./doc/06_kafnus_connect.md) – Kafnus Connect and sinks details

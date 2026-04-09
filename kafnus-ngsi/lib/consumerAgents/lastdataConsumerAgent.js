@@ -49,7 +49,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                     consumer.commitMessage(msg);
                     return;
                 }
-                const { service, servicepath } = getFiwareContext(msg.headers, message);
+                const { service, servicepath, datamodel } = getFiwareContext(msg.headers, message);
 
                 const entityRaw = dataList[0];
                 const entityId = entityRaw.id;
@@ -74,6 +74,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                     const headersOut = [
                         { 'fiware-service': Buffer.from(sanitizeString(service)) },
                         { 'fiware-servicepath': Buffer.from(sanitizeString(servicepath)) },
+                        { 'fiware-datamodel': Buffer.from(datamodel || '') },
                         { entityType: Buffer.from(sanitizeString(entityType)) },
                         { entityId: Buffer.from(sanitizeString(entityId)) },
                         { suffix: Buffer.from(sanitizeString(flowSuffix)) }
@@ -103,7 +104,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                         rawValue, // rawValue has all entities, no just first
                         {
                             headers: msg.headers,
-                            suffix: suffix,
+                            suffix,
                             flowSuffix: '_lastdata',
                             includeTimeinstant: false,
                             keyFields: ['entityid']

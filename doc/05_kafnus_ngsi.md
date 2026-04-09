@@ -266,17 +266,18 @@ function inferFieldType(name, value, attrType = null)
 
 | Mechanism / Source              | Kafka Connect Type                                | Notes                                                                 |
 |---------------------------------|---------------------------------------------------|-----------------------------------------------------------------------|
-| `geo:json` (`attrType`)         | `"geometry"`                                      | Processed externally as PostGIS-compatible geometry.                   |
+| `geo:json` (`attrType`)         | `"geometry"`                                      | Processed externally as PostGIS-compatible geometry.                  |
 | `DateTime`, `ISO8601` (`attrType`) | Kafka `Timestamp` schema (`int64`)             | Converted to epoch millis, **except** `timeInstant` and `recvTime` which remain strings. |
-| JS-native string value          | `"string"`                                        | Any value inferred as string is passed through as-is.                  |
+| JS-native string value          | `"string"`                                        | Any value inferred as string is passed through as-is.                 |
 | JS-native boolean value         | `"boolean"`                                       |                                                                       |
-| JS-native number value          | `"double"`                                        | All numeric values are handled as JS float64 (double precision).       |
-| JS-native object/array          | `"string"` (JSON)                                 | Serialized to JSON string.                                            |
-| Unknown / untyped value         | `"string"`                                        | Fallback for unsupported types or nulls.                               |
+| JS-native number value          | `"double"`                                        | All numeric values are handled as JS float64 (double precision).      |
+| JS-native object/array          | `"string"` (JSON)                                 | Serialized to JSON string                                             |
+| `null` / `undefined`            | `"string"` with `null` payload                    | Default representation for missing values.                            |
+| Unknown / untyped value         | `"string"`                                        | Fallback for unsupported types or nulls.                              |
 
 #### ⚠️ Null handling
 
-- All `null` or `undefined` values are normalized to `['string', null]`.  
+- All `null` or `undefined` values are normalized to `['string', null]`.
 - This guarantees schema compatibility in Kafka Connect.  
 - For numeric columns, constraint errors (e.g. `NOT NULL`) are raised correctly by the sink connector.
 
@@ -284,7 +285,7 @@ function inferFieldType(name, value, attrType = null)
 
 - Unlike earlier versions, **no attempt is made to distinguish between `int32`, `int64`, and `double`**.  
   All numbers are treated as **`double`** for consistency and simplicity.  
-- Only **`DateTime/ISO8601`** and **`geo:json`** are treated as special types.  
+- **`DateTime/ISO8601`** and **`geo:json`** are treated as special types.
 - All other NGSI attributes are mapped directly to their JS-native type or serialized as strings.
 
 #### ⚠️ Known Limitations
@@ -603,16 +604,17 @@ These variables control fetch behavior, session handling, and **manual offset ma
 | `KAFNUS_NGSI_LOG_COMP` | string | `Kafnus-ngsi` | Component name used in structured logs. |
 | `KAFNUS_NGSI_ADMIN_PORT` | number | `8000` | Port for admin, metrics, health and log-level endpoints. |
 | `KAFNUS_NGSI_MONGO_PREFIX` | string | `sth_` | Prefix prepended to MongoDB database and collection names (see [MongoDB Namespace Prefix Configuration](#mongodb-namespace-prefix-configuration)). |
-| `KAFNUS_NGSI_GRAPHQL_GRAFO` | string | `grafo` | Graph name or version used by the GraphQL integration. |
-| `KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE`      | boolean   | `false`      | Add '_`<service>`' to Graph name used by the GraphQL service.  
+| `KAFNUS_NGSI_GRAPHQL_GRAFO` | string | `grafo` | Graph name prefix or version used by the GraphQL integration. |
+| `KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE`      | boolean   | `false`      | Add '`<service>`' to Graph name used by the GraphQL service.
 | `KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX`      | string   | ``      | Add '`<suffix>`' to Graph name used by the GraphQL service.        |
 | `KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE`      | boolean   | `false`      | Add '`<service>`_' to outputTopic used by the HTTP connector sink.                          |
+| `KAFNUS_NGSI_GRAPHQL_STAGING`      | boolean   | `false`      | Add '`staging=true`' into mutations for graphql.                          |
 | `KAFNUS_NGSI_GRAPHQL_SLUG_URI` | boolean | `false` | Enables slug-based URIs for GraphQL identifiers. |
 
 ---
 
 ## 🧭 Navigation
 
-- [⬅️ Previous: ](/doc/04_docker.md)
-- [🏠 Main index](../README.md#documentation)
+- [⬅️ Previous: Docker](/doc/04_docker.md)
+- [🏠 Main index](/README.md#documentation)
 - [➡️ Next: Kafnus-Connect](/doc/06_kafnus_connect.md)
