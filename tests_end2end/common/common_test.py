@@ -251,8 +251,8 @@ def multiservice_stack():
         orion_host = compose.get_service_host("orion", 1026)
         orion_port = compose.get_service_port("orion", 1026)
 
-        kafka_host = compose.get_service_host("kafka", 29092)
-        kafka_port = compose.get_service_port("kafka", 29092)
+        kafka_host = compose.get_service_host("kafka", 9092)
+        kafka_port = compose.get_service_port("kafka", 9092)
 
         kafnus_connect_host = compose.get_service_host("kafnus-connect", 8083)
         kafnus_connect_port = compose.get_service_port("kafnus-connect", 8083)
