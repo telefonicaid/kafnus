@@ -27,8 +27,9 @@ from testcontainers.compose import DockerCompose as OriginalDockerCompose
 import subprocess
 import os
 import time
+from copy import deepcopy
 
-from common.config import logger
+from common.config import logger, KAFNUS_TESTS_KAFKA_SECURITY_PROTOCOL, KAFNUS_TESTS_KAFKA_SASL_MECHANISM, KAFNUS_TESTS_KAFKA_SASL_USERNAME, KAFNUS_TESTS_KAFKA_SASL_PASSWORD
 from common.utils.kafnus_connect_loader import deploy_all_sinks
 from common.utils.wait_services import wait_for_kafnus_connect, wait_for_connector, wait_for_postgres, wait_for_orion, ensure_postgis_db_ready, wait_for_kafnus_ngsi
 from common.utils.utils import find_subscription_id_by_description
@@ -250,8 +251,8 @@ def multiservice_stack():
         orion_host = compose.get_service_host("orion", 1026)
         orion_port = compose.get_service_port("orion", 1026)
 
-        kafka_host = compose.get_service_host("kafka", 9092)
-        kafka_port = compose.get_service_port("kafka", 9092)
+        kafka_host = compose.get_service_host("kafka", 29092)
+        kafka_port = compose.get_service_port("kafka", 29092)
 
         kafnus_connect_host = compose.get_service_host("kafnus-connect", 8083)
         kafnus_connect_port = compose.get_service_port("kafnus-connect", 8083)
@@ -343,6 +344,32 @@ class OrionAdapter:
         }
         self.subscription_ids = {}
 
+    def _apply_default_kafka_auth(self, subscription: dict) -> dict:
+        """
+        Adds default Kafka SASL fields to kafka/kafkaCustom notification blocks
+        when they are not explicitly provided by the scenario.
+        """
+        result = deepcopy(subscription)
+        notification = result.get("notification", {})
+
+        for kafka_block_name in ["kafka", "kafkaCustom"]:
+            kafka_block = notification.get(kafka_block_name)
+            if not isinstance(kafka_block, dict):
+                continue
+
+            if "user" not in kafka_block:
+                kafka_block["user"] = KAFNUS_TESTS_KAFKA_SASL_USERNAME
+            if "passwd" not in kafka_block:
+                kafka_block["passwd"] = KAFNUS_TESTS_KAFKA_SASL_PASSWORD
+
+            if kafka_block.get("user") and kafka_block.get("passwd"):
+                if "saslMechanism" not in kafka_block:
+                    kafka_block["saslMechanism"] = KAFNUS_TESTS_KAFKA_SASL_MECHANISM
+                if "securityProtocol" not in kafka_block:
+                    kafka_block["securityProtocol"] = KAFNUS_TESTS_KAFKA_SECURITY_PROTOCOL
+
+        return result
+
     def create_subscriptions(self):
         """
         Creates subscriptions in the Orion Context Broker as defined in each
@@ -351,10 +378,11 @@ class OrionAdapter:
         for generator in self.generators:
             headers_ = self.headers[generator.name]
             for _, subscription in generator.subscriptions.items():
+                subscription_payload = self._apply_default_kafka_auth(subscription)
                 response = requests.post(
                     f"{self.baseUrl}/subscriptions",
                     headers=headers_,
-                    data=json.dumps(subscription)
+                    data=json.dumps(subscription_payload)
                 )
                 assert response.status_code in [201, 204], f"Subscription failed: {response.content}"
                 
@@ -362,7 +390,7 @@ class OrionAdapter:
                 location = response.headers.get("Location")
                 if location:
                     sub_id = location.split("/")[-1]
-                    self.subscription_ids[subscription["description"]] = sub_id
+                    self.subscription_ids[subscription_payload["description"]] = sub_id
 
     def update_subscription(self, name, changes):
         """
