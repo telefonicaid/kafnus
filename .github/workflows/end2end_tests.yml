@@ -96,3 +96,5 @@ jobs:
         run: |
           source .venv/bin/activate
           pytest -s functional/test_pipeline.py
+          pytest -s batching/test_jdbc_batch_backlog.py 
+          pytest -s batching/test_ngsi_consumer_backlog.py
