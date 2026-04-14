@@ -71,8 +71,8 @@ describe('ngsiUtils.js', () => {
         test('for non-special attrType, arrays follow generic array inference', () => {
             const [schema, value] = inferFieldType('relatedTo', ['A:1', 'B:2'], 'MultiRelation');
 
-            expect(schema).toEqual({ type: 'array', items: { type: 'string', optional: false } });
-            expect(value).toEqual(['A:1', 'B:2']);
+            expect(schema).toBe('string');
+            expect(value).toBe(JSON.stringify(['A:1', 'B:2']));
         });
 
         test('for non-special attrType, scalar string remains string', () => {
@@ -144,22 +144,22 @@ describe('ngsiUtils.js', () => {
             expect(type).toBe('string');
         });
 
-        test('empty array returns array schema with optional items', () => {
+        test('empty array returns string schema with optional items', () => {
             const [schema, val] = inferFieldType('items', []);
-            expect(schema.type).toBe('array');
-            expect(val).toEqual([]);
+            expect(schema).toBe('string');
+            expect(val).toEqual('[]');
         });
 
-        test('all-numbers array returns array schema with double items', () => {
+        test('all-numbers array returns string schema with double items', () => {
             const [schema, val] = inferFieldType('readings', [1.1, 2.2, 3.3]);
-            expect(schema).toMatchObject({ type: 'array', items: { type: 'double' } });
-            expect(val).toEqual([1.1, 2.2, 3.3]);
+            expect(schema).toBe('string');
+            expect(val).toBe(JSON.stringify([1.1, 2.2, 3.3]));
         });
 
-        test('all-booleans array returns array schema with boolean items', () => {
+        test('all-booleans array returns string schema with boolean items', () => {
             const [schema, val] = inferFieldType('flags', [true, false, true]);
-            expect(schema).toMatchObject({ type: 'array', items: { type: 'boolean' } });
-            expect(val).toEqual([true, false, true]);
+            expect(schema).toBe('string');
+            expect(val).toBe(JSON.stringify([true, false, true]));
         });
 
         test('mixed array returns JSON-serialised string', () => {
