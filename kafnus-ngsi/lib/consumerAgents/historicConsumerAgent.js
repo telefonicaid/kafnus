@@ -19,7 +19,7 @@
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
-const { messagesProcessed, processingTime } = require('../utils/admin');
+const { recordFlowProcessing } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
 const Kafka = require('@confluentinc/kafka-javascript');
 
@@ -34,6 +34,7 @@ async function startHistoricConsumerAgent(logger, producer) {
         producer,
         onData: async (msg) => {
             const start = Date.now();
+            let processingResult = 'success';
             const k = msg.key?.toString() || '';
             const v = msg.value?.toString() || '';
             logger.info(`[raw_historic] Key: ${k}, Value: ${v}`);
@@ -53,6 +54,7 @@ async function startHistoricConsumerAgent(logger, producer) {
                 );
                 consumer.commitMessage(msg);
             } catch (err) {
+                processingResult = 'error';
                 if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
@@ -64,8 +66,7 @@ async function startHistoricConsumerAgent(logger, producer) {
                 // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
             } finally {
                 const duration = (Date.now() - start) / 1000;
-                messagesProcessed.labels({ flow: 'historic' }).inc();
-                processingTime.labels({ flow: 'historic' }).set(duration);
+                recordFlowProcessing('historic', duration, processingResult);
             }
         }
     });

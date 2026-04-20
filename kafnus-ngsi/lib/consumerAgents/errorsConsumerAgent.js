@@ -20,7 +20,7 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { formatDatetimeIso, truncate } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
-const { messagesProcessed, processingTime } = require('../utils/admin');
+const { recordFlowProcessing } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
 const Kafka = require('@confluentinc/kafka-javascript');
 
@@ -35,6 +35,7 @@ async function startErrorsConsumerAgent(logger, producer) {
         producer,
         onData: async (msg) => {
             const start = Date.now();
+            let processingResult = 'success';
             const k = msg.key?.toString() || null;
             const valueRaw = msg.value?.toString() || '';
 
@@ -163,6 +164,7 @@ async function startErrorsConsumerAgent(logger, producer) {
 
                 consumer.commitMessage(msg);
             } catch (err) {
+                processingResult = 'error';
                 if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
@@ -174,8 +176,7 @@ async function startErrorsConsumerAgent(logger, producer) {
                 // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
             } finally {
                 const duration = (Date.now() - start) / 1000;
-                messagesProcessed.labels({ flow: 'errors' }).inc();
-                processingTime.labels({ flow: 'errors' }).set(duration);
+                recordFlowProcessing('errors', duration, processingResult);
             }
         }
     });

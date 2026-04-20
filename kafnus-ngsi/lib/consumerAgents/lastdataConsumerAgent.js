@@ -20,7 +20,7 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { handleEntityCb, safeProduce } = require('../utils/handleEntityCb');
 const { buildKafkaKey, sanitizeString, getFiwareContext } = require('../utils/ngsiUtils');
-const { messagesProcessed, processingTime } = require('../utils/admin');
+const { recordFlowProcessing } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
 const Kafka = require('@confluentinc/kafka-javascript');
 
@@ -37,6 +37,7 @@ async function startLastdataConsumerAgent(logger, producer) {
         producer,
         onData: async (msg) => {
             const start = Date.now();
+            let processingResult = 'success';
             const k = msg.key?.toString() || '';
             const rawValue = msg.value?.toString() || '';
             logger.info(`[lastdata] key=${k} value=${rawValue}`);
@@ -114,6 +115,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                     consumer.commitMessage(msg);
                 }
             } catch (err) {
+                processingResult = 'error';
                 if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
@@ -125,8 +127,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                 // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
             } finally {
                 const duration = (Date.now() - start) / 1000;
-                messagesProcessed.labels({ flow: 'lastdata' }).inc();
-                processingTime.labels({ flow: 'lastdata' }).set(duration);
+                recordFlowProcessing('lastdata', duration, processingResult);
             }
         }
     });
