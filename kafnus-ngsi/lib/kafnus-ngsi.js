@@ -28,6 +28,7 @@ const startMutableConsumerAgent = require('./consumerAgents/mutableConsumerAgent
 const startErrorsConsumerAgent = require('./consumerAgents/errorsConsumerAgent');
 const startMongoConsumerAgent = require('./consumerAgents/mongoConsumerAgent');
 const startSgtrConsumerAgent = require('./consumerAgents/sgtrConsumerAgent');
+const startVirtuosoConsumerAgent = require('./consumerAgents/virtuosoConsumerAgent');
 
 const { startAdminServer } = require('./utils/admin');
 
@@ -53,7 +54,8 @@ async function main() {
             startMutableConsumerAgent(log, producer),
             startErrorsConsumerAgent(log, producer),
             startMongoConsumerAgent(log, producer),
-            startSgtrConsumerAgent(log, producer)
+            startSgtrConsumerAgent(log, producer),
+            startVirtuosoConsumerAgent(log, producer)
         ])
     ).filter(Boolean);
 
