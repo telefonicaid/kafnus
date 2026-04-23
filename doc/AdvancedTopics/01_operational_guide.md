@@ -83,6 +83,7 @@ Expected response:
     "successEvents": 1270,
     "errorEvents": 10,
     "successRate": 0.992188,
+    "activeServices": 2,
     "activeFlows": 6,
     "byFlow": [
       {
