@@ -38,6 +38,7 @@ async function startLastdataConsumerAgent(logger, producer) {
         onData: async (msg) => {
             const start = Date.now();
             let processingResult = 'success';
+            let fiwareService = 'default';
             const k = msg.key?.toString() || '';
             const rawValue = msg.value?.toString() || '';
             logger.info(`[lastdata] key=${k} value=${rawValue}`);
@@ -51,6 +52,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                     return;
                 }
                 const { service, servicepath, datamodel } = getFiwareContext(msg.headers, message);
+                fiwareService = service;
 
                 const entityRaw = dataList[0];
                 const entityId = entityRaw.id;
@@ -127,7 +129,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                 // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
             } finally {
                 const duration = (Date.now() - start) / 1000;
-                recordFlowProcessing('lastdata', duration, processingResult);
+                recordFlowProcessing('lastdata', fiwareService, duration, processingResult);
             }
         }
     });

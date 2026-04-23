@@ -36,6 +36,7 @@ async function startErrorsConsumerAgent(logger, producer) {
         onData: async (msg) => {
             const start = Date.now();
             let processingResult = 'success';
+            let fiwareService = 'default';
             const k = msg.key?.toString() || null;
             const valueRaw = msg.value?.toString() || '';
 
@@ -81,6 +82,7 @@ async function startErrorsConsumerAgent(logger, producer) {
                     dbName = dbName.slice(config.ngsi.prefix.length);
                 }
                 dbName = dbName.replace(/_(historic|lastdata|mutable|http).*$/, '');
+                fiwareService = dbName || fiwareService;
 
                 const errorTopicName = `${config.ngsi.prefix}${dbName}_error_log` + suffix;
 
@@ -176,7 +178,7 @@ async function startErrorsConsumerAgent(logger, producer) {
                 // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
             } finally {
                 const duration = (Date.now() - start) / 1000;
-                recordFlowProcessing('errors', duration, processingResult);
+                recordFlowProcessing('errors', fiwareService, duration, processingResult);
             }
         }
     });

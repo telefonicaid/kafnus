@@ -20,6 +20,7 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
 const { recordFlowProcessing } = require('../utils/admin');
+const { getFiwareContext } = require('../utils/ngsiUtils');
 const { config } = require('../../kafnusConfig');
 const Kafka = require('@confluentinc/kafka-javascript');
 
@@ -35,6 +36,7 @@ async function startMutableConsumerAgent(logger, producer) {
         onData: async (msg) => {
             const start = Date.now();
             let processingResult = 'success';
+            const { service } = getFiwareContext(msg.headers, {});
             const k = msg.key?.toString() || '';
             const v = msg.value?.toString() || '';
             logger.info(`[raw_mutable] Key: ${k}, Value: ${v}`);
@@ -67,7 +69,7 @@ async function startMutableConsumerAgent(logger, producer) {
                 // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
             } finally {
                 const duration = (Date.now() - start) / 1000;
-                recordFlowProcessing('mutable', duration, processingResult);
+                recordFlowProcessing('mutable', service, duration, processingResult);
             }
         }
     });

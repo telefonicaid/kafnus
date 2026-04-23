@@ -38,6 +38,7 @@ async function startMongoConsumerAgent(logger, producer) {
         onData: async (msg) => {
             const start = Date.now();
             let processingResult = 'success';
+            let fiwareService = 'default';
 
             try {
                 const rawValue = msg.value?.toString();
@@ -56,10 +57,11 @@ async function startMongoConsumerAgent(logger, producer) {
                     consumer.commitMessage(msg);
                     return;
                 }
-                const { service: fiwareService, servicepath: servicePath } = getFiwareContext(msg.headers, message);
-                const mongoDb = `${fiwareService}`;
+                const { service: tenantService, servicepath: servicePath } = getFiwareContext(msg.headers, message);
+                fiwareService = tenantService;
+                const mongoDb = `${tenantService}`;
                 const mongoCollection = `${servicePath}`;
-                const outputTopic = `${config.ngsi.prefix}${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
+                const outputTopic = `${config.ngsi.prefix}${tenantService}${OUTPUT_TOPIC_SUFFIX}`;
                 const recvTime = DateTime.utc().toISO();
                 const entities = message.data || [];
                 if (entities.length === 0) {
@@ -111,7 +113,7 @@ async function startMongoConsumerAgent(logger, producer) {
                 // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
             } finally {
                 const duration = (Date.now() - start) / 1000;
-                recordFlowProcessing('mongo', duration, processingResult);
+                recordFlowProcessing('mongo', fiwareService, duration, processingResult);
             }
         }
     });

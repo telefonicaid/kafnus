@@ -37,6 +37,7 @@ async function startSgtrConsumerAgent(logger, producer) {
         onData: async (msg) => {
             const start = Date.now();
             let processingResult = 'success';
+            let fiwareService = 'default';
             const k = msg.key?.toString() || '';
             const rawValue = msg.value?.toString() || '';
 
@@ -52,11 +53,12 @@ async function startSgtrConsumerAgent(logger, producer) {
                     return;
                 }
                 logger.info('[sgtr] message: %j', message);
+                fiwareService = getFiwareContext(msg.headers, message).service;
 
                 const dataList = message.data ? message.data : [];
 
                 for (const entityObject of dataList) {
-                    const { service } = getFiwareContext(msg.headers, message);
+                    const service = fiwareService;
 
                     logger.debug('[sgtr] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
 
@@ -115,7 +117,7 @@ async function startSgtrConsumerAgent(logger, producer) {
                 // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
             } finally {
                 const duration = (Date.now() - start) / 1000;
-                recordFlowProcessing('sgtr', duration, processingResult);
+                recordFlowProcessing('sgtr', fiwareService, duration, processingResult);
             }
         }
     });
