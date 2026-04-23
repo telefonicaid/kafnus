@@ -26,6 +26,7 @@ const { getGrafoName, buildSparqlForEntity } = require('../utils/virtuosoUtils')
 const Kafka = require('@confluentinc/kafka-javascript');
 
 async function startVirtuosoConsumerAgent(logger, producer) {
+    // TDB: define another raw topic for this consumer
     const topic = config.ngsi.prefix + 'raw_sgtr';
     let outputTopic;
     const groupId = 'ngsi-processor-sgtr-virtuoso';

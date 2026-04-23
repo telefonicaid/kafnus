@@ -19,9 +19,9 @@
 
 const { config } = require('../../kafnusConfig');
 
+// TBD: define new options for virtuoso config about grafo, suffix, and core ontology
 const GRAFO_PREFIX = config.graphql.grafo;
 const GRAFO_SUFFIX = config.graphql.grafoSuffix;
-
 const CORE = 'https://ontologia.segittur.es/turismo/def/core#';
 
 function getGrafoName(service) {
@@ -46,7 +46,8 @@ function buildTypeUri(type) {
 }
 
 function buildPredicateUri(attrName) {
-    return `${CORE}${attrName}`;
+    //return `${CORE}${attrName}`;
+    return `${attrName}`;
 }
 
 function escapeLiteral(value) {
