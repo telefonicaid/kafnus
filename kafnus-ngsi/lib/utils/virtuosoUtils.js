@@ -35,7 +35,7 @@ function getGrafoName(service) {
  * Generates a subject URI from entity
  */
 function buildSubjectUri(entityId) {
-    return `urn:segittur:${encodeURIComponent(entityId)}`;
+    return `urn:segittur:${entityId}`;
 }
 
 /**
@@ -49,22 +49,52 @@ function buildPredicateUri(attrName) {
     return `${CORE}${attrName}`;
 }
 
-function toLiteral(value) {
+function escapeLiteral(value) {
+    return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"').trim();
+}
+
+function toObjectTerm(value) {
+    // simple string
+    if (typeof value === 'string') {
+        return `"${escapeLiteral(value)}"`;
+    }
+
+    // boolean
     if (typeof value === 'boolean') {
         return `"${value}"^^<http://www.w3.org/2001/XMLSchema#boolean>`;
     }
 
+    // number
     if (typeof value === 'number') {
         return Number.isInteger(value)
             ? `"${value}"^^<http://www.w3.org/2001/XMLSchema#integer>`
             : `"${value}"^^<http://www.w3.org/2001/XMLSchema#decimal>`;
     }
 
-    return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+    // null/undefined
+    if (value == null) {
+        return null;
+    }
+
+    // Object with uri => IRI
+    if (typeof value === 'object' && value.uri) {
+        return `<${value.uri}>`;
+    }
+
+    // Object with value + lang => lang literal
+    if (typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, 'value')) {
+        if (value.lang) {
+            return `"${escapeLiteral(value.value)}"@${value.lang}`;
+        }
+        return `"${escapeLiteral(value.value)}"`;
+    }
+
+    // fallback: serialized JSON
+    return `"${escapeLiteral(JSON.stringify(value))}"`;
 }
 
 /**
- * Converts and NGSI entity in RDF triples
+ * Converts and entity object in RDF triples
  */
 function entityToTriples(entityObject) {
     const triples = [];
@@ -86,7 +116,12 @@ function entityToTriples(entityObject) {
         const values = Array.isArray(attrValue) ? attrValue : [attrValue];
 
         for (const value of values) {
-            triples.push(`<${subject}> <${predicate}> ${toLiteral(value)} .`);
+            const objectTerm = toObjectTerm(value);
+            if (!objectTerm) {
+                continue;
+            }
+
+            triples.push(`<${subject}> <${predicate}> ${objectTerm} .`);
         }
     }
 
