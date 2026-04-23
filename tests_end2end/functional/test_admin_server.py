@@ -113,8 +113,8 @@ def test_metrics_endpoint(admin_base_url):
     response = requests.get(f"{admin_base_url}/metrics")
 
     assert response.status_code == 200
-    assert "messages_processed_total" in response.text
     assert "message_processing_time_seconds" in response.text
+    assert "messages_processed_by_service_total" in response.text
     assert "admin_http_server_requests_total" in response.text
 
 
