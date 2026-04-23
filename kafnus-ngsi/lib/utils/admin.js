@@ -27,7 +27,8 @@ const pipelineState = {
     totalEvents: 0,
     totalSuccessEvents: 0,
     totalErrorEvents: 0,
-    flows: new Map()
+    flows: new Map(),
+    services: new Map()
 };
 
 const adminState = {
@@ -39,16 +40,16 @@ const adminState = {
 };
 
 // Metrics definition
-const messagesProcessed = new client.Counter({
-    name: 'messages_processed_total',
-    help: 'Processed messages total',
-    labelNames: ['flow']
-});
-
 const processingTime = new client.Gauge({
     name: 'message_processing_time_seconds',
     help: 'Message processing time in seconds',
     labelNames: ['flow']
+});
+
+const messagesProcessedByService = new client.Counter({
+    name: 'messages_processed_by_service_total',
+    help: 'Processed messages grouped by flow and fiware service (tenant).',
+    labelNames: ['flow', 'fiware_service', 'result']
 });
 
 const adminInFlightRequests = new client.Gauge({
@@ -111,29 +112,59 @@ function upsertFlowState(flow) {
     return initial;
 }
 
-function recordFlowProcessing(flow, durationSeconds, result = 'success') {
+function upsertServiceState(service) {
+    const existing = pipelineState.services.get(service);
+
+    if (existing) {
+        return existing;
+    }
+
+    const initial = {
+        total: 0,
+        success: 0,
+        error: 0,
+        lastProcessedAt: null
+    };
+
+    pipelineState.services.set(service, initial);
+    return initial;
+}
+
+function recordFlowProcessing(flow, fiwareService, durationSeconds, result = 'success') {
     const normalizedFlow = flow || 'unknown';
+    const normalizedService = fiwareService || 'default';
     const normalizedDurationSeconds = Number.isFinite(durationSeconds) ? Math.max(durationSeconds, 0) : 0;
     const normalizedResult = result === 'error' ? 'error' : 'success';
 
-    messagesProcessed.labels({ flow: normalizedFlow }).inc();
+    messagesProcessedByService
+        .labels({
+            flow: normalizedFlow,
+            fiware_service: normalizedService,
+            result: normalizedResult
+        })
+        .inc();
     processingTime.labels({ flow: normalizedFlow }).set(normalizedDurationSeconds);
 
     const flowState = upsertFlowState(normalizedFlow);
+    const serviceState = upsertServiceState(normalizedService);
     pipelineState.totalEvents += 1;
     flowState.total += 1;
+    serviceState.total += 1;
     flowState.lastDurationSeconds = normalizedDurationSeconds;
     flowState.totalDurationSeconds += normalizedDurationSeconds;
     flowState.lastProcessedAt = new Date().toISOString();
+    serviceState.lastProcessedAt = flowState.lastProcessedAt;
 
     if (normalizedResult === 'error') {
         pipelineState.totalErrorEvents += 1;
         flowState.error += 1;
+        serviceState.error += 1;
         return;
     }
 
     pipelineState.totalSuccessEvents += 1;
     flowState.success += 1;
+    serviceState.success += 1;
 }
 
 function buildPipelineSnapshot() {
@@ -159,6 +190,7 @@ function buildPipelineSnapshot() {
         successEvents: pipelineState.totalSuccessEvents,
         errorEvents: pipelineState.totalErrorEvents,
         successRate,
+        activeServices: pipelineState.services.size,
         activeFlows: byFlow.length,
         byFlow
     };
@@ -396,7 +428,6 @@ function startAdminServer(logger, port = 8000) {
 }
 
 exports.startAdminServer = startAdminServer;
-exports.messagesProcessed = messagesProcessed;
 exports.processingTime = processingTime;
 exports.recordFlowProcessing = recordFlowProcessing;
 exports.getMetricsContentType = getMetricsContentType;
