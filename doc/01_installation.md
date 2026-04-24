@@ -289,7 +289,7 @@ Hint: you can check the subscription has been correctly created executing `curl 
 ### 7.2. Trigger a Notification
 
 ```bash
-curl -X POST http://localhost:1026/v2/entities \
+curl -X POST http://localhost:1026/v2/entities?options=upsert,forcedUpdate
   -H "Content-Type: application/json" \
   -H "fiware-service: test" \
   -H "fiware-servicepath: /simple" \
