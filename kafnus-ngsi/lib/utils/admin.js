@@ -19,8 +19,9 @@
 
 const client = require('prom-client');
 const http = require('http');
+const packageInfo = require('../../package.json');
 
-const SERVICE_VERSION = process.env.npm_package_version || 'unknown';
+const SERVICE_VERSION = process.env.npm_package_version || packageInfo.version || 'unknown';
 const PROCESS_START_TIME_SECONDS = Math.floor(Date.now() / 1000);
 const MASKED_ENV_VALUE = '***redacted***';
 const ADDITIONAL_EXPOSED_ENV_KEYS = ['NODE_ENV', 'npm_package_version'];
