@@ -22,6 +22,8 @@ const http = require('http');
 
 const SERVICE_VERSION = process.env.npm_package_version || 'unknown';
 const PROCESS_START_TIME_SECONDS = Math.floor(Date.now() / 1000);
+const MASKED_ENV_VALUE = '***redacted***';
+const ADDITIONAL_EXPOSED_ENV_KEYS = ['NODE_ENV', 'npm_package_version'];
 
 const pipelineState = {
     totalEvents: 0,
@@ -218,7 +220,7 @@ function getStatusClass(statusCode) {
 }
 
 function normalizeRoute(pathname) {
-    if (pathname === '/metrics' || pathname === '/health' || pathname === '/logLevel') {
+    if (pathname === '/metrics' || pathname === '/health' || pathname === '/logLevel' || pathname === '/config') {
         return pathname;
     }
 
@@ -256,6 +258,46 @@ function onRequestStart() {
     adminState.inFlightRequests += 1;
     adminInFlightRequests.inc();
     return Date.now();
+}
+
+function parseJsonBody(req) {
+    return new Promise((resolve, reject) => {
+        let body = '';
+        req.on('data', (chunk) => (body += chunk));
+        req.on('end', () => {
+            if (!body.trim()) {
+                resolve({});
+                return;
+            }
+
+            try {
+                resolve(JSON.parse(body));
+            } catch (error) {
+                reject(new Error('Invalid JSON'));
+            }
+        });
+        req.on('error', reject);
+    });
+}
+
+function isSensitiveEnvKey(key) {
+    return /(PASSWORD|SECRET|TOKEN|PRIVATE_KEY|SASL)/i.test(key);
+}
+
+function buildEnvSnapshot() {
+    const keys = Object.keys(process.env)
+        .filter((key) => key.startsWith('KAFNUS_NGSI_') || ADDITIONAL_EXPOSED_ENV_KEYS.includes(key))
+        .sort();
+
+    return keys.reduce((acc, key) => {
+        if (isSensitiveEnvKey(key)) {
+            acc[key] = MASKED_ENV_VALUE;
+            return acc;
+        }
+
+        acc[key] = process.env[key];
+        return acc;
+    }, {});
 }
 
 function onRequestFinish(req, res, startMs, route) {
@@ -318,7 +360,7 @@ function buildHealthPayload(logger, port) {
         admin: {
             port,
             logLevel: logger.getLevel(),
-            endpoints: ['/metrics', '/health', '/logLevel']
+            endpoints: ['/metrics', '/health', '/logLevel', '/config']
         },
         pipeline: buildPipelineSnapshot(),
         metrics: {
@@ -372,33 +414,44 @@ function startAdminServer(logger, port = 8000) {
                 }
 
                 if (req.method === 'POST') {
-                    let body = '';
-                    req.on('data', (chunk) => (body += chunk));
-                    req.on('end', () => {
-                        try {
-                            const { level } = JSON.parse(body);
+                    try {
+                        const { level } = await parseJsonBody(req);
 
-                            if (!level) {
-                                res.statusCode = 400;
-                                res.end(JSON.stringify({ error: 'Missing "level" field' }));
-                                return;
-                            }
-
-                            logger.setLevel(level.toUpperCase());
-                            logger.info(`Log level changed to: ${level}`);
-
-                            res.setHeader('Content-Type', 'application/json');
-                            res.end(JSON.stringify({ ok: true, level }));
-                        } catch (err) {
+                        if (!level) {
                             res.statusCode = 400;
-                            res.end(JSON.stringify({ error: 'Invalid JSON' }));
+                            res.setHeader('Content-Type', 'application/json');
+                            res.end(JSON.stringify({ error: 'Missing "level" field' }));
+                            return;
                         }
-                    });
+
+                        const normalized = level.toUpperCase();
+                        logger.setLevel(normalized);
+                        logger.info(`Log level changed to: ${normalized}`);
+
+                        res.setHeader('Content-Type', 'application/json');
+                        res.end(JSON.stringify({ ok: true, level: normalized }));
+                    } catch (err) {
+                        res.statusCode = 400;
+                        res.setHeader('Content-Type', 'application/json');
+                        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+                    }
                     return;
                 }
 
                 res.statusCode = 405;
                 res.setHeader('Allow', 'GET, POST');
+                res.end();
+                return;
+            }
+            if (route === '/config') {
+                if (req.method === 'GET') {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify({ variables: buildEnvSnapshot() }));
+                    return;
+                }
+
+                res.statusCode = 405;
+                res.setHeader('Allow', 'GET');
                 res.end();
                 return;
             }
@@ -422,6 +475,7 @@ function startAdminServer(logger, port = 8000) {
         logger.info(`Metrics server listening on http://localhost:${port}/metrics`);
         logger.info(`Log level endpoint enabled at http://localhost:${port}/logLevel`);
         logger.info(`Health check endpoint enabled at http://localhost:${port}/health`);
+        logger.info(`Runtime config endpoint enabled at http://localhost:${port}/config`);
     });
 
     return server;
