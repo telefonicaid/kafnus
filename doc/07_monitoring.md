@@ -37,6 +37,7 @@ These are accessible at [`http://localhost:8000/metrics`](http://localhost:8000/
 
 > 📝 Each flow (`historic`, `lastdata`, `mutable`, etc.) has its own set of metrics.
 > 📝 `/health` complements metrics with a pipeline summary (`totalEvents`, `successEvents`, `errorEvents`, `successRate`, `byFlow`).
+> 📝 `GET /config` provides runtime config visibility (sensitive env values masked).
 
 ---
 

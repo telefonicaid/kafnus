@@ -201,6 +201,18 @@ This endpoint is intended to answer: "is the Kafnus message processing pipeline 
 
 If the request fails, check `kafnus-ngsi` container logs and `KAFNUS_NGSI_ADMIN_PORT`.
 
+#### Runtime Config Endpoint (`/config`)
+
+Admin server exposes runtime environment visibility (read-only) at `GET /config`.
+
+```bash
+curl -s http://localhost:8000/config | jq .
+```
+
+Response includes `variables`: all `KAFNUS_NGSI_*` environment variables plus selected runtime keys (`NODE_ENV`, `npm_package_version`).
+
+Sensitive keys (those containing `PASSWORD`, `SECRET`, `TOKEN`, `PRIVATE_KEY` or `SASL`) are masked as `***redacted***`.
+
 **Metrics content negotiation:**
 
 - `GET /metrics` accepts Prometheus text format (`text/plain`, registry content type, or `*/*`).
