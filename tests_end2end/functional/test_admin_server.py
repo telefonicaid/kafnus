@@ -128,3 +128,30 @@ def test_metrics_endpoint_rejects_unsupported_accept(admin_base_url):
     assert response.status_code == 406
     payload = response.json()
     assert payload["error"] == "NotAcceptable"
+
+
+def test_config_env_endpoint(admin_base_url):
+    """Should return runtime environment variables with sensitive values masked"""
+    response = requests.get(f"{admin_base_url}/config")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert "variables" in data
+    variables = data["variables"]
+    assert isinstance(variables, dict)
+
+    # Sensitive keys must be masked
+    for key, value in variables.items():
+        if any(s in key.upper() for s in ("PASSWORD", "SECRET", "TOKEN", "PRIVATE_KEY", "SASL")):
+            assert value == "***redacted***", f"Key {key} should be masked"
+
+
+def test_config_env_endpoint_rejects_write(admin_base_url):
+    """Should return 405 for PATCH since /config is read-only"""
+    response = requests.patch(
+        f"{admin_base_url}/config",
+        headers={"Content-Type": "application/json"},
+        data=json.dumps({"updates": {"KAFNUS_NGSI_LOG_LEVEL": "DEBUG"}})
+    )
+
+    assert response.status_code == 405
