@@ -58,19 +58,19 @@ async function startVirtuosoConsumerAgent(logger, producer) {
 
                 for (const entityObjectOriginal of dataList) {
                     const entityObject = JSON.parse(JSON.stringify(entityObjectOriginal));
-                    const { service } = getFiwareContext(msg.headers, message);
+                    const { fiwareService } = getFiwareContext(msg.headers, message);
 
-                    logger.debug('[sgtr-virtuoso] fiware-service:%s', JSON.stringify(service, null, 2));
+                    logger.debug('[sgtr-virtuoso] fiware-service:%s', JSON.stringify(fiwareService, null, 2));
                     logger.debug('[sgtr-virtuoso] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
-                    const graphUri = getGrafoName(service);
+                    const graphUri = getGrafoName(fiwareService);
 
-                    const sparql = buildSparqlForEntity(graphUri, service, entityObject);
+                    const sparql = buildSparqlForEntity(graphUri, fiwareService, entityObject);
 
                     logger.debug('[sgtr-virtuoso] sparql:\n%s', sparql);
 
                     const outHeaders = [{ key: 'content-type', value: Buffer.from('application/sparql-update') }];
                     if (config.graphql.outputTopicByService) {
-                        outputTopic = config.ngsi.prefix + service + '_virtuoso_http' + config.ngsi.suffix;
+                        outputTopic = config.ngsi.prefix + fiwareService + '_virtuoso_http' + config.ngsi.suffix;
                     } else {
                         outputTopic = config.ngsi.prefix + 'virtuoso_http' + config.ngsi.suffix;
                     }
