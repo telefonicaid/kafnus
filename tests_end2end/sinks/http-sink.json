@@ -20,6 +20,7 @@
     "errors.log.enable": false,
     "errors.log.include.messages": false,
     "max.retries": "2",
-    "retry.backoff.ms": "500"
+    "retry.backoff.ms": "10000",
+    "http.timeout": "120"
   }
 }
