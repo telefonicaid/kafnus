@@ -20,7 +20,7 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { getFiwareContext } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
-const { messagesProcessed, processingTime } = require('../utils/admin');
+const { recordFlowProcessing } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
 const { getGrafoName, buildSparqlForEntity } = require('../utils/virtuosoUtils');
 const Kafka = require('@confluentinc/kafka-javascript');
@@ -96,8 +96,7 @@ async function startVirtuosoConsumerAgent(logger, producer) {
                 logger.error(`[sgtr-virtuoso] Error processing event: ${err?.stack || err}, offset NOT committed`);
             } finally {
                 const duration = (Date.now() - start) / 1000;
-                messagesProcessed.labels({ flow: 'sgtr_virtuoso' }).inc();
-                processingTime.labels({ flow: 'sgtr_virtuoso' }).set(duration);
+                recordFlowProcessing('sgtr-virtuoso', fiwareService, duration, processingResult);
             }
         }
     });
