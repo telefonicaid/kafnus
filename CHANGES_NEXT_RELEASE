@@ -2,3 +2,5 @@
 - UPGRADE: requests from 2.32.4 to 2.33.0 due to CVE-2026-25645
 - Upgrade dep @confluentinc/kafka-javascript from 1.8.0 to 1.9.0
 - Upgrade dep pytest from 7.4.0 to 9.0.3 due to CVE-2025-71176
+- Add: pipeline-oriented `/health` payload in Kafnus NGSI, and stricter `/metrics` content negotiation for Prometheus compatibility including tenant-level counters by `fiware-service` (#234)
+- Add: admin read-only config endpoint `GET /config` exposing runtime environment variables with sensitive values masked (#235)

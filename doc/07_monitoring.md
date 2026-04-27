@@ -24,15 +24,20 @@ This document describes how monitoring has been set up for the Kafka–Kafnus NG
 
 Custom metrics are published from within the Kafnus NGSI service using the `prometheus_client` library:
 
-- `messages_processed_total{flow="historic"}`:  
-  Counter of messages processed by each flow
-
 - `message_processing_time_seconds{flow="historic"}`:  
   Gauge of the processing time per message
+
+- `messages_processed_by_service_total{flow,fiware_service,result}`:
+  Counter of processed messages per tenant (`fiware-service`) and flow
+
+- `admin_http_server_requests_total{method,route,status_code,status_class}`:
+  Counter of admin HTTP requests by endpoint and response class
 
 These are accessible at [`http://localhost:8000/metrics`](http://localhost:8000/metrics) and are scraped by Prometheus.
 
 > 📝 Each flow (`historic`, `lastdata`, `mutable`, etc.) has its own set of metrics.
+> 📝 `/health` complements metrics with a pipeline summary (`totalEvents`, `successEvents`, `errorEvents`, `successRate`, `byFlow`).
+> 📝 `GET /config` provides runtime config visibility (sensitive env values masked).
 
 ---
 

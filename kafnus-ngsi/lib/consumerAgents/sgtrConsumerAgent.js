@@ -20,7 +20,7 @@
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { getFiwareContext } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
-const { messagesProcessed, processingTime } = require('../utils/admin');
+const { recordFlowProcessing } = require('../utils/admin');
 const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
 const { config } = require('../../kafnusConfig');
 const Kafka = require('@confluentinc/kafka-javascript');
@@ -36,6 +36,8 @@ async function startSgtrConsumerAgent(logger, producer) {
         producer,
         onData: async (msg) => {
             const start = Date.now();
+            let processingResult = 'success';
+            let fiwareService = 'default';
             const k = msg.key?.toString() || '';
             const rawValue = msg.value?.toString() || '';
 
@@ -51,11 +53,12 @@ async function startSgtrConsumerAgent(logger, producer) {
                     return;
                 }
                 logger.info('[sgtr] message: %j', message);
+                fiwareService = getFiwareContext(msg.headers, message).service;
 
                 const dataList = message.data ? message.data : [];
 
                 for (const entityObject of dataList) {
-                    const { service } = getFiwareContext(msg.headers, message);
+                    const service = fiwareService;
 
                     logger.debug('[sgtr] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
 
@@ -102,6 +105,7 @@ async function startSgtrConsumerAgent(logger, producer) {
                 } // for loop
                 consumer.commitMessage(msg);
             } catch (err) {
+                processingResult = 'error';
                 if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
@@ -113,8 +117,7 @@ async function startSgtrConsumerAgent(logger, producer) {
                 // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
             } finally {
                 const duration = (Date.now() - start) / 1000;
-                messagesProcessed.labels({ flow: 'sgtr' }).inc();
-                processingTime.labels({ flow: 'sgtr' }).set(duration);
+                recordFlowProcessing('sgtr', fiwareService, duration, processingResult);
             }
         }
     });

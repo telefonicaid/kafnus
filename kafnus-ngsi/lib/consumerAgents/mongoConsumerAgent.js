@@ -21,7 +21,7 @@ const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { getFiwareContext } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
 const { DateTime } = require('luxon');
-const { messagesProcessed, processingTime } = require('../utils/admin');
+const { recordFlowProcessing } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
 const Kafka = require('@confluentinc/kafka-javascript');
 
@@ -37,6 +37,8 @@ async function startMongoConsumerAgent(logger, producer) {
         producer,
         onData: async (msg) => {
             const start = Date.now();
+            let processingResult = 'success';
+            let fiwareService = 'default';
 
             try {
                 const rawValue = msg.value?.toString();
@@ -55,10 +57,11 @@ async function startMongoConsumerAgent(logger, producer) {
                     consumer.commitMessage(msg);
                     return;
                 }
-                const { service: fiwareService, servicepath: servicePath } = getFiwareContext(msg.headers, message);
-                const mongoDb = `${fiwareService}`;
+                const { service: tenantService, servicepath: servicePath } = getFiwareContext(msg.headers, message);
+                fiwareService = tenantService;
+                const mongoDb = `${tenantService}`;
                 const mongoCollection = `${servicePath}`;
-                const outputTopic = `${config.ngsi.prefix}${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
+                const outputTopic = `${config.ngsi.prefix}${tenantService}${OUTPUT_TOPIC_SUFFIX}`;
                 const recvTime = DateTime.utc().toISO();
                 const entities = message.data || [];
                 if (entities.length === 0) {
@@ -98,6 +101,7 @@ async function startMongoConsumerAgent(logger, producer) {
                 }
                 consumer.commitMessage(msg);
             } catch (err) {
+                processingResult = 'error';
                 if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
@@ -109,8 +113,7 @@ async function startMongoConsumerAgent(logger, producer) {
                 // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
             } finally {
                 const duration = (Date.now() - start) / 1000;
-                messagesProcessed.labels({ flow: 'mongo' }).inc();
-                processingTime.labels({ flow: 'mongo' }).set(duration);
+                recordFlowProcessing('mongo', fiwareService, duration, processingResult);
             }
         }
     });

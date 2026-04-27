@@ -62,7 +62,7 @@ Operators should regularly verify:
 * Kafka topic existence and sample messages.
 * PostGIS and MongoDB inserts to confirm data persistence.
 * Connector health via Kafka Connect REST API (`/connectors/<name>/status`).
-* Admin server endpoints (`/health`, `/logLevel`) for NGSI monitoring.
+* Admin server endpoints (`/health`, `/metrics`, `/logLevel`) for NGSI monitoring, including pipeline processing status.
 
 ---
 
