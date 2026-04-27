@@ -326,10 +326,10 @@ All new tests follow the established pattern with `description.txt`, `input.json
 This test is **a separate test suite for the Admin Server**, which covers:
 
 - `/logLevel`: GET and POST to check and change log levels.
-- `/metrics`: GET to expose Prometheus metrics.
-- `/health`: GET to check operational status (`status: "UP"`).
+- `/metrics`: GET to expose Prometheus metrics, including 406 behavior when `Accept` does not allow Prometheus text format.
+- `/health`: GET to check operational status (`status: "UP"`) and pipeline summary (`totalEvents`, `successEvents`, `errorEvents`, `successRate`, `byFlow`).
 
-> ⚡ This is a lightweight check to ensure the Admin Server is running. Most end-to-end tests remain focused on PostGIS, Kafka, and pipeline validation.
+> ⚡ This suite validates that the Admin Server is available and that health/metrics expose useful operational information for the Kafka processing pipeline.
 
 
 ---

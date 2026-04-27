@@ -60,7 +60,24 @@ def test_health_endpoint(admin_base_url):
     data = response.json()
     assert "status" in data
     assert data["status"] == "UP"
-    assert "timestamp" in data  # Optional: just check it exists
+    assert "timestamp" in data
+    assert "uptimeSeconds" in data
+    assert "service" in data
+    assert data["service"]["name"] == "kafnus-ngsi"
+    assert "nodeVersion" in data["service"]
+    assert "process" in data
+    assert "memory" in data["process"]
+    assert "admin" in data
+    assert "endpoints" in data["admin"]
+    assert "/health" in data["admin"]["endpoints"]
+    assert "pipeline" in data
+    assert "totalEvents" in data["pipeline"]
+    assert "successEvents" in data["pipeline"]
+    assert "errorEvents" in data["pipeline"]
+    assert "successRate" in data["pipeline"]
+    assert "byFlow" in data["pipeline"]
+    assert "metrics" in data
+    assert "registeredMetrics" in data["metrics"]
 
 def test_get_log_level(admin_base_url):
     """Should return current log level """
@@ -96,5 +113,45 @@ def test_metrics_endpoint(admin_base_url):
     response = requests.get(f"{admin_base_url}/metrics")
 
     assert response.status_code == 200
-    assert "messages_processed_total" in response.text
     assert "message_processing_time_seconds" in response.text
+    assert "messages_processed_by_service_total" in response.text
+    assert "admin_http_server_requests_total" in response.text
+
+
+def test_metrics_endpoint_rejects_unsupported_accept(admin_base_url):
+    """Should return 406 if Accept header does not allow Prometheus text format"""
+    response = requests.get(
+        f"{admin_base_url}/metrics",
+        headers={"Accept": "application/json"}
+    )
+
+    assert response.status_code == 406
+    payload = response.json()
+    assert payload["error"] == "NotAcceptable"
+
+
+def test_config_env_endpoint(admin_base_url):
+    """Should return runtime environment variables with sensitive values masked"""
+    response = requests.get(f"{admin_base_url}/config")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert "variables" in data
+    variables = data["variables"]
+    assert isinstance(variables, dict)
+
+    # Sensitive keys must be masked
+    for key, value in variables.items():
+        if any(s in key.upper() for s in ("PASSWORD", "SECRET", "TOKEN", "PRIVATE_KEY", "SASL")):
+            assert value == "***redacted***", f"Key {key} should be masked"
+
+
+def test_config_env_endpoint_rejects_write(admin_base_url):
+    """Should return 405 for PATCH since /config is read-only"""
+    response = requests.patch(
+        f"{admin_base_url}/config",
+        headers={"Content-Type": "application/json"},
+        data=json.dumps({"updates": {"KAFNUS_NGSI_LOG_LEVEL": "DEBUG"}})
+    )
+
+    assert response.status_code == 405

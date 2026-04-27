@@ -64,7 +64,7 @@ The build process for Kafnus NGSI is defined in the [Dockerfile](/kafnus-ngsi/Do
 Recommended: use a virtual environment and install dependencies (from root):
 
 ```bash
-cd tests_end2end/functional/
+cd tests_end2end/
 python3 -m venv pytests-venv
 source pytests-venv/bin/activate
 pip install -r requirements.txt
@@ -289,7 +289,7 @@ Hint: you can check the subscription has been correctly created executing `curl 
 ### 7.2. Trigger a Notification
 
 ```bash
-curl -X POST http://localhost:1026/v2/entities?options=upsert,forcedUpdate \
+curl -X POST http://localhost:1026/v2/entities?options=upsert,forcedUpdate
   -H "Content-Type: application/json" \
   -H "fiware-service: test" \
   -H "fiware-servicepath: /simple" \

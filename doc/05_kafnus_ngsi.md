@@ -168,7 +168,55 @@ curl -X POST -H "Content-Type: application/json" \
 > ⚠️ Levels: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`. Changes are **immediate**.
 
 **Health check:**
-A valid JSON response confirms the Admin Server is running. If it fails, check the `kafnus-ngsi` container logs and `KAFNUS_NGSI_ADMIN_PORT` setting.
+`/health` now returns operational pipeline information, not only keepalive status.
+
+Example response (abridged):
+
+```json
+{
+  "status": "UP",
+  "timestamp": "2026-04-23T12:00:00.000Z",
+  "pipeline": {
+    "totalEvents": 1280,
+    "successEvents": 1270,
+    "errorEvents": 10,
+    "successRate": 0.992188,
+    "activeServices": 2,
+    "activeFlows": 6,
+    "byFlow": [
+      {
+        "flow": "historic",
+        "totalEvents": 300,
+        "successEvents": 298,
+        "errorEvents": 2,
+        "avgDurationSeconds": 0.012341,
+        "lastProcessedAt": "2026-04-23T11:59:59.000Z"
+      }
+    ]
+  }
+}
+```
+
+This endpoint is intended to answer: "is the Kafnus message processing pipeline healthy right now?"
+
+If the request fails, check `kafnus-ngsi` container logs and `KAFNUS_NGSI_ADMIN_PORT`.
+
+#### Runtime Config Endpoint (`/config`)
+
+Admin server exposes runtime environment visibility (read-only) at `GET /config`.
+
+```bash
+curl -s http://localhost:8000/config | jq .
+```
+
+Response includes `variables`: all `KAFNUS_NGSI_*` environment variables plus selected runtime keys (`NODE_ENV`, `npm_package_version`).
+
+Sensitive keys (those containing `PASSWORD`, `SECRET`, `TOKEN`, `PRIVATE_KEY` or `SASL`) are masked as `***redacted***`.
+
+**Metrics content negotiation:**
+
+- `GET /metrics` accepts Prometheus text format (`text/plain`, registry content type, or `*/*`).
+- If `Accept` does not allow Prometheus text (for example `application/json`), it returns `406 NotAcceptable`.
 
 ---
 
