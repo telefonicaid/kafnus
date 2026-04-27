@@ -103,8 +103,12 @@ function getGrafoName(service) {
     return grafo;
 }
 
+function sanitizeServiceForGrafo(service) {
+    return service.replace(/_/g, "-");
+}
+
 function getGrafo(service) {
-    return gqlRaw(getGrafoName(service));
+    return gqlRaw(getGrafoName(sanitizeServiceForGrafo(service)));
 }
 
 function getStaging() {
