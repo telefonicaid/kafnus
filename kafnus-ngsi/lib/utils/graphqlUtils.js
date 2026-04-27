@@ -104,7 +104,7 @@ function getGrafoName(service) {
 }
 
 function sanitizeServiceForGrafo(service) {
-    return service.replace(/_/g, "-");
+    return service.replace(/_/g, '-');
 }
 
 function getGrafo(service) {
