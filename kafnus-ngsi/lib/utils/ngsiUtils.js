@@ -86,6 +86,66 @@ function toWktGeometry(attrType, attrValue) {
     return null;
 }
 
+function isGeoJsonGeometry(value) {
+    if (!value || typeof value !== 'object') {
+        return false;
+    }
+
+    if (typeof value.type !== 'string') {
+        return false;
+    }
+
+    const validTypes = new Set(['point', 'multipoint', 'linestring', 'multilinestring', 'polygon', 'multipolygon']);
+
+    if (!validTypes.has(value.type.toLowerCase())) {
+        return false;
+    }
+
+    const hasCoordinates = Array.isArray(value.coordinates);
+    const hasGeometries = Array.isArray(value.geometries);
+    return hasCoordinates || hasGeometries;
+}
+
+function parseGeoJsonValue(value) {
+    if (!value) {
+        return null;
+    }
+
+    if (typeof value === 'string') {
+        try {
+            const parsed = JSON.parse(value);
+            return isGeoJsonGeometry(parsed) ? parsed : null;
+        } catch (err) {
+            return null;
+        }
+    }
+
+    return isGeoJsonGeometry(value) ? value : null;
+}
+
+function transformSgtrGeoJsonToWkt(entityObject) {
+    if (!entityObject || typeof entityObject !== 'object') {
+        return;
+    }
+
+    const asGeoJsonKey = Object.keys(entityObject).find((key) => key.toLowerCase() === 'asgeojson');
+    if (!asGeoJsonKey) {
+        return;
+    }
+
+    const geoJson = parseGeoJsonValue(entityObject[asGeoJsonKey]);
+    if (!geoJson) {
+        return;
+    }
+
+    try {
+        entityObject.asWKT = geoJSONToWkt(geoJson);
+        delete entityObject[asGeoJsonKey];
+    } catch (err) {
+        logger.warn(`Error transforming SGTR asGeoJSON to asWKT: ${err}`);
+    }
+}
+
 // -----------------
 // Topic sanitization
 // -----------------
@@ -310,6 +370,7 @@ function truncate(s, max = 4000) {
 exports.truncate = truncate;
 exports.toWktGeometry = toWktGeometry;
 exports.toWkbStructFromWkt = toWkbStructFromWkt;
+exports.transformSgtrGeoJsonToWkt = transformSgtrGeoJsonToWkt;
 exports.toKafnusConnectSchema = toKafnusConnectSchema;
 exports.buildKafkaKey = buildKafkaKey;
 exports.sanitizeString = sanitizeString;
