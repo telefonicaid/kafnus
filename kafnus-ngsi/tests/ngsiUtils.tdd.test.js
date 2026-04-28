@@ -20,6 +20,7 @@
 const {
     toWktGeometry,
     toWkbStructFromWkt,
+    transformSgtrGeoJsonToWkt,
     sanitizeString,
     encodeMongo,
     toEpochMillis,
@@ -196,6 +197,45 @@ describe('ngsiUtils.js', () => {
 
         test('returns null on parse error (non-array polygon input)', () => {
             expect(toWktGeometry('geo:polygon', 'not-an-array')).toBeNull();
+        });
+    });
+
+    describe('transformSgtrGeoJsonToWkt (TDD)', () => {
+        test('transforms asGeoJSON object into asWKT and removes asGeoJSON', () => {
+            const entityObject = {
+                externalId: 'Location:001',
+                asGeoJSON: { type: 'Point', coordinates: [34.5555, -3.67778] }
+            };
+
+            transformSgtrGeoJsonToWkt(entityObject);
+
+            expect(entityObject).toHaveProperty('asWKT');
+            expect(entityObject.asWKT).toMatch(/^POINT/);
+            expect(entityObject).not.toHaveProperty('asGeoJSON');
+        });
+
+        test('does not alter entity when asGeoJSON is not a valid geometry', () => {
+            const entityObject = {
+                externalId: 'Location:001',
+                asGeoJSON: { type: 'Point', coordinates: 'invalid' }
+            };
+
+            transformSgtrGeoJsonToWkt(entityObject);
+
+            expect(entityObject).toHaveProperty('asGeoJSON');
+            expect(entityObject).not.toHaveProperty('asWKT');
+        });
+
+        test('does not alter entity when no asGeoJSON key is present', () => {
+            const entityObject = {
+                externalId: 'Location:001',
+                location: { type: 'Point', coordinates: [2.0, 41.0] }
+            };
+
+            transformSgtrGeoJsonToWkt(entityObject);
+
+            expect(entityObject).toHaveProperty('location');
+            expect(entityObject).not.toHaveProperty('asWKT');
         });
     });
 
