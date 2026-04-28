@@ -139,10 +139,10 @@ function transformSgtrGeoJsonToWkt(entityObject) {
     }
 
     try {
-        entityObject.asWKT = geoJSONToWkt(geoJson);
+        entityObject.asWkt = geoJSONToWkt(geoJson);
         delete entityObject[asGeoJsonKey];
     } catch (err) {
-        logger.warn(`Error transforming SGTR asGeoJSON to asWKT: ${err}`);
+        logger.warn(`Error transforming SGTR asGeoJSON to asWkt: ${err}`);
     }
 }
 

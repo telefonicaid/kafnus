@@ -201,7 +201,7 @@ describe('ngsiUtils.js', () => {
     });
 
     describe('transformSgtrGeoJsonToWkt (TDD)', () => {
-        test('transforms asGeoJSON object into asWKT and removes asGeoJSON', () => {
+        test('transforms asGeoJSON object into asWkt and removes asGeoJSON', () => {
             const entityObject = {
                 externalId: 'Location:001',
                 asGeoJSON: { type: 'Point', coordinates: [34.5555, -3.67778] }
@@ -209,8 +209,8 @@ describe('ngsiUtils.js', () => {
 
             transformSgtrGeoJsonToWkt(entityObject);
 
-            expect(entityObject).toHaveProperty('asWKT');
-            expect(entityObject.asWKT).toMatch(/^POINT/);
+            expect(entityObject).toHaveProperty('asWkt');
+            expect(entityObject.asWkt).toMatch(/^POINT/);
             expect(entityObject).not.toHaveProperty('asGeoJSON');
         });
 
@@ -223,7 +223,7 @@ describe('ngsiUtils.js', () => {
             transformSgtrGeoJsonToWkt(entityObject);
 
             expect(entityObject).toHaveProperty('asGeoJSON');
-            expect(entityObject).not.toHaveProperty('asWKT');
+            expect(entityObject).not.toHaveProperty('asWkt');
         });
 
         test('does not alter entity when no asGeoJSON key is present', () => {
@@ -235,7 +235,7 @@ describe('ngsiUtils.js', () => {
             transformSgtrGeoJsonToWkt(entityObject);
 
             expect(entityObject).toHaveProperty('location');
-            expect(entityObject).not.toHaveProperty('asWKT');
+            expect(entityObject).not.toHaveProperty('asWkt');
         });
     });
 

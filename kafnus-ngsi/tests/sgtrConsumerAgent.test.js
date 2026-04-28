@@ -95,7 +95,7 @@ describe('sgtrConsumerAgent.js', () => {
         mockGetFiwareContext.mockReturnValue({ service: 'es' });
 
         mockTransformSgtrGeoJsonToWkt.mockImplementation((entityObject) => {
-            entityObject.asWKT = 'POINT (34.5555 -3.67778)';
+            entityObject.asWkt = 'POINT (34.5555 -3.67778)';
             delete entityObject.asGeoJSON;
         });
 
@@ -103,7 +103,7 @@ describe('sgtrConsumerAgent.js', () => {
         mockSafeProduce.mockResolvedValue();
     });
 
-    test('transforms SGTR asGeoJSON into asWKT before create mutation', async () => {
+    test('transforms SGTR asGeoJSON into asWkt before create mutation', async () => {
         await startSgtrConsumerAgent(logger, {});
 
         const msg = {
@@ -134,7 +134,7 @@ describe('sgtrConsumerAgent.js', () => {
             'Location',
             expect.objectContaining({
                 externalId: 'Location:001',
-                asWKT: 'POINT (34.5555 -3.67778)'
+                asWkt: 'POINT (34.5555 -3.67778)'
             })
         );
         expect(mockBuildMutationCreate.mock.calls[0][2]).not.toHaveProperty('asGeoJSON');
@@ -181,7 +181,7 @@ describe('sgtrConsumerAgent.js', () => {
         expect(commitMessage).toHaveBeenCalledWith(msg);
     });
 
-    test('transforms SGTR asGeoJSON into asWKT before update mutation', async () => {
+    test('transforms SGTR asGeoJSON into asWkt before update mutation', async () => {
         const mockBuildMutationUpdate = require('../lib/utils/graphqlUtils').buildMutationUpdate;
         await startSgtrConsumerAgent(logger, {});
 
@@ -212,9 +212,10 @@ describe('sgtrConsumerAgent.js', () => {
             'es',
             'Location',
             'Location:002',
-            expect.objectContaining({ asWKT: 'POINT (34.5555 -3.67778)' })
+            expect.objectContaining({ asWkt: 'POINT (34.5555 -3.67778)' })
         );
         expect(mockBuildMutationUpdate.mock.calls[0][3]).not.toHaveProperty('asGeoJSON');
+        expect(mockBuildMutationUpdate.mock.calls[0][3]).not.toHaveProperty('asWKT');
         expect(commitMessage).toHaveBeenCalledWith(msg);
     });
 
