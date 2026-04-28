@@ -214,6 +214,73 @@ describe('ngsiUtils.js', () => {
             expect(entityObject).not.toHaveProperty('asGeoJSON');
         });
 
+        test('transforms LineString asGeoJSON object into asWkt', () => {
+            const entityObject = {
+                externalId: 'Location:002',
+                asGeoJSON: {
+                    type: 'LineString',
+                    coordinates: [
+                        [34.5555, -3.67778],
+                        [35.0, -3.6]
+                    ]
+                }
+            };
+
+            transformSgtrGeoJsonToWkt(entityObject);
+
+            expect(entityObject).toHaveProperty('asWkt');
+            expect(entityObject.asWkt).toMatch(/^LINESTRING/);
+            expect(entityObject).not.toHaveProperty('asGeoJSON');
+        });
+
+        test('transforms case-insensitive asGeoJSON key with stringified Polygon', () => {
+            const entityObject = {
+                externalId: 'Location:003',
+                AsGeoJSON: JSON.stringify({
+                    type: 'Polygon',
+                    coordinates: [
+                        [
+                            [34.5555, -3.67778],
+                            [35.0, -3.6],
+                            [34.8, -3.2],
+                            [34.5555, -3.67778]
+                        ]
+                    ]
+                })
+            };
+
+            transformSgtrGeoJsonToWkt(entityObject);
+
+            expect(entityObject).toHaveProperty('asWkt');
+            expect(entityObject.asWkt).toMatch(/^POLYGON/);
+            expect(entityObject).not.toHaveProperty('AsGeoJSON');
+        });
+
+        test('transforms MultiPolygon asGeoJSON object into asWkt', () => {
+            const entityObject = {
+                externalId: 'Location:004',
+                asGeoJSON: {
+                    type: 'MultiPolygon',
+                    coordinates: [
+                        [
+                            [
+                                [34.0, -3.7],
+                                [34.2, -3.7],
+                                [34.2, -3.5],
+                                [34.0, -3.7]
+                            ]
+                        ]
+                    ]
+                }
+            };
+
+            transformSgtrGeoJsonToWkt(entityObject);
+
+            expect(entityObject).toHaveProperty('asWkt');
+            expect(entityObject.asWkt).toMatch(/^MULTIPOLYGON/);
+            expect(entityObject).not.toHaveProperty('asGeoJSON');
+        });
+
         test('does not alter entity when asGeoJSON is not a valid geometry', () => {
             const entityObject = {
                 externalId: 'Location:001',
