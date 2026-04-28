@@ -1,0 +1,19 @@
+[
+    {
+        "url": "http://0.0.0.0:3333",
+        "headers": [
+            {
+                "Content-Type": "application/json"
+            }
+        ],
+        "body": {
+            "query": "createLocation(dti: \"grafo\", input: { object: { externalId: \"Location:001\", asWKT: \"POINT (34.5555 -3.67778)\""
+        },
+        "response": {
+            "status": 200,
+            "body": {
+                "status": "OK"
+            }
+        }
+    }
+]
