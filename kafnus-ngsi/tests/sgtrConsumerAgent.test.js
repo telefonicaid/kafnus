@@ -180,4 +180,57 @@ describe('sgtrConsumerAgent.js', () => {
         );
         expect(commitMessage).toHaveBeenCalledWith(msg);
     });
+
+    test('transforms SGTR asGeoJSON into asWKT before update mutation', async () => {
+        const mockBuildMutationUpdate = require('../lib/utils/graphqlUtils').buildMutationUpdate;
+        await startSgtrConsumerAgent(logger, {});
+
+        const msg = {
+            key: Buffer.from('key-3'),
+            value: Buffer.from(
+                JSON.stringify({
+                    data: [
+                        {
+                            alterationType: 'entityUpdate',
+                            type: 'Location',
+                            externalId: 'Location:002',
+                            asGeoJSON: {
+                                type: 'Point',
+                                coordinates: [34.5555, -3.67778]
+                            }
+                        }
+                    ]
+                })
+            ),
+            headers: []
+        };
+
+        await onData(msg);
+
+        expect(mockTransformSgtrGeoJsonToWkt).toHaveBeenCalledTimes(1);
+        expect(mockBuildMutationUpdate).toHaveBeenCalledWith(
+            'es',
+            'Location',
+            'Location:002',
+            expect.objectContaining({ asWKT: 'POINT (34.5555 -3.67778)' })
+        );
+        expect(mockBuildMutationUpdate.mock.calls[0][3]).not.toHaveProperty('asGeoJSON');
+        expect(commitMessage).toHaveBeenCalledWith(msg);
+    });
+
+    test('commits message and logs warning when JSON is invalid', async () => {
+        await startSgtrConsumerAgent(logger, {});
+
+        const msg = {
+            key: Buffer.from('key-4'),
+            value: Buffer.from('not-valid-json'),
+            headers: []
+        };
+
+        await onData(msg);
+
+        expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Invalid JSON'), expect.any(String));
+        expect(commitMessage).toHaveBeenCalledWith(msg);
+        expect(mockBuildMutationCreate).not.toHaveBeenCalled();
+    });
 });
