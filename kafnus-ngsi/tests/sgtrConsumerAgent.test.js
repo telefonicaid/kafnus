@@ -22,6 +22,7 @@ const mockGetFiwareContext = jest.fn();
 const mockTransformSgtrGeoJsonToWkt = jest.fn();
 const mockSafeProduce = jest.fn();
 const mockBuildMutationCreate = jest.fn();
+const mockBuildMutationUpdate = jest.fn();
 
 jest.mock('../lib/consumerAgents/sharedConsumerAgentFactory', () => ({
     createConsumerAgent: (...args) => mockCreateConsumerAgent(...args)
@@ -43,7 +44,7 @@ jest.mock('../lib/utils/admin', () => ({
 jest.mock('../lib/utils/graphqlUtils', () => ({
     slugify: (value) => value,
     buildMutationCreate: (...args) => mockBuildMutationCreate(...args),
-    buildMutationUpdate: jest.fn(),
+    buildMutationUpdate: (...args) => mockBuildMutationUpdate(...args),
     buildMutationDelete: jest.fn()
 }));
 
@@ -100,6 +101,7 @@ describe('sgtrConsumerAgent.js', () => {
         });
 
         mockBuildMutationCreate.mockReturnValue({ query: 'mutation { createLocation { uri } }' });
+        mockBuildMutationUpdate.mockReturnValue({ query: 'mutation { updateLocation { uri } }' });
         mockSafeProduce.mockResolvedValue();
     });
 
@@ -182,7 +184,6 @@ describe('sgtrConsumerAgent.js', () => {
     });
 
     test('transforms SGTR asGeoJSON into asWkt before update mutation', async () => {
-        const mockBuildMutationUpdate = require('../lib/utils/graphqlUtils').buildMutationUpdate;
         await startSgtrConsumerAgent(logger, {});
 
         const msg = {
