@@ -19,7 +19,10 @@
     "errors.deadletterqueue.topic.replication.factor": "1",
     "errors.log.enable": false,
     "errors.log.include.messages": false,
-    "max.retries": "2",
-    "retry.backoff.ms": "500"
+    "max.retries": "0",
+    "retry.backoff.ms": "15000",
+    "http.timeout": "120",
+    "consumer.override.max.poll.records": "1",
+    "consumer.override.max.poll.interval.ms": "1800000"
   }
 }
