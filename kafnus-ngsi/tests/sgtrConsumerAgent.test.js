@@ -87,9 +87,9 @@ describe('sgtrConsumerAgent.js', () => {
 
         commitMessage = jest.fn();
 
-        mockCreateConsumerAgent.mockImplementation(async (_logger, options) => {
+        mockCreateConsumerAgent.mockImplementation((_logger, options) => {
             onData = options.onData;
-            return { commitMessage };
+            return Promise.resolve({ commitMessage });
         });
 
         mockGetFiwareContext.mockReturnValue({ service: 'es' });
