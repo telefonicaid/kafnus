@@ -147,7 +147,7 @@ function buildMutationUpdate(service, entityType, id, entityObject) {
 }
 
 function buildMutationDelete(service, id) {
-    const GRAFO_NAME = getGrafoName(service);
+    const GRAFO_NAME = getGrafoName(sanitizeServiceForGrafo(service));
     const GRAFO_NAME_CLEAN = GRAFO_NAME.replace(/^"+|"+$/g, '');
     const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO_NAME_CLEAN}/resource/`;
     const uri = addPrefix(PREFIX_RESOURCE, id);
