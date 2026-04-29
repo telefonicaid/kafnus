@@ -581,6 +581,21 @@ Current convention for SGTR GraphQL payloads:
 
 ---
 
+### Graph names
+
+Graph names are sanitized to ensure they contain only characters that are valid in URLs.
+Specifically, underscores (_) are replaced with hyphens (-).
+
+For example:
+
+   `DIP_GONDOR` → `DIP-GONDOR`
+
+This allows graph names to be safely used in URIs such as:
+http://datos.segittur.es/DIP-GONDOR/resource/Hotel1
+
+
+---
+
 ## 🐳 Docker environment variables for kafnus-ngsi
 
 The following environment variables configure Kafka connectivity, producer/consumer behavior, logging, security, and component-specific settings.
