@@ -21,6 +21,7 @@
     "errors.log.include.messages": false,
     "max.retries": "1",
     "retry.backoff.ms": "500",
-    "http.timeout": "120"
+    "http.timeout": "120",
+    "consumer.override.max.poll.record": "15"
   }
 }
