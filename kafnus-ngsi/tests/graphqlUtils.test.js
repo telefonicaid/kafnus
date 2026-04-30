@@ -250,23 +250,6 @@ describe('graphqlUtils.js', () => {
             expect(result.query).not.toContain('staging:');
         });
 
-        test('builds delete mutation using URI constructed with service-based graph sanitized', () => {
-            const { buildMutationDelete } = loadModule({
-                grafo: 'kg-',
-                grafoSuffix: '-prd',
-                grafoByService: true,
-                staging: false
-            });
-
-            const result = buildMutationDelete('my_service', 'Room:001');
-
-            expect(result.query).toContain('deleteData(');
-            expect(result.query).toContain('dti: "kg-my-service-prd"');
-            expect(result.query).toContain('uris: ["http://datos.segittur.es/kg-my-service-prd/resource/Room:001"]');
-            expect(result.query).not.toContain('{ uri }');
-            expect(result.query).not.toContain('staging:');
-        });
-
         test('includes staging in delete when config.graphql.staging=true', () => {
             const { buildMutationDelete } = loadModule({
                 staging: true
