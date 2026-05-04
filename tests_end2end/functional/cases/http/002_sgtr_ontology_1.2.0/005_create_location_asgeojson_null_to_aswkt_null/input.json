@@ -1,0 +1,86 @@
+{
+    "name": "location_asgeojson_null_to_aswkt_null_test",
+    "fiware-service": "test",
+    "fiware-servicepath": "/tourism",
+    "subscriptions": {
+        "sgtr": {
+            "description": "kafka sgtr tourism location create with null asGeoJSON",
+            "status": "active",
+            "subject": {
+                "entities": [
+                    {
+                        "idPattern": ".*",
+                        "type": "Location"
+                    }
+                ],
+                "condition": {
+                    "attrs": [
+                        "TimeInstant"
+                    ]
+                },
+                "alterationTypes": [
+                    "entityCreate", "entityUpdate", "entityChange"
+                ]
+            },
+            "notification": {
+                "kafkaCustom": {
+                    "url": "kafka://kafka:29092",
+                    "topic": "smc_raw_sgtr",
+                    "json": {
+                        "data": [
+                            {
+                                "alterationType": "${alterationType}",
+                                "type": "${type}",
+                                "externalId": "${id}",
+                                "asGeoJSON": "${asGeoJSON}",
+                                "country": "${country}",
+                                "province": "${province}",
+                                "locality": "${locality}",
+                                "streetAddress": "${streetAddress}"
+                            }
+                        ]
+                    }
+                },
+                "attrs": [
+                    "TimeInstant"
+                ]
+            }
+        }
+    },
+    "updateEntities": [
+        {
+            "id": "Location:005",
+            "type": "Location",
+            "TimeInstant": {
+                "type": "DateTime",
+                "value": "2025-09-24T13:30:00.000Z",
+                "metadata": {}
+            },
+            "asGeoJSON": {
+                "type": "json",
+                "value": null,
+                "metadata": {}
+            },
+            "country": {
+                "type": "String",
+                "value": "example01",
+                "metadata": {}
+            },
+            "province": {
+                "type": "String",
+                "value": "example01",
+                "metadata": {}
+            },
+            "locality": {
+                "type": "String",
+                "value": "example01",
+                "metadata": {}
+            },
+            "streetAddress": {
+                "type": "String",
+                "value": "example01",
+                "metadata": {}
+            }
+        }
+    ]
+}
