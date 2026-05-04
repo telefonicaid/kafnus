@@ -1,3 +1,7 @@
+- Fix: handle null values correctly in asGeoJSON, avoiding propagation as null asGeoJSON and using null asWkt instead (#242) (*)
+
+(*) Also in 1.3.1 hotfix
+
 1.3.0 (April 30th, 2026)
 
 - Add: Kafnus NGSI unit tests and CI coverage reporting (#224)

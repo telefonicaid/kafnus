@@ -220,6 +220,46 @@ describe('sgtrConsumerAgent.js', () => {
         expect(commitMessage).toHaveBeenCalledWith(msg);
     });
 
+    test('replaces null asGeoJSON with asWkt null for Location create mutation', async () => {
+        mockTransformSgtrGeoJsonToWkt.mockImplementation((entityObject) => {
+            entityObject.asWkt = null;
+            delete entityObject.asGeoJSON;
+        });
+
+        await startSgtrConsumerAgent(logger, {});
+
+        const msg = {
+            key: Buffer.from('key-5'),
+            value: Buffer.from(
+                JSON.stringify({
+                    data: [
+                        {
+                            alterationType: 'entityCreate',
+                            type: 'Location',
+                            externalId: 'Location:005',
+                            asGeoJSON: null
+                        }
+                    ]
+                })
+            ),
+            headers: []
+        };
+
+        await onData(msg);
+
+        expect(mockTransformSgtrGeoJsonToWkt).toHaveBeenCalledTimes(1);
+        expect(mockBuildMutationCreate).toHaveBeenCalledWith(
+            'es',
+            'Location',
+            expect.objectContaining({
+                externalId: 'Location:005',
+                asWkt: null
+            })
+        );
+        expect(mockBuildMutationCreate.mock.calls[0][2]).not.toHaveProperty('asGeoJSON');
+        expect(commitMessage).toHaveBeenCalledWith(msg);
+    });
+
     test('commits message and logs warning when JSON is invalid', async () => {
         await startSgtrConsumerAgent(logger, {});
 

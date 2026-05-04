@@ -281,6 +281,30 @@ describe('ngsiUtils.js', () => {
             expect(entityObject).not.toHaveProperty('asGeoJSON');
         });
 
+        test('replaces null asGeoJSON with asWkt null and removes asGeoJSON', () => {
+            const entityObject = {
+                externalId: 'Location:005',
+                asGeoJSON: null
+            };
+
+            transformSgtrGeoJsonToWkt(entityObject);
+
+            expect(entityObject).toHaveProperty('asWkt', null);
+            expect(entityObject).not.toHaveProperty('asGeoJSON');
+        });
+
+        test('replaces stringified null asGeoJSON with asWkt null and removes asGeoJSON', () => {
+            const entityObject = {
+                externalId: 'Location:006',
+                asGeoJSON: 'null'
+            };
+
+            transformSgtrGeoJsonToWkt(entityObject);
+
+            expect(entityObject).toHaveProperty('asWkt', null);
+            expect(entityObject).not.toHaveProperty('asGeoJSON');
+        });
+
         test('does not alter entity when asGeoJSON is not a valid geometry', () => {
             const entityObject = {
                 externalId: 'Location:001',

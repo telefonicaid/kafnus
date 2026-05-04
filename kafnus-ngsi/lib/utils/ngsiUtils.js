@@ -133,7 +133,14 @@ function transformSgtrGeoJsonToWkt(entityObject) {
         return;
     }
 
-    const geoJson = parseGeoJsonValue(entityObject[asGeoJsonKey]);
+    const rawGeoJson = entityObject[asGeoJsonKey];
+    if (rawGeoJson === null || (typeof rawGeoJson === 'string' && rawGeoJson.trim().toLowerCase() === 'null')) {
+        entityObject.asWkt = null;
+        delete entityObject[asGeoJsonKey];
+        return;
+    }
+
+    const geoJson = parseGeoJsonValue(rawGeoJson);
     if (!geoJson) {
         return;
     }
