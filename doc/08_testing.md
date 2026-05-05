@@ -300,6 +300,15 @@ The e2e test battery has been extended to cover additional real-world scenarios 
 #### ⚠️ Error Handling & Recovery
 - `003_errors/002_invalid_data_recovery`: Validates system behavior when processing invalid data mixed with valid data
 
+#### 🌐 HTTP Retryable Business Errors
+- Example scenario: creating an entity with a relation that does not exist yet (GraphQL response `200` with `errors`).
+- Expected behavior in current pipeline:
+  - The HTTP sink identifies it as an error condition for processing.
+  - The event is persisted in the error log flow (for example in `test.sgtr_error_log` during tests).
+- This scenario is useful to distinguish between:
+  - `already exists` responses (currently accepted without DLQ/retry), and
+  - relation/reference errors that must remain traceable in error logs.
+
 #### ⚡ Performance & Scalability
 - `005_performance/001_large_payload`: Tests system performance with large payloads and bulk data processing
 
