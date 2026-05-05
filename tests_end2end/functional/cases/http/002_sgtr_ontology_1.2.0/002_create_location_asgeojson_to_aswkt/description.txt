@@ -1,0 +1,1 @@
+Creates a SGTR Location entity with asGeoJSON and verifies GraphQL sink sends asWkt in the HTTP payload.

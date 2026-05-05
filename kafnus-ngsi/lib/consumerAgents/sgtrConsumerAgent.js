@@ -18,7 +18,7 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { getFiwareContext } = require('../utils/ngsiUtils');
+const { getFiwareContext, transformSgtrGeoJsonToWkt } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
 const { recordFlowProcessing } = require('../utils/admin');
 const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
@@ -71,6 +71,10 @@ async function startSgtrConsumerAgent(logger, producer) {
                         : entityObject.alterationType.toLowerCase();
 
                     delete entityObject.alterationType;
+
+                    if (typeof type === 'string' && type.toLowerCase() === 'location') {
+                        transformSgtrGeoJsonToWkt(entityObject);
+                    }
 
                     if (alterationType === 'entityupdate' || alterationType === 'entitychange') {
                         const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;

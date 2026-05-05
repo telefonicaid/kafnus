@@ -570,6 +570,14 @@ These mutations, like:
 ```
 contains a dti defined by default as `grafo` by `KAFNUS_NGSI_GRAPHQL_GRAFO` env conf and could be extended to `grafo_<fiware_service>` enabling boolean flag option `KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE` and by `grafo_<suffix>` enabling boolean flag option `KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX`.
 
+### Geometry Convention in SGTR
+
+Current convention for SGTR GraphQL payloads:
+
+- Geometry conversion is applied only when entity `type` is `Location`.
+- Only attribute `asGeoJSON` is transformed (key matching is case-insensitive).
+- Transformed output field is `asWkt` (GraphQL schema naming).
+- The original `asGeoJSON` field is removed after conversion.
 
 ---
 
