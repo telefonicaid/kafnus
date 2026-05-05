@@ -152,7 +152,7 @@
             "label": {
                 "type": "json",
                 "value": {
-                    "value": "Hotel Creado",
+                    "value": "Hotel Nuevo",
                     "lang": "es"
                 },
                 "metadata": {}
