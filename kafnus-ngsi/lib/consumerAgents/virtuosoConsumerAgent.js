@@ -92,6 +92,7 @@ async function startVirtuosoConsumerAgent(logger, producer) {
 
                 consumer.commitMessage(msg);
             } catch (err) {
+                processingResult = 'error';
                 if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
                     throw err;
                 }
