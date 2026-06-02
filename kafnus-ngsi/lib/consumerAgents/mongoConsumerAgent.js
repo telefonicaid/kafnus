@@ -18,7 +18,7 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { getFiwareContext } = require('../utils/ngsiUtils');
+const { sanitizeString, getFiwareContext } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
 const { DateTime } = require('luxon');
 const { recordFlowProcessing } = require('../utils/admin');
@@ -60,7 +60,7 @@ async function startMongoConsumerAgent(logger, producer) {
                 const { service: tenantService, servicepath: servicePath } = getFiwareContext(msg.headers, message);
                 fiwareService = tenantService;
                 const mongoDb = `${tenantService}`;
-                const mongoCollection = `${servicePath}`;
+                const mongoCollectionSuffix = sanitizeString(`${tenantService}${servicePath}_`);
                 const outputTopic = `${config.ngsi.prefix}${tenantService}${OUTPUT_TOPIC_SUFFIX}`;
                 const recvTime = DateTime.utc().toISO();
                 const entities = message.data || [];
@@ -83,6 +83,7 @@ async function startMongoConsumerAgent(logger, producer) {
                             }
                         }
                     }
+                    const mongoCollection = mongoCollectionSuffix + entity.type;
                     await safeProduce(producer, [
                         outputTopic,
                         null, // partition null: kafka decides
