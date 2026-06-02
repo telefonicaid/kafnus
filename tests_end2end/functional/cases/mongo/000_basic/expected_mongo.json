@@ -1,6 +1,6 @@
 [
   {
-    "collection": "bigdata_test.bigdata_test_mongo_device",
+    "collection": "bigdata_test.bigdata_test_mongo_Device",
     "documents": [
       {
         "entityId": "Device:001",
