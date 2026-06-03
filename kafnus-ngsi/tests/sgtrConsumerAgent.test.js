@@ -93,7 +93,7 @@ describe('sgtrConsumerAgent.js', () => {
             return Promise.resolve({ commitMessage });
         });
 
-        mockGetFiwareContext.mockReturnValue({ service: 'es' });
+        mockGetFiwareContext.mockReturnValue({ service: 'es', graphname: 'mygraph' });
 
         mockTransformSgtrGeoJsonToWkt.mockImplementation((entityObject) => {
             entityObject.asWkt = 'POINT (34.5555 -3.67778)';
@@ -132,7 +132,7 @@ describe('sgtrConsumerAgent.js', () => {
 
         expect(mockTransformSgtrGeoJsonToWkt).toHaveBeenCalledTimes(1);
         expect(mockBuildMutationCreate).toHaveBeenCalledWith(
-            'es',
+            'mygraph',
             'Location',
             expect.objectContaining({
                 externalId: 'Location:001',
@@ -170,7 +170,7 @@ describe('sgtrConsumerAgent.js', () => {
 
         expect(mockTransformSgtrGeoJsonToWkt).not.toHaveBeenCalled();
         expect(mockBuildMutationCreate).toHaveBeenCalledWith(
-            'es',
+            'mygraph',
             'Device',
             expect.objectContaining({
                 externalId: 'Device:001',
@@ -210,7 +210,7 @@ describe('sgtrConsumerAgent.js', () => {
 
         expect(mockTransformSgtrGeoJsonToWkt).toHaveBeenCalledTimes(1);
         expect(mockBuildMutationUpdate).toHaveBeenCalledWith(
-            'es',
+            'mygraph',
             'Location',
             'Location:002',
             expect.objectContaining({ asWkt: 'POINT (34.5555 -3.67778)' })
@@ -249,7 +249,7 @@ describe('sgtrConsumerAgent.js', () => {
 
         expect(mockTransformSgtrGeoJsonToWkt).toHaveBeenCalledTimes(1);
         expect(mockBuildMutationCreate).toHaveBeenCalledWith(
-            'es',
+            'mygraph',
             'Location',
             expect.objectContaining({
                 externalId: 'Location:005',
