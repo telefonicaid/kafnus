@@ -19,7 +19,7 @@
 
 const { config } = require('../../kafnusConfig');
 
-const GRAFO_PREFIX = config.graphql.grafo;
+const GRAFO_PREFIX = config.graphql.grafoPrefix;
 const GRAFO_SUFFIX = config.graphql.grafoSuffix;
 
 function slugify(text) {

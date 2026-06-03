@@ -163,11 +163,9 @@ const envVarsSchema = {
             type: 'string',
             default: null
         },
-        // GRAPHQL
-        KAFNUS_NGSI_GRAPHQL_GRAFO: {
-            // is a prefix
+        KAFNUS_NGSI_GRAPHQL_GRAFO_PREFIX: {
             type: 'string',
-            default: 'grafo'
+            default: ''
         },
         KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX: {
             type: 'string',
@@ -287,7 +285,7 @@ const config = {
         port: envVars.KAFNUS_NGSI_ADMIN_PORT
     },
     graphql: {
-        grafo: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO,
+        grafoPrefix: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO_PREFIX,
         grafoSuffix: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX,
         outputTopicByService: envVars.KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE,
         staging: envVars.KAFNUS_NGSI_GRAPHQL_STAGING,

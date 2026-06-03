@@ -54,8 +54,14 @@ async function startSgtrConsumerAgent(logger, producer) {
                     return;
                 }
                 logger.info('[sgtr] message: %j', message);
-                fiwareService = getFiwareContext(msg.headers, message).service;
-                graphName = getFiwareContext(msg.headers, message).graphname;
+                const fiwareContext = getFiwareContext(msg.headers, message);
+                fiwareService = fiwareContext.service;
+                graphName = fiwareContext.graphname;
+                logger.info('[sgtr] fiwareService: %j graphName: %j', fiwareService, graphName);
+                // TBD: fallback for backward compatibility? by config ?
+                // if (graphName == null) {
+                //     graphName = fiwareService;
+                // }
 
                 const dataList = message.data ? message.data : [];
 

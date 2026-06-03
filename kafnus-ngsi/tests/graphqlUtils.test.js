@@ -24,7 +24,7 @@ describe('graphqlUtils.js', () => {
         jest.doMock('../kafnusConfig', () => ({
             config: {
                 graphql: {
-                    grafo: 'grafo_',
+                    grafoPrefix: 'grafo_',
                     grafoSuffix: '_suffix',
                     staging: false,
                     slugUri: false,
@@ -139,7 +139,7 @@ describe('graphqlUtils.js', () => {
     describe('buildMutationCreate', () => {
         test('builds create mutation with service-based graph and no staging when staging=false', () => {
             const { buildMutationCreate } = loadModule({
-                grafo: 'kg_',
+                grafoPrefix: 'kg_',
                 grafoSuffix: '_prd',
                 staging: false
             });
@@ -184,7 +184,7 @@ describe('graphqlUtils.js', () => {
 
         test('uses global graph when no graphnName is provided', () => {
             const { buildMutationCreate } = loadModule({
-                grafo: 'grafo_',
+                grafoPrefix: 'grafo_',
                 grafoSuffix: '_suffix'
             });
 
@@ -231,7 +231,7 @@ describe('graphqlUtils.js', () => {
     describe('buildMutationDelete', () => {
         test('builds delete mutation using URI constructed with service-based graph', () => {
             const { buildMutationDelete } = loadModule({
-                grafo: 'kg_',
+                grafoPrefix: 'kg_',
                 grafoSuffix: '_prd',
                 staging: false
             });
@@ -257,7 +257,7 @@ describe('graphqlUtils.js', () => {
 
         test('uses global graph when no graphname is provided', () => {
             const { buildMutationDelete } = loadModule({
-                grafo: 'grafo_',
+                grafoPrefix: 'grafo_',
                 grafoSuffix: '_suffix'
             });
 
