@@ -26,7 +26,6 @@ describe('graphqlUtils.js', () => {
                 graphql: {
                     grafo: 'grafo_',
                     grafoSuffix: '_suffix',
-                    grafoByService: true,
                     staging: false,
                     slugUri: false,
                     ...graphqlConfig
@@ -142,17 +141,16 @@ describe('graphqlUtils.js', () => {
             const { buildMutationCreate } = loadModule({
                 grafo: 'kg_',
                 grafoSuffix: '_prd',
-                grafoByService: true,
                 staging: false
             });
 
-            const result = buildMutationCreate('myservice', 'room', {
+            const result = buildMutationCreate('mygrafo', 'room', {
                 uri: 'http://example.org/resource/Room:001',
                 name: 'Room 001'
             });
 
             expect(result.query).toContain('createRoom(');
-            expect(result.query).toContain('dti: "kg_myservice_prd"');
+            expect(result.query).toContain('dti: "kg_mygrafo_prd"');
             expect(result.query).toContain(
                 'input: { object: { uri: "http://example.org/resource/Room:001", name: "Room 001" } }'
             );
@@ -165,7 +163,7 @@ describe('graphqlUtils.js', () => {
                 staging: true
             });
 
-            const result = buildMutationCreate('svc', 'room', {
+            const result = buildMutationCreate('grph', 'room', {
                 uri: 'http://example.org/resource/Room:001'
             });
 
@@ -177,21 +175,20 @@ describe('graphqlUtils.js', () => {
                 slugUri: true
             });
 
-            const result = buildMutationCreate('svc', 'description', {
+            const result = buildMutationCreate('grph', 'description', {
                 uri: 'http://example.org/resource/Description:001'
             });
 
             expect(result.query).toContain('uri: "http://example.org/resource/description-001"');
         });
 
-        test('uses global graph when grafoByService=false', () => {
+        test('uses global graph when no graphnName is provided', () => {
             const { buildMutationCreate } = loadModule({
                 grafo: 'grafo_',
-                grafoSuffix: '_suffix',
-                grafoByService: false
+                grafoSuffix: '_suffix'
             });
 
-            const result = buildMutationCreate('ignoredservice', 'room', {
+            const result = buildMutationCreate(null, 'room', {
                 uri: 'http://example.org/resource/Room:001'
             });
 
@@ -202,17 +199,16 @@ describe('graphqlUtils.js', () => {
     describe('buildMutationUpdate', () => {
         test('builds update mutation with dti, input and uri in selection set', () => {
             const { buildMutationUpdate } = loadModule({
-                grafoByService: true,
                 staging: false
             });
 
-            const result = buildMutationUpdate('myservice', 'room', 'Room:001', {
+            const result = buildMutationUpdate('mygrafo', 'room', 'Room:001', {
                 uri: 'http://example.org/resource/Room:001',
                 temperature: 23.4
             });
 
             expect(result.query).toContain('updateRoom(');
-            expect(result.query).toContain('dti: "grafo_myservice_suffix"');
+            expect(result.query).toContain('dti: "grafo_mygrafo_suffix"');
             expect(result.query).toContain(
                 'input: { object: { uri: "http://example.org/resource/Room:001", temperature: 23.4 } }'
             );
@@ -224,7 +220,7 @@ describe('graphqlUtils.js', () => {
                 staging: true
             });
 
-            const result = buildMutationUpdate('svc', 'room', 'Room:001', {
+            const result = buildMutationUpdate('grph', 'room', 'Room:001', {
                 uri: 'http://example.org/resource/Room:001'
             });
 
@@ -237,15 +233,14 @@ describe('graphqlUtils.js', () => {
             const { buildMutationDelete } = loadModule({
                 grafo: 'kg_',
                 grafoSuffix: '_prd',
-                grafoByService: true,
                 staging: false
             });
 
-            const result = buildMutationDelete('myservice', 'Room:001');
+            const result = buildMutationDelete('mygrafo', 'Room:001');
 
             expect(result.query).toContain('deleteData(');
-            expect(result.query).toContain('dti: "kg_myservice_prd"');
-            expect(result.query).toContain('uris: ["http://datos.segittur.es/kg_myservice_prd/resource/Room:001"]');
+            expect(result.query).toContain('dti: "kg_mygrafo_prd"');
+            expect(result.query).toContain('uris: ["http://datos.segittur.es/kg_grafo_prd/resource/Room:001"]');
             expect(result.query).not.toContain('{ uri }');
             expect(result.query).not.toContain('staging:');
         });
@@ -255,19 +250,18 @@ describe('graphqlUtils.js', () => {
                 staging: true
             });
 
-            const result = buildMutationDelete('svc', 'Room:001');
+            const result = buildMutationDelete('grph', 'Room:001');
 
             expect(result.query).toContain('staging: true');
         });
 
-        test('uses global graph when grafoByService=false', () => {
+        test('uses global graph when no graphname is provided', () => {
             const { buildMutationDelete } = loadModule({
                 grafo: 'grafo_',
-                grafoSuffix: '_suffix',
-                grafoByService: false
+                grafoSuffix: '_suffix'
             });
 
-            const result = buildMutationDelete('ignored', 'Room:001');
+            const result = buildMutationDelete(null, 'Room:001');
 
             expect(result.query).toContain('dti: "grafo__suffix"');
             expect(result.query).toContain('uris: ["http://datos.segittur.es/grafo__suffix/resource/Room:001"]');

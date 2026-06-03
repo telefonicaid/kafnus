@@ -568,7 +568,7 @@ These mutations, like:
     }
 }
 ```
-contains a dti defined by default as `grafo` by `KAFNUS_NGSI_GRAPHQL_GRAFO` env conf and could be extended to `grafo_<fiware_service>` enabling boolean flag option `KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE` and by `grafo_<suffix>` enabling boolean flag option `KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX`.
+contains a `dti` defined by default as `<graphname>` header which could be extended to `<prefix><graphname>` by using `KAFNUS_NGSI_GRAPHQL_GRAFO` env config option and by `<graphName><suffix>` enabling config option `KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX`, or both `<prefix><graphname><suffix>`. Note default `KAFNUS_NGSI_GRAPHQL_GRAFO` value is `grafo`.
 
 ### Geometry Convention in SGTR
 
@@ -661,7 +661,6 @@ These variables control fetch behavior, session handling, and **manual offset ma
 | `KAFNUS_NGSI_ADMIN_PORT` | number | `8000` | Port for admin, metrics, health and log-level endpoints. |
 | `KAFNUS_NGSI_MONGO_PREFIX` | string | `sth_` | Prefix prepended to MongoDB database and collection names (see [MongoDB Namespace Prefix Configuration](#mongodb-namespace-prefix-configuration)). |
 | `KAFNUS_NGSI_GRAPHQL_GRAFO` | string | `grafo` | Graph name prefix or version used by the GraphQL integration. |
-| `KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE`      | boolean   | `false`      | Add '`<service>`' to Graph name used by the GraphQL service.
 | `KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX`      | string   | ``      | Add '`<suffix>`' to Graph name used by the GraphQL service.        |
 | `KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE`      | boolean   | `false`      | Add '`<service>`_' to outputTopic used by the HTTP connector sink.                          |
 | `KAFNUS_NGSI_GRAPHQL_STAGING`      | boolean   | `false`      | Add '`staging=true`' into mutations for graphql.                          |
