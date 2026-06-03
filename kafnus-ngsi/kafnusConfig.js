@@ -171,6 +171,10 @@ const envVarsSchema = {
             type: 'string',
             default: ''
         },
+        KAFNUS_NGSI_GRAPHQL_FALLBACK_GRAPHNAME_TO_SERVICE: {
+            type: 'boolean',
+            default: false
+        },
         KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE: {
             type: 'boolean',
             default: false
@@ -287,6 +291,7 @@ const config = {
     graphql: {
         grafoPrefix: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO_PREFIX,
         grafoSuffix: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX,
+        fallbackGraphName: envVars.KAFNUS_NGSI_GRAPHQL_FALLBACK_GRAPHNAME_TO_SERVICE,
         outputTopicByService: envVars.KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE,
         staging: envVars.KAFNUS_NGSI_GRAPHQL_STAGING,
         slugUri: envVars.KAFNUS_NGSI_GRAPHQL_SLUG_URI

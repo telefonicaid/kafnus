@@ -57,11 +57,12 @@ async function startSgtrConsumerAgent(logger, producer) {
                 const fiwareContext = getFiwareContext(msg.headers, message);
                 fiwareService = fiwareContext.service;
                 graphName = fiwareContext.graphname;
-                logger.info('[sgtr] fiwareService: %j graphName: %j', fiwareService, graphName);
-                // TBD: fallback for backward compatibility? by config ?
-                // if (graphName == null) {
-                //     graphName = fiwareService;
-                // }
+                logger.info('[sgtr] fiware-service: %j graphname: %j', fiwareService, graphName);
+                // fallback for backward compatibility
+                if (graphName == null && config.graphql.fallbackGraphName) {
+                    logger.info('[sgtr] no graphname header found then fallback to fiware-service: %j ', fiwareService);
+                    graphName = fiwareService;
+                }
 
                 const dataList = message.data ? message.data : [];
 

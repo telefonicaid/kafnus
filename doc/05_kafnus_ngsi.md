@@ -662,6 +662,7 @@ These variables control fetch behavior, session handling, and **manual offset ma
 | `KAFNUS_NGSI_MONGO_PREFIX` | string | `sth_` | Prefix prepended to MongoDB database and collection names (see [MongoDB Namespace Prefix Configuration](#mongodb-namespace-prefix-configuration)). |
 | `KAFNUS_NGSI_GRAPHQL_GRAFO_PREFIX` | string | `` | Graph name prefix used by the GraphQL integration. |
 | `KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX`      | string   | ``      | Add '`<suffix>`' to Graph name used by the GraphQL service.        |
+| `KAFNUS_NGSI_GRAPHQL_FALLBACK_GRAPHNAME_TO_SERVICE`      | boolean   | `false`      | Fallback to use '`<service>`' as graphname when no graphname header is provided.                          |
 | `KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE`      | boolean   | `false`      | Add '`<service>`_' to outputTopic used by the HTTP connector sink.                          |
 | `KAFNUS_NGSI_GRAPHQL_STAGING`      | boolean   | `false`      | Add '`staging=true`' into mutations for graphql.                          |
 | `KAFNUS_NGSI_GRAPHQL_SLUG_URI` | boolean | `false` | Enables slug-based URIs for GraphQL identifiers. |
