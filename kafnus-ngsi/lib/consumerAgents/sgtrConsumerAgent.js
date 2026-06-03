@@ -38,6 +38,7 @@ async function startSgtrConsumerAgent(logger, producer) {
             const start = Date.now();
             let processingResult = 'success';
             let fiwareService = 'default';
+            let graphName = null;
             const k = msg.key?.toString() || '';
             const rawValue = msg.value?.toString() || '';
 
@@ -54,12 +55,11 @@ async function startSgtrConsumerAgent(logger, producer) {
                 }
                 logger.info('[sgtr] message: %j', message);
                 fiwareService = getFiwareContext(msg.headers, message).service;
+                graphName = getFiwareContext(msg.headers, message).graphname;
 
                 const dataList = message.data ? message.data : [];
 
                 for (const entityObject of dataList) {
-                    const service = fiwareService;
-
                     logger.debug('[sgtr] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
 
                     const type = entityObject.type;
@@ -78,19 +78,19 @@ async function startSgtrConsumerAgent(logger, producer) {
 
                     if (alterationType === 'entityupdate' || alterationType === 'entitychange') {
                         const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
-                        mutation = buildMutationUpdate(service, type, id, entityObject);
+                        mutation = buildMutationUpdate(graphName, type, id, entityObject);
                     } else if (alterationType === 'entitydelete') {
                         const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
-                        mutation = buildMutationDelete(service, id);
+                        mutation = buildMutationDelete(graphName, id);
                     } else {
                         if (entityObject.externalId && config.graphql.slugUri) {
                             entityObject.externalId = slugify(entityObject.externalId);
                         }
-                        mutation = buildMutationCreate(service, type, entityObject);
+                        mutation = buildMutationCreate(graphName, type, entityObject);
                     }
                     logger.debug('[sgtr] mutation: \n%s', mutation);
                     if (config.graphql.outputTopicByService) {
-                        outputTopic = config.ngsi.prefix + service + '_sgtr_http' + config.ngsi.suffix;
+                        outputTopic = config.ngsi.prefix + fiwareService + '_sgtr_http' + config.ngsi.suffix;
                     } else {
                         outputTopic = config.ngsi.prefix + 'sgtr_http' + config.ngsi.suffix;
                     }

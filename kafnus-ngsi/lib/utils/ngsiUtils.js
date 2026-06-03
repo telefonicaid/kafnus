@@ -329,6 +329,7 @@ function getFiwareContext(headers, fallbackEvent) {
     let service = null;
     let servicepath = null;
     let datamodel = null;
+    let graphname = null;
     if (headers && headers.length > 0) {
         const hdict = {};
         headers.forEach((headerObj) => {
@@ -340,6 +341,7 @@ function getFiwareContext(headers, fallbackEvent) {
         service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
         servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
         datamodel = hdict['fiware-datamodel'] ? hdict['fiware-datamodel'] : null;
+        graphName = hdict['graphname'] ? hdict['graphname'] : null;
     } else {
         const hdrs = fallbackEvent.headers ? fallbackEvent.headers : fallbackEvent;
         service = (hdrs['fiware-service'] ? hdrs['fiware-service'] : 'default').toLowerCase();
