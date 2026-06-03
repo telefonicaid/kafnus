@@ -240,7 +240,7 @@ describe('graphqlUtils.js', () => {
 
             expect(result.query).toContain('deleteData(');
             expect(result.query).toContain('dti: "kg_mygrafo_prd"');
-            expect(result.query).toContain('uris: ["http://datos.segittur.es/kg_grafo_prd/resource/Room:001"]');
+            expect(result.query).toContain('uris: ["http://datos.segittur.es/kg_mygrafo_prd/resource/Room:001"]');
             expect(result.query).not.toContain('{ uri }');
             expect(result.query).not.toContain('staging:');
         });
