@@ -163,18 +163,17 @@ const envVarsSchema = {
             type: 'string',
             default: null
         },
-        // GRAPHQL
-        KAFNUS_NGSI_GRAPHQL_GRAFO: {
+        KAFNUS_NGSI_GRAPHQL_GRAFO_PREFIX: {
             type: 'string',
-            default: 'grafo'
-        },
-        KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE: {
-            type: 'boolean',
-            default: false
+            default: ''
         },
         KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX: {
             type: 'string',
             default: ''
+        },
+        KAFNUS_NGSI_GRAPHQL_FALLBACK_GRAPHNAME_TO_SERVICE: {
+            type: 'boolean',
+            default: false
         },
         KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE: {
             type: 'boolean',
@@ -290,9 +289,9 @@ const config = {
         port: envVars.KAFNUS_NGSI_ADMIN_PORT
     },
     graphql: {
-        grafo: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO,
-        grafoByService: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE,
+        grafoPrefix: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO_PREFIX,
         grafoSuffix: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX,
+        fallbackGraphName: envVars.KAFNUS_NGSI_GRAPHQL_FALLBACK_GRAPHNAME_TO_SERVICE,
         outputTopicByService: envVars.KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE,
         staging: envVars.KAFNUS_NGSI_GRAPHQL_STAGING,
         slugUri: envVars.KAFNUS_NGSI_GRAPHQL_SLUG_URI

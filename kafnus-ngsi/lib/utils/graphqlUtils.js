@@ -19,7 +19,7 @@
 
 const { config } = require('../../kafnusConfig');
 
-const GRAFO_PREFIX = config.graphql.grafo;
+const GRAFO_PREFIX = config.graphql.grafoPrefix;
 const GRAFO_SUFFIX = config.graphql.grafoSuffix;
 
 function slugify(text) {
@@ -95,16 +95,15 @@ function capitalEntityType(entityType) {
     return entityType.charAt(0).toUpperCase() + entityType.slice(1).toLowerCase();
 }
 
-function getGrafoName(service) {
-    const grafo = config.graphql.grafoByService
-        ? `"${GRAFO_PREFIX}${service}${GRAFO_SUFFIX}"`
-        : `"${GRAFO_PREFIX}${GRAFO_SUFFIX}"`;
+function getGrafoName(graphName) {
+    const grafo =
+        graphName != null ? `"${GRAFO_PREFIX}${graphName}${GRAFO_SUFFIX}"` : `"${GRAFO_PREFIX}${GRAFO_SUFFIX}"`;
 
     return grafo;
 }
 
-function getGrafo(service) {
-    return gqlRaw(getGrafoName(service));
+function getGrafo(graphName) {
+    return gqlRaw(getGrafoName(graphName));
 }
 
 function getStaging() {
@@ -112,8 +111,8 @@ function getStaging() {
     return staging;
 }
 
-function buildMutationCreate(service, entityType, entityObject) {
-    const GRAFO_STR = getGrafo(service);
+function buildMutationCreate(graphName, entityType, entityObject) {
+    const GRAFO_STR = getGrafo(graphName);
     const STAGING_VALUE = getStaging();
     const args = {
         dti: GRAFO_STR,
@@ -127,8 +126,8 @@ function buildMutationCreate(service, entityType, entityObject) {
     return buildMutation('create', entityType, args, ['uri']);
 }
 
-function buildMutationUpdate(service, entityType, id, entityObject) {
-    const GRAFO_STR = getGrafo(service);
+function buildMutationUpdate(graphName, entityType, id, entityObject) {
+    const GRAFO_STR = getGrafo(graphName);
     const STAGING_STR = getStaging();
     const args = {
         dti: GRAFO_STR,
@@ -142,12 +141,12 @@ function buildMutationUpdate(service, entityType, id, entityObject) {
     return buildMutation('update', entityType, args, ['uri']);
 }
 
-function buildMutationDelete(service, id) {
-    const GRAFO_NAME = getGrafoName(service);
+function buildMutationDelete(graphName, id) {
+    const GRAFO_NAME = getGrafoName(graphName);
     const GRAFO_NAME_CLEAN = GRAFO_NAME.replace(/^"+|"+$/g, '');
     const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO_NAME_CLEAN}/resource/`;
     const uri = addPrefix(PREFIX_RESOURCE, id);
-    const GRAFO_STR = getGrafo(service);
+    const GRAFO_STR = getGrafo(graphName);
     const STAGING_STR = getStaging();
     const args = {
         dti: GRAFO_STR,
