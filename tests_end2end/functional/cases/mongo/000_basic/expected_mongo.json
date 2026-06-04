@@ -1,5 +1,6 @@
 [
-  {
+    {
+    "database": "bigdata_test",
     "collection": "bigdata_test_mongo_Device",
     "documents": [
       {

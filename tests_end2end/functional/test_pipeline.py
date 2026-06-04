@@ -107,13 +107,14 @@ def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, multiserv
                 validator = MongoValidator()
                 try:
                     for coll_data in expected_data:
+                        db = coll_data["database"]
                         coll = coll_data["collection"]
                         if "documents" in coll_data:
-                            if not validator.validate(coll, coll_data["documents"]):
+                            if not validator.validate(db, coll, coll_data["documents"]):
                                 all_valid = False
                                 errors.append(f"❌ Mongo validation failed in {coll}")
                         if "absent" in coll_data:
-                            if not validator.validate_absent(coll, coll_data["absent"]):
+                            if not validator.validate_absent(db, coll, coll_data["absent"]):
                                 all_valid = False
                                 errors.append(f"❌ Mongo forbidden docs in {coll}")
                 finally:

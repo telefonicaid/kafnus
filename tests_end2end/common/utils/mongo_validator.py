@@ -26,17 +26,18 @@ logging.getLogger("pymongo").setLevel(logging.WARNING)
 from common.config import logger
 
 class MongoValidator:
-    def __init__(self, uri="mongodb://localhost:27017", db_name="sth_test"):
+    def __init__(self, uri="mongodb://localhost:27017", dbname="test"):
         self.client = MongoClient(uri)
-        self.db = self.client[db_name]
+        self.db = self.client[dbname]
 
-    def validate(self, collection, expected_docs, timeout=30, poll_interval=1):
+    def validate(self, dbname, collection, expected_docs, timeout=30, poll_interval=1):
         """
         Waits until all expected documents are present in the collection.
         - expected_docs: list of dicts with the fields that must exist (ignores recvtime)
         - timeout: maximum time in seconds to wait
         - poll_interval: interval between queries in seconds
         """
+        self.db = self.client[dbname]
         col = self.db[collection]
         start = time.time()
         # Filter out recvtime from expected docs
@@ -45,7 +46,7 @@ class MongoValidator:
             for doc in expected_docs
         ]
 
-        logger.info(f"🔍 Starting validation on collection '{collection}' for {len(expected_docs_filtered)} documents")
+        logger.info(f"🔍 Starting validation on dbname '{dbname}' in collection '{collection}' for {len(expected_docs_filtered)} documents")
 
         while time.time() - start < timeout:
             all_found = True
@@ -63,10 +64,11 @@ class MongoValidator:
         logger.error(f"❌ Timeout: Expected documents not found in {collection}")
         return False
 
-    def validate_absent(self, collection, forbidden_docs, timeout=10, poll_interval=1):
+    def validate_absent(self, dbname, collection, forbidden_docs, timeout=10, poll_interval=1):
         """
         Waits until none of the forbidden documents are present in the collection.
         """
+        self.db = self.client[dbname]
         col = self.db[collection]
         start = time.time()
         forbidden_docs_filtered = [
@@ -74,7 +76,7 @@ class MongoValidator:
             for doc in forbidden_docs
         ]
 
-        logger.info(f"🔍 Starting validation_absent on collection '{collection}'")
+        logger.info(f"🔍 Starting validation_absent on dbname '{dbname}' collection '{collection}'")
 
         while time.time() - start < timeout:
             any_present = False
