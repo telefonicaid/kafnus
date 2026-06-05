@@ -39,6 +39,7 @@ async function startVirtuosoConsumerAgent(logger, producer) {
             const start = Date.now();
             let processingResult = 'success';
             let fiwareService = 'default';
+            let graphName = null;
             const k = msg.key?.toString() || '';
             const rawValue = msg.value?.toString() || '';
 
@@ -56,7 +57,10 @@ async function startVirtuosoConsumerAgent(logger, producer) {
 
                 logger.info('[sgtr-virtuoso] message: %j', message);
                 fiwareService = getFiwareContext(msg.headers, message).service;
-
+                const fiwareContext = getFiwareContext(msg.headers, message);
+                fiwareService = fiwareContext.service;
+                graphName = fiwareContext.graphname;
+                logger.info('[sgtr-virtuoso] fiware-service: %j graphname: %j', fiwareService, graphName);
                 const dataList = Array.isArray(message.data) ? message.data : [];
 
                 for (const entityObjectOriginal of dataList) {
@@ -65,7 +69,7 @@ async function startVirtuosoConsumerAgent(logger, producer) {
                     const service = fiwareService;
                     logger.debug('[sgtr-virtuoso] fiware-service:%s', JSON.stringify(service, null, 2));
                     logger.debug('[sgtr-virtuoso] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
-                    const graphUri = getGrafoName(service);
+                    const graphUri = getGrafoName(graphname);
 
                     const sparql = buildSparqlForEntity(graphUri, service, entityObject);
 

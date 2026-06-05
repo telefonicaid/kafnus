@@ -20,13 +20,13 @@
 const { config } = require('../../kafnusConfig');
 
 // TBD: define new options for virtuoso config about grafo, suffix, and core ontology
-const GRAFO_PREFIX = config.graphql.grafo;
+const GRAFO_PREFIX = config.graphql.grafoPrefix;
 const GRAFO_SUFFIX = config.graphql.grafoSuffix;
 const CORE = 'https://ontologia.segittur.es/turismo/def/core#';
 
-function getGrafoName(service) {
-    const grafo = config.graphql.grafoByService
-        ? `${GRAFO_PREFIX}${service}${GRAFO_SUFFIX}`
+function getGrafoName(graphName) {
+    const grafo = graphName != null
+        ? `${GRAFO_PREFIX}${graphName}${GRAFO_SUFFIX}`
         : `${GRAFO_PREFIX}${GRAFO_SUFFIX}`;
     return grafo;
 }
