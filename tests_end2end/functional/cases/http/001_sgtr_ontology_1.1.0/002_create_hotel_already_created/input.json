@@ -26,6 +26,9 @@
                 "kafkaCustom": {
                     "url": "kafka://kafka:29092",
                     "topic": "smc_raw_sgtr",
+                    "headers": {
+                        "graphname":  "grafo"
+                    },
                     "json": {
                         "data": [
                             {
