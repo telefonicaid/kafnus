@@ -25,9 +25,8 @@ const GRAFO_SUFFIX = config.graphql.grafoSuffix;
 const CORE = 'https://ontologia.segittur.es/turismo/def/core#';
 
 function getGrafoName(graphName) {
-    const grafo = graphName != null
-        ? `${GRAFO_PREFIX}${graphName}${GRAFO_SUFFIX}`
-        : `${GRAFO_PREFIX}${GRAFO_SUFFIX}`;
+    const grafo =
+        graphName != null ? `"${GRAFO_PREFIX}${graphName}${GRAFO_SUFFIX}"` : `"${GRAFO_PREFIX}${GRAFO_SUFFIX}"`;
     return grafo;
 }
 
