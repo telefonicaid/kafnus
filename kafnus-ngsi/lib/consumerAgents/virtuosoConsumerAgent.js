@@ -69,7 +69,7 @@ async function startVirtuosoConsumerAgent(logger, producer) {
                     const service = fiwareService;
                     logger.debug('[sgtr-virtuoso] fiware-service:%s', JSON.stringify(service, null, 2));
                     logger.debug('[sgtr-virtuoso] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
-                    const graphUri = getGrafoName(graphname);
+                    const graphUri = getGrafoName(graphName);
 
                     const sparql = buildSparqlForEntity(graphUri, service, entityObject);
 
