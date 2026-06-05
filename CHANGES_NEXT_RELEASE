@@ -1,1 +1,1 @@
-
+- Use in mongo sink a mapping like sql "dm-by-entity-type-database" for database and collection (#261)
