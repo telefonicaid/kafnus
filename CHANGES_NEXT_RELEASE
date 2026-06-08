@@ -1,1 +1,1 @@
-- Add: use notification fiware headers values (srv, subsrv, corr) in logs (#273)
+- Add: use notification fiware headers values (srv, subsrv, corr) in logs (#271)
