@@ -22,16 +22,17 @@ const { handleEntityCb, safeProduce } = require('../utils/handleEntityCb');
 const { buildKafkaKey, sanitizeString, getFiwareContext } = require('../utils/ngsiUtils');
 const { recordFlowProcessing } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
+const logger = require('../utils/logger');
 const Kafka = require('@confluentinc/kafka-javascript');
 
-async function startLastdataConsumerAgent(logger, producer) {
+async function startLastdataConsumerAgent(log, producer) {
     const topic = config.ngsi.prefix + 'raw_lastdata';
     const groupId = 'ngsi-processor-lastdata';
     const prefix = config.ngsi.prefix;
     const flowSuffix = '_lastdata';
     const suffix = '_lastdata' + config.ngsi.suffix;
 
-    const consumer = await createConsumerAgent(logger, {
+    const consumer = await createConsumerAgent(log, {
         groupId,
         topic,
         producer,
@@ -39,27 +40,39 @@ async function startLastdataConsumerAgent(logger, producer) {
             const start = Date.now();
             let processingResult = 'success';
             let fiwareService = 'default';
+            let currentlog = null;
             const k = msg.key?.toString() || '';
             const rawValue = msg.value?.toString() || '';
-            logger.info(`[lastdata] key=${k} value=${rawValue}`);
+            log.info(`[lastdata] key=${k} value=${rawValue}`);
 
             try {
                 const message = JSON.parse(rawValue);
                 const dataList = message.data ? message.data : [];
                 if (dataList && dataList.length === 0) {
-                    logger.warn('[lastdata] No data found in payload');
+                    log.warn('[lastdata] No data found in payload');
                     consumer.commitMessage(msg);
                     return;
                 }
-                const { service, servicepath, datamodel } = getFiwareContext(msg.headers, message);
-                fiwareService = service;
+                const fiwareContext = getFiwareContext(msg.headers, message);
+                fiwareService = fiwareContext.service;
+                const service = fiwareContext.service;
+                const servicepath = fiwareContext.servicepath;
+                const datamodel = fiwareContext.datamodel;
+
+                const configContext = {
+                    op: 'lastdataConsumer',
+                    corr: fiwareContext.correlator,
+                    service: fiwareContext.service,
+                    subservice: fiwareContext.servicepath
+                };
+                currentlog = logger.createChildLogger(configContext);
 
                 const entityRaw = dataList[0];
                 const entityId = entityRaw.id;
                 const entityType = entityRaw.type?.toLowerCase();
                 const alterationType = entityRaw.alterationType?.value?.toLowerCase() ?? 'entityupdate';
                 if (!entityId) {
-                    logger.warn('[lastdata] No entity ID  found');
+                    currentlog.warn('[lastdata] No entity ID  found');
                     return;
                 }
                 if (alterationType === 'entitydelete') {
@@ -94,7 +107,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                     ]);
 
                     consumer.commitMessage(msg);
-                    logger.info(
+                    currentlog.info(
                         `['lastdata'] Sent to topic '${topicName}', headers: ${JSON.stringify(
                             headersOut.map((h) =>
                                 Object.fromEntries(Object.entries(h).map(([k, v]) => [k, v.toString()]))
@@ -103,7 +116,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                     );
                 } else {
                     await handleEntityCb(
-                        logger,
+                        currentlog,
                         rawValue, // rawValue has all entities, no just first
                         {
                             headers: msg.headers,
@@ -122,7 +135,7 @@ async function startLastdataConsumerAgent(logger, producer) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
                 }
-                logger.error(`[lastdata] Error processing event: ${err?.stack || err}`);
+                currentlog.error(`[lastdata] Error processing event: ${err?.stack || err}`);
                 // Policy decision:
                 // - if no retries, then commit here (to avoid infinite loop)
                 // consumer.commitMessage(msg);
