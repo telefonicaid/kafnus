@@ -62,7 +62,7 @@ async function startMongoConsumerAgent(log, producer) {
                 fiwareService = fiwareContext.service;
                 const servicepath = fiwareContext.servicepath;
                 const mongoDb = `${fiwareService}`;
-                const mongoCollectionSuffix = sanitizeString(`${fiwareService}${servicepath}_`);                
+                const mongoCollectionSuffix = sanitizeString(`${fiwareService}${servicepath}_`);
                 const outputTopic = `${config.ngsi.prefix}${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
                 const configContext = {
                     op: 'mongoConsumer',
