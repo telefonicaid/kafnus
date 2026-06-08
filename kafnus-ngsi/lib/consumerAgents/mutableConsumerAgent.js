@@ -22,29 +22,38 @@ const { handleEntityCb } = require('../utils/handleEntityCb');
 const { recordFlowProcessing } = require('../utils/admin');
 const { getFiwareContext } = require('../utils/ngsiUtils');
 const { config } = require('../../kafnusConfig');
+const logger = require('../utils/logger');
 const Kafka = require('@confluentinc/kafka-javascript');
 
-async function startMutableConsumerAgent(logger, producer) {
+async function startMutableConsumerAgent(log, producer) {
     const topic = config.ngsi.prefix + 'raw_mutable';
     const groupId = 'ngsi-processor-mutable';
     const suffix = '_mutable' + config.ngsi.suffix;
 
-    const consumer = await createConsumerAgent(logger, {
+    const consumer = await createConsumerAgent(log, {
         groupId,
         topic,
         producer,
         onData: async (msg) => {
             const start = Date.now();
             let processingResult = 'success';
-            const { service } = getFiwareContext(msg.headers, {});
+            const fiwareContext = getFiwareContext(msg.headers, {});
+            const service = fiwareContext.service;
             const k = msg.key?.toString() || '';
             const v = msg.value?.toString() || '';
-            logger.info(`[raw_mutable] Key: ${k}, Value: ${v}`);
+            log.info(`[raw_mutable] Key: ${k}, Value: ${v}`);
+            const configContext = {
+                op: 'mutableConsumer',
+                corr: fiwareContext.correlator,
+                service: fiwareContext.service,
+                subservice: fiwareContext.servicepath
+            };
+            const currentlog = logger.createChildLogger(configContext);
 
             try {
-                logger.info(`rawValue: '${v}'`);
+                currentlog.info(`rawValue: '${v}'`);
                 await handleEntityCb(
-                    logger,
+                    currentlog,
                     v,
                     {
                         headers: msg.headers,
@@ -62,7 +71,7 @@ async function startMutableConsumerAgent(logger, producer) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
                 }
-                logger.error(`[mutable] Error processing event: ${err?.stack || err}`);
+                currentlog.error(`[mutable] Error processing event: ${err?.stack || err}`);
                 // Policy decision:
                 // - if no retries, then commit here (to avoid infinite loop)
                 // consumer.commitMessage(msg);
