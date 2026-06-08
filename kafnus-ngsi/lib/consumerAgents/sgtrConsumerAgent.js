@@ -44,6 +44,7 @@ async function startSgtrConsumerAgent(log, producer) {
             const rawValue = msg.value?.toString() || '';
 
             log.info(`[sgtr] key=${k} value=${rawValue}`);
+            let currentlog = null;
 
             try {
                 let message;
@@ -70,7 +71,7 @@ async function startSgtrConsumerAgent(log, producer) {
                     service: fiwareContext.service,
                     subservice: fiwareContext.servicepath
                 };
-                const currentlog = logger.createChildLogger(configContext);
+                currentlog = logger.createChildLogger(configContext);
                 // fallback for backward compatibility
                 if (graphName == null && config.graphql.fallbackGraphName) {
                     currentlog.info(
