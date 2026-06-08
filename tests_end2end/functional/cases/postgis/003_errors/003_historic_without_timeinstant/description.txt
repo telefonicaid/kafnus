@@ -1,0 +1,4 @@
+Documents current behavior when a HISTORIC notification is generated without TimeInstant.
+Expected current behavior:
+- The record is not persisted in historical PostGIS table.
+- Kafka Connect emits an error that is routed to test_error_log.
