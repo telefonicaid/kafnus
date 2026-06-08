@@ -18,7 +18,7 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { formatDatetimeIso, truncate } = require('../utils/ngsiUtils');
+const { getFiwareContext, formatDatetimeIso, truncate } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
 const { recordFlowProcessing } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
@@ -38,6 +38,7 @@ async function startErrorsConsumerAgent(log, producer) {
             const start = Date.now();
             let processingResult = 'success';
             let fiwareService = 'default';
+            let currentlog = null;
             const k = msg.key?.toString() || null;
             const valueRaw = msg.value?.toString() || '';
 
@@ -70,7 +71,7 @@ async function startErrorsConsumerAgent(log, producer) {
                     service: fiwareContext.service,
                     subservice: fiwareContext.servicepath
                 };
-                const currentlog = logger.createChildLogger(configContext);
+                currentlog = logger.createChildLogger(configContext);
 
                 let fullErrorMsg = hdrs['__connect.errors.exception.message'] || 'Unknown error';
                 const causeMsg = hdrs['__connect.errors.exception.cause.message'];
