@@ -63,6 +63,14 @@ async function startErrorsConsumerAgent(log, producer) {
                 }
 
                 log.info('[errors] headers=%j', hdrs);
+                const fiwareContext = getFiwareContext(msg.headers, {});
+                const configContext = {
+                    op: 'errorsConsumer',
+                    corr: fiwareContext.correlator,
+                    service: fiwareContext.service,
+                    subservice: fiwareContext.servicepath
+                };
+                const currentlog = logger.createChildLogger(configContext);
 
                 let fullErrorMsg = hdrs['__connect.errors.exception.message'] || 'Unknown error';
                 const causeMsg = hdrs['__connect.errors.exception.cause.message'];
@@ -163,7 +171,7 @@ async function startErrorsConsumerAgent(log, producer) {
                     headersOut
                 ]);
 
-                log.info(`[errors] Logged SQL error to '${errorTopicName}'`);
+                currentlog.info(`[errors] Logged SQL error to '${errorTopicName}'`);
 
                 consumer.commitMessage(msg);
             } catch (err) {
@@ -172,7 +180,7 @@ async function startErrorsConsumerAgent(log, producer) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
                 }
-                log.error(`[errors] Error processing event: ${err?.stack || err}`);
+                currentlog.error(`[errors] Error processing event: ${err?.stack || err}`);
                 // Policy decision:
                 // - if no retries, then commit here (to avoid infinite loop)
                 consumer.commitMessage(msg);

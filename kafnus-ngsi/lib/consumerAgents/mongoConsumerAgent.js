@@ -64,6 +64,13 @@ async function startMongoConsumerAgent(log, producer) {
                 const mongoDb = `${fiwareService}`;
                 const mongoCollection = `${servicepath}`;
                 const outputTopic = `${config.ngsi.prefix}${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
+                const configContext = {
+                    op: 'mongoConsumer',
+                    corr: fiwareContext.correlator,
+                    service: fiwareContext.service,
+                    subservice: fiwareContext.servicepath
+                };
+                currentlog = logger.createChildLogger(configContext);
                 const recvTime = DateTime.utc().toISO();
                 const entities = message.data || [];
                 if (entities.length === 0) {
