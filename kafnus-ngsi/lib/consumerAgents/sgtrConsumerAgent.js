@@ -22,13 +22,13 @@ const { getFiwareContext, transformSgtrGeoJsonToWkt } = require('../utils/ngsiUt
 const { safeProduce } = require('../utils/handleEntityCb');
 const { recordFlowProcessing } = require('../utils/admin');
 const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
-const logger = require('../utils/logger');
 const { config } = require('../../kafnusConfig');
+const logger = require('../utils/logger');
 const Kafka = require('@confluentinc/kafka-javascript');
 
 async function startSgtrConsumerAgent(log, producer) {
     const topic = config.ngsi.prefix + 'raw_sgtr';
-    let outputTopic;
+    let outputTopic = null;
     const groupId = 'ngsi-processor-sgtr';
 
     const consumer = await createConsumerAgent(log, {
@@ -40,11 +40,11 @@ async function startSgtrConsumerAgent(log, producer) {
             let processingResult = 'success';
             let fiwareService = 'default';
             let graphName = null;
+            let currentlog = null;
             const k = msg.key?.toString() || '';
             const rawValue = msg.value?.toString() || '';
 
             log.info(`[sgtr] key=${k} value=${rawValue}`);
-            let currentlog = null;
 
             try {
                 let message;

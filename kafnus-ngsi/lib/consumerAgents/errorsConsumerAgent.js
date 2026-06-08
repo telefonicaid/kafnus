@@ -22,14 +22,15 @@ const { formatDatetimeIso, truncate } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
 const { recordFlowProcessing } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
+const logger = require('../utils/logger');
 const Kafka = require('@confluentinc/kafka-javascript');
 
-async function startErrorsConsumerAgent(logger, producer) {
+async function startErrorsConsumerAgent(log, producer) {
     const topic = config.ngsi.prefix + 'raw_errors';
     const groupId = 'ngsi-processor-errors';
     const suffix = config.ngsi.suffix;
 
-    const consumer = await createConsumerAgent(logger, {
+    const consumer = await createConsumerAgent(log, {
         groupId,
         topic,
         producer,
@@ -40,14 +41,14 @@ async function startErrorsConsumerAgent(logger, producer) {
             const k = msg.key?.toString() || null;
             const valueRaw = msg.value?.toString() || '';
 
-            logger.info(`[errors] key=${k} value=${valueRaw}`);
+            log.info(`[errors] key=${k} value=${valueRaw}`);
 
             try {
                 let valueJson;
                 try {
                     valueJson = JSON.parse(valueRaw);
                 } catch (e) {
-                    logger.warn(`[errors] Invalid JSON payload, skipping: ${e.message}`);
+                    log.warn(`[errors] Invalid JSON payload, skipping: ${e.message}`);
                     consumer.commitMessage(msg);
                     return;
                 }
@@ -61,7 +62,7 @@ async function startErrorsConsumerAgent(logger, producer) {
                     });
                 }
 
-                logger.info('[errors] headers=%j', hdrs);
+                log.info('[errors] headers=%j', hdrs);
 
                 let fullErrorMsg = hdrs['__connect.errors.exception.message'] || 'Unknown error';
                 const causeMsg = hdrs['__connect.errors.exception.cause.message'];
@@ -162,7 +163,7 @@ async function startErrorsConsumerAgent(logger, producer) {
                     headersOut
                 ]);
 
-                logger.info(`[errors] Logged SQL error to '${errorTopicName}'`);
+                log.info(`[errors] Logged SQL error to '${errorTopicName}'`);
 
                 consumer.commitMessage(msg);
             } catch (err) {
@@ -171,7 +172,7 @@ async function startErrorsConsumerAgent(logger, producer) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
                 }
-                logger.error(`[errors] Error processing event: ${err?.stack || err}`);
+                log.error(`[errors] Error processing event: ${err?.stack || err}`);
                 // Policy decision:
                 // - if no retries, then commit here (to avoid infinite loop)
                 consumer.commitMessage(msg);

@@ -23,15 +23,16 @@ const { safeProduce } = require('../utils/handleEntityCb');
 const { DateTime } = require('luxon');
 const { recordFlowProcessing } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
+const logger = require('../utils/logger');
 const Kafka = require('@confluentinc/kafka-javascript');
 
 const OUTPUT_TOPIC_SUFFIX = '_mongo' + config.ngsi.suffix;
 
-async function startMongoConsumerAgent(logger, producer) {
+async function startMongoConsumerAgent(log, producer) {
     const topic = config.ngsi.prefix + 'raw_mongo';
     const groupId = 'ngsi-processor-mongo';
 
-    const consumer = await createConsumerAgent(logger, {
+    const consumer = await createConsumerAgent(log, {
         groupId,
         topic,
         producer,
@@ -39,7 +40,7 @@ async function startMongoConsumerAgent(logger, producer) {
             const start = Date.now();
             let processingResult = 'success';
             let fiwareService = 'default';
-
+            let currentlog = null;
             try {
                 const rawValue = msg.value?.toString();
                 if (!rawValue) {
@@ -48,20 +49,21 @@ async function startMongoConsumerAgent(logger, producer) {
                     return;
                 }
                 const k = msg.key?.toString();
-                logger.info(`[mongo] key=${k} value=${rawValue}`);
+                log.info(`[mongo] key=${k} value=${rawValue}`);
                 let message;
                 try {
                     message = JSON.parse(rawValue);
                 } catch (e) {
-                    logger.warn('[mongo] Invalid JSON, committing: %s', e.message);
+                    log.warn('[mongo] Invalid JSON, committing: %s', e.message);
                     consumer.commitMessage(msg);
                     return;
                 }
-                const { service: tenantService, servicepath: servicePath } = getFiwareContext(msg.headers, message);
-                fiwareService = tenantService;
-                const mongoDb = `${tenantService}`;
-                const mongoCollection = `${servicePath}`;
-                const outputTopic = `${config.ngsi.prefix}${tenantService}${OUTPUT_TOPIC_SUFFIX}`;
+                const fiwareContext = getFiwareContext(msg.headers, message);
+                fiwareService = fiwareContext.service;
+                const servicepath = fiwareContext.servicepath;
+                const mongoDb = `${fiwareService}`;
+                const mongoCollection = `${servicepath}`;
+                const outputTopic = `${config.ngsi.prefix}${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
                 const recvTime = DateTime.utc().toISO();
                 const entities = message.data || [];
                 if (entities.length === 0) {
@@ -97,7 +99,7 @@ async function startMongoConsumerAgent(logger, producer) {
                         null, // Opaque
                         null
                     ]);
-                    logger.info(`[mongo] Sent to '${outputTopic}' | DB=${mongoDb} | Collection=${mongoCollection}`);
+                    currentlog.info(`[mongo] Sent to '${outputTopic}' | DB=${mongoDb} | Collection=${mongoCollection}`);
                 }
                 consumer.commitMessage(msg);
             } catch (err) {
@@ -106,7 +108,7 @@ async function startMongoConsumerAgent(logger, producer) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
                 }
-                logger.error(`[mongo] Error processing event: ${err?.stack || err} offset NOT committed`);
+                currentlog.error(`[mongo] Error processing event: ${err?.stack || err} offset NOT committed`);
                 // Policy decision:
                 // - if no retries, then commit here (to avoid infinite loop)
                 // consumer.commitMessage(msg);
