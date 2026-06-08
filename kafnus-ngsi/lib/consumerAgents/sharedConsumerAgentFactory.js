@@ -1,21 +1,21 @@
 /*
-* Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
-*
-* This file is part of kafnus
-*
-* kafnus is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Affero General Public License as
-* published by the Free Software Foundation, either version 3 of the
-* License, or (at your option) any later version.
-*
-* kafnus is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
-* General Public License for more details.
-*
-* You should have received a copy of the GNU Affero General Public License
-* along with kafnus. If not, see http://www.gnu.org/licenses/.
-*/
+ * Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
+ *
+ * This file is part of kafnus
+ *
+ * kafnus is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * kafnus is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with kafnus. If not, see http://www.gnu.org/licenses/.
+ */
 
 const Kafka = require('@confluentinc/kafka-javascript');
 const PQueue = require('p-queue').default;
@@ -30,23 +30,36 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
 
     // Queue for processing: just 1 message at the same time
     const queue = new PQueue({ concurrency: 1 });
-
+    const MAX_BUFFERED_TASKS = 1000;
     let paused = false;
     let producerQueueFull = false;
 
     function pauseConsumer() {
-        if (!paused) {
-            consumer.pause([{ topic }]);
+        if (paused) {
+            return;
+        }
+        try {
+            const a = consumer.assignments();
+            consumer.pause(a);
             paused = true;
-            logger.warn(`[consumer] Paused due to producer backpressure`);
+            logger.warn('[consumer] Paused due to producer backpressure');
+        } catch (err) {
+            // NO rethrow: pausing is best-effort
+            logger.error('[consumer] Failed to pause consumer', err?.stack || err);
         }
     }
 
     function resumeConsumer() {
-        if (paused) {
-            consumer.resume([{ topic }]);
+        if (!paused) {
+            return;
+        }
+        try {
+            const a = consumer.assignments();
+            consumer.resume(a);
             paused = false;
-            logger.info(`[consumer] Resumed`);
+            logger.info('[consumer] Resumed');
+        } catch (err) {
+            logger.error('[consumer] Failed to resume consumer', err?.stack || err);
         }
     }
 
@@ -67,23 +80,37 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
                 resolve(consumer);
             })
             .on('data', (message) => {
-                queue.add(async () => {
-                    if (producerQueueFull) {
-                        pauseConsumer();
-                        return;
-                    }
-
-                    try {
-                        await onData(message);
-                    } catch (err) {
-                        if (err.code === Kafka.CODES.ERRORS.QUEUE_FULL) {
-                            producerQueueFull = true;
+                const backlog = queue.size + queue.pending;
+                if (backlog >= MAX_BUFFERED_TASKS && !paused) {
+                    pauseConsumer();
+                    logger.warn(`[consumer] backlog high (${backlog}) size=${queue.size} pending=${queue.pending}`);
+                }
+                queue
+                    .add(async () => {
+                        if (producerQueueFull) {
                             pauseConsumer();
-                        } else {
-                            logger.error(`[consumer] Processing error: %j`, err);
+                            return;
                         }
-                    }
-                });
+                        try {
+                            await onData(message);
+                            // If all OK and was paused by internal queue, resume when down
+                            const backlog = queue.size + queue.pending;
+                            if (paused && !producerQueueFull && backlog < MAX_BUFFERED_TASKS / 2) {
+                                resumeConsumer();
+                            }
+                        } catch (err) {
+                            if (err.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
+                                producerQueueFull = true;
+                                pauseConsumer();
+                            } else {
+                                logger.error(`[consumer] Processing error: %s`, err?.stack || err);
+                            }
+                            throw err;
+                        }
+                    })
+                    .catch(() => {
+                        // Avoid unhandled rejection.
+                    });
             })
             .on('event.error', (err) => {
                 logger.error(`Event error on topic ${topic}:`, err);

@@ -1,0 +1,15 @@
+[
+  {
+    "table": "simple.simple_sensor_lastdata",
+    "rows": [
+      {"entityid": "SensorCfg", "entitytype": "Sensor", "timeinstant": "2025-06-26T11:00:00Z", "temperature": 25.0, "fiwareservicepath": "/simple"},
+      {"entityid": "SensorHdrSchema", "entitytype": "Sensor", "timeinstant": "2025-06-26T12:00:00Z", "temperature": 26.0, "fiwareservicepath": "/simple"}
+    ]
+  },
+  {
+    "table": "testdatamodel.simple_sensor_lastdata",
+    "rows": [
+      {"entityid": "SensorHdrDb", "entitytype": "Sensor", "timeinstant": "2025-06-26T13:00:00Z", "temperature": 27.0, "fiwareservicepath": "/simple"}
+    ]
+  }
+]

@@ -31,7 +31,7 @@ const startSgtrConsumerAgent = require('./consumerAgents/sgtrConsumerAgent');
 
 const { startAdminServer } = require('./utils/admin');
 
-const { createProducer } = require('./consumerAgents/sharedProducerFactory');
+const { createProducer, shutdownProducer } = require('./consumerAgents/sharedProducerFactory');
 const { shutdownConsumer } = require('./consumerAgents/consumer');
 
 async function main() {
@@ -41,51 +41,59 @@ async function main() {
 
     // 1 global producer
     const producer = await createProducer(log);
+    producer.setPollInterval(10); // process delivery reports allow not fill internal queue
+
+    const adminServer = await startAdminServer(log, config.admin.port);
 
     log.info('Starting all consumers...');
+    const consumers = (
+        await Promise.all([
+            startHistoricConsumerAgent(log, producer),
+            startLastdataConsumerAgent(log, producer),
+            startMutableConsumerAgent(log, producer),
+            startErrorsConsumerAgent(log, producer),
+            startMongoConsumerAgent(log, producer),
+            startSgtrConsumerAgent(log, producer)
+        ])
+    ).filter(Boolean);
 
-    const started = await Promise.all([
-        startAdminServer(log, config.admin.port),
+    let shuttingDown = false;
 
-        // Use the same producer
-        startHistoricConsumerAgent(log, producer),
-        startLastdataConsumerAgent(log, producer),
-        startMutableConsumerAgent(log, producer),
-        startErrorsConsumerAgent(log, producer),
-        startMongoConsumerAgent(log, producer),
-        startSgtrConsumerAgent(log, producer)
-    ]);
-
-    const consumers = started.filter(Boolean);
-
-    // Shutdown
     const shutdown = async (signal) => {
+        if (shuttingDown) {
+            return;
+        }
+        shuttingDown = true;
         log.info(`[shutdown] Received ${signal}`);
-
-        // Pause all consumers
-        for (const consumer of consumers) {
-            try {
-                consumer.pause();
-            } catch (_) {}
+        try {
+            await new Promise((r) => setTimeout(r, 1000));
+            // close server firstly to stop receive traffic
+            if (adminServer?.close) {
+                await new Promise((r) => adminServer.close(r));
+            }
+            log.info('[shutdown] disconnecting consumers');
+            const withTimeout = (p, ms, label) =>
+                Promise.race([
+                    p,
+                    new Promise((_, rej) => setTimeout(() => rej(new Error(`Timeout ${ms}ms: ${label}`)), ms))
+                ]);
+            for (const c of consumers) {
+                const name = c.topic || c.groupId || c.clientId || 'unknown';
+                await withTimeout(shutdownConsumer(c, log, name), 8000, `shutdownConsumer(${name})`);
+            }
+            log.info('[shutdown] shutting down producer');
+            await shutdownProducer(producer, log);
+            log.info('[shutdown] Completed');
+            process.exitCode = 0;
+        } catch (err) {
+            log.error('[shutdown] Failed', err);
+            process.exitCode = 1;
+        } finally {
+            process.exit();
         }
-
-        // Wait for all messages on the fly
-        await new Promise((r) => setTimeout(r, 1000));
-
-        // Disconnect each consumer
-        for (const consumer of consumers) {
-            await shutdownConsumer(consumer, log, consumer.topic || 'unknown');
-        }
-
-        // Flush and disconnect from global producer
-        await shutdownProducer(log);
-
-        log.info('[shutdown] Completed');
-        process.exit(0);
     };
-
-    process.on('SIGINT', shutdown);
-    process.on('SIGTERM', shutdown);
+    process.once('SIGINT', () => shutdown('SIGINT'));
+    process.once('SIGTERM', () => shutdown('SIGTERM'));
 }
 
 main().catch((err) => {

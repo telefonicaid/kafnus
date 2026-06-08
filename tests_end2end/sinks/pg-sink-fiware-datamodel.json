@@ -1,0 +1,51 @@
+{
+  "name": "jdbc-fiware-datamodel-sink",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+    "tasks.max": "1",
+    "topics": "smc_testdatamodel_lastdata_processed",
+    "connection.url": "jdbc:postgresql://${env:KAFNUS_TESTS_PG_HOST}:${env:KAFNUS_TESTS_PG_PORT}/${env:KAFNUS_TESTS_PG_DBNAME}",
+    "connection.user": "${env:KAFNUS_TESTS_PG_USER}",
+    "connection.password": "${env:KAFNUS_TESTS_PG_PASSWORD}",
+    
+    "insert.mode": "upsert",
+    "update.if.newer.field": "timeinstant",
+    "pk.mode": "record_key",
+    "pk.fields": "entityid",
+    "table.name.format": "${topic}",
+    "delete.enabled": true,
+
+    "transforms": "HeaderRouter,convertTimestamp,convertRecvTime",
+
+    "transforms.HeaderRouter.type": "com.telefonica.HeaderRouter",
+    "transforms.HeaderRouter.datamodel": "dm-by-entity-type-database-schema",
+
+    "transforms.convertTimestamp.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
+    "transforms.convertTimestamp.target.type": "Timestamp",
+    "transforms.convertTimestamp.field": "timeinstant",
+    "transforms.convertTimestamp.format": "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+    "transforms.convertRecvTime.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
+    "transforms.convertRecvTime.target.type": "Timestamp",
+    "transforms.convertRecvTime.field": "recvtime",
+    "transforms.convertRecvTime.format": "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": true,
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": true,
+
+    "auto.create": false,
+    "auto.evolve": false,
+
+    "errors.tolerance": "all",
+    "errors.deadletterqueue.topic.name": "smc_raw_errors",
+    "errors.deadletterqueue.context.headers.enable": "true",
+    "errors.deadletterqueue.topic.replication.factor": "1",
+    "errors.log.enable": "true",
+    "errors.log.include.messages": "true",
+    "max.retries": "0",
+    "retry.backoff.ms": "0",
+    "connection.attempts": "10",
+    "connection.backoff.ms": "10000"
+  }
+}

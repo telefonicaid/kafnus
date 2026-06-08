@@ -1,0 +1,7 @@
+Advanced test case for fiware-datamodel precedence in HeaderRouter,
+using Orion notifications processed by kafnus-ngsi:
+- If `fiware-datamodel` header is missing in subscription notification, use connector config datamodel.
+- If `fiware-datamodel` header is present in subscription notification, override connector config.
+It validates persistence to:
+- <servicepath>.<servicepath>_<entityType> for dm-by-entity-type-database-schema
+- <service>.<servicepath>_<entityType> for dm-by-entity-type-database

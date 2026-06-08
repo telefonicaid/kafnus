@@ -42,5 +42,4 @@ ENV NODE_ENV=production
 ENV LOG_LEVEL=INFO
 
 
-CMD [ "npm", "start" ]
-
+CMD [ "node", "index.js" ]

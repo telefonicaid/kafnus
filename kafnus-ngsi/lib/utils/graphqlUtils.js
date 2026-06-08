@@ -1,30 +1,26 @@
 /*
-* Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
-*
-* This file is part of kafnus
-*
-* kafnus is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Affero General Public License as
-* published by the Free Software Foundation, either version 3 of the
-* License, or (at your option) any later version.
-*
-* kafnus is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
-* General Public License for more details.
-*
-* You should have received a copy of the GNU Affero General Public License
-* along with kafnus. If not, see http://www.gnu.org/licenses/.
-*/
+ * Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
+ *
+ * This file is part of kafnus
+ *
+ * kafnus is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * kafnus is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with kafnus. If not, see http://www.gnu.org/licenses/.
+ */
 
-const theLogger = require('./logger');
-const logger = theLogger.getBasicLogger();
 const { config } = require('../../kafnusConfig');
 
-const GRAFO_PREFIX = config.graphql['grafo'];
-const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO_PREFIX}/resource/`;
-const PREFIX_KOS = 'https://ontologia.segittur.es/turismo/kos/';
-const GRAFO_PREFIX_STR = `"${GRAFO_PREFIX}"`;
+const GRAFO_PREFIX = config.graphql.grafoPrefix;
+const GRAFO_SUFFIX = config.graphql.grafoSuffix;
 
 function slugify(text) {
     // Normalize Unicode using NFKD (e.g., "é" → "é")
@@ -52,7 +48,14 @@ function slugifyUri(uri) {
     return [...parts, slugified].join('/');
 }
 
+function gqlRaw(value) {
+    return { __gqlRaw: true, value };
+}
+
 function toGraphQLValue(value) {
+    if (value && typeof value === 'object' && value.__gqlRaw === true) {
+        return value.value;
+    }
     if (typeof value === 'string') {
         return `"${
             value
@@ -86,97 +89,85 @@ function addPrefix(prefix, root) {
 }
 
 function capitalEntityType(entityType) {
-    if (!entityType) return '';
+    if (!entityType) {
+        return '';
+    }
     return entityType.charAt(0).toUpperCase() + entityType.slice(1).toLowerCase();
 }
 
-function getGrafo(service) {
-    if (config.graphql.grafoByService) {
-        return GRAFO_PREFIX_STR + '_' + service;
-    } else {
-        return GRAFO_PREFIX_STR;
+function getGrafoName(graphName) {
+    const grafo =
+        graphName != null ? `"${GRAFO_PREFIX}${graphName}${GRAFO_SUFFIX}"` : `"${GRAFO_PREFIX}${GRAFO_SUFFIX}"`;
+
+    return grafo;
+}
+
+function getGrafo(graphName) {
+    return gqlRaw(getGrafoName(graphName));
+}
+
+function getStaging() {
+    const staging = !!config.graphql.staging;
+    return staging;
+}
+
+function buildMutationCreate(graphName, entityType, entityObject) {
+    const GRAFO_STR = getGrafo(graphName);
+    const STAGING_VALUE = getStaging();
+    const args = {
+        dti: GRAFO_STR,
+        input: {
+            object: entityObject
+        }
+    };
+    if (config?.graphql?.staging === true) {
+        args.staging = STAGING_VALUE;
     }
+    return buildMutation('create', entityType, args, ['uri']);
 }
 
-function buildMutationCreate(service, entityType, entityObject) {
-    // Convert object to string for GraphQL
-    const objectString = toGraphQLValue(entityObject);
-    const capEntityType = capitalEntityType(entityType);
-    const GRAFO_STR = getGrafo(service);
-
-    const templateMutationCreate = {
-        query: `
-            mutation {
-                create${capEntityType}(dti: ${GRAFO_STR},
-                    input: {
-                        object: ${objectString}
-                    }
-                ) { 
-                    uri 
-                }
-            }
-        `
+function buildMutationUpdate(graphName, entityType, id, entityObject) {
+    const GRAFO_STR = getGrafo(graphName);
+    const STAGING_STR = getStaging();
+    const args = {
+        dti: GRAFO_STR,
+        input: {
+            object: entityObject
+        }
     };
-
-    return templateMutationCreate;
+    if (config?.graphql?.staging === true) {
+        args.staging = STAGING_STR;
+    }
+    return buildMutation('update', entityType, args, ['uri']);
 }
 
-function buildMutationUpdate(service, entityType, id, entityObject) {
-    const objectString = toGraphQLValue(entityObject);
-    const capEntityType = capitalEntityType(entityType);
-    const GRAFO_STR = getGrafo(service);
-    // const uri = addPrefix(PREFIX_RESOURCE, id);
-    // const uriString = toGraphQLValue(uri);
-    // const idString = toGraphQLValue(id);
-
-    return {
-        query: `
-            mutation {
-                update${capEntityType}(dti: ${GRAFO_STR},
-                    input: {
-                        object: ${objectString}
-                    }
-                ) {
-                    uri
-                }
-            }
-        `
-    };
-}
-
-function buildMutationDelete(service, /*entityType,*/ id) {
+function buildMutationDelete(graphName, id) {
+    const GRAFO_NAME = getGrafoName(graphName);
+    const GRAFO_NAME_CLEAN = GRAFO_NAME.replace(/^"+|"+$/g, '');
+    const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO_NAME_CLEAN}/resource/`;
     const uri = addPrefix(PREFIX_RESOURCE, id);
-    const GRAFO_STR = getGrafo(service);
-    // return {
-    //     query: `
-    //         mutation {
-    //             delete${entityType}(dti: ${GRAFO_STR}, id: "${id}")
-    //         }
-    //     `
-    // };
-    return {
-        query: `
-            mutation {
-                deleteData(dti: ${GRAFO_STR}, uris: ["${uri}"])
-            }
-        `
+    const GRAFO_STR = getGrafo(graphName);
+    const STAGING_STR = getStaging();
+    const args = {
+        dti: GRAFO_STR,
+        uris: [uri]
     };
+    if (config?.graphql?.staging === true) {
+        args.staging = STAGING_STR;
+    }
+    return buildMutation('delete', 'Data', args, []);
 }
 
 function buildMutation(type, entityType, args = {}, returnFields = ['uri']) {
     const argsString = Object.entries(args)
         .map(([k, v]) => `${k}: ${toGraphQLValue(v)}`)
         .join(', ');
-
-    const returnFieldsString = returnFields.join(' ');
     const capEntityType = capitalEntityType(entityType);
-
+    const selectionSet = Array.isArray(returnFields) && returnFields.length > 0 ? ` { ${returnFields.join(' ')} }` : '';
     return {
         query: `
             mutation {
-                ${type}${capEntityType}(${argsString}) {
-                    ${returnFieldsString}
-                }
+                ${type}${capEntityType}(${argsString})${selectionSet}
             }
         `
     };

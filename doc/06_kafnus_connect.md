@@ -39,6 +39,13 @@ The **HeaderRouter** SMT (introduced in [PR #13 of kafnus-connect](https://githu
 
 **Key principle:** NGSI emits only standard NGSI headers and metadata. HeaderRouter uses these headers to determine the final schema and table names according to a **configurable datamodel**.
 
+The effective datamodel can be overridden per record using the `fiware-datamodel` Kafka header.
+
+Resolution order:
+1. If `fiware-datamodel` header exists and is not empty → it overrides the configured datamodel
+2. Otherwise → the connector-level `transforms.HeaderRouter.datamodel` is used
+3. If neither is defined → `dm-by-entity-type-database` is applied as default
+
 ### Minimal Configuration
 
 ```properties
@@ -79,10 +86,28 @@ Headers:
   fiware-servicepath: /sensors
   entityType: TemperatureSensor
 
-Resulting topic: mycompany.sensors_TemperatureSensor
+Resulting topic: mycompany.sensors_temperaturesensor
 ```
 
-#### 2. `dm-by-fixed-entity-type-database-schema` (Planned)
+#### 2. `dm-by-entity-type-database-schema`
+
+| Element | Resolved Value |
+|---------|---|
+| **Schema** | `fiware-servicepath` header value |
+| **Table** | `<fiware-servicepath>_<entityType>` |
+
+This model isolates data by service path at schema level instead of service level.
+
+```
+Headers:
+  fiware-service: mycompany
+  fiware-servicepath: /sensors
+  entityType: TemperatureSensor
+
+Resulting topic: sensors.sensors_temperaturesensor
+```
+
+#### 3. `dm-by-fixed-entity-type-database-schema`
 
 Used for pre-created schema structures where entity type is the table name.
 
@@ -99,10 +124,10 @@ Headers:
   fiware-servicepath: /sensors
   entityType: TemperatureSensor
 
-Resulting topic: sensors.TemperatureSensor
+Resulting topic: sensors.temperaturesensor
 ```
 
-#### 3. `dm-postgis-errors` (Error DLQ Handling)
+#### 4. `dm-postgis-errors` (Error DLQ Handling)
 
 Special datamodel for error logs from failed JDBC operations.
 
@@ -128,6 +153,7 @@ Each field in the HeaderRouter supports flexible resolution:
 
 - `service` (maps to `fiware-service` header)
 - `servicepath` (maps to `fiware-servicepath` header)
+- `datamodel` (maps to `fiware-datamodel` header if present)
 - `entitytype` (maps to `entityType` header)
 - `entityid` (maps to `entityId` header)
 - `suffix` (maps to `suffix` header, or static value)
@@ -208,6 +234,28 @@ This directly addresses **Issue #177 – Study support for variable schema in JD
 - Missing mandatory metadata → `ConfigException` at startup
 - The SMT does **not implement retries** (delegated to Kafka Connect)
 - Failed record routing → sent to connector DLQ for later inspection
+
+---
+
+## HTTP Sink: Retry and DLQ Semantics
+
+The following points describe the current behavior observed in Kafnus deployments and tests:
+
+1. **`max.retries` controls retry attempts in the HTTP connector**
+  - `max.retries=0` means no retry attempts.
+  - `max.retries>0` enables retry attempts according to the connector implementation and backoff settings.
+
+2. **Not every HTTP 200 with GraphQL `errors` is treated as retryable/DLQ**
+  - In the current implementation of the HTTP connector used by Kafnus, some responses can be handled without raising `IOException`.
+  - When no `IOException` is raised, Kafka Connect does not apply retry/DLQ handling for that record.
+
+3. **Current agreed behavior for `already exists` responses**
+  - For GraphQL responses equivalent to `already exists` / `already created`, the current behavior is accepted as non-retry and non-DLQ.
+  - This avoids noisy error logs for idempotent create operations.
+
+4. **Other business errors should still be captured**
+  - Errors such as missing referenced relations are expected to remain visible and auditable.
+  - These cases are validated through functional tests and error-log checks.
 
 ---
 
@@ -326,5 +374,5 @@ The configuration ensures reproducible and isolated testing environments for all
 ## 🧭 Navigation
 
 - [⬅️ Previous: Kafnus NGSI](/doc/05_kafnus_ngsi.md)
-- [🏠 Main index](../README.md#documentation)
+- [🏠 Main index](/README.md#documentation)
 - [➡️ Next: Monitoring](/doc/07_monitoring.md)

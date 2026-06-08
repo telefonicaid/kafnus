@@ -1,27 +1,28 @@
 /*
-* Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
-*
-* This file is part of kafnus
-*
-* kafnus is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Affero General Public License as
-* published by the Free Software Foundation, either version 3 of the
-* License, or (at your option) any later version.
-*
-* kafnus is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
-* General Public License for more details.
-*
-* You should have received a copy of the GNU Affero General Public License
-* along with kafnus. If not, see http://www.gnu.org/licenses/.
-*/
+ * Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
+ *
+ * This file is part of kafnus
+ *
+ * kafnus is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * kafnus is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with kafnus. If not, see http://www.gnu.org/licenses/.
+ */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { formatDatetimeIso } = require('../utils/ngsiUtils');
+const { formatDatetimeIso, truncate } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
-const { messagesProcessed, processingTime } = require('../utils/admin');
+const { recordFlowProcessing } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
+const Kafka = require('@confluentinc/kafka-javascript');
 
 async function startErrorsConsumerAgent(logger, producer) {
     const topic = config.ngsi.prefix + 'raw_errors';
@@ -34,6 +35,8 @@ async function startErrorsConsumerAgent(logger, producer) {
         producer,
         onData: async (msg) => {
             const start = Date.now();
+            let processingResult = 'success';
+            let fiwareService = 'default';
             const k = msg.key?.toString() || null;
             const valueRaw = msg.value?.toString() || '';
 
@@ -53,7 +56,8 @@ async function startErrorsConsumerAgent(logger, producer) {
                 if (msg.headers && msg.headers.length > 0) {
                     msg.headers.forEach((headerObj) => {
                         const headerName = Object.keys(headerObj)[0];
-                        hdrs[headerName] = Buffer.from(headerObj[headerName]).toString();
+                        const v = headerObj[headerName];
+                        hdrs[headerName] = Buffer.isBuffer(v) ? v.toString() : String(v);
                     });
                 }
 
@@ -78,6 +82,7 @@ async function startErrorsConsumerAgent(logger, producer) {
                     dbName = dbName.slice(config.ngsi.prefix.length);
                 }
                 dbName = dbName.replace(/_(historic|lastdata|mutable|http).*$/, '');
+                fiwareService = dbName || fiwareService;
 
                 const errorTopicName = `${config.ngsi.prefix}${dbName}_error_log` + suffix;
 
@@ -92,7 +97,6 @@ async function startErrorsConsumerAgent(logger, producer) {
                 } else {
                     errorMessage = fullErrorMsg;
                 }
-
                 let originalQuery;
                 const queryMatch = fullErrorMsg.match(/(INSERT INTO "[^"]+"[^)]+\)[^)]*\))/);
                 if (queryMatch) {
@@ -106,8 +110,12 @@ async function startErrorsConsumerAgent(logger, producer) {
                             .map((k) => `"${k}"`)
                             .join(',');
                         const values = Object.values(payload).map((v) => {
-                            if (typeof v === 'string') return `'${v.replace(/'/g, "''")}'`;
-                            if (v == null) return 'NULL';
+                            if (typeof v === 'string') {
+                                return `'${v.replace(/'/g, "''")}'`;
+                            }
+                            if (v == null) {
+                                return 'NULL';
+                            }
                             return v.toString();
                         });
                         originalQuery = `INSERT INTO "${dbName}"."${table}" (${columns}) VALUES (${values.join(',')})`;
@@ -115,7 +123,8 @@ async function startErrorsConsumerAgent(logger, producer) {
                         originalQuery = JSON.stringify(valueJson);
                     }
                 }
-
+                errorMessage = truncate(errorMessage, 4000);
+                originalQuery = truncate(originalQuery, 8000);
                 const errorRecord = {
                     schema: {
                         type: 'struct',
@@ -133,32 +142,44 @@ async function startErrorsConsumerAgent(logger, producer) {
                     }
                 };
 
-                const headersOut = [{ 'fiware-service': Buffer.from(dbName) }];
-
-                await safeProduce(
-                    producer,
-                    [
-                        errorTopicName,
-                        null,
-                        Buffer.from(JSON.stringify(errorRecord)),
-                        null,
-                        Date.now(),
-                        null,
-                        headersOut
-                    ],
-                    logger
+                const headersOut = [
+                    { 'fiware-service': Buffer.from(dbName) },
+                    { 'fiware-datamodel': Buffer.from('dm-postgis-errors') }
+                ];
+                // Fallback to default datamodel
+                headersOut.push(
+                    { 'fiware-servicepath': Buffer.from(dbName) },
+                    { entityType: Buffer.from('_error_log') }
                 );
+
+                await safeProduce(producer, [
+                    errorTopicName,
+                    null,
+                    Buffer.from(JSON.stringify(errorRecord)),
+                    null,
+                    Date.now(),
+                    null,
+                    headersOut
+                ]);
 
                 logger.info(`[errors] Logged SQL error to '${errorTopicName}'`);
 
                 consumer.commitMessage(msg);
             } catch (err) {
-                logger.error('[errors] Error processing event, offset NOT committed', err);
+                processingResult = 'error';
+                if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
+                    // No Log, rethrow to createConsumerAgent pause
+                    throw err;
+                }
+                logger.error(`[errors] Error processing event: ${err?.stack || err}`);
+                // Policy decision:
+                // - if no retries, then commit here (to avoid infinite loop)
+                consumer.commitMessage(msg);
+                // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
+            } finally {
+                const duration = (Date.now() - start) / 1000;
+                recordFlowProcessing('errors', fiwareService, duration, processingResult);
             }
-
-            const duration = (Date.now() - start) / 1000;
-            messagesProcessed.labels({ flow: 'errors' }).inc();
-            processingTime.labels({ flow: 'errors' }).set(duration);
         }
     });
 

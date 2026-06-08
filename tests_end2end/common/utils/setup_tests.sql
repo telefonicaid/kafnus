@@ -31,3 +31,10 @@ CREATE TABLE test.test_error_log (
     error TEXT NOT NULL,
     query TEXT NULL
 );
+
+-- Create table for http error logging
+CREATE TABLE test.sgtr_error_log (
+    "timestamp" TIMESTAMPTZ NOT NULL,
+    error TEXT NOT NULL,
+    query TEXT NULL
+);

@@ -71,11 +71,11 @@ const envVarsSchema = {
         },
         KAFNUS_NGSI_LINGER_MS: {
             type: 'number',
-            default: 50
+            default: 100
         },
         KAFNUS_NGSI_BATCH_NUM_MESSAGES: {
             type: 'number',
-            default: 10000
+            default: 1000
         },
         KAFNUS_NGSI_BATCH_SIZE: {
             type: 'number',
@@ -83,7 +83,7 @@ const envVarsSchema = {
         },
         KAFNUS_NGSI_QUEUE_BUFFERING_MAX_MESSAGES: {
             type: 'number',
-            default: 300000
+            default: 30000
         },
         KAFNUS_NGSI_QUEUE_BUFFERING_MAX_KBYTES: {
             type: 'number',
@@ -128,7 +128,7 @@ const envVarsSchema = {
         },
         KAFNUS_NGSI_FETCH_MIN_BYTES: {
             type: 'number',
-            default: 1
+            default: 16384
         },
         KAFNUS_NGSI_FETCH_WAIT_MAX_MS: {
             type: 'number',
@@ -163,6 +163,30 @@ const envVarsSchema = {
             type: 'string',
             default: null
         },
+        KAFNUS_NGSI_GRAPHQL_GRAFO_PREFIX: {
+            type: 'string',
+            default: ''
+        },
+        KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX: {
+            type: 'string',
+            default: ''
+        },
+        KAFNUS_NGSI_GRAPHQL_FALLBACK_GRAPHNAME_TO_SERVICE: {
+            type: 'boolean',
+            default: false
+        },
+        KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE: {
+            type: 'boolean',
+            default: false
+        },
+        KAFNUS_NGSI_GRAPHQL_STAGING: {
+            type: 'boolean',
+            default: false
+        },
+        KAFNUS_NGSI_GRAPHQL_SLUG_URI: {
+            type: 'boolean',
+            default: false
+        },
         // Component
         KAFNUS_NGSI_LOG_LEVEL: {
             type: 'string',
@@ -180,22 +204,6 @@ const envVarsSchema = {
         KAFNUS_NGSI_ADMIN_PORT: {
             type: 'number',
             default: 8000
-        },
-        KAFNUS_NGSI_GRAPHQL_GRAFO: {
-            type: 'string',
-            default: 'grafo'
-        },
-        KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE: {
-            type: 'boolean',
-            default: false
-        },
-        KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE: {
-            type: 'boolean',
-            default: false
-        },
-        KAFNUS_NGSI_GRAPHQL_SLUG_URI: {
-            type: 'boolean',
-            default: false
         },
         KAFNUS_NGSI_PREFIX_TOPIC: {
             type: 'string',
@@ -281,9 +289,11 @@ const config = {
         port: envVars.KAFNUS_NGSI_ADMIN_PORT
     },
     graphql: {
-        grafo: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO,
-        grafoByService: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE,
+        grafoPrefix: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO_PREFIX,
+        grafoSuffix: envVars.KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX,
+        fallbackGraphName: envVars.KAFNUS_NGSI_GRAPHQL_FALLBACK_GRAPHNAME_TO_SERVICE,
         outputTopicByService: envVars.KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE,
+        staging: envVars.KAFNUS_NGSI_GRAPHQL_STAGING,
         slugUri: envVars.KAFNUS_NGSI_GRAPHQL_SLUG_URI
     },
     ngsi: {
