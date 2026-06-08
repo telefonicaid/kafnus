@@ -23,14 +23,15 @@ const { safeProduce } = require('../utils/handleEntityCb');
 const { recordFlowProcessing } = require('../utils/admin');
 const { slugify, buildMutationCreate, buildMutationUpdate, buildMutationDelete } = require('../utils/graphqlUtils');
 const { config } = require('../../kafnusConfig');
+const logger = require('../utils/logger');
 const Kafka = require('@confluentinc/kafka-javascript');
 
-async function startSgtrConsumerAgent(logger, producer) {
+async function startSgtrConsumerAgent(log, producer) {
     const topic = config.ngsi.prefix + 'raw_sgtr';
-    let outputTopic;
+    let outputTopic = null;
     const groupId = 'ngsi-processor-sgtr';
 
-    const consumer = await createConsumerAgent(logger, {
+    const consumer = await createConsumerAgent(log, {
         groupId,
         topic,
         producer,
@@ -39,35 +40,51 @@ async function startSgtrConsumerAgent(logger, producer) {
             let processingResult = 'success';
             let fiwareService = 'default';
             let graphName = null;
+            let currentlog = null;
             const k = msg.key?.toString() || '';
             const rawValue = msg.value?.toString() || '';
 
-            logger.info(`[sgtr] key=${k} value=${rawValue}`);
+            log.info(`[sgtr] key=${k} value=${rawValue}`);
 
             try {
                 let message;
                 try {
                     message = JSON.parse(rawValue);
                 } catch (e) {
-                    logger.warn('[sgtr] Invalid JSON, committing: %s', e.message);
+                    log.warn('[sgtr] Invalid JSON, committing: %s', e.message);
                     consumer.commitMessage(msg);
                     return;
                 }
-                logger.info('[sgtr] message: %j', message);
+                log.info('[sgtr] message: %j', message);
                 const fiwareContext = getFiwareContext(msg.headers, message);
                 fiwareService = fiwareContext.service;
                 graphName = fiwareContext.graphname;
-                logger.info('[sgtr] fiware-service: %j graphname: %j', fiwareService, graphName);
+                log.info(
+                    '[sgtr] fiware-service: %j graphname: %j correlator: %j',
+                    fiwareService,
+                    graphName,
+                    fiwareContext.correlator
+                );
+                const configContext = {
+                    op: 'sgtrConsumer',
+                    corr: fiwareContext.correlator,
+                    service: fiwareContext.service,
+                    subservice: fiwareContext.servicepath
+                };
+                currentlog = logger.createChildLogger(configContext);
                 // fallback for backward compatibility
                 if (graphName == null && config.graphql.fallbackGraphName) {
-                    logger.info('[sgtr] no graphname header found then fallback to fiware-service: %j ', fiwareService);
+                    currentlog.info(
+                        '[sgtr] no graphname header found then fallback to fiware-service: %j ',
+                        fiwareService
+                    );
                     graphName = fiwareService;
                 }
 
                 const dataList = message.data ? message.data : [];
 
                 for (const entityObject of dataList) {
-                    logger.debug('[sgtr] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
+                    currentlog.debug('[sgtr] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
 
                     const type = entityObject.type;
                     delete entityObject.type;
@@ -95,7 +112,7 @@ async function startSgtrConsumerAgent(logger, producer) {
                         }
                         mutation = buildMutationCreate(graphName, type, entityObject);
                     }
-                    logger.debug('[sgtr] mutation: \n%s', mutation);
+                    currentlog.debug('[sgtr] mutation: \n%s', mutation);
                     if (config.graphql.outputTopicByService) {
                         outputTopic = config.ngsi.prefix + fiwareService + '_sgtr_http' + config.ngsi.suffix;
                     } else {
@@ -112,7 +129,7 @@ async function startSgtrConsumerAgent(logger, producer) {
                         null, // Opaque
                         outHeaders
                     ]);
-                    logger.info('[sgtr] Sent to %j | mutation %j', outputTopic, mutation);
+                    currentlog.info('[sgtr] Sent to %j | mutation %j', outputTopic, mutation);
                 } // for loop
                 consumer.commitMessage(msg);
             } catch (err) {
@@ -121,7 +138,7 @@ async function startSgtrConsumerAgent(logger, producer) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
                 }
-                logger.error(`[sgtr] Error processing event: ${err?.stack || err}, offset NOT committed`);
+                currentlog.error(`[sgtr] Error processing event: ${err?.stack || err}, offset NOT committed`);
                 // Policy decision:
                 // - if no retries, then commit here (to avoid infinite loop)
                 // consumer.commitMessage(msg);

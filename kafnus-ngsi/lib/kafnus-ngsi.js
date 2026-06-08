@@ -35,7 +35,7 @@ const { createProducer, shutdownProducer } = require('./consumerAgents/sharedPro
 const { shutdownConsumer } = require('./consumerAgents/consumer');
 
 async function main() {
-    const log = logger.getBasicLogger();
+    const log = logger.createChildLogger();
 
     log.info('Starting application...');
 
