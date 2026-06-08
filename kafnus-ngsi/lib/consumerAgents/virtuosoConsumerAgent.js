@@ -23,15 +23,16 @@ const { safeProduce } = require('../utils/handleEntityCb');
 const { recordFlowProcessing } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
 const { getGrafoName, buildSparqlForEntity } = require('../utils/virtuosoUtils');
+const logger = require('../utils/logger');
 const Kafka = require('@confluentinc/kafka-javascript');
 
-async function startVirtuosoConsumerAgent(logger, producer) {
+async function startVirtuosoConsumerAgent(log, producer) {
     // TDB: define another raw topic for this consumer
     const topic = config.ngsi.prefix + 'raw_sgtr';
     let outputTopic;
     const groupId = 'ngsi-processor-sgtr-virtuoso';
 
-    const consumer = await createConsumerAgent(logger, {
+    const consumer = await createConsumerAgent(log, {
         groupId,
         topic,
         producer,
@@ -40,40 +41,47 @@ async function startVirtuosoConsumerAgent(logger, producer) {
             let processingResult = 'success';
             let fiwareService = 'default';
             let graphName = null;
+            let currentlog = null;
             const k = msg.key?.toString() || '';
             const rawValue = msg.value?.toString() || '';
 
-            logger.info(`[sgtr-virtuoso] key=${k} value=${rawValue}`);
+            log.info(`[sgtr-virtuoso] key=${k} value=${rawValue}`);
 
             try {
                 let message;
                 try {
                     message = JSON.parse(rawValue);
                 } catch (e) {
-                    logger.warn('[sgtr-virtuoso] Invalid JSON, committing: %s', e.message);
+                    log.warn('[sgtr-virtuoso] Invalid JSON, committing: %s', e.message);
                     consumer.commitMessage(msg);
                     return;
                 }
 
-                logger.info('[sgtr-virtuoso] message: %j', message);
-                fiwareService = getFiwareContext(msg.headers, message).service;
+                log.info('[sgtr-virtuoso] message: %j', message);
                 const fiwareContext = getFiwareContext(msg.headers, message);
                 fiwareService = fiwareContext.service;
                 graphName = fiwareContext.graphname;
-                logger.info('[sgtr-virtuoso] fiware-service: %j graphname: %j', fiwareService, graphName);
+                log.info('[sgtr-virtuoso] fiware-service: %j graphname: %j', fiwareService, graphName);
+                const configContext = {
+                    op: 'virtuosoConsumer',
+                    corr: fiwareContext.correlator,
+                    service: fiwareContext.service,
+                    subservice: fiwareContext.servicepath
+                };
+                currentlog = logger.createChildLogger(configContext);
                 const dataList = Array.isArray(message.data) ? message.data : [];
 
                 for (const entityObjectOriginal of dataList) {
                     const entityObject = JSON.parse(JSON.stringify(entityObjectOriginal));
 
                     const service = fiwareService;
-                    logger.debug('[sgtr-virtuoso] fiware-service:%s', JSON.stringify(service, null, 2));
-                    logger.debug('[sgtr-virtuoso] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
+                    currentlog.debug('[sgtr-virtuoso] fiware-service:%s', JSON.stringify(service, null, 2));
+                    currentlog.debug('[sgtr-virtuoso] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
                     const graphUri = getGrafoName(graphName);
 
                     const sparql = buildSparqlForEntity(graphUri, service, entityObject);
 
-                    logger.debug('[sgtr-virtuoso] sparql:\n%s', sparql);
+                    currentlog.debug('[sgtr-virtuoso] sparql:\n%s', sparql);
 
                     const outHeaders = [{ key: 'content-type', value: Buffer.from('application/sparql-update') }];
                     if (config.graphql.outputTopicByService) {
@@ -91,7 +99,7 @@ async function startVirtuosoConsumerAgent(logger, producer) {
                         outHeaders
                     ]);
 
-                    logger.info('[sgtr-virtuoso] Sent to %j | sparql %j', outputTopic, sparql);
+                    currentlog.info('[sgtr-virtuoso] Sent to %j | sparql %j', outputTopic, sparql);
                 }
 
                 consumer.commitMessage(msg);
@@ -101,7 +109,7 @@ async function startVirtuosoConsumerAgent(logger, producer) {
                     throw err;
                 }
 
-                logger.error(`[sgtr-virtuoso] Error processing event: ${err?.stack || err}, offset NOT committed`);
+                currentlog.error(`[sgtr-virtuoso] Error processing event: ${err?.stack || err}, offset NOT committed`);
             } finally {
                 const duration = (Date.now() - start) / 1000;
                 recordFlowProcessing('sgtr-virtuoso', fiwareService, duration, processingResult);
