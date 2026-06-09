@@ -135,7 +135,7 @@ function extractAttributes(entity) {
     const schemaOverrides = {};
     const attributesTypes = {};
 
-    const entries = Object.entries(entity).sort();
+    const entries = Object.entries(entity);
 
     for (const [rawName, attrData] of entries) {
         const attrName = rawName.toLowerCase();
