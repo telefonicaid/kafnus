@@ -70,7 +70,9 @@ function logContextInfo(log, context) {
 }
 
 function resolveGraphName(context, log) {
-    if (context.graphname) return context.graphname;
+    if (context.graphname) {
+        return context.graphname;
+    }
 
     if (config.graphql.fallbackGraphName) {
         log.info('[sgtr] fallback graphname to service: %j', context.service);
@@ -143,7 +145,9 @@ function buildMutation(graphName, { type, alterationType, entity }) {
 
     const handler = strategies[alterationType];
 
-    if (handler) return handler();
+    if (handler) {
+        return handler();
+    }
 
     return buildMutationCreate(graphName, type, entity);
 }
@@ -183,7 +187,9 @@ async function handleMessage(msg, log, producer, consumer) {
         const rawValue = msg.value?.toString() || '';
 
         const message = parseMessage(rawValue, log, consumer, msg);
-        if (!message) return;
+        if (!message) {
+            return;
+        }
 
         const context = buildContext(msg, message);
         fiwareService = context.service;
@@ -221,7 +227,7 @@ async function startSgtrConsumerAgent(log, producer) {
         groupId,
         topic,
         producer,
-        onData: async (msg) => handleMessage(msg, log, producer, consumer)
+        onData: (msg) => handleMessage(msg, log, producer, consumer)
     });
 
     return consumer;

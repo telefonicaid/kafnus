@@ -92,7 +92,9 @@ function resolveDbName(headers, errorMsg) {
 
     if (!dbName) {
         const match = errorMsg.match(/INSERT INTO "([^"]+)"/);
-        if (match) dbName = match[1].split('.')[0];
+        if (match) {
+            dbName = match[1].split('.')[0];
+        }
     }
 
     dbName = stripPrefix(dbName);
@@ -138,7 +140,9 @@ function extractErrorMessage(fullErrorMsg) {
 
 function extractOrBuildQuery(errorMsg, valueJson, headers, dbName) {
     const match = errorMsg.match(/(INSERT INTO "[^"]+"[^)]+\)[^)]*\))/);
-    if (match) return truncate(match[1], 8000);
+    if (match) {
+        return truncate(match[1], 8000);
+    }
 
     return truncate(buildFallbackQuery(valueJson, headers, dbName), 8000);
 }
@@ -164,7 +168,9 @@ function formatSqlValue(v) {
     if (typeof v === 'string') {
         return `'${v.replace(/'/g, "''")}'`;
     }
-    if (v == null) return 'NULL';
+    if (v == null) {
+        return 'NULL';
+    }
     return v.toString();
 }
 
@@ -230,7 +236,9 @@ async function handleErrorMessage(msg, log, producer, consumer) {
         const raw = msg.value?.toString() || '';
 
         const valueJson = parseJson(raw, log, consumer, msg);
-        if (!valueJson) return;
+        if (!valueJson) {
+            return;
+        }
 
         const headers = extractHeaders(msg.headers);
         log.info('[errors] headers=%j', headers);
@@ -275,7 +283,7 @@ async function startErrorsConsumerAgent(log, producer) {
         groupId,
         topic,
         producer,
-        onData: async (msg) => handleErrorMessage(msg, log, producer, consumer)
+        onData: (msg) => handleErrorMessage(msg, log, producer, consumer)
     });
 
     return consumer;
