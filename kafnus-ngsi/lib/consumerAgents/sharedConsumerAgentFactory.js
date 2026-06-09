@@ -151,7 +151,9 @@ function handleProcessingError(err, state, logger) {
 // ================= PAUSE / RESUME =================
 
 function pauseConsumer(consumer, state, logger) {
-    if (state.paused) return;
+    if (state.paused) {
+        return;
+    }
 
     try {
         consumer.pause(consumer.assignments());
