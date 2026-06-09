@@ -19,29 +19,41 @@
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
-const { messagesProcessed, processingTime } = require('../utils/admin');
+const { recordFlowProcessing } = require('../utils/admin');
+const { getFiwareContext } = require('../utils/ngsiUtils');
 const { config } = require('../../kafnusConfig');
+const logger = require('../utils/logger');
 const Kafka = require('@confluentinc/kafka-javascript');
 
-async function startMutableConsumerAgent(logger, producer) {
+async function startMutableConsumerAgent(log, producer) {
     const topic = config.ngsi.prefix + 'raw_mutable';
     const groupId = 'ngsi-processor-mutable';
     const suffix = '_mutable' + config.ngsi.suffix;
 
-    const consumer = await createConsumerAgent(logger, {
+    const consumer = await createConsumerAgent(log, {
         groupId,
         topic,
         producer,
         onData: async (msg) => {
             const start = Date.now();
+            let processingResult = 'success';
+            const fiwareContext = getFiwareContext(msg.headers, {});
+            const service = fiwareContext.service;
             const k = msg.key?.toString() || '';
             const v = msg.value?.toString() || '';
-            logger.info(`[raw_mutable] Key: ${k}, Value: ${v}`);
+            log.info(`[raw_mutable] Key: ${k}, Value: ${v}`);
+            const configContext = {
+                op: 'mutableConsumer',
+                corr: fiwareContext.correlator,
+                service: fiwareContext.service,
+                subservice: fiwareContext.servicepath
+            };
+            const currentlog = logger.createChildLogger(configContext);
 
             try {
-                logger.info(`rawValue: '${v}'`);
+                currentlog.info(`rawValue: '${v}'`);
                 await handleEntityCb(
-                    logger,
+                    currentlog,
                     v,
                     {
                         headers: msg.headers,
@@ -54,19 +66,19 @@ async function startMutableConsumerAgent(logger, producer) {
                 );
                 consumer.commitMessage(msg);
             } catch (err) {
+                processingResult = 'error';
                 if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
                 }
-                logger.error(`[mutable] Error processing event: ${err?.stack || err}`);
+                currentlog.error(`[mutable] Error processing event: ${err?.stack || err}`);
                 // Policy decision:
                 // - if no retries, then commit here (to avoid infinite loop)
                 // consumer.commitMessage(msg);
                 // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
             } finally {
                 const duration = (Date.now() - start) / 1000;
-                messagesProcessed.labels({ flow: 'mutable' }).inc();
-                processingTime.labels({ flow: 'mutable' }).set(duration);
+                recordFlowProcessing('mutable', service, duration, processingResult);
             }
         }
     });

@@ -1,5 +1,5 @@
 {
-    "name": "hotel_minimun_tourism_test",
+    "name": "hotel_relation_tourism_test",
     "fiware-service": "test",
     "fiware-servicepath": "/tourism",
     "subscriptions": {
@@ -70,11 +70,7 @@
                                     }
                                 ],
                                 "hasDescription": {
-                                    "object": {
-                                        "shortDescription": "${hasDescription.object.shortDescription}",
-                                        "longDescription": "${hasDescription.object.longDescription}",
-                                        "keyword": []
-                                    }
+                                    "uri":  "http://datos.segittur.es/grafo/resource/Description:001"
                                 },
                                 "offersRoom": {
                                     "object": {
@@ -114,7 +110,7 @@
     },
     "updateEntities": [
         {
-            "id": "Hotel:Creado",
+            "id": "Hotel:Nuevo",
             "type": "Hotel",
             "TimeInstant": {
                 "type": "DateTime",
@@ -159,7 +155,7 @@
             "label": {
                 "type": "json",
                 "value": {
-                    "value": "Hotel Creado",
+                    "value": "Hotel Nuevo",
                     "lang": "es"
                 },
                 "metadata": {}

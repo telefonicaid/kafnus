@@ -55,7 +55,10 @@ function createChildLogger(config) {
     const loggerCtx = logger.getContext();
     return logger.child({
         op: (config && config.op) || loggerCtx.op,
-        corr: (config && config.corr) || uuidv4()
+        corr: (config && config.corr) || 'n/a',
+        trans: (config && config.trans) || uuidv4(),
+        srv: (config && config.service) || 'n/a',
+        subsrv: (config && config.subservice) || 'n/a'
     });
 }
 

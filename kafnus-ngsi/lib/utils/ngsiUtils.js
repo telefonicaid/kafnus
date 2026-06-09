@@ -86,6 +86,73 @@ function toWktGeometry(attrType, attrValue) {
     return null;
 }
 
+function isGeoJsonGeometry(value) {
+    if (!value || typeof value !== 'object') {
+        return false;
+    }
+
+    if (typeof value.type !== 'string') {
+        return false;
+    }
+
+    const validTypes = new Set(['point', 'multipoint', 'linestring', 'multilinestring', 'polygon', 'multipolygon']);
+
+    if (!validTypes.has(value.type.toLowerCase())) {
+        return false;
+    }
+
+    const hasCoordinates = Array.isArray(value.coordinates);
+    const hasGeometries = Array.isArray(value.geometries);
+    return hasCoordinates || hasGeometries;
+}
+
+function parseGeoJsonValue(value) {
+    if (!value) {
+        return null;
+    }
+
+    if (typeof value === 'string') {
+        try {
+            const parsed = JSON.parse(value);
+            return isGeoJsonGeometry(parsed) ? parsed : null;
+        } catch (err) {
+            return null;
+        }
+    }
+
+    return isGeoJsonGeometry(value) ? value : null;
+}
+
+function transformSgtrGeoJsonToWkt(entityObject) {
+    if (!entityObject || typeof entityObject !== 'object') {
+        return;
+    }
+
+    const asGeoJsonKey = Object.keys(entityObject).find((key) => key.toLowerCase() === 'asgeojson');
+    if (!asGeoJsonKey) {
+        return;
+    }
+
+    const rawGeoJson = entityObject[asGeoJsonKey];
+    if (rawGeoJson === null || (typeof rawGeoJson === 'string' && rawGeoJson.trim().toLowerCase() === 'null')) {
+        entityObject.asWkt = null;
+        delete entityObject[asGeoJsonKey];
+        return;
+    }
+
+    const geoJson = parseGeoJsonValue(rawGeoJson);
+    if (!geoJson) {
+        return;
+    }
+
+    try {
+        entityObject.asWkt = geoJSONToWkt(geoJson);
+        delete entityObject[asGeoJsonKey];
+    } catch (err) {
+        logger.warn(`Error transforming SGTR asGeoJSON to asWkt: ${err}`);
+    }
+}
+
 // -----------------
 // Topic sanitization
 // -----------------
@@ -262,6 +329,8 @@ function getFiwareContext(headers, fallbackEvent) {
     let service = null;
     let servicepath = null;
     let datamodel = null;
+    let correlator = null;
+    let graphname = null;
     if (headers && headers.length > 0) {
         const hdict = {};
         headers.forEach((headerObj) => {
@@ -273,6 +342,8 @@ function getFiwareContext(headers, fallbackEvent) {
         service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
         servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
         datamodel = hdict['fiware-datamodel'] ? hdict['fiware-datamodel'] : null;
+        correlator = hdict['fiware-correlator'] ? hdict['fiware-correlator'] : null;
+        graphname = hdict.graphname ?? null;
     } else {
         const hdrs = fallbackEvent.headers ? fallbackEvent.headers : fallbackEvent;
         service = (hdrs['fiware-service'] ? hdrs['fiware-service'] : 'default').toLowerCase();
@@ -281,7 +352,7 @@ function getFiwareContext(headers, fallbackEvent) {
     if (!servicepath.startsWith('/')) {
         servicepath = '/' + servicepath;
     }
-    return { service, servicepath, datamodel };
+    return { service, servicepath, datamodel, correlator, graphname };
 }
 
 // -----------------
@@ -310,6 +381,7 @@ function truncate(s, max = 4000) {
 exports.truncate = truncate;
 exports.toWktGeometry = toWktGeometry;
 exports.toWkbStructFromWkt = toWkbStructFromWkt;
+exports.transformSgtrGeoJsonToWkt = transformSgtrGeoJsonToWkt;
 exports.toKafnusConnectSchema = toKafnusConnectSchema;
 exports.buildKafkaKey = buildKafkaKey;
 exports.sanitizeString = sanitizeString;
