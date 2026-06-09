@@ -89,7 +89,9 @@ function buildBaseEntity(entity, context) {
 // ================= GEO =================
 
 function handleGeo(name, value, attrType, attributes, schemaOverrides, attributesTypes) {
-    if (!attrType.startsWith('geo:')) return false;
+    if (!attrType.startsWith('geo:')) {
+        return false;
+    }
 
     const wkt = toWktGeometry(attrType, value);
     if (!wkt) {

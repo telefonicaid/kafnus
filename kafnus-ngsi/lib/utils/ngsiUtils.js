@@ -191,7 +191,9 @@ function isNull(value) {
 }
 
 function handleSpecialTypes(nameLc, value, attrTypeLc) {
-    if (!attrTypeLc) return null;
+    if (!attrTypeLc) {
+        return null;
+    }
 
     if (attrTypeLc === 'geo:json') {
         return ['geometry', value];
@@ -278,10 +280,14 @@ function inferFieldType(name, value, attrType = null) {
     }
 
     const special = handleSpecialTypes(nameLc, value, attrTypeLc);
-    if (special) return special;
+    if (special) {
+        return special;
+    }
 
     const primitive = inferPrimitive(value);
-    if (primitive) return primitive;
+    if (primitive) {
+        return primitive;
+    }
 
     return inferObject(name, value);
 }
