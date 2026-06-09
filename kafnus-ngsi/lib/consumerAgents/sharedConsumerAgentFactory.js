@@ -187,7 +187,7 @@ function bindPauseResume(consumer, ctx) {
 
 // ================= CONNECT =================
 
-function connectConsumer(consumer, logger, topic) {
+function connectConsumer(consumer, logger) {
     return new Promise((resolve, reject) => {
         consumer.on('ready', () => resolve(consumer));
 
@@ -218,7 +218,7 @@ function createConsumerAgent(logger, { groupId, topic, onData, producer }) {
         state
     });
 
-    return connectConsumer(consumer, logger, topic);
+    return connectConsumer(consumer, logger);
 }
 
 module.exports = { createConsumerAgent };
