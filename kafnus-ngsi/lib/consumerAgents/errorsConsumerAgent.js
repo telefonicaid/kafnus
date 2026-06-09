@@ -25,172 +25,257 @@ const { config } = require('../../kafnusConfig');
 const logger = require('../utils/logger');
 const Kafka = require('@confluentinc/kafka-javascript');
 
+// ================= JSON =================
+
+function parseJson(raw, log, consumer, msg) {
+    try {
+        return JSON.parse(raw);
+    } catch (e) {
+        log.warn('[errors] Invalid JSON payload: %s', e.message);
+        consumer.commitMessage(msg);
+        return null;
+    }
+}
+
+// ================= HEADERS =================
+
+function extractHeaders(headersArray = []) {
+    const result = {};
+
+    headersArray.forEach((h) => {
+        const key = Object.keys(h)[0];
+        const val = h[key];
+        result[key] = Buffer.isBuffer(val) ? val.toString() : String(val);
+    });
+
+    return result;
+}
+
+// ================= CONTEXT =================
+
+function buildContext(msg) {
+    const ctx = getFiwareContext(msg.headers, {});
+
+    return {
+        service: ctx.service,
+        servicepath: ctx.servicepath,
+        correlator: ctx.correlator
+    };
+}
+
+function createContextLogger(context) {
+    return logger.createChildLogger({
+        op: 'errorsConsumer',
+        corr: context.correlator,
+        service: context.service,
+        subservice: context.servicepath
+    });
+}
+
+// ================= ERROR BUILD =================
+
+function buildFullError(headers) {
+    let msg = headers['__connect.errors.exception.message'] || 'Unknown error';
+    const cause = headers['__connect.errors.exception.cause.message'];
+
+    if (cause && !msg.includes(cause)) {
+        msg += `\nCaused by: ${cause}`;
+    }
+
+    return msg;
+}
+
+// ================= DB NAME =================
+
+function resolveDbName(headers, errorMsg) {
+    let dbName = headers['__connect.errors.topic'] || '';
+
+    if (!dbName) {
+        const match = errorMsg.match(/INSERT INTO "([^"]+)"/);
+        if (match) dbName = match[1].split('.')[0];
+    }
+
+    dbName = stripPrefix(dbName);
+    dbName = cleanDbSuffix(dbName);
+
+    return dbName;
+}
+
+function stripPrefix(dbName) {
+    if (config.ngsi.prefix && dbName.startsWith(config.ngsi.prefix)) {
+        return dbName.slice(config.ngsi.prefix.length);
+    }
+    return dbName;
+}
+
+function cleanDbSuffix(dbName) {
+    return dbName.replace(/_(historic|lastdata|mutable|http).*$/, '');
+}
+
+function buildErrorTopic(dbName) {
+    return `${config.ngsi.prefix}${dbName}_error_log${config.ngsi.suffix}`;
+}
+
+// ================= ERROR MESSAGE =================
+
+function extractErrorMessage(fullErrorMsg) {
+    let msg = fullErrorMsg;
+
+    const main = fullErrorMsg.match(/(ERROR: .+?)(\n|$)/);
+    if (main) {
+        msg = main[1].trim();
+
+        const detail = fullErrorMsg.match(/(Detail: .+?)(\n|$)/);
+        if (detail) {
+            msg += ` - ${detail[1].trim()}`;
+        }
+    }
+
+    return truncate(msg, 4000);
+}
+
+// ================= QUERY =================
+
+function extractOrBuildQuery(errorMsg, valueJson, headers, dbName) {
+    const match = errorMsg.match(/(INSERT INTO "[^"]+"[^)]+\)[^)]*\))/);
+    if (match) return truncate(match[1], 8000);
+
+    return truncate(buildFallbackQuery(valueJson, headers, dbName), 8000);
+}
+
+function buildFallbackQuery(valueJson, headers, dbName) {
+    const payload = valueJson.payload || {};
+    const table = headers.target_table || 'unknown_table';
+
+    if (Object.keys(payload).length === 0) {
+        return JSON.stringify(valueJson);
+    }
+
+    const columns = Object.keys(payload)
+        .map((k) => `"${k}"`)
+        .join(',');
+
+    const values = Object.values(payload).map(formatSqlValue);
+
+    return `INSERT INTO "${dbName}"."${table}" (${columns}) VALUES (${values.join(',')})`;
+}
+
+function formatSqlValue(v) {
+    if (typeof v === 'string') {
+        return `'${v.replace(/'/g, "''")}'`;
+    }
+    if (v == null) return 'NULL';
+    return v.toString();
+}
+
+// ================= RECORD =================
+
+function buildErrorRecord(error, query) {
+    return {
+        schema: {
+            type: 'struct',
+            fields: [
+                { field: 'timestamp', type: 'string', optional: false },
+                { field: 'error', type: 'string', optional: false },
+                { field: 'query', type: 'string', optional: true }
+            ],
+            optional: false
+        },
+        payload: {
+            timestamp: formatDatetimeIso('UTC'),
+            error,
+            query
+        }
+    };
+}
+
+// ================= OUTPUT =================
+
+function buildOutputHeaders(dbName) {
+    return [
+        { 'fiware-service': Buffer.from(dbName) },
+        { 'fiware-datamodel': Buffer.from('dm-postgis-errors') },
+        { 'fiware-servicepath': Buffer.from(dbName) },
+        { entityType: Buffer.from('_error_log') }
+    ];
+}
+
+async function publishError(producer, topic, record, headers) {
+    await safeProduce(producer, [topic, null, Buffer.from(JSON.stringify(record)), null, Date.now(), null, headers]);
+}
+
+// ================= ERROR HANDLING =================
+
+function handleProcessingError(err, log, consumer, msg) {
+    if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
+        throw err;
+    }
+
+    log?.error(`[errors] Error processing event: ${err?.stack || err}`);
+
+    consumer.commitMessage(msg);
+
+    return 'error';
+}
+
+// ================= MAIN =================
+
+async function handleErrorMessage(msg, log, producer, consumer) {
+    const start = Date.now();
+    let processingResult = 'success';
+    let fiwareService = 'default';
+    let currentlog = log;
+
+    try {
+        const raw = msg.value?.toString() || '';
+
+        const valueJson = parseJson(raw, log, consumer, msg);
+        if (!valueJson) return;
+
+        const headers = extractHeaders(msg.headers);
+        log.info('[errors] headers=%j', headers);
+
+        const context = buildContext(msg);
+        currentlog = createContextLogger(context);
+        fiwareService = context.service;
+
+        const fullErrorMsg = buildFullError(headers);
+        const dbName = resolveDbName(headers, fullErrorMsg);
+
+        fiwareService = dbName || fiwareService;
+
+        const errorTopic = buildErrorTopic(dbName);
+
+        const errorMessage = extractErrorMessage(fullErrorMsg);
+        const originalQuery = extractOrBuildQuery(fullErrorMsg, valueJson, headers, dbName);
+
+        const record = buildErrorRecord(errorMessage, originalQuery);
+
+        const headersOut = buildOutputHeaders(dbName);
+
+        await publishError(producer, errorTopic, record, headersOut);
+
+        currentlog.info(`[errors] Logged SQL error to '${errorTopic}'`);
+
+        consumer.commitMessage(msg);
+    } catch (err) {
+        processingResult = handleProcessingError(err, currentlog, consumer, msg);
+    } finally {
+        recordFlowProcessing('errors', fiwareService, (Date.now() - start) / 1000, processingResult);
+    }
+}
+
+// ================= ERROR Consumer =================
+
 async function startErrorsConsumerAgent(log, producer) {
     const topic = config.ngsi.prefix + 'raw_errors';
     const groupId = 'ngsi-processor-errors';
-    const suffix = config.ngsi.suffix;
 
     const consumer = await createConsumerAgent(log, {
         groupId,
         topic,
         producer,
-        onData: async (msg) => {
-            const start = Date.now();
-            let processingResult = 'success';
-            let fiwareService = 'default';
-            let currentlog = null;
-            const k = msg.key?.toString() || null;
-            const valueRaw = msg.value?.toString() || '';
-
-            log.info(`[errors] key=${k} value=${valueRaw}`);
-
-            try {
-                let valueJson;
-                try {
-                    valueJson = JSON.parse(valueRaw);
-                } catch (e) {
-                    log.warn(`[errors] Invalid JSON payload, skipping: ${e.message}`);
-                    consumer.commitMessage(msg);
-                    return;
-                }
-
-                const hdrs = {};
-                if (msg.headers && msg.headers.length > 0) {
-                    msg.headers.forEach((headerObj) => {
-                        const headerName = Object.keys(headerObj)[0];
-                        const v = headerObj[headerName];
-                        hdrs[headerName] = Buffer.isBuffer(v) ? v.toString() : String(v);
-                    });
-                }
-
-                log.info('[errors] headers=%j', hdrs);
-                const fiwareContext = getFiwareContext(msg.headers, {});
-                const configContext = {
-                    op: 'errorsConsumer',
-                    corr: fiwareContext.correlator,
-                    service: fiwareContext.service,
-                    subservice: fiwareContext.servicepath
-                };
-                currentlog = logger.createChildLogger(configContext);
-
-                let fullErrorMsg = hdrs['__connect.errors.exception.message'] || 'Unknown error';
-                const causeMsg = hdrs['__connect.errors.exception.cause.message'];
-                if (causeMsg && !fullErrorMsg.includes(causeMsg)) {
-                    fullErrorMsg += `\nCaused by: ${causeMsg}`;
-                }
-
-                const timestamp = formatDatetimeIso('UTC');
-
-                let dbName = hdrs['__connect.errors.topic'] || '';
-                if (!dbName) {
-                    const dbMatch = fullErrorMsg.match(/INSERT INTO "([^"]+)"/);
-                    if (dbMatch) {
-                        dbName = dbMatch[1].split('.')[0];
-                    }
-                }
-                if (config.ngsi.prefix && dbName.startsWith(config.ngsi.prefix)) {
-                    dbName = dbName.slice(config.ngsi.prefix.length);
-                }
-                dbName = dbName.replace(/_(historic|lastdata|mutable|http).*$/, '');
-                fiwareService = dbName || fiwareService;
-
-                const errorTopicName = `${config.ngsi.prefix}${dbName}_error_log` + suffix;
-
-                let errorMessage;
-                const errMatch = fullErrorMsg.match(/(ERROR: .+?)(\n|$)/);
-                if (errMatch) {
-                    errorMessage = errMatch[1].trim();
-                    const detailMatch = fullErrorMsg.match(/(Detail: .+?)(\n|$)/);
-                    if (detailMatch) {
-                        errorMessage += ` - ${detailMatch[1].trim()}`;
-                    }
-                } else {
-                    errorMessage = fullErrorMsg;
-                }
-                let originalQuery;
-                const queryMatch = fullErrorMsg.match(/(INSERT INTO "[^"]+"[^)]+\)[^)]*\))/);
-                if (queryMatch) {
-                    originalQuery = queryMatch[1];
-                } else {
-                    const payload = valueJson.payload || {};
-                    const table = hdrs.target_table || 'unknown_table';
-
-                    if (Object.keys(payload).length > 0) {
-                        const columns = Object.keys(payload)
-                            .map((k) => `"${k}"`)
-                            .join(',');
-                        const values = Object.values(payload).map((v) => {
-                            if (typeof v === 'string') {
-                                return `'${v.replace(/'/g, "''")}'`;
-                            }
-                            if (v == null) {
-                                return 'NULL';
-                            }
-                            return v.toString();
-                        });
-                        originalQuery = `INSERT INTO "${dbName}"."${table}" (${columns}) VALUES (${values.join(',')})`;
-                    } else {
-                        originalQuery = JSON.stringify(valueJson);
-                    }
-                }
-                errorMessage = truncate(errorMessage, 4000);
-                originalQuery = truncate(originalQuery, 8000);
-                const errorRecord = {
-                    schema: {
-                        type: 'struct',
-                        fields: [
-                            { field: 'timestamp', type: 'string', optional: false },
-                            { field: 'error', type: 'string', optional: false },
-                            { field: 'query', type: 'string', optional: true }
-                        ],
-                        optional: false
-                    },
-                    payload: {
-                        timestamp,
-                        error: errorMessage,
-                        query: originalQuery
-                    }
-                };
-
-                const headersOut = [
-                    { 'fiware-service': Buffer.from(dbName) },
-                    { 'fiware-datamodel': Buffer.from('dm-postgis-errors') }
-                ];
-                // Fallback to default datamodel
-                headersOut.push(
-                    { 'fiware-servicepath': Buffer.from(dbName) },
-                    { entityType: Buffer.from('_error_log') }
-                );
-
-                await safeProduce(producer, [
-                    errorTopicName,
-                    null,
-                    Buffer.from(JSON.stringify(errorRecord)),
-                    null,
-                    Date.now(),
-                    null,
-                    headersOut
-                ]);
-
-                currentlog.info(`[errors] Logged SQL error to '${errorTopicName}'`);
-
-                consumer.commitMessage(msg);
-            } catch (err) {
-                processingResult = 'error';
-                if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
-                    // No Log, rethrow to createConsumerAgent pause
-                    throw err;
-                }
-                currentlog.error(`[errors] Error processing event: ${err?.stack || err}`);
-                // Policy decision:
-                // - if no retries, then commit here (to avoid infinite loop)
-                consumer.commitMessage(msg);
-                // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
-            } finally {
-                const duration = (Date.now() - start) / 1000;
-                recordFlowProcessing('errors', fiwareService, duration, processingResult);
-            }
-        }
+        onData: async (msg) => handleErrorMessage(msg, log, producer, consumer)
     });
 
     return consumer;
