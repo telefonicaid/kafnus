@@ -193,6 +193,7 @@ function connectConsumer(consumer, logger, topic) {
 
         try {
             consumer.connect();
+            logger.info('[consumer] connected');
         } catch (err) {
             reject(err);
         }
