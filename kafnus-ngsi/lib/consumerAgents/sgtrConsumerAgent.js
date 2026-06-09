@@ -26,128 +26,208 @@ const { config } = require('../../kafnusConfig');
 const logger = require('../utils/logger');
 const Kafka = require('@confluentinc/kafka-javascript');
 
+// ================= PARSING =================
+
+function parseMessage(rawValue, log, consumer, msg) {
+    try {
+        return JSON.parse(rawValue);
+    } catch (e) {
+        log.warn('[sgtr] Invalid JSON: %s', e.message);
+        consumer.commitMessage(msg);
+        return null;
+    }
+}
+
+// ================= CONTEXT =================
+
+function buildContext(msg, message) {
+    const fiwareContext = getFiwareContext(msg.headers, message);
+
+    return {
+        service: fiwareContext.service,
+        servicepath: fiwareContext.servicepath,
+        correlator: fiwareContext.correlator,
+        graphname: fiwareContext.graphname
+    };
+}
+
+function createContextLogger(context) {
+    return logger.createChildLogger({
+        op: 'sgtrConsumer',
+        corr: context.correlator,
+        service: context.service,
+        subservice: context.servicepath
+    });
+}
+
+function logContextInfo(log, context) {
+    log.info(
+        '[sgtr] fiware-service: %j graphname: %j correlator: %j',
+        context.service,
+        context.graphname,
+        context.correlator
+    );
+}
+
+function resolveGraphName(context, log) {
+    if (context.graphname) {
+        return context.graphname;
+    }
+
+    if (config.graphql.fallbackGraphName) {
+        log.info('[sgtr] fallback graphname to service: %j', context.service);
+        return context.service;
+    }
+
+    return null;
+}
+
+// ================= ENTITY PROCESSING =================
+
+async function processEntities({ message, graphName, outputTopic, producer, currentlog }) {
+    const dataList = message.data || [];
+
+    for (const entity of dataList) {
+        currentlog.debug('[sgtr] entity:\n%s', JSON.stringify(entity, null, 2));
+
+        const prepared = prepareEntity(entity);
+        const mutation = buildMutation(graphName, prepared);
+
+        currentlog.debug('[sgtr] mutation:\n%s', mutation);
+
+        await publishMutation(producer, outputTopic, mutation);
+
+        currentlog.info('[sgtr] Sent to %j', outputTopic);
+    }
+}
+
+function prepareEntity(entity) {
+    const type = entity.type;
+    const alterationType = resolveAlterationType(entity.alterationType);
+
+    const cleanEntity = { ...entity };
+    delete cleanEntity.type;
+    delete cleanEntity.alterationType;
+
+    if (typeof type === 'string' && type.toLowerCase() === 'location') {
+        transformSgtrGeoJsonToWkt(cleanEntity);
+    }
+
+    normalizeExternalId(cleanEntity);
+
+    return {
+        type,
+        alterationType,
+        entity: cleanEntity
+    };
+}
+
+function resolveAlterationType(alterationType) {
+    return alterationType?.value ? alterationType.value.toLowerCase() : alterationType?.toLowerCase();
+}
+
+function normalizeExternalId(entity) {
+    if (entity.externalId && config.graphql.slugUri) {
+        entity.externalId = slugify(entity.externalId);
+    }
+}
+
+// ================= MUTATION =================
+
+function buildMutation(graphName, { type, alterationType, entity }) {
+    const id = entity.externalId;
+
+    const strategies = {
+        entityupdate: () => buildMutationUpdate(graphName, type, id, entity),
+        entitychange: () => buildMutationUpdate(graphName, type, id, entity),
+        entitydelete: () => buildMutationDelete(graphName, id)
+    };
+
+    const handler = strategies[alterationType];
+
+    if (handler) {
+        return handler();
+    }
+
+    return buildMutationCreate(graphName, type, entity);
+}
+
+// ================= KAFKA =================
+
+function resolveOutputTopic(service) {
+    return config.graphql.outputTopicByService
+        ? `${config.ngsi.prefix}${service}_sgtr_http${config.ngsi.suffix}`
+        : `${config.ngsi.prefix}sgtr_http${config.ngsi.suffix}`;
+}
+
+async function publishMutation(producer, topic, mutation) {
+    await safeProduce(producer, [topic, null, Buffer.from(JSON.stringify(mutation)), null, Date.now(), null, []]);
+}
+
+// ================= ERROR HANDLING =================
+
+function handleError(err, log) {
+    if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
+        throw err;
+    }
+
+    log?.error(`[sgtr] Error processing event: ${err?.stack || err}`);
+    return 'error';
+}
+
+// ================= MAIN HANDLER =================
+
+async function handleMessage(msg, log, producer, consumer) {
+    const start = Date.now();
+    let processingResult = 'success';
+    let fiwareService = 'default';
+    let currentlog = log;
+
+    try {
+        const rawValue = msg.value?.toString() || '';
+
+        const message = parseMessage(rawValue, log, consumer, msg);
+        if (!message) {
+            return;
+        }
+
+        const context = buildContext(msg, message);
+        fiwareService = context.service;
+
+        currentlog = createContextLogger(context);
+        logContextInfo(currentlog, context);
+
+        const graphName = resolveGraphName(context, currentlog);
+        const outputTopic = resolveOutputTopic(context.service);
+
+        await processEntities({
+            message,
+            graphName,
+            outputTopic,
+            producer,
+            currentlog
+        });
+
+        consumer.commitMessage(msg);
+    } catch (err) {
+        processingResult = handleError(err, currentlog);
+    } finally {
+        const duration = (Date.now() - start) / 1000;
+        recordFlowProcessing('sgtr', fiwareService, duration, processingResult);
+    }
+}
+
+// ================= SGTR Consumer =================
+
 async function startSgtrConsumerAgent(log, producer) {
     const topic = config.ngsi.prefix + 'raw_sgtr';
-    let outputTopic = null;
     const groupId = 'ngsi-processor-sgtr';
 
     const consumer = await createConsumerAgent(log, {
         groupId,
         topic,
         producer,
-        onData: async (msg) => {
-            const start = Date.now();
-            let processingResult = 'success';
-            let fiwareService = 'default';
-            let graphName = null;
-            let currentlog = null;
-            const k = msg.key?.toString() || '';
-            const rawValue = msg.value?.toString() || '';
-
-            log.info(`[sgtr] key=${k} value=${rawValue}`);
-
-            try {
-                let message;
-                try {
-                    message = JSON.parse(rawValue);
-                } catch (e) {
-                    log.warn('[sgtr] Invalid JSON, committing: %s', e.message);
-                    consumer.commitMessage(msg);
-                    return;
-                }
-                log.info('[sgtr] message: %j', message);
-                const fiwareContext = getFiwareContext(msg.headers, message);
-                fiwareService = fiwareContext.service;
-                graphName = fiwareContext.graphname;
-                log.info(
-                    '[sgtr] fiware-service: %j graphname: %j correlator: %j',
-                    fiwareService,
-                    graphName,
-                    fiwareContext.correlator
-                );
-                const configContext = {
-                    op: 'sgtrConsumer',
-                    corr: fiwareContext.correlator,
-                    service: fiwareContext.service,
-                    subservice: fiwareContext.servicepath
-                };
-                currentlog = logger.createChildLogger(configContext);
-                // fallback for backward compatibility
-                if (graphName == null && config.graphql.fallbackGraphName) {
-                    currentlog.info(
-                        '[sgtr] no graphname header found then fallback to fiware-service: %j ',
-                        fiwareService
-                    );
-                    graphName = fiwareService;
-                }
-
-                const dataList = message.data ? message.data : [];
-
-                for (const entityObject of dataList) {
-                    currentlog.debug('[sgtr] entityObject:\n%s', JSON.stringify(entityObject, null, 2));
-
-                    const type = entityObject.type;
-                    delete entityObject.type;
-
-                    let mutation;
-                    const alterationType = entityObject.alterationType?.value
-                        ? entityObject.alterationType.value.toLowerCase()
-                        : entityObject.alterationType.toLowerCase();
-
-                    delete entityObject.alterationType;
-
-                    if (typeof type === 'string' && type.toLowerCase() === 'location') {
-                        transformSgtrGeoJsonToWkt(entityObject);
-                    }
-
-                    if (alterationType === 'entityupdate' || alterationType === 'entitychange') {
-                        const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
-                        mutation = buildMutationUpdate(graphName, type, id, entityObject);
-                    } else if (alterationType === 'entitydelete') {
-                        const id = config.graphql.slugUri ? slugify(entityObject.externalId) : entityObject.externalId;
-                        mutation = buildMutationDelete(graphName, id);
-                    } else {
-                        if (entityObject.externalId && config.graphql.slugUri) {
-                            entityObject.externalId = slugify(entityObject.externalId);
-                        }
-                        mutation = buildMutationCreate(graphName, type, entityObject);
-                    }
-                    currentlog.debug('[sgtr] mutation: \n%s', mutation);
-                    if (config.graphql.outputTopicByService) {
-                        outputTopic = config.ngsi.prefix + fiwareService + '_sgtr_http' + config.ngsi.suffix;
-                    } else {
-                        outputTopic = config.ngsi.prefix + 'sgtr_http' + config.ngsi.suffix;
-                    }
-                    const outHeaders = [];
-                    // Publish in output topic
-                    await safeProduce(producer, [
-                        outputTopic,
-                        null, // partition null: kafka decides
-                        Buffer.from(JSON.stringify(mutation)), // message
-                        null, // Key (optional)
-                        Date.now(), // timestamp
-                        null, // Opaque
-                        outHeaders
-                    ]);
-                    currentlog.info('[sgtr] Sent to %j | mutation %j', outputTopic, mutation);
-                } // for loop
-                consumer.commitMessage(msg);
-            } catch (err) {
-                processingResult = 'error';
-                if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
-                    // No Log, rethrow to createConsumerAgent pause
-                    throw err;
-                }
-                currentlog.error(`[sgtr] Error processing event: ${err?.stack || err}, offset NOT committed`);
-                // Policy decision:
-                // - if no retries, then commit here (to avoid infinite loop)
-                // consumer.commitMessage(msg);
-                // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
-            } finally {
-                const duration = (Date.now() - start) / 1000;
-                recordFlowProcessing('sgtr', fiwareService, duration, processingResult);
-            }
-        }
+        onData: (msg) => handleMessage(msg, log, producer, consumer)
     });
 
     return consumer;
