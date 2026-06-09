@@ -58,6 +58,185 @@ async function safeProduce(producer, args, { maxWaitMs = 30000 } = {}) {
     }
 }
 
+// ================= PARSE =================
+
+function parseJson(raw) {
+    return JSON.parse(raw);
+}
+
+// ================= CONTEXT =================
+
+function buildContext(headers, message) {
+    const { service, servicepath, datamodel } = getFiwareContext(headers, message);
+
+    return { service, servicepath, datamodel };
+}
+
+function buildTopicName(service, suffix) {
+    return config.ngsi.prefix + `${service}${suffix}`;
+}
+
+// ================= ENTITY =================
+
+function buildBaseEntity(entity, context) {
+    return {
+        entityid: entity.id,
+        entitytype: entity.type,
+        fiwareservicepath: context.servicepath
+    };
+}
+
+// ================= GEO =================
+
+function handleGeo(name, value, attrType, attributes, schemaOverrides, attributesTypes) {
+    if (!attrType.startsWith('geo:')) return false;
+
+    const wkt = toWktGeometry(attrType, value);
+    if (!wkt) {
+        return false;
+    }
+
+    const wkb = toWkbStructFromWkt(wkt, name);
+    if (!wkb) {
+        return false;
+    }
+
+    attributes[name] = wkb.payload;
+    schemaOverrides[name] = wkb.schema;
+    attributesTypes[name] = attrType;
+
+    return true;
+}
+
+// ================= ATTRIBUTES =================
+
+function isIgnoredAttr(name) {
+    return ['id', 'type', 'alterationtype'].includes(name);
+}
+
+function processAttribute(name, attrData, attributes, schemaOverrides, attributesTypes) {
+    let value = attrData?.value;
+    const attrType = attrData?.type || '';
+
+    if (handleGeo(name, value, attrType, attributes, schemaOverrides, attributesTypes)) {
+        return;
+    }
+
+    value = normalizeValue(value, attrType);
+
+    attributes[name] = value;
+    attributesTypes[name] = attrType;
+}
+
+function extractAttributes(entity) {
+    const attributes = {};
+    const schemaOverrides = {};
+    const attributesTypes = {};
+
+    const entries = Object.entries(entity).sort();
+
+    for (const [rawName, attrData] of entries) {
+        const attrName = rawName.toLowerCase();
+
+        if (isIgnoredAttr(attrName)) {
+            continue;
+        }
+
+        processAttribute(attrName, attrData, attributes, schemaOverrides, attributesTypes);
+    }
+
+    return { attributes, schemaOverrides, attributesTypes };
+}
+
+// ================= VALUE =================
+
+function normalizeValue(value, type) {
+    if (['json', 'jsonb'].includes(type)) {
+        return JSON.stringify(value);
+    }
+    return value;
+}
+
+// ================= HEADERS =================
+
+function buildHeaders({ context, entity, flowSuffix }) {
+    return [
+        { 'fiware-service': Buffer.from(sanitizeString(context.service)) },
+        { 'fiware-servicepath': Buffer.from(sanitizeString(context.servicepath)) },
+        { 'fiware-datamodel': Buffer.from(context.datamodel || '') },
+        { entityType: Buffer.from(sanitizeString(entity.type)) },
+        { entityId: Buffer.from(sanitizeString(entity.id)) },
+        {
+            suffix: Buffer.from(flowSuffix === '_historic' ? '' : sanitizeString(flowSuffix))
+        }
+    ];
+}
+
+// ================= PRODUCE =================
+
+async function publishEntity(producer, topic, message, key, headers) {
+    await safeProduce(producer, [topic, null, Buffer.from(JSON.stringify(message)), key, Date.now(), null, headers]);
+}
+
+// ================= LOG =================
+
+function logEntitySent(logger, topic, headers, entityId, flowSuffix) {
+    const suffixLabel = (flowSuffix ?? '').replace(/^_/, '') || 'historic';
+
+    const readableHeaders = headers.map((h) =>
+        Object.fromEntries(Object.entries(h).map(([k, v]) => [k, v.toString()]))
+    );
+
+    logger.info(
+        `[${suffixLabel}] Sent to '${topic}', headers: ${JSON.stringify(readableHeaders)}, entityid: ${entityId}`
+    );
+}
+
+// ================= ERROR =================
+
+function handleError(err, logger) {
+    if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
+        throw err;
+    }
+
+    logger.error(`Error in handleEntityCb: ${err?.stack || err}`);
+    throw err;
+}
+
+// ================= PROCESS =================
+
+async function processEntity({
+    entity,
+    context,
+    topicName,
+    flowSuffix,
+    includeTimeinstant,
+    keyFields,
+    producer,
+    logger
+}) {
+    const base = buildBaseEntity(entity, context);
+    const { attributes, schemaOverrides, attributesTypes } = extractAttributes(entity);
+
+    const fullEntity = { ...base, ...attributes };
+
+    const kafkaMessage = toKafnusConnectSchema(fullEntity, schemaOverrides, attributesTypes);
+
+    const kafkaKey = buildKafkaKey(fullEntity, keyFields, includeTimeinstant);
+
+    const headersOut = buildHeaders({
+        context,
+        entity,
+        flowSuffix
+    });
+
+    await publishEntity(producer, topicName, kafkaMessage, kafkaKey, headersOut);
+
+    logEntitySent(logger, topicName, headersOut, fullEntity.entityid, flowSuffix);
+}
+
+// ================= PROCESS =================
+
 async function handleEntityCb(
     logger,
     rawValue,
@@ -65,7 +244,7 @@ async function handleEntityCb(
     producer
 ) {
     try {
-        const message = JSON.parse(rawValue);
+        const message = parseJson(rawValue);
         const entities = message.data || [];
 
         if (!entities.length) {
@@ -73,93 +252,23 @@ async function handleEntityCb(
             return;
         }
 
-        const { service, servicepath, datamodel } = getFiwareContext(headers, message);
+        const context = buildContext(headers, message);
+        const topicName = buildTopicName(context.service, suffix);
 
-        for (const ngsiEntity of entities) {
-            const entityId = ngsiEntity.id;
-            const entityType = ngsiEntity.type;
-
-            const topicName = config.ngsi.prefix + `${service}${suffix}`;
-
-            let entity = {
-                entityid: entityId,
-                entitytype: entityType,
-                fiwareservicepath: servicepath
-            };
-
-            const attributes = {};
-            const schemaOverrides = {};
-            const attributesTypes = {};
-
-            for (const [attrNameRaw, attrData] of Object.entries(ngsiEntity).sort()) {
-                const attrName = attrNameRaw.toLowerCase();
-                if (['id', 'type', 'alterationtype'].includes(attrName)) {
-                    continue;
-                }
-
-                let value = attrData?.value;
-                const attrType = attrData?.type || '';
-
-                if (attrType.startsWith('geo:')) {
-                    const wkt = toWktGeometry(attrType, value);
-                    if (wkt) {
-                        const wkb = toWkbStructFromWkt(wkt, attrName);
-                        if (wkb) {
-                            attributes[attrName] = wkb.payload;
-                            schemaOverrides[attrName] = wkb.schema;
-                            attributesTypes[attrName] = attrType;
-                            continue;
-                        }
-                    }
-                }
-
-                if (['json', 'jsonb'].includes(attrType)) {
-                    value = JSON.stringify(value);
-                }
-
-                attributes[attrName] = value;
-                attributesTypes[attrName] = attrType;
-            }
-
-            entity = { ...entity, ...attributes };
-
-            const kafkaMessage = toKafnusConnectSchema(entity, schemaOverrides, attributesTypes);
-            const kafkaKey = buildKafkaKey(entity, keyFields, includeTimeinstant);
-
-            // === Headers for Header Router ===
-            const headersOut = [
-                { 'fiware-service': Buffer.from(sanitizeString(service)) },
-                { 'fiware-servicepath': Buffer.from(sanitizeString(servicepath)) },
-                { 'fiware-datamodel': Buffer.from(datamodel || '') },
-                { entityType: Buffer.from(sanitizeString(entityType)) },
-                { entityId: Buffer.from(sanitizeString(entityId)) },
-                { suffix: Buffer.from(flowSuffix === '_historic' ? '' : sanitizeString(flowSuffix)) }
-            ];
-
-            await safeProduce(producer, [
+        for (const entity of entities) {
+            await processEntity({
+                entity,
+                context,
                 topicName,
-                null,
-                Buffer.from(JSON.stringify(kafkaMessage)),
-                kafkaKey,
-                Date.now(),
-                null,
-                headersOut
-            ]);
-
-            logger.info(
-                `[${
-                    (suffix ?? flowSuffix).replace(/^_/, '') || 'historic'
-                }] Sent to topic '${topicName}', headers: ${JSON.stringify(
-                    headersOut.map((h) => Object.fromEntries(Object.entries(h).map(([k, v]) => [k, v.toString()])))
-                )}, entityid: ${entity.entityid}`
-            );
+                flowSuffix,
+                includeTimeinstant,
+                keyFields,
+                producer,
+                logger
+            });
         }
     } catch (err) {
-        if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
-            throw err; // allow consumer pause
-        }
-        logger.error(`Error in handleEntityCb: ${err?.stack || err}`);
-        throw err;
+        handleError(err, logger);
     }
 }
 
