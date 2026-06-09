@@ -181,74 +181,109 @@ function formatDatetimeIso(tz = 'UTC') {
 // -----------------
 // Type inference
 // -----------------
-function inferFieldType(name, value, attrType = null) {
-    const nameLc = name.toLowerCase();
-    const attrTypeLc = typeof attrType === 'string' ? attrType.toLowerCase() : '';
 
-    // 0. Null or undefined values: return string with null value
-    if (value === null || value === undefined) {
+function normalizeType(attrType) {
+    return typeof attrType === 'string' ? attrType.toLowerCase() : '';
+}
+
+function isNull(value) {
+    return value === null || value === undefined;
+}
+
+function handleSpecialTypes(nameLc, value, attrTypeLc) {
+    if (!attrTypeLc) return null;
+
+    if (attrTypeLc === 'geo:json') {
+        return ['geometry', value];
+    }
+
+    if (attrTypeLc === 'datetime' || attrTypeLc === 'iso8601') {
+        return handleDateType(nameLc, value);
+    }
+
+    return null;
+}
+
+function handleDateType(nameLc, value) {
+    if (isSpecialDateField(nameLc)) {
+        return ['string', String(value)];
+    }
+
+    if (value == null) {
         return ['string', null];
     }
 
-    // 1. Handle special attribute types
-    if (attrType) {
-        // Geospatial types
-        if (attrTypeLc === 'geo:json') {
-            return ['geometry', value];
+    try {
+        const millis = toEpochMillis(value);
+
+        if (isNaN(millis)) {
+            return warnInvalidDate(nameLc, value);
         }
 
-        // DateTime and ISO8601 types
-        if (attrTypeLc === 'datetime' || attrTypeLc === 'iso8601') {
-            // Special case for timeinstant/recvtime: always treat as string
-            // because they are processed specially in Kafnus-Connect sinks
-            if (['timeinstant', 'recvtime'].includes(nameLc)) {
-                return ['string', String(value)];
-            }
-            try {
-                if (value == null) {
-                    return ['string', null];
-                }
-                // Use Kafka Connect Timestamp logical type
-                const millis = toEpochMillis(value);
-                if (isNaN(millis)) {
-                    logger.warn(`Invalid datetime value for field '${name}': '${value}'`);
-                    return ['string', String(value)];
-                }
-                return [{ type: 'int64', name: 'org.apache.kafka.connect.data.Timestamp' }, millis];
-            } catch (err) {
-                logger.warn(`Error parsing datetime for field '${name}': ${err}`);
-                return ['string', String(value)];
-            }
-        }
+        return [{ type: 'int64', name: 'org.apache.kafka.connect.data.Timestamp' }, millis];
+    } catch (err) {
+        return warnDateError(nameLc, err, value);
     }
+}
 
-    // 2. If not a special type, but value is a string → treat as string
-    if (typeof value === 'string') {
-        return ['string', value];
-    }
+function isSpecialDateField(nameLc) {
+    return nameLc === 'timeinstant' || nameLc === 'recvtime';
+}
 
-    // 3. Fallback: infer type for other primitives
-    if (typeof value === 'boolean') {
-        return ['boolean', value];
-    }
-
-    // Number handling: return as double (type  in JS is always float64)
-    if (typeof value === 'number') {
-        return ['double', value];
-    }
-
-    // Objects: serialize to string (fallback)
-    if (typeof value === 'object') {
-        try {
-            return ['string', JSON.stringify(value)];
-        } catch (err) {
-            logger.warn(`Error serializing '${name}' as JSON: ${err}`);
-            return ['string', String(value)];
-        }
-    }
-
-    // 4. All other cases: treat as string
+function warnInvalidDate(name, value) {
+    logger.warn(`Invalid datetime value for field '${name}': '${value}'`);
     return ['string', String(value)];
+}
+
+function warnDateError(name, err, value) {
+    logger.warn(`Error parsing datetime for field '${name}': ${err}`);
+    return ['string', String(value)];
+}
+
+function inferPrimitive(value) {
+    switch (typeof value) {
+        case 'string':
+            return ['string', value];
+
+        case 'boolean':
+            return ['boolean', value];
+
+        case 'number':
+            return ['double', value];
+
+        default:
+            return null;
+    }
+}
+
+function inferObject(name, value) {
+    if (typeof value !== 'object') {
+        return ['string', String(value)];
+    }
+
+    try {
+        return ['string', JSON.stringify(value)];
+    } catch (err) {
+        logger.warn(`Error serializing '${name}' as JSON: ${err}`);
+        return ['string', String(value)];
+    }
+}
+
+function inferFieldType(name, value, attrType = null) {
+    const nameLc = name.toLowerCase();
+    const attrTypeLc = normalizeType(attrType);
+
+    if (isNull(value)) {
+        return ['string', null];
+    }
+
+    const special = handleSpecialTypes(nameLc, value, attrTypeLc);
+    if (special) return special;
+
+    const primitive = inferPrimitive(value);
+    if (primitive) return primitive;
+
+    return inferObject(name, value);
 }
 
 // -----------------
