@@ -366,34 +366,54 @@ function buildKafkaKey(entity, keyFields, includeTimeinstant = false) {
 // -----------------
 // Kafka Headers Extraction
 // -----------------
-function getFiwareContext(headers, fallbackEvent) {
-    let service = null;
-    let servicepath = null;
-    let datamodel = null;
-    let correlator = null;
-    let graphname = null;
-    if (headers && headers.length > 0) {
-        const hdict = {};
-        headers.forEach((headerObj) => {
-            const headerName = Object.keys(headerObj)[0];
-            const bufferValue = headerObj[headerName];
-            const decodedValue = Buffer.from(bufferValue);
-            hdict[headerName.toLowerCase()] = decodedValue.toString();
-        });
-        service = (hdict['fiware-service'] ? hdict['fiware-service'] : 'default').toLowerCase();
-        servicepath = (hdict['fiware-servicepath'] ? hdict['fiware-servicepath'] : '/').toLowerCase();
-        datamodel = hdict['fiware-datamodel'] ? hdict['fiware-datamodel'] : null;
-        correlator = hdict['fiware-correlator'] ? hdict['fiware-correlator'] : null;
-        graphname = hdict.graphname ?? null;
-    } else {
-        const hdrs = fallbackEvent.headers ? fallbackEvent.headers : fallbackEvent;
-        service = (hdrs['fiware-service'] ? hdrs['fiware-service'] : 'default').toLowerCase();
-        servicepath = (hdrs['fiware-servicepath'] ? hdrs['fiware-servicepath'] : '/').toLowerCase();
-    }
+function normalizeService(service) {
+    return (service || 'default').toLowerCase();
+}
+
+function normalizeServicePath(path) {
+    let servicepath = (path || '/').toLowerCase();
+
     if (!servicepath.startsWith('/')) {
         servicepath = '/' + servicepath;
     }
-    return { service, servicepath, datamodel, correlator, graphname };
+
+    return servicepath;
+}
+
+function extractFallbackHeaders(fallbackEvent) {
+    return fallbackEvent.headers || fallbackEvent || {};
+}
+
+function buildHeaderDict(headers) {
+    const dict = {};
+
+    headers.forEach((headerObj) => {
+        const key = Object.keys(headerObj)[0];
+        const value = headerObj[key];
+
+        dict[key.toLowerCase()] = Buffer.from(value).toString();
+    });
+
+    return dict;
+}
+
+function hasHeaders(headers) {
+    return Array.isArray(headers) && headers.length > 0;
+}
+
+function getFiwareContext(headers, fallbackEvent) {
+    const source = hasHeaders(headers) ? buildHeaderDict(headers) : extractFallbackHeaders(fallbackEvent);
+
+    const service = normalizeService(source['fiware-service']);
+    const servicepath = normalizeServicePath(source['fiware-servicepath']);
+
+    return {
+        service,
+        servicepath,
+        datamodel: source['fiware-datamodel'] || null,
+        correlator: source['fiware-correlator'] || null,
+        graphname: source.graphname ?? null
+    };
 }
 
 // -----------------
