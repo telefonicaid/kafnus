@@ -59,39 +59,74 @@ async function main() {
 
     let shuttingDown = false;
 
-    const shutdown = async (signal) => {
-        if (shuttingDown) {
+    function shouldSkipShutdown() {
+        return shuttingDown;
+    }
+
+    function markShuttingDown() {
+        shuttingDown = true;
+    }
+
+    function delay(ms) {
+        return new Promise((r) => setTimeout(r, ms));
+    }
+
+    async function closeAdminServer(adminServer, log) {
+        if (!adminServer?.close) {
             return;
         }
-        shuttingDown = true;
+        await new Promise((r) => adminServer.close(r));
+    }
+
+    async function shutdownConsumers(consumers, log) {
+        log.info('[shutdown] disconnecting consumers');
+        for (const c of consumers) {
+            const name = getConsumerName(c);
+            await withTimeout(shutdownConsumer(c, log, name), 8000, `shutdownConsumer(${name})`);
+        }
+    }
+
+    function getConsumerName(c) {
+        return c.topic || c.groupId || c.clientId || 'unknown';
+    }
+
+    function withTimeout(promise, ms, label) {
+        return Promise.race([
+            promise,
+            new Promise((_, rej) => setTimeout(() => rej(new Error(`Timeout ${ms}ms: ${label}`)), ms))
+        ]);
+    }
+
+    async function shutdownKafkaProducer(producer, log) {
+        log.info('[shutdown] shutting down producer');
+        await shutdownProducer(producer, log);
+    }
+
+    function handleShutdownError(err, log) {
+        log.error('[shutdown] Failed', err);
+        process.exitCode = 1;
+    }
+
+    const shutdown = async (signal) => {
+        if (shouldSkipShutdown()) {
+            return;
+        }
+        markShuttingDown();
         log.info(`[shutdown] Received ${signal}`);
         try {
-            await new Promise((r) => setTimeout(r, 1000));
-            // close server firstly to stop receive traffic
-            if (adminServer?.close) {
-                await new Promise((r) => adminServer.close(r));
-            }
-            log.info('[shutdown] disconnecting consumers');
-            const withTimeout = (p, ms, label) =>
-                Promise.race([
-                    p,
-                    new Promise((_, rej) => setTimeout(() => rej(new Error(`Timeout ${ms}ms: ${label}`)), ms))
-                ]);
-            for (const c of consumers) {
-                const name = c.topic || c.groupId || c.clientId || 'unknown';
-                await withTimeout(shutdownConsumer(c, log, name), 8000, `shutdownConsumer(${name})`);
-            }
-            log.info('[shutdown] shutting down producer');
-            await shutdownProducer(producer, log);
+            await delay(1000);
+            await closeAdminServer(adminServer, log);
+            await shutdownConsumers(consumers, log);
+            await shutdownKafkaProducer(producer, log);
             log.info('[shutdown] Completed');
             process.exitCode = 0;
         } catch (err) {
-            log.error('[shutdown] Failed', err);
-            process.exitCode = 1;
+            handleShutdownError(err, log);
         } finally {
             process.exit();
         }
     };
+
     process.once('SIGINT', () => shutdown('SIGINT'));
     process.once('SIGTERM', () => shutdown('SIGTERM'));
 }
