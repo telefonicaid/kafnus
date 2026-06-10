@@ -34,6 +34,11 @@ const { startAdminServer } = require('./utils/admin');
 const { createProducer, shutdownProducer } = require('./consumerAgents/sharedProducerFactory');
 const { shutdownConsumer } = require('./consumerAgents/consumer');
 
+async function shutdownKafkaProducer(producer, log) {
+    log.info('[shutdown] shutting down producer');
+    await shutdownProducer(producer, log);
+}
+
 async function main() {
     const log = logger.createChildLogger();
 
@@ -79,6 +84,10 @@ async function main() {
         await new Promise((r) => adminServer.close(r));
     }
 
+    function getConsumerName(c) {
+        return c.topic || c.groupId || c.clientId || 'unknown';
+    }
+
     async function shutdownConsumers(consumers, log) {
         log.info('[shutdown] disconnecting consumers');
         for (const c of consumers) {
@@ -87,20 +96,11 @@ async function main() {
         }
     }
 
-    function getConsumerName(c) {
-        return c.topic || c.groupId || c.clientId || 'unknown';
-    }
-
     function withTimeout(promise, ms, label) {
         return Promise.race([
             promise,
             new Promise((_, rej) => setTimeout(() => rej(new Error(`Timeout ${ms}ms: ${label}`)), ms))
         ]);
-    }
-
-    async function shutdownKafkaProducer(producer, log) {
-        log.info('[shutdown] shutting down producer');
-        await shutdownProducer(producer, log);
     }
 
     function handleShutdownError(err, log) {
