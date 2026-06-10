@@ -72,6 +72,7 @@ async function main() {
     }
 
     async function closeAdminServer(adminServer, log) {
+        log.info('[shutdown] closing admin server');
         if (!adminServer?.close) {
             return;
         }

@@ -412,7 +412,7 @@ function getFiwareContext(headers, fallbackEvent) {
         servicepath,
         datamodel: source['fiware-datamodel'] || null,
         correlator: source['fiware-correlator'] || null,
-        graphname: source['graphname'] ?? null
+        graphname: source.graphname ?? null
     };
 }
 
