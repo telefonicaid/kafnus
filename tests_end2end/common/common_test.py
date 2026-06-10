@@ -27,8 +27,9 @@ from testcontainers.compose import DockerCompose as OriginalDockerCompose
 import subprocess
 import os
 import time
+from copy import deepcopy
 
-from common.config import logger
+from common.config import logger, KAFNUS_TESTS_KAFKA_SECURITY_PROTOCOL, KAFNUS_TESTS_KAFKA_SASL_MECHANISM, KAFNUS_TESTS_KAFKA_SASL_USERNAME, KAFNUS_TESTS_KAFKA_SASL_PASSWORD
 from common.utils.kafnus_connect_loader import deploy_all_sinks
 from common.utils.wait_services import wait_for_kafnus_connect, wait_for_connector, wait_for_postgres, wait_for_orion, ensure_postgis_db_ready, wait_for_kafnus_ngsi
 from common.utils.utils import find_subscription_id_by_description
@@ -266,10 +267,17 @@ def multiservice_stack():
         logger.debug(f"📁 Files found: {[f.name for f in sinks_dir.glob('*')]}")
 
         # Setup PostgreSQL DB with PostGIS extension
-        KAFNUS_TESTS_PG_HOST = os.getenv("KAFNUS_TESTS_PG_HOST", "localhost")
-        KAFNUS_TESTS_PG_PORT = int(os.getenv("KAFNUS_TESTS_PG_PORT", "5432"))
         KAFNUS_TESTS_PG_USER = os.getenv("KAFNUS_TESTS_PG_USER", "postgres")
         KAFNUS_TESTS_PG_PASSWORD = os.getenv("KAFNUS_TESTS_PG_PASSWORD", "postgres")
+
+        if use_external_pg:
+            # external DB: user-provided host/port
+            KAFNUS_TESTS_PG_HOST = os.getenv("KAFNUS_TESTS_PG_HOST", "localhost")
+            KAFNUS_TESTS_PG_PORT = int(os.getenv("KAFNUS_TESTS_PG_PORT", "5432"))
+        else:
+            # compose-managed DB: discover actual mapped host/port
+            KAFNUS_TESTS_PG_HOST = compose.get_service_host("postgis", 5432)
+            KAFNUS_TESTS_PG_PORT = int(compose.get_service_port("postgis", 5432))
 
         wait_for_orion(orion_host, orion_port)
         wait_for_postgres(KAFNUS_TESTS_PG_HOST, KAFNUS_TESTS_PG_PORT)
@@ -343,6 +351,32 @@ class OrionAdapter:
         }
         self.subscription_ids = {}
 
+    def _apply_default_kafka_auth(self, subscription: dict) -> dict:
+        """
+        Adds default Kafka SASL fields to kafka/kafkaCustom notification blocks
+        when they are not explicitly provided by the scenario.
+        """
+        result = deepcopy(subscription)
+        notification = result.get("notification", {})
+
+        for kafka_block_name in ["kafka", "kafkaCustom"]:
+            kafka_block = notification.get(kafka_block_name)
+            if not isinstance(kafka_block, dict):
+                continue
+
+            if "user" not in kafka_block:
+                kafka_block["user"] = KAFNUS_TESTS_KAFKA_SASL_USERNAME
+            if "passwd" not in kafka_block:
+                kafka_block["passwd"] = KAFNUS_TESTS_KAFKA_SASL_PASSWORD
+
+            if kafka_block.get("user") and kafka_block.get("passwd"):
+                if "saslMechanism" not in kafka_block:
+                    kafka_block["saslMechanism"] = KAFNUS_TESTS_KAFKA_SASL_MECHANISM
+                if "securityProtocol" not in kafka_block:
+                    kafka_block["securityProtocol"] = KAFNUS_TESTS_KAFKA_SECURITY_PROTOCOL
+
+        return result
+
     def create_subscriptions(self):
         """
         Creates subscriptions in the Orion Context Broker as defined in each
@@ -351,10 +385,11 @@ class OrionAdapter:
         for generator in self.generators:
             headers_ = self.headers[generator.name]
             for _, subscription in generator.subscriptions.items():
+                subscription_payload = self._apply_default_kafka_auth(subscription)
                 response = requests.post(
                     f"{self.baseUrl}/subscriptions",
                     headers=headers_,
-                    data=json.dumps(subscription)
+                    data=json.dumps(subscription_payload)
                 )
                 assert response.status_code in [201, 204], f"Subscription failed: {response.content}"
                 
@@ -362,7 +397,7 @@ class OrionAdapter:
                 location = response.headers.get("Location")
                 if location:
                     sub_id = location.split("/")[-1]
-                    self.subscription_ids[subscription["description"]] = sub_id
+                    self.subscription_ids[subscription_payload["description"]] = sub_id
 
     def update_subscription(self, name, changes):
         """
@@ -392,7 +427,7 @@ class OrionAdapter:
         response = requests.patch(
             f"{self.baseUrl}/subscriptions/{sub_id}",
             headers=headers_,
-            data=json.dumps(changes)
+            data=json.dumps(self._apply_default_kafka_auth(changes))
         )
 
         assert response.status_code in [200, 204], (
