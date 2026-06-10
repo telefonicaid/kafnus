@@ -1,6 +1,6 @@
 [
   {
-    "table": "test.simple_sensor",
+    "table": "test.notimeinstant_azul_lastdata",
     "rows": [
       {"entityid": "FLOW0", "entitytype": "AZUL", "temperature": 25.0, "fiwareservicepath": "/notimeinstant"}
     ]
