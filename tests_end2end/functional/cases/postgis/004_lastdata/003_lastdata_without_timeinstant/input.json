@@ -30,6 +30,11 @@
       "id": "FLOW0",
       "type": "AZUL",
       "temperature": {"value": 25.0, "type": "Float"}
+    },
+    {
+      "id": "FLOW0",
+      "type": "AZUL",
+      "temperature": {"value": 26.0, "type": "Float"}
     }
   ]
 }
