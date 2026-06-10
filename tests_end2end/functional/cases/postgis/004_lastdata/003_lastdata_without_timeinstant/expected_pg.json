@@ -1,23 +1,8 @@
 [
   {
-    "table": "test.notimeinstant_lastdata",
-    "absent": [
-      {
-        "entityid": "FLOW0"
-      },
-      {
-        "entityid": "flow0"
-      }
-    ]
-  },
-  {
-    "table": "test.test_error_log",
+    "table": "test.simple_sensor",
     "rows": [
-      {
-        "error": {
-          "contains": "Invalid null value for required STRING field"
-        }
-      }
+      {"entityid": "FLOW0", "entitytype": "AZUL", "temperature": 25.0, "fiwareservicepath": "/notimeinstant"}
     ]
   }
 ]
