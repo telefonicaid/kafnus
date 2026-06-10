@@ -1,0 +1,23 @@
+[
+  {
+    "table": "test.notimeinstant_lastdata",
+    "absent": [
+      {
+        "entityid": "FLOW0"
+      },
+      {
+        "entityid": "flow0"
+      }
+    ]
+  },
+  {
+    "table": "test.test_error_log",
+    "rows": [
+      {
+        "error": {
+          "contains": "Invalid null value for required STRING field"
+        }
+      }
+    ]
+  }
+]

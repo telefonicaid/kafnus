@@ -1,0 +1,5 @@
+Checks the behavior when a LASTDATA notification is generated without a TimeInstant attribute. Used for static models.
+Expected behavior:
+- Kafnus-NGSI processes the notification without issues.
+- The Kafnus-Connect JDBC connector does not fail when `convertTimestamp` cannot find a timestamp.
+- The Kafnus-Connect JDBC connector does not fail when `update.if.newer.field` is configured and no TimeInstant attribute is present.
