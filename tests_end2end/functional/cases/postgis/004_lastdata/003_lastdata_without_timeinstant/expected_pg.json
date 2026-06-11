@@ -2,7 +2,7 @@
   {
     "table": "test.notimeinstant_azul_lastdata",
     "rows": [
-      {"entityid": "FLOW0", "entitytype": "AZUL", "temperature": 26.0}
+      {"entityid": "FLOW0", "entitytype": "AZUL", "temperature": 26.0, "fiwareservicepath": "/notimeinstant"}
     ]
   }
 ]
