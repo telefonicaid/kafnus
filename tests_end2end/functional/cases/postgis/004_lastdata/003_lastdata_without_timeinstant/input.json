@@ -1,10 +1,10 @@
 {
-  "name": "historic_without_timeinstant_current_behavior",
+  "name": "lastdata_without_timeinstant",
   "fiware-service": "test",
   "fiware-servicepath": "/notimeinstant",
   "subscriptions": {
-    "historic": {
-      "description": "Issue260:HISTORIC:without_timeinstant",
+    "lastdata": {
+      "description": "Issue260:LASTDATA:without_timeinstant",
       "status": "active",
       "subject": {
         "entities": [
@@ -17,7 +17,7 @@
       "notification": {
         "kafkaCustom": {
           "url": "kafka://kafka:29092",
-          "topic": "smc_raw_historic"
+          "topic": "smc_raw_lastdata"
         },
         "attrs": [
           "temperature"
@@ -30,6 +30,11 @@
       "id": "FLOW0",
       "type": "AZUL",
       "temperature": {"value": 25.0, "type": "Float"}
+    },
+    {
+      "id": "FLOW0",
+      "type": "AZUL",
+      "temperature": {"value": 26.0, "type": "Float"}
     }
   ]
 }
