@@ -15,7 +15,7 @@
     "prettier": "prettier --config .prettierrc.json --write '**/**/**/**/*.js' '**/**/**/*.js' '**/**/*.js' '**/*.js' '*.js'",      
     "start": "node index.js",
     "test": "jest --runInBand",
-    "test:coverage": "jest --runInBand --coverage --coverageReporters=text-summary --coverageReporters=lcov"
+    "test:coverage": "jest --runInBand --coverage --coverageReporters=text-summary --coverageReporters=lcov --coverageReporters=html"
   },
   "engines": {
     "node": ">=24"
