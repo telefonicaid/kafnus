@@ -1,1 +1,1 @@
-Test case without ServicePath
+Test case without the ServiePath header, so kafnus-NGSI doesn't receive this header, and neither does Kafnus-Connect. Currently, if the datamodel requires the header, the custom SMT HeaderRouter fails.
