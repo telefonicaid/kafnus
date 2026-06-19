@@ -1,0 +1,11 @@
+[
+{
+  "table": "test.test_error_log",
+    "rows": [
+      {
+        "query": { "contains": "INSERT INTO \"test\".\"unknown_table\"" },
+        "error": { "contains": "Required header missing or empty: fiware-servicepath"}
+      }
+  ]
+}
+]
