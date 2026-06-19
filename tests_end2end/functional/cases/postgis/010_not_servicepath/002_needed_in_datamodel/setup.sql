@@ -20,6 +20,7 @@
 -- Create schema if not exists
 CREATE SCHEMA IF NOT EXISTS test;
 
+/*
 -- Drop table
 DROP TABLE IF EXISTS test._device;
 
@@ -61,3 +62,4 @@ CREATE TABLE IF NOT EXISTS test._device_mutable (
     temperature DOUBLE PRECISION,
     CONSTRAINT test_device_mutable_pkey PRIMARY KEY (timeinstant, entityid)
 );
+*/
