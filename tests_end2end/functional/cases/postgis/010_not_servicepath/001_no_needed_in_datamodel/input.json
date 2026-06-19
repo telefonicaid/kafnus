@@ -1,10 +1,10 @@
 {
-  "name": "datamodel_test_case",
+  "name": "not_servicepath_case",
   "fiware-service": "test",
-  "fiware-servicepath": "/simple",
+  "fiware-servicepath": "",
   "subscriptions": {
     "historic": {
-      "description": "Sensor:HISTORIC:simple:historic",
+      "description": "Sensor:HISTORIC:not_servicepath:historic",
       "status": "active",
       "subject": {
         "entities": [
@@ -24,7 +24,7 @@
           "url": "kafka://kafka:29092",
           "topic": "smc_raw_historic",
           "headers": {
-            "fiware-datamodel": "dm-by-entity-type-database-schema"
+            "fiware-datamodel": "dm-by-entity-type-database"
           }
         },
         "attrs": [
@@ -34,7 +34,7 @@
       }
     },
     "lastdata": {
-      "description": "Sensor:LASTDATA:simple:lastdata",
+      "description": "Sensor:LASTDATA:not_servicepath:lastdata",
       "status": "active",
       "subject": {
         "entities": [
@@ -54,7 +54,7 @@
           "url": "kafka://kafka:29092",
           "topic": "smc_raw_lastdata",
           "headers": {
-            "fiware-datamodel": "dm-by-entity-type-database-schema"
+            "fiware-datamodel": "dm-by-entity-type-database"
           }
         },
         "attrs": [
@@ -64,7 +64,7 @@
       }
     },
     "mutable": {
-      "description": "Sensor:mutable:simple:mutable",
+      "description": "Sensor:mutable:not_servicepath:mutable",
       "status": "active",
       "subject": {
         "entities": [
@@ -84,7 +84,7 @@
           "url": "kafka://kafka:29092",
           "topic": "smc_raw_mutable",
           "headers": {
-            "fiware-datamodel": "dm-by-entity-type-database-schema"
+            "fiware-datamodel": "dm-by-entity-type-database"
           }
         },
         "attrs": [
@@ -93,7 +93,7 @@
         ]
       }
     }
-    },
+  },
   "updateEntities": [
     {
       "id": "Sensor1",

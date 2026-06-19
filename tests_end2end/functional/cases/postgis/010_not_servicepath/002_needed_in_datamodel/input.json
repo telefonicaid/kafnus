@@ -1,16 +1,16 @@
 {
-  "name": "datamodel_test_case",
+  "name": "not_servicepath_needed_test_case",
   "fiware-service": "test",
-  "fiware-servicepath": "/simple",
+  "fiware-servicepath": "",
   "subscriptions": {
     "historic": {
-      "description": "Sensor:HISTORIC:simple:historic",
+      "description": "Device:HISTORIC:not_servicepath_needed:historic",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "Sensor"
+            "type": "Device"
           }
         ],
         "condition": {
@@ -34,13 +34,13 @@
       }
     },
     "lastdata": {
-      "description": "Sensor:LASTDATA:simple:lastdata",
+      "description": "Device:LASTDATA:not_servicepath_needed:lastdata",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "Sensor"
+            "type": "Device"
           }
         ],
         "condition": {
@@ -64,13 +64,13 @@
       }
     },
     "mutable": {
-      "description": "Sensor:mutable:simple:mutable",
+      "description": "Device:mutable:not_servicepath_needed:mutable",
       "status": "active",
       "subject": {
         "entities": [
           {
             "idPattern": ".*",
-            "type": "Sensor"
+            "type": "Device"
           }
         ],
         "condition": {
@@ -96,8 +96,8 @@
     },
   "updateEntities": [
     {
-      "id": "Sensor1",
-      "type": "Sensor",
+      "id": "Device1",
+      "type": "Device",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T11:00:00Z"
@@ -105,8 +105,8 @@
       "temperature": {"value": 25.0, "type": "Float"}
     },
     {
-      "id": "Sensor1",
-      "type": "Sensor",
+      "id": "Device1",
+      "type": "Device",
       "TimeInstant": {
         "type": "DateTime",
         "value": "2025-06-26T12:00:00Z"
