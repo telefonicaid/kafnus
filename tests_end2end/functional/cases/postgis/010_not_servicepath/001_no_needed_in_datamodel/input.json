@@ -1,5 +1,5 @@
 {
-  "name": "not_servicepath_test_case",
+  "name": "not_servicepath_case",
   "fiware-service": "test",
   "fiware-servicepath": "",
   "subscriptions": {
@@ -24,7 +24,7 @@
           "url": "kafka://kafka:29092",
           "topic": "smc_raw_historic",
           "headers": {
-            "fiware-datamodel": "dm-by-entity-type-database-schema"
+            "fiware-datamodel": "dm-by-entity-type-database"
           }
         },
         "attrs": [
@@ -54,7 +54,7 @@
           "url": "kafka://kafka:29092",
           "topic": "smc_raw_lastdata",
           "headers": {
-            "fiware-datamodel": "dm-by-entity-type-database-schema"
+            "fiware-datamodel": "dm-by-entity-type-database"
           }
         },
         "attrs": [
@@ -84,7 +84,7 @@
           "url": "kafka://kafka:29092",
           "topic": "smc_raw_mutable",
           "headers": {
-            "fiware-datamodel": "dm-by-entity-type-database-schema"
+            "fiware-datamodel": "dm-by-entity-type-database"
           }
         },
         "attrs": [
@@ -93,7 +93,7 @@
         ]
       }
     }
-    },
+  },
   "updateEntities": [
     {
       "id": "Sensor1",
