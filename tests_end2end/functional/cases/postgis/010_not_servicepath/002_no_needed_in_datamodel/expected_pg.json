@@ -1,0 +1,8 @@
+[
+{
+  "table": "testdatamodel._sensor_lastdata",
+  "rows": [
+    {"entityid": "Sensor1", "entitytype": "Sensor", "temperature": 26.0, "fiwareservicepath": "/"}
+  ]
+}
+]
