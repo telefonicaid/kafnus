@@ -1,5 +1,5 @@
 {
-  "name": "simple_test_case",
+  "name": "datamodel_test_case",
   "fiware-service": "test",
   "fiware-servicepath": "/simple",
   "subscriptions": {
