@@ -18,46 +18,46 @@
 */
 
 -- Create schema if not exists
-CREATE SCHEMA IF NOT EXISTS testdatamodel;
+CREATE SCHEMA IF NOT EXISTS test;
 
 -- Drop table
-DROP TABLE IF EXISTS testdatamodel._sensor;
+DROP TABLE IF EXISTS test._device;
 
 -- Create table
-CREATE TABLE IF NOT EXISTS testdatamodel._sensor (
+CREATE TABLE IF NOT EXISTS test._device (
     recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
     fiwareservicepath TEXT,
     entityid TEXT,
     entitytype TEXT,
     timeinstant TIMESTAMPTZ,
     temperature DOUBLE PRECISION,
-    CONSTRAINT testdatamodel_sensor_pkey PRIMARY KEY (timeinstant, entityid)
+    CONSTRAINT test_device_pkey PRIMARY KEY (timeinstant, entityid)
 );
 
 -- Drop table
-DROP TABLE IF EXISTS testdatamodel._sensor_lastdata;
+DROP TABLE IF EXISTS test._device_lastdata;
 
 -- Create table
-CREATE TABLE IF NOT EXISTS testdatamodel._sensor_lastdata (
+CREATE TABLE IF NOT EXISTS test._device_lastdata (
     recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
     fiwareservicepath TEXT,
     entityid TEXT,
     entitytype TEXT,
     timeinstant TIMESTAMPTZ,
     temperature DOUBLE PRECISION,
-    CONSTRAINT testdatamodel_sensor_lastdata_pkey PRIMARY KEY (entityid)
+    CONSTRAINT test_device_lastdata_pkey PRIMARY KEY (entityid)
 );
 
 -- Drop table
-DROP TABLE IF EXISTS testdatamodel._sensor_mutable;
+DROP TABLE IF EXISTS test._device_mutable;
 
 -- Create table
-CREATE TABLE IF NOT EXISTS testdatamodel._sensor_mutable (
+CREATE TABLE IF NOT EXISTS test._device_mutable (
     recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
     fiwareservicepath TEXT,
     entityid TEXT,
     entitytype TEXT,
     timeinstant TIMESTAMPTZ,
     temperature DOUBLE PRECISION,
-    CONSTRAINT testdatamodel_sensor_mutable_pkey PRIMARY KEY (timeinstant, entityid)
+    CONSTRAINT test_device_mutable_pkey PRIMARY KEY (timeinstant, entityid)
 );
