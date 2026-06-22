@@ -18,7 +18,7 @@
  */
 
 const client = require('prom-client');
-const http = require('http');
+const http = require('node:http');
 const packageInfo = require('../../package.json');
 
 const SERVICE_VERSION = process.env.npm_package_version || packageInfo.version || 'unknown';
