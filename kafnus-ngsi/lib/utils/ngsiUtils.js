@@ -18,7 +18,7 @@
  */
 
 const { Geometry } = require('wkx');
-const { Buffer } = require('buffer');
+const { Buffer } = require('node:buffer');
 const { geoJSONToWkt } = require('betterknown');
 const { DateTime } = require('luxon');
 
