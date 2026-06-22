@@ -111,7 +111,7 @@ function stripPrefix(dbName) {
 }
 
 function cleanDbSuffix(dbName) {
-    return dbName.replace(/_(historic|lastdata|mutable|http).*$/, '');
+    return dbName.replaceAll(/_(historic|lastdata|mutable|http).*$/, '');
 }
 
 function buildErrorTopic(dbName) {
@@ -166,7 +166,7 @@ function buildFallbackQuery(valueJson, headers, dbName) {
 
 function formatSqlValue(v) {
     if (typeof v === 'string') {
-        return `'${v.replace(/'/g, "''")}'`;
+        return `'${v.replaceAll(/'/g, "''")}'`;
     }
     if (v == null) {
         return 'NULL';

@@ -183,7 +183,7 @@ async function publishEntity(producer, topic, message, key, headers) {
 // ================= LOG =================
 
 function logEntitySent(logger, topic, headers, entityId, flowSuffix) {
-    const suffixLabel = (flowSuffix ?? '').replace(/^_/, '') || 'historic';
+    const suffixLabel = (flowSuffix ?? '').replaceAll(/^_/, '') || 'historic';
 
     const readableHeaders = headers.map((h) =>
         Object.fromEntries(Object.entries(h).map(([k, v]) => [k, v.toString()]))
