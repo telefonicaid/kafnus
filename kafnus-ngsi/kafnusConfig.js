@@ -52,6 +52,10 @@ const envVarsSchema = {
             type: 'string',
             default: 'ngsi-processor'
         },
+        KAFNUS_NGSI_STATISTICS_INTERVAL_MS: {
+            type: 'number',
+            default: 30000
+        },
         // Producer
         KAFNUS_NGSI_ACKS: {
             type: 'string',
@@ -113,10 +117,6 @@ const envVarsSchema = {
             type: 'boolean',
             default: true
         },
-        KAFNUS_NGSI_STATISTICS_INTERVAL_MS: {
-            type: 'number',
-            default: 30000
-        },
         // Consumer
         KAFNUS_NGSI_ENABLE_AUTO_COMMIT: {
             type: 'boolean',
@@ -142,10 +142,6 @@ const envVarsSchema = {
             type: 'number',
             default: 3000
         },
-        KAFNUS_NGSI_STATISTICS_INTERVAL_MS: {
-            type: 'number',
-            default: 30000
-        },
         // Security
         KAFNUS_NGSI_SECURITY_PROTOCOL: {
             type: 'string',
@@ -163,6 +159,7 @@ const envVarsSchema = {
             type: 'string',
             default: null
         },
+        // Grpahql
         KAFNUS_NGSI_GRAPHQL_GRAFO_PREFIX: {
             type: 'string',
             default: ''
