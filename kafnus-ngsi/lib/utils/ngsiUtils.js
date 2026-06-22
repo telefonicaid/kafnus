@@ -218,7 +218,7 @@ function handleDateType(nameLc, value) {
     try {
         const millis = toEpochMillis(value);
 
-        if (isNaN(millis)) {
+        if (Number.isNaN(millis)) {
             return warnInvalidDate(nameLc, value);
         }
 
