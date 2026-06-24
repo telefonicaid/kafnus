@@ -1,3 +1,1 @@
-- Use in mongo sink a mapping like sql "dm-by-entity-type-database" for database and collection (#261)
-- Add: use notification fiware headers values (srv, subsrv, corr) in logs (#271)
-- Upgrade dep @confluentinc/kafka-javascript from 1.9.0 to 1.9.1
+
