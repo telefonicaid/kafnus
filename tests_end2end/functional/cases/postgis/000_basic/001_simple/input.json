@@ -22,7 +22,11 @@
       "notification": {
         "kafkaCustom": {
           "url": "kafka://kafka:29092",
-          "topic": "smc_raw_historic"
+          "topic": "smc_raw_historic",
+          "user": "admin",
+          "passwd": "admin-secret",
+          "saslMechanism": "PLAIN",
+          "securityProtocol": "SASL_PLAINTEXT"
         },
         "attrs": [
           "TimeInstant",
@@ -49,7 +53,11 @@
       "notification": {
         "kafkaCustom": {
           "url": "kafka://kafka:29092",
-          "topic": "smc_raw_lastdata"
+          "topic": "smc_raw_lastdata",
+          "user": "admin",
+          "passwd": "admin-secret",
+          "saslMechanism": "PLAIN",
+          "securityProtocol": "SASL_PLAINTEXT"
         },
         "attrs": [
           "TimeInstant",
@@ -76,7 +84,11 @@
       "notification": {
         "kafkaCustom": {
           "url": "kafka://kafka:29092",
-          "topic": "smc_raw_mutable"
+          "topic": "smc_raw_mutable",
+          "user": "admin",
+          "passwd": "admin-secret",
+          "saslMechanism": "PLAIN",
+          "securityProtocol": "SASL_PLAINTEXT"
         },
         "attrs": [
           "TimeInstant",
