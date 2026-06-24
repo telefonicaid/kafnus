@@ -168,7 +168,55 @@ curl -X POST -H "Content-Type: application/json" \
 > ⚠️ Levels: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`. Changes are **immediate**.
 
 **Health check:**
-A valid JSON response confirms the Admin Server is running. If it fails, check the `kafnus-ngsi` container logs and `KAFNUS_NGSI_ADMIN_PORT` setting.
+`/health` now returns operational pipeline information, not only keepalive status.
+
+Example response (abridged):
+
+```json
+{
+  "status": "UP",
+  "timestamp": "2026-04-23T12:00:00.000Z",
+  "pipeline": {
+    "totalEvents": 1280,
+    "successEvents": 1270,
+    "errorEvents": 10,
+    "successRate": 0.992188,
+    "activeServices": 2,
+    "activeFlows": 6,
+    "byFlow": [
+      {
+        "flow": "historic",
+        "totalEvents": 300,
+        "successEvents": 298,
+        "errorEvents": 2,
+        "avgDurationSeconds": 0.012341,
+        "lastProcessedAt": "2026-04-23T11:59:59.000Z"
+      }
+    ]
+  }
+}
+```
+
+This endpoint is intended to answer: "is the Kafnus message processing pipeline healthy right now?"
+
+If the request fails, check `kafnus-ngsi` container logs and `KAFNUS_NGSI_ADMIN_PORT`.
+
+#### Runtime Config Endpoint (`/config`)
+
+Admin server exposes runtime environment visibility (read-only) at `GET /config`.
+
+```bash
+curl -s http://localhost:8000/config | jq .
+```
+
+Response includes `variables`: all `KAFNUS_NGSI_*` environment variables plus selected runtime keys (`NODE_ENV`, `npm_package_version`).
+
+Sensitive keys (those containing `PASSWORD`, `SECRET`, `TOKEN`, `PRIVATE_KEY` or `SASL`) are masked as `***redacted***`.
+
+**Metrics content negotiation:**
+
+- `GET /metrics` accepts Prometheus text format (`text/plain`, registry content type, or `*/*`).
+- If `Accept` does not allow Prometheus text (for example `application/json`), it returns `406 NotAcceptable`.
 
 ---
 
@@ -520,8 +568,16 @@ These mutations, like:
     }
 }
 ```
-contains a dti defined by default as `grafo` by `KAFNUS_NGSI_GRAPHQL_GRAFO` env conf and could be extended to `grafo_<fiware_service>` enabling boolean flag option `KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE` and by `grafo_<suffix>` enabling boolean flag option `KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX`.
+contains a `dti` defined by default as `<graphname>` header which could be extended to `<prefix><graphname>` by using `KAFNUS_NGSI_GRAPHQL_GRAFO_PREFIX` env config option and by `<graphName><suffix>` enabling config option `KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX`, or both `<prefix><graphname><suffix>`.
 
+### Geometry Convention in SGTR
+
+Current convention for SGTR GraphQL payloads:
+
+- Geometry conversion is applied only when entity `type` is `Location`.
+- Only attribute `asGeoJSON` is transformed (key matching is case-insensitive).
+- Transformed output field is `asWkt` (GraphQL schema naming).
+- The original `asGeoJSON` field is removed after conversion.
 
 ---
 
@@ -604,9 +660,9 @@ These variables control fetch behavior, session handling, and **manual offset ma
 | `KAFNUS_NGSI_LOG_COMP` | string | `Kafnus-ngsi` | Component name used in structured logs. |
 | `KAFNUS_NGSI_ADMIN_PORT` | number | `8000` | Port for admin, metrics, health and log-level endpoints. |
 | `KAFNUS_NGSI_MONGO_PREFIX` | string | `sth_` | Prefix prepended to MongoDB database and collection names (see [MongoDB Namespace Prefix Configuration](#mongodb-namespace-prefix-configuration)). |
-| `KAFNUS_NGSI_GRAPHQL_GRAFO` | string | `grafo` | Graph name prefix or version used by the GraphQL integration. |
-| `KAFNUS_NGSI_GRAPHQL_GRAFO_BY_SERVICE`      | boolean   | `false`      | Add '`<service>`' to Graph name used by the GraphQL service.
+| `KAFNUS_NGSI_GRAPHQL_GRAFO_PREFIX` | string | `` | Graph name prefix used by the GraphQL integration. |
 | `KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX`      | string   | ``      | Add '`<suffix>`' to Graph name used by the GraphQL service.        |
+| `KAFNUS_NGSI_GRAPHQL_FALLBACK_GRAPHNAME_TO_SERVICE`      | boolean   | `false`      | Fallback to use '`<service>`' as graphname when no graphname header is provided.                          |
 | `KAFNUS_NGSI_GRAPHQL_OUTPUT_TOPIC_BY_SERVICE`      | boolean   | `false`      | Add '`<service>`_' to outputTopic used by the HTTP connector sink.                          |
 | `KAFNUS_NGSI_GRAPHQL_STAGING`      | boolean   | `false`      | Add '`staging=true`' into mutations for graphql.                          |
 | `KAFNUS_NGSI_GRAPHQL_SLUG_URI` | boolean | `false` | Enables slug-based URIs for GraphQL identifiers. |

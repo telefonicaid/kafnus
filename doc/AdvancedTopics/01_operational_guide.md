@@ -77,11 +77,29 @@ Expected response:
 ```json
 {
   "status": "UP",
-  "timestamp": "2025-12-02T10:15:32.123Z"
+  "timestamp": "2026-04-23T12:00:00.000Z",
+  "pipeline": {
+    "totalEvents": 1280,
+    "successEvents": 1270,
+    "errorEvents": 10,
+    "successRate": 0.992188,
+    "activeServices": 2,
+    "activeFlows": 6,
+    "byFlow": [
+      {
+        "flow": "historic",
+        "totalEvents": 300,
+        "successEvents": 298,
+        "errorEvents": 2,
+        "avgDurationSeconds": 0.012341,
+        "lastProcessedAt": "2026-04-23T11:59:59.000Z"
+      }
+    ]
+  }
 }
 ```
 
-> ✅ A valid JSON response confirms the Admin Server is running.
+> ✅ A valid JSON response confirms the Admin Server is running and provides pipeline processing health.
 > ❌ If the request fails, check the container logs (`docker logs -f kafnus-ngsi`) and ensure `KAFNUS_NGSI_ADMIN_PORT` is correctly set.
 
 ---

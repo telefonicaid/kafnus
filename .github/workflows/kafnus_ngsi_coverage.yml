@@ -95,6 +95,13 @@ jobs:
       - name: Run unit tests with coverage
         run: npm run test:coverage
 
+      - name: Debug coverage
+        run: |
+          echo "Current dirs:"
+          pwd
+          echo "Listing files:"
+          ls -R
+
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:

@@ -12,7 +12,7 @@
 
     "transforms": "MongoPrefix",
     "transforms.MongoPrefix.type": "com.telefonica.MongoNamespacePrefix",
-    "transforms.MongoPrefix.prefix": "sth_",
+    "transforms.MongoPrefix.prefix": "bigdata_",
 
     "namespace.mapper": "com.mongodb.kafka.connect.sink.namespace.mapping.FieldPathNamespaceMapper",
     "namespace.mapper.key.database.field": "database",

@@ -1,7 +1,7 @@
 {
   "name": "kafnus-ngsi",
   "license": "AGPL-3.0-only",
-  "version": "1.2.0-next",
+  "version": "1.4.0-next",
   "description": "kafnus-ngsi based on @confluentinc/kafka-javascript",
   "homepage": "https://github.com/telefonicaid/kafnus",
   "main": "index.js",
@@ -15,13 +15,13 @@
     "prettier": "prettier --config .prettierrc.json --write '**/**/**/**/*.js' '**/**/**/*.js' '**/**/*.js' '**/*.js' '*.js'",      
     "start": "node index.js",
     "test": "jest --runInBand",
-    "test:coverage": "jest --runInBand --coverage --coverageReporters=text-summary --coverageReporters=lcov"
+    "test:coverage": "jest --runInBand --coverage --coverageReporters=text-summary --coverageReporters=lcov --coverageReporters=html"
   },
   "engines": {
     "node": ">=24"
   },
   "dependencies": {
-    "@confluentinc/kafka-javascript": "1.9.0",
+    "@confluentinc/kafka-javascript": "1.9.1",
     "ajv": "~8.18.0",
     "ajv-formats": "~3.0.1",
     "betterknown": "1.0.5",

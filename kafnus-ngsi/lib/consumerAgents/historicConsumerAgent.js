@@ -19,28 +19,40 @@
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
 const { handleEntityCb } = require('../utils/handleEntityCb');
-const { messagesProcessed, processingTime } = require('../utils/admin');
+const { recordFlowProcessing } = require('../utils/admin');
+const { getFiwareContext } = require('../utils/ngsiUtils');
 const { config } = require('../../kafnusConfig');
+const logger = require('../utils/logger');
 const Kafka = require('@confluentinc/kafka-javascript');
 
-async function startHistoricConsumerAgent(logger, producer) {
+async function startHistoricConsumerAgent(log, producer) {
     const topic = config.ngsi.prefix + 'raw_historic';
     const groupId = 'ngsi-processor-historic';
     const suffix = '_historic' + config.ngsi.suffix;
 
-    const consumer = await createConsumerAgent(logger, {
+    const consumer = await createConsumerAgent(log, {
         groupId,
         topic,
         producer,
         onData: async (msg) => {
             const start = Date.now();
+            let processingResult = 'success';
+            const fiwareContext = getFiwareContext(msg.headers, {});
+            const service = fiwareContext.service;
             const k = msg.key?.toString() || '';
             const v = msg.value?.toString() || '';
-            logger.info(`[raw_historic] Key: ${k}, Value: ${v}`);
+            log.info(`[raw_historic] Key: ${k}, Value: ${v}`);
+            const configContext = {
+                op: 'historicConsumer',
+                corr: fiwareContext.correlator,
+                service: fiwareContext.service,
+                subservice: fiwareContext.servicepath
+            };
+            const currentlog = logger.createChildLogger(configContext);
 
             try {
                 await handleEntityCb(
-                    logger,
+                    currentlog,
                     v,
                     {
                         headers: msg.headers,
@@ -53,19 +65,19 @@ async function startHistoricConsumerAgent(logger, producer) {
                 );
                 consumer.commitMessage(msg);
             } catch (err) {
+                processingResult = 'error';
                 if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
                     // No Log, rethrow to createConsumerAgent pause
                     throw err;
                 }
-                logger.error(`[historic] Error processing event: ${err?.stack || err}`);
+                currentlog.error(`[historic] Error processing event: ${err?.stack || err}`);
                 // Policy decision:
                 // - if no retries, then commit here (to avoid infinite loop)
                 // consumer.commitMessage(msg);
                 // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
             } finally {
                 const duration = (Date.now() - start) / 1000;
-                messagesProcessed.labels({ flow: 'historic' }).inc();
-                processingTime.labels({ flow: 'historic' }).set(duration);
+                recordFlowProcessing('historic', service, duration, processingResult);
             }
         }
     });

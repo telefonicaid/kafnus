@@ -1,0 +1,40 @@
+{
+  "name": "lastdata_without_timeinstant",
+  "fiware-service": "test",
+  "fiware-servicepath": "/notimeinstant",
+  "subscriptions": {
+    "lastdata": {
+      "description": "Issue260:LASTDATA:without_timeinstant",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "type": "AZUL",
+            "id": "FLOW0"
+          }
+        ]
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_lastdata"
+        },
+        "attrs": [
+          "temperature"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "FLOW0",
+      "type": "AZUL",
+      "temperature": {"value": 25.0, "type": "Float"}
+    },
+    {
+      "id": "FLOW0",
+      "type": "AZUL",
+      "temperature": {"value": 26.0, "type": "Float"}
+    }
+  ]
+}

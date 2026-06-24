@@ -1,0 +1,35 @@
+{
+  "name": "historic_without_timeinstant_current_behavior",
+  "fiware-service": "test",
+  "fiware-servicepath": "/notimeinstant",
+  "subscriptions": {
+    "historic": {
+      "description": "Issue260:HISTORIC:without_timeinstant",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "type": "AZUL",
+            "id": "FLOW0"
+          }
+        ]
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_historic"
+        },
+        "attrs": [
+          "temperature"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "FLOW0",
+      "type": "AZUL",
+      "temperature": {"value": 25.0, "type": "Float"}
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "name": "not_servicepath_needed_test_case",
+  "fiware-service": "test",
+  "fiware-servicepath": "",
+  "subscriptions": {
+    "historic": {
+      "description": "Device:HISTORIC:not_servicepath_needed:historic",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Device"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_historic",
+          "headers": {
+            "fiware-datamodel": "dm-by-entity-type-database-schema"
+          }
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature"
+        ]
+      }
+    },
+    "lastdata": {
+      "description": "Device:LASTDATA:not_servicepath_needed:lastdata",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Device"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_lastdata",
+          "headers": {
+            "fiware-datamodel": "dm-by-entity-type-database-schema"
+          }
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature"
+        ]
+      }
+    },
+    "mutable": {
+      "description": "Device:mutable:not_servicepath_needed:mutable",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Device"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_mutable",
+          "headers": {
+            "fiware-datamodel": "dm-by-entity-type-database-schema"
+          }
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature"
+        ]
+      }
+    }
+    },
+  "updateEntities": [
+    {
+      "id": "Device1",
+      "type": "Device",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T11:00:00Z"
+      },
+      "temperature": {"value": 25.0, "type": "Float"}
+    },
+    {
+      "id": "Device1",
+      "type": "Device",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:00:00Z"
+      },
+      "temperature": {"value": 26.0, "type": "Float"}
+    }
+  ]
+}

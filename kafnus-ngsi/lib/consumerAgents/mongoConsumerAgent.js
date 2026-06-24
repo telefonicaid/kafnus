@@ -18,101 +18,204 @@
  */
 
 const { createConsumerAgent } = require('./sharedConsumerAgentFactory');
-const { getFiwareContext } = require('../utils/ngsiUtils');
+const { sanitizeString, getFiwareContext } = require('../utils/ngsiUtils');
 const { safeProduce } = require('../utils/handleEntityCb');
 const { DateTime } = require('luxon');
-const { messagesProcessed, processingTime } = require('../utils/admin');
+const { recordFlowProcessing } = require('../utils/admin');
 const { config } = require('../../kafnusConfig');
+const logger = require('../utils/logger');
 const Kafka = require('@confluentinc/kafka-javascript');
 
 const OUTPUT_TOPIC_SUFFIX = '_mongo' + config.ngsi.suffix;
 
-async function startMongoConsumerAgent(logger, producer) {
+// ================= PARSE =================
+
+function parseJson(raw, log, consumer, msg) {
+    try {
+        return JSON.parse(raw);
+    } catch (e) {
+        log.warn('[mongo] Invalid JSON: %s', e.message);
+        consumer.commitMessage(msg);
+        return null;
+    }
+}
+
+// ================= LOG =================
+
+function logInput(log, msg, rawValue) {
+    const k = msg.key?.toString();
+    log.info(`[mongo] key=${k} value=${rawValue}`);
+}
+
+// ================= CONTEXT =================
+
+function buildContext(msg, message) {
+    const ctx = getFiwareContext(msg.headers, message);
+
+    return {
+        service: ctx.service,
+        servicepath: ctx.servicepath,
+        correlator: ctx.correlator
+    };
+}
+
+function createContextLogger(context) {
+    return logger.createChildLogger({
+        op: 'mongoConsumer',
+        corr: context.correlator,
+        service: context.service,
+        subservice: context.servicepath
+    });
+}
+
+// ================= CONFIG =================
+
+function buildMongoConfig(context) {
+    return {
+        db: context.service,
+        collectionPrefix: sanitizeString(`${context.service}${context.servicepath}_`)
+    };
+}
+
+function buildOutputTopic(service) {
+    return `${config.ngsi.prefix}${service}${OUTPUT_TOPIC_SUFFIX}`;
+}
+
+// ================= DOCUMENT =================
+
+function buildDocument(entity, recvTime) {
+    const doc = {
+        recvTime,
+        entityId: entity.id,
+        entityType: entity.type
+    };
+
+    Object.entries(entity).forEach(([key, value]) => {
+        if (key === 'id' || key === 'type') {
+            return;
+        }
+
+        doc[key] = value?.value;
+
+        if (hasMetadata(value)) {
+            doc[`${key}_md`] = value.metadata;
+        }
+    });
+
+    return doc;
+}
+
+function hasMetadata(attr) {
+    return attr?.metadata && Object.keys(attr.metadata).length > 0;
+}
+
+// ================= KAFKA =================
+
+async function publishMongo(producer, topic, doc, db, collection) {
+    await safeProduce(producer, [
+        topic,
+        null,
+        Buffer.from(JSON.stringify(doc)),
+        Buffer.from(
+            JSON.stringify({
+                database: db,
+                collection
+            })
+        ),
+        Date.now(),
+        null,
+        null
+    ]);
+}
+
+// ================= PROCESS =================
+
+async function processMongoEntities({ entities, mongoConfig, outputTopic, producer, currentlog }) {
+    const recvTime = DateTime.utc().toISO();
+
+    for (const entity of entities) {
+        const doc = buildDocument(entity, recvTime);
+
+        const collection = mongoConfig.collectionPrefix + entity.type;
+
+        await publishMongo(producer, outputTopic, doc, mongoConfig.db, collection);
+
+        currentlog.info(`[mongo] Sent to '${outputTopic}' | DB=${mongoConfig.db} | Collection=${collection}`);
+    }
+}
+
+// ================= ERROR =================
+
+function handleError(err, log) {
+    if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
+        throw err;
+    }
+
+    log?.error(`[mongo] Error processing event: ${err?.stack || err} offset NOT committed`);
+
+    return 'error';
+}
+
+// ================= MAIN =================
+
+async function handleMongoMessage(msg, log, producer, consumer) {
+    const start = Date.now();
+    let processingResult = 'success';
+    let fiwareService = 'default';
+    let currentlog = log;
+
+    try {
+        const rawValue = msg.value?.toString();
+        if (!rawValue) {
+            consumer.commitMessage(msg);
+            return;
+        }
+
+        const message = parseJson(rawValue, log, consumer, msg);
+        if (!message) {
+            return;
+        }
+
+        const context = buildContext(msg, message);
+        fiwareService = context.service;
+
+        currentlog = createContextLogger(context);
+        logInput(log, msg, rawValue);
+
+        const mongoConfig = buildMongoConfig(context);
+        const outputTopic = buildOutputTopic(context.service);
+
+        const entities = message.data || [];
+        if (entities.length === 0) {
+            consumer.commitMessage(msg);
+            return;
+        }
+
+        await processMongoEntities({
+            entities,
+            mongoConfig,
+            outputTopic,
+            producer,
+            currentlog
+        });
+
+        consumer.commitMessage(msg);
+    } catch (err) {
+        processingResult = handleError(err, currentlog);
+    } finally {
+        recordFlowProcessing('mongo', fiwareService, (Date.now() - start) / 1000, processingResult);
+    }
+}
+
+async function startMongoConsumerAgent(log, producer) {
     const topic = config.ngsi.prefix + 'raw_mongo';
     const groupId = 'ngsi-processor-mongo';
 
-    const consumer = await createConsumerAgent(logger, {
+    const consumer = await createConsumerAgent(log, {
         groupId,
         topic,
         producer,
-        onData: async (msg) => {
-            const start = Date.now();
-
-            try {
-                const rawValue = msg.value?.toString();
-                if (!rawValue) {
-                    // Nothing to process
-                    consumer.commitMessage(msg);
-                    return;
-                }
-                const k = msg.key?.toString();
-                logger.info(`[mongo] key=${k} value=${rawValue}`);
-                let message;
-                try {
-                    message = JSON.parse(rawValue);
-                } catch (e) {
-                    logger.warn('[mongo] Invalid JSON, committing: %s', e.message);
-                    consumer.commitMessage(msg);
-                    return;
-                }
-                const { service: fiwareService, servicepath: servicePath } = getFiwareContext(msg.headers, message);
-                const mongoDb = `${fiwareService}`;
-                const mongoCollection = `${servicePath}`;
-                const outputTopic = `${config.ngsi.prefix}${fiwareService}${OUTPUT_TOPIC_SUFFIX}`;
-                const recvTime = DateTime.utc().toISO();
-                const entities = message.data || [];
-                if (entities.length === 0) {
-                    // Valid payload but empty
-                    consumer.commitMessage(msg);
-                    return;
-                }
-                for (const entity of entities) {
-                    const doc = {
-                        recvTime,
-                        entityId: entity.id,
-                        entityType: entity.type
-                    };
-                    for (const [attrName, attrObj] of Object.entries(entity)) {
-                        if (attrName !== 'id' && attrName !== 'type') {
-                            doc[attrName] = attrObj?.value;
-                            if (attrObj?.metadata && Object.keys(attrObj.metadata).length > 0) {
-                                doc[`${attrName}_md`] = attrObj.metadata;
-                            }
-                        }
-                    }
-                    await safeProduce(producer, [
-                        outputTopic,
-                        null, // partition null: kafka decides
-                        Buffer.from(JSON.stringify(doc)), // message
-                        Buffer.from(
-                            JSON.stringify({
-                                database: mongoDb,
-                                collection: mongoCollection
-                            })
-                        ), // Key (optional)
-                        Date.now(), // timestamp
-                        null, // Opaque
-                        null
-                    ]);
-                    logger.info(`[mongo] Sent to '${outputTopic}' | DB=${mongoDb} | Collection=${mongoCollection}`);
-                }
-                consumer.commitMessage(msg);
-            } catch (err) {
-                if (err?.code === Kafka.CODES.ERRORS.ERR__QUEUE_FULL) {
-                    // No Log, rethrow to createConsumerAgent pause
-                    throw err;
-                }
-                logger.error(`[mongo] Error processing event: ${err?.stack || err} offset NOT committed`);
-                // Policy decision:
-                // - if no retries, then commit here (to avoid infinite loop)
-                // consumer.commitMessage(msg);
-                // - if yes retries, do not commit and do not rethrow to avoid upper layer handle this as backpressure
-            } finally {
-                const duration = (Date.now() - start) / 1000;
-                messagesProcessed.labels({ flow: 'mongo' }).inc();
-                processingTime.labels({ flow: 'mongo' }).set(duration);
-            }
-        }
+        onData: (msg) => handleMongoMessage(msg, log, producer, consumer)
     });
 
     return consumer;
