@@ -1,0 +1,1 @@
+Sends empty string for a numeric column in database

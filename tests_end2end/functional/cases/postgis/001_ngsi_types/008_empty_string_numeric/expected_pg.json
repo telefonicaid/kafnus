@@ -1,0 +1,12 @@
+[
+{
+  "table": "test.empty_string_numeric_sensor",
+  "rows": [
+    {"entityid": "Sensor1", "entitytype": "Sensor", "temperature": 25.0, "fiwareservicepath": "/empty_string_numeric"},
+    {"entityid": "Sensor1", "entitytype": "Sensor", "temperature": null, "fiwareservicepath": "/empty_string_numeric"},
+    {"entityid": "Sensor2", "entitytype": "Sensor", "temperature": 26.0, "fiwareservicepath": "/empty_string_numeric"},
+    {"entityid": "Sensor2", "entitytype": "Sensor", "temperature": null, "fiwareservicepath": "/empty_string_numeric"}
+
+  ]
+}
+]

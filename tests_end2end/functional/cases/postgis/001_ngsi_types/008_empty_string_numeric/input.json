@@ -1,0 +1,72 @@
+{
+  "name": "empty_string_numeric_test_case",
+  "fiware-service": "test",
+  "fiware-servicepath": "/empty_string_numeric",
+  "subscriptions": {
+    "historic": {
+      "description": "Sensor:HISTORIC:empty_string_numeric:historic",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_historic"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature"
+        ]
+      }
+    }
+    },
+  "updateEntities": [
+    {
+      "id": "Sensor1",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T11:00:00Z"
+      },
+      "temperature": {"value": 25.0, "type": "Float"}
+    },
+    {
+      "id": "Sensor1",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:00:00Z"
+      },
+      "temperature": {"value": "", "type": "Float"}
+    },
+    {
+      "id": "Sensor2",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T13:00:00Z"
+      },
+      "temperature": {"value": 26.0, "type": "Float"}
+    },
+    {
+      "id": "Sensor2",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T14:00:00Z"
+      },
+      "temperature": {"value": "", "type": "Text"}
+    }
+  ]
+}
