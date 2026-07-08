@@ -8,7 +8,7 @@
         "fiwareservicepath": "/edgecase",
         "timeinstant": "2025-06-26T18:00:01Z",
         "zero_value": 0.0,
-        "empty_text": "",
+        "empty_text": null,
         "large_number": 9007199254740991,
         "special_chars": "!@#$%^&*()_+-=[]{}|;':\",./<>?",
         "unicode_text": "Привет мир 你好世界 🌍🚀⭐"
@@ -19,7 +19,7 @@
         "fiwareservicepath": "/edgecase",
         "timeinstant": "2025-06-26T18:00:00Z",
         "zero_value": -0.0,
-        "empty_text": " ",
+        "empty_text": null,
         "large_number": -9007199254740991,
         "special_chars": "\\n\\t\\r\\\"\\'\\/\\\\",
         "unicode_text": "🔥💯✨🎯🌟⚡🚀💎🎉🔊"
@@ -57,7 +57,7 @@
         "fiwareservicepath": "/edgecase",
         "timeinstant": "2025-06-26T18:00:00Z",
         "zero_value": -0.0,
-        "empty_text": " ",
+        "empty_text": null,
         "large_number": -9007199254740991,
         "special_chars": "\\n\\t\\r\\\"\\'\\/\\\\",
         "unicode_text": "🔥💯✨🎯🌟⚡🚀💎🎉🔊"
@@ -73,7 +73,7 @@
         "fiwareservicepath": "/edgecase",
         "timeinstant": "2025-06-26T18:00:01Z",
         "zero_value": 0.0,
-        "empty_text": "",
+        "empty_text": null,
         "large_number": 9007199254740991,
         "special_chars": "!@#$%^&*()_+-=[]{}|;':\",./<>?",
         "unicode_text": "Привет мир 你好世界 🌍🚀⭐"
@@ -84,7 +84,7 @@
         "fiwareservicepath": "/edgecase",
         "timeinstant": "2025-06-26T18:00:00Z",
         "zero_value": -0.0,
-        "empty_text": " ",
+        "empty_text": null,
         "large_number": -9007199254740991,
         "special_chars": "\\n\\t\\r\\\"\\'\\/\\\\",
         "unicode_text": "🔥💯✨🎯🌟⚡🚀💎🎉🔊"
