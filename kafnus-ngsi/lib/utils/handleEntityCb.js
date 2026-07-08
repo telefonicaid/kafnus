@@ -119,8 +119,7 @@ function isIgnoredAttr(name) {
 function processAttribute(name, attrData, attributes, schemaOverrides, attributesTypes) {
     let value = attrData?.value;
     const attrType = attrData?.type || '';
-    const isNgsiNestedAttribute =
-        attrData !== null && typeof attrData === 'object' && Object.prototype.hasOwnProperty.call(attrData, 'value');
+    const isNgsiNestedAttribute = attrData !== null && typeof attrData === 'object' && Object.hasOwn(attrData, 'value');
 
     if (handleGeo(name, value, attrType, attributes, schemaOverrides, attributesTypes)) {
         return;
