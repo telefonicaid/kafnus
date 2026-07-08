@@ -222,6 +222,50 @@ describe('handleEntityCb.js', () => {
             expect(logger.error).toHaveBeenCalled();
         });
 
+        test('normalizes nested empty string to null for NGSI nested attributes', async () => {
+            const producer = { produce: jest.fn() };
+
+            const rawValue = JSON.stringify({
+                data: [
+                    {
+                        id: 'Sensor1',
+                        type: 'Sensor',
+                        temperature: { value: '', type: 'Float' }
+                    }
+                ]
+            });
+
+            await handleEntityCb(logger, rawValue, { headers: [] }, producer);
+
+            expect(ngsiUtils.toKafnusConnectSchema).toHaveBeenCalledWith(
+                expect.objectContaining({ temperature: null }),
+                expect.any(Object),
+                expect.objectContaining({ temperature: 'Float' })
+            );
+        });
+
+        test('normalizes nested empty string to null even for textual NGSI type', async () => {
+            const producer = { produce: jest.fn() };
+
+            const rawValue = JSON.stringify({
+                data: [
+                    {
+                        id: 'Sensor1',
+                        type: 'Sensor',
+                        comment: { value: '', type: 'Text' }
+                    }
+                ]
+            });
+
+            await handleEntityCb(logger, rawValue, { headers: [] }, producer);
+
+            expect(ngsiUtils.toKafnusConnectSchema).toHaveBeenCalledWith(
+                expect.objectContaining({ comment: null }),
+                expect.any(Object),
+                expect.objectContaining({ comment: 'Text' })
+            );
+        });
+
         test('rethrows ERR__QUEUE_FULL from safeProduce without calling logger.error', async () => {
             // Make deadline expire immediately on the second Date.now() call so safeProduce
             // throws QUEUE_FULL synchronously; handleEntityCb must rethrow it without logging.
