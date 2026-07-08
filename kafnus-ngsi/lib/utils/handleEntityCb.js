@@ -119,12 +119,14 @@ function isIgnoredAttr(name) {
 function processAttribute(name, attrData, attributes, schemaOverrides, attributesTypes) {
     let value = attrData?.value;
     const attrType = attrData?.type || '';
+    const isNgsiNestedAttribute =
+        attrData !== null && typeof attrData === 'object' && Object.prototype.hasOwnProperty.call(attrData, 'value');
 
     if (handleGeo(name, value, attrType, attributes, schemaOverrides, attributesTypes)) {
         return;
     }
 
-    value = normalizeValue(value, attrType);
+    value = normalizeValue(value, attrType, isNgsiNestedAttribute);
 
     attributes[name] = value;
     attributesTypes[name] = attrType;
@@ -152,7 +154,11 @@ function extractAttributes(entity) {
 
 // ================= VALUE =================
 
-function normalizeValue(value, type) {
+function normalizeValue(value, type, isNgsiNestedAttribute = false) {
+    if (isNgsiNestedAttribute && typeof value === 'string' && value.trim() === '') {
+        return null;
+    }
+
     if (['json', 'jsonb'].includes(type)) {
         return JSON.stringify(value);
     }
