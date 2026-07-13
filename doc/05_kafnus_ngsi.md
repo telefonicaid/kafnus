@@ -596,6 +596,7 @@ The following environment variables configure Kafka connectivity, producer/consu
 | `KAFNUS_NGSI_GROUP_ID` | string | `ngsi-processor` | Base Kafka consumer group ID used by NGSI processor agents. |
 | `KAFNUS_NGSI_PREFIX_TOPIC` | string | `` | Prefix used in all kafka topics (by default no prefix is used). |
 | `KAFNUS_NGSI_SUFFIX_TOPIC` | string | `` | Suffix used in all kafka topics (by default no suffix is used). |
+| `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT` | boolean | `false` | When enabled, the historic flow splits each entity by per-attribute metadata `TimeInstant`, writing one row per distinct observation time (`TimeInstant` metadata → entity-level `TimeInstant` → `recvtime`). Only the historic flow is affected; lastdata/mutable stay single-row-per-entity. |
 
 ---
 

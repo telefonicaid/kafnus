@@ -1,0 +1,15 @@
+[
+{
+  "table": "test.split_sensor",
+  "rows": [
+    {"entityid": "Sensor1", "entitytype": "Sensor", "timeinstant": "2024-06-01T10:00:00Z", "temperature": 23.5, "fiwareservicepath": "/split"},
+    {"entityid": "Sensor1", "entitytype": "Sensor", "timeinstant": "2024-06-01T10:00:05Z", "humidity": 65.0, "fiwareservicepath": "/split"}
+  ]
+},
+{
+  "table": "test.split_sensor_lastdata",
+  "rows": [
+    {"entityid": "Sensor1", "entitytype": "Sensor", "timeinstant": "2024-06-01T10:00:05Z", "temperature": 23.5, "humidity": 65.0, "fiwareservicepath": "/split"}
+  ]
+}
+]

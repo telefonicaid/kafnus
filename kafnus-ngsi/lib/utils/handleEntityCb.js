@@ -30,6 +30,8 @@ const { config } = require('../../kafnusConfig');
 const { once } = require('events');
 const Kafka = require('@confluentinc/kafka-javascript');
 
+const TIMEINSTANT_KEY = 'timeinstant';
+
 async function safeProduce(producer, args, { maxWaitMs = 30000 } = {}) {
     const deadline = Date.now() + maxWaitMs;
 
@@ -84,6 +86,78 @@ function buildBaseEntity(entity, context) {
         entitytype: entity.type,
         fiwareservicepath: context.servicepath
     };
+}
+
+// ================= TIMEINSTANT SPLIT =================
+
+// Case-insensitive lookup of a `TimeInstant.value` inside an object. Reused for
+// both the entity-level attribute and per-attribute metadata, since IoT-Agent
+// casing may vary ('TimeInstant', 'timeinstant', ...).
+function findTimeInstantValue(source) {
+    if (!source || typeof source !== 'object') {
+        return undefined;
+    }
+
+    for (const [key, val] of Object.entries(source)) {
+        if (key.toLowerCase() === TIMEINSTANT_KEY) {
+            return val?.value;
+        }
+    }
+
+    return undefined;
+}
+
+/*
+ * Splits a single NGSI entity into one sub-entity per distinct resolved
+ * TimeInstant, so the historic flow can write one row per observation time.
+ * Data attributes are grouped by their resolved timestamp and each group
+ * becomes a standalone NGSI-shaped entity (same id/type) whose TimeInstant is
+ * overridden with that group's resolved value, so the historic row carries the
+ * actual observation time of the data it contains. Each sub-entity then flows
+ * through the regular processing path (and existing timeinstant-based key)
+ * unchanged.
+ *
+ * The original entity is returned only when it has no data attributes (so
+ * there is nothing to group, but the row must still be emitted just like the
+ * non-split path does). In every other case the entity is rebuilt so each row
+ * carries its resolved observation time — including when a single shared
+ * metadata timestamp differs from the entity-level TimeInstant.
+ */
+function splitEntityByTimeInstant(entity) {
+    const entityTimeInstant = findTimeInstantValue(entity);
+    const groups = new Map();
+
+    for (const [rawName, attrData] of Object.entries(entity)) {
+        const attrName = rawName.toLowerCase();
+
+        if (isIgnoredAttr(attrName) || attrName === TIMEINSTANT_KEY) {
+            continue;
+        }
+
+        const ts = findTimeInstantValue(attrData?.metadata) ?? entityTimeInstant;
+        const groupKey = ts ?? '';
+
+        if (!groups.has(groupKey)) {
+            groups.set(groupKey, { ts, attrs: {} });
+        }
+        groups.get(groupKey).attrs[rawName] = attrData;
+    }
+
+    const groupList = Array.from(groups.values());
+
+    // An attribute-less entity has nothing to group, but must still emit its
+    // row like the non-split path — mapping an empty list would drop it.
+    if (groupList.length === 0) {
+        return [entity];
+    }
+
+    return groupList.map(({ ts, attrs }) => {
+        const subEntity = { id: entity.id, type: entity.type, ...attrs };
+        if (ts != null) {
+            subEntity.TimeInstant = { type: 'DateTime', value: ts };
+        }
+        return subEntity;
+    });
 }
 
 // ================= GEO =================
@@ -242,7 +316,14 @@ async function processEntity({
 async function handleEntityCb(
     logger,
     rawValue,
-    { headers = [], suffix = '', flowSuffix = '_historic', includeTimeinstant = true, keyFields = ['entityid'] } = {},
+    {
+        headers = [],
+        suffix = '',
+        flowSuffix = '_historic',
+        includeTimeinstant = true,
+        keyFields = ['entityid'],
+        splitByTimeInstant = false
+    } = {},
     producer
 ) {
     try {
@@ -258,16 +339,20 @@ async function handleEntityCb(
         const topicName = buildTopicName(context.service, suffix);
 
         for (const entity of entities) {
-            await processEntity({
-                entity,
-                context,
-                topicName,
-                flowSuffix,
-                includeTimeinstant,
-                keyFields,
-                producer,
-                logger
-            });
+            const subEntities = splitByTimeInstant ? splitEntityByTimeInstant(entity) : [entity];
+
+            for (const subEntity of subEntities) {
+                await processEntity({
+                    entity: subEntity,
+                    context,
+                    topicName,
+                    flowSuffix,
+                    includeTimeinstant,
+                    keyFields,
+                    producer,
+                    logger
+                });
+            }
         }
     } catch (err) {
         handleError(err, logger);
@@ -276,3 +361,4 @@ async function handleEntityCb(
 
 module.exports.handleEntityCb = handleEntityCb;
 module.exports.safeProduce = safeProduce;
+module.exports.splitEntityByTimeInstant = splitEntityByTimeInstant;

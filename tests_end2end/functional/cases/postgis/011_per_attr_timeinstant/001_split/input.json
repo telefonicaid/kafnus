@@ -1,0 +1,58 @@
+{
+  "name": "per_attr_timeinstant_split",
+  "fiware-service": "test",
+  "fiware-servicepath": "/split",
+  "subscriptions": {
+    "historic": {
+      "description": "Sensor:HISTORIC:split:historic",
+      "status": "active",
+      "subject": {
+        "entities": [{ "idPattern": ".*", "type": "Sensor" }],
+        "condition": { "attrs": ["TimeInstant"] }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_historic"
+        },
+        "attrs": ["TimeInstant", "temperature", "humidity"]
+      }
+    },
+    "lastdata": {
+      "description": "Sensor:LASTDATA:split:lastdata",
+      "status": "active",
+      "subject": {
+        "entities": [{ "idPattern": ".*", "type": "Sensor" }],
+        "condition": { "attrs": ["TimeInstant"] }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_lastdata"
+        },
+        "attrs": ["TimeInstant", "temperature", "humidity"]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "Sensor1",
+      "type": "Sensor",
+      "TimeInstant": { "type": "DateTime", "value": "2024-06-01T10:00:05Z" },
+      "temperature": {
+        "value": 23.5,
+        "type": "Float",
+        "metadata": {
+          "TimeInstant": { "type": "DateTime", "value": "2024-06-01T10:00:00Z" }
+        }
+      },
+      "humidity": {
+        "value": 65.0,
+        "type": "Float",
+        "metadata": {
+          "TimeInstant": { "type": "DateTime", "value": "2024-06-01T10:00:05Z" }
+        }
+      }
+    }
+  ]
+}
