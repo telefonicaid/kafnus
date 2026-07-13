@@ -51,7 +51,7 @@ jest.mock('../lib/utils/ngsiUtils', () => ({
 }));
 
 const ngsiUtils = require('../lib/utils/ngsiUtils');
-const { safeProduce, handleEntityCb } = require('../lib/utils/handleEntityCb');
+const { safeProduce, handleEntityCb, splitEntityByTimeInstant } = require('../lib/utils/handleEntityCb');
 
 describe('handleEntityCb.js', () => {
     let logger;
@@ -126,6 +126,116 @@ describe('handleEntityCb.js', () => {
             });
 
             await expect(safeProduce(producer, ['topic-a'], { maxWaitMs: 25 })).rejects.toThrow('queue full');
+        });
+    });
+
+    describe('splitEntityByTimeInstant', () => {
+        test('groups attributes by resolved TimeInstant, preferring per-attribute metadata', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
+                temperature: {
+                    value: 23.5,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                },
+                humidity: {
+                    value: 65.0,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' } }
+                }
+            };
+
+            const result = splitEntityByTimeInstant(entity);
+
+            expect(result).toEqual([
+                {
+                    id: 'Sensor1',
+                    type: 'Sensor',
+                    temperature: entity.temperature,
+                    TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' }
+                },
+                {
+                    id: 'Sensor1',
+                    type: 'Sensor',
+                    humidity: entity.humidity,
+                    TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' }
+                }
+            ]);
+        });
+
+        test('falls back to the entity-level TimeInstant for attributes without metadata', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
+                temperature: {
+                    value: 23.5,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                },
+                humidity: { value: 65.0, type: 'Float' }
+            };
+
+            const result = splitEntityByTimeInstant(entity);
+
+            expect(result).toHaveLength(2);
+            const humidityGroup = result.find((e) => e.humidity);
+            expect(humidityGroup.TimeInstant.value).toBe('2024-06-01T10:00:05Z');
+        });
+
+        test('overrides TimeInstant when all attributes share one metadata timestamp differing from the entity-level one', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
+                temperature: {
+                    value: 23.5,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                },
+                humidity: {
+                    value: 65.0,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                }
+            };
+
+            const result = splitEntityByTimeInstant(entity);
+
+            // Single row (both attributes agree) but at the observation time, not the entity time.
+            expect(result).toEqual([
+                {
+                    id: 'Sensor1',
+                    type: 'Sensor',
+                    temperature: entity.temperature,
+                    humidity: entity.humidity,
+                    TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' }
+                }
+            ]);
+        });
+
+        test('returns the original entity when every attribute shares one timestamp', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
+                temperature: { value: 23.5, type: 'Float' },
+                humidity: { value: 65.0, type: 'Float' }
+            };
+
+            expect(splitEntityByTimeInstant(entity)).toEqual([entity]);
+        });
+
+        test('returns the original entity when there is no TimeInstant at all', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                temperature: { value: 23.5, type: 'Float' }
+            };
+
+            expect(splitEntityByTimeInstant(entity)).toEqual([entity]);
         });
     });
 
@@ -220,6 +330,64 @@ describe('handleEntityCb.js', () => {
                 'producer failure'
             );
             expect(logger.error).toHaveBeenCalled();
+        });
+
+        test('splits an entity into one message per distinct per-attribute TimeInstant when enabled', async () => {
+            const producer = { produce: jest.fn() };
+
+            const rawValue = JSON.stringify({
+                data: [
+                    {
+                        id: 'Sensor1',
+                        type: 'Sensor',
+                        TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
+                        temperature: {
+                            value: 23.5,
+                            type: 'Float',
+                            metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                        },
+                        humidity: {
+                            value: 65.0,
+                            type: 'Float',
+                            metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' } }
+                        }
+                    }
+                ]
+            });
+
+            await handleEntityCb(
+                logger,
+                rawValue,
+                { headers: [], suffix: '_historic', flowSuffix: '_historic', splitByTimeInstant: true },
+                producer
+            );
+
+            // Two distinct observation times -> two Kafka messages.
+            expect(producer.produce).toHaveBeenCalledTimes(2);
+        });
+
+        test('does not split when splitByTimeInstant is not set (backward compatible)', async () => {
+            const producer = { produce: jest.fn() };
+
+            const rawValue = JSON.stringify({
+                data: [
+                    {
+                        id: 'Sensor1',
+                        type: 'Sensor',
+                        TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
+                        temperature: {
+                            value: 23.5,
+                            type: 'Float',
+                            metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                        },
+                        humidity: { value: 65.0, type: 'Float' }
+                    }
+                ]
+            });
+
+            await handleEntityCb(logger, rawValue, { headers: [] }, producer);
+
+            expect(producer.produce).toHaveBeenCalledTimes(1);
         });
 
         test('rethrows ERR__QUEUE_FULL from safeProduce without calling logger.error', async () => {
