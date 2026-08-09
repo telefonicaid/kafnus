@@ -25,7 +25,9 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from pathlib import Path
 
-from common.config import logger, KAFNUS_TESTS_KAFNUS_CONNECT_URL, KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME
+from common.config import logger, KAFNUS_TESTS_KAFNUS_CONNECT_URL, KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME, \
+    KAFNUS_TESTS_KAFKA_SECURITY_PROTOCOL, KAFNUS_TESTS_KAFKA_SASL_MECHANISM, \
+    KAFNUS_TESTS_KAFKA_SASL_USERNAME, KAFNUS_TESTS_KAFKA_SASL_PASSWORD
 
 
 def wait_for_kafnus_connect(url=KAFNUS_TESTS_KAFNUS_CONNECT_URL, timeout=90):
@@ -259,7 +261,13 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300, prefix_topic
     ]
 
     # --- Produce ---
-    producer = Producer({"bootstrap.servers": kafka_bootstrap})
+    producer = Producer({
+        "bootstrap.servers": kafka_bootstrap,
+        "security.protocol": KAFNUS_TESTS_KAFKA_SECURITY_PROTOCOL,
+        "sasl.mechanism": KAFNUS_TESTS_KAFKA_SASL_MECHANISM,
+        "sasl.username": KAFNUS_TESTS_KAFKA_SASL_USERNAME,
+        "sasl.password": KAFNUS_TESTS_KAFKA_SASL_PASSWORD,
+    })
     for topic in ngsi_inputs:
         producer.produce(
             topic,
@@ -306,6 +314,10 @@ def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300, prefix_topic
             "bootstrap.servers": kafka_bootstrap,
             "group.id": "ngsi_smoke_test",
             "auto.offset.reset": "earliest",
+            "security.protocol": KAFNUS_TESTS_KAFKA_SECURITY_PROTOCOL,
+            "sasl.mechanism": KAFNUS_TESTS_KAFKA_SASL_MECHANISM,
+            "sasl.username": KAFNUS_TESTS_KAFKA_SASL_USERNAME,
+            "sasl.password": KAFNUS_TESTS_KAFKA_SASL_PASSWORD,
         })
         
         partitions = [TopicPartition(t, 0) for t in flows.values()]

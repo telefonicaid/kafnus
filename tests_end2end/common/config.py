@@ -36,6 +36,12 @@ KAFNUS_TESTS_KAFNUS_CONNECT_URL = os.getenv("KAFNUS_TESTS_KAFNUS_CONNECT_URL", "
 # Default connector name for health-check
 KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME = os.getenv("KAFNUS_TESTS_DEFAULT_CONNECTOR_NAME", "http-sink")
 
+# Kafka security settings (used by test infrastructure connecting directly to Kafka)
+KAFNUS_TESTS_KAFKA_SECURITY_PROTOCOL = os.getenv("KAFNUS_TESTS_KAFKA_SECURITY_PROTOCOL", "SASL_PLAINTEXT")
+KAFNUS_TESTS_KAFKA_SASL_MECHANISM = os.getenv("KAFNUS_TESTS_KAFKA_SASL_MECHANISM", "PLAIN")
+KAFNUS_TESTS_KAFKA_SASL_USERNAME = os.getenv("KAFNUS_TESTS_KAFKA_SASL_USERNAME", "admin")
+KAFNUS_TESTS_KAFKA_SASL_PASSWORD = os.getenv("KAFNUS_TESTS_KAFKA_SASL_PASSWORD", "admin-secret")
+
 # Setup and start logger
 def setup_test_logger(name="kafnus-tests"):
     """
