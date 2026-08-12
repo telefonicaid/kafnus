@@ -307,7 +307,11 @@ function toKafnusConnectSchema(entity, schemaOverrides = {}, attributeTypes = {}
         }
 
         if (['timeinstant', 'recvtime'].includes(k.toLowerCase())) {
-            schemaFields.push({ field: k, type: 'string', optional: vRaw == null });
+            schemaFields.push({
+                field: k,
+                type: 'string',
+                optional: vRaw == null
+            });
             payload[k] = String(vRaw);
             continue;
         }
@@ -317,15 +321,34 @@ function toKafnusConnectSchema(entity, schemaOverrides = {}, attributeTypes = {}
         const isOptional = v == null;
 
         if (typeof fieldType === 'object') {
-            schemaFields.push({ field: k, ...fieldType, optional: isOptional });
+            schemaFields.push({
+                field: k,
+                ...fieldType,
+                optional: isOptional
+            });
         } else {
-            schemaFields.push({ field: k, type: fieldType, optional: isOptional });
+            schemaFields.push({
+                field: k,
+                type: fieldType,
+                optional: isOptional
+            });
         }
+
         payload[k] = v;
     }
 
-    schemaFields.push({ field: 'recvtime', type: 'string', optional: false });
-    payload.recvtime = formatDatetimeIso('UTC');
+    const hasRecvtime = Object.keys(payload)
+        .some(k => k.toLowerCase() === 'recvtime');
+
+    if (!hasRecvtime) {
+        schemaFields.push({
+            field: 'recvtime',
+            type: 'string',
+            optional: false
+        });
+
+        payload.recvtime = formatDatetimeIso('UTC');
+    }
 
     return {
         schema: {
