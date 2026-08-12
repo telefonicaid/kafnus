@@ -337,8 +337,7 @@ function toKafnusConnectSchema(entity, schemaOverrides = {}, attributeTypes = {}
         payload[k] = v;
     }
 
-    const hasRecvtime = Object.keys(payload)
-        .some(k => k.toLowerCase() === 'recvtime');
+    const hasRecvtime = Object.keys(payload).some((k) => k.toLowerCase() === 'recvtime');
 
     if (!hasRecvtime) {
         schemaFields.push({
