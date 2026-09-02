@@ -1,0 +1,14 @@
+[
+  {
+    "table": "test.recvtime_sensor_lastdata",
+    "rows": [
+      {
+        "entityid": "Sensor299",
+        "entitytype": "Sensor",
+        "recvtime": "2025-06-26T12:45:00Z",
+        "temperature": 25.0,
+        "fiwareservicepath": "/recvtime-attribute"
+      }
+    ]
+  }
+]
