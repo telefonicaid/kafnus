@@ -36,6 +36,7 @@ services:
       - KAFNUS_NGSI_LOG_LEVEL=INFO
       - KAFNUS_NGSI_PREFIX_TOPIC=smc_
       - KAFNUS_NGSI_SUFFIX_TOPIC=_processed
+      - KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT=true
     networks:
       - kafka-postgis-net
     ports:
