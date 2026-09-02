@@ -298,16 +298,28 @@ function inferFieldType(name, value, attrType = null) {
 function toKafnusConnectSchema(entity, schemaOverrides = {}, attributeTypes = {}) {
     const schemaFields = [];
     const payload = {};
+    const seenFields = new Set();
+
+    const addSchemaField = (fieldDef) => {
+        const fieldName = fieldDef.field.toLowerCase();
+
+        if (seenFields.has(fieldName)) {
+            return;
+        }
+
+        seenFields.add(fieldName);
+        schemaFields.push(fieldDef);
+    };
 
     for (const [k, vRaw] of Object.entries(entity)) {
         if (schemaOverrides[k]) {
-            schemaFields.push(schemaOverrides[k]);
+            addSchemaField(schemaOverrides[k]);
             payload[k] = vRaw;
             continue;
         }
 
         if (['timeinstant', 'recvtime'].includes(k.toLowerCase())) {
-            schemaFields.push({
+            addSchemaField({
                 field: k,
                 type: 'string',
                 optional: vRaw == null
@@ -321,13 +333,13 @@ function toKafnusConnectSchema(entity, schemaOverrides = {}, attributeTypes = {}
         const isOptional = v == null;
 
         if (typeof fieldType === 'object') {
-            schemaFields.push({
+            addSchemaField({
                 field: k,
                 ...fieldType,
                 optional: isOptional
             });
         } else {
-            schemaFields.push({
+            addSchemaField({
                 field: k,
                 type: fieldType,
                 optional: isOptional
@@ -337,10 +349,8 @@ function toKafnusConnectSchema(entity, schemaOverrides = {}, attributeTypes = {}
         payload[k] = v;
     }
 
-    const hasRecvtime = Object.keys(payload).some((k) => k.toLowerCase() === 'recvtime');
-
-    if (!hasRecvtime) {
-        schemaFields.push({
+    if (!seenFields.has('recvtime')) {
+        addSchemaField({
             field: 'recvtime',
             type: 'string',
             optional: false
