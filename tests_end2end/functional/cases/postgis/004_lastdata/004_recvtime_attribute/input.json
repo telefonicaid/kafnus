@@ -1,0 +1,43 @@
+{
+  "name": "lastdata_with_recvtime_attribute",
+  "fiware-service": "test",
+  "fiware-servicepath": "/recvtime",
+  "subscriptions": {
+    "lastdata": {
+      "description": "Issue299:LASTDATA:recvtime_attribute",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ]
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_lastdata"
+        },
+        "attrs": [
+          "recvtime",
+          "temperature"
+        ]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "Sensor299",
+      "type": "Sensor",
+      "recvtime": {
+        "value": "2025-06-26T12:45:00Z",
+        "type": "DateTime"
+      },
+      "temperature": {
+        "value": 25.0,
+        "type": "Float"
+      }
+    }
+  ]
+}

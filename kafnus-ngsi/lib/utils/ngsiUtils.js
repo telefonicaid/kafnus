@@ -298,16 +298,32 @@ function inferFieldType(name, value, attrType = null) {
 function toKafnusConnectSchema(entity, schemaOverrides = {}, attributeTypes = {}) {
     const schemaFields = [];
     const payload = {};
+    const seenFields = new Set();
+
+    const addSchemaField = (fieldDef) => {
+        const fieldName = fieldDef.field.toLowerCase();
+
+        if (seenFields.has(fieldName)) {
+            return;
+        }
+
+        seenFields.add(fieldName);
+        schemaFields.push(fieldDef);
+    };
 
     for (const [k, vRaw] of Object.entries(entity)) {
         if (schemaOverrides[k]) {
-            schemaFields.push(schemaOverrides[k]);
+            addSchemaField(schemaOverrides[k]);
             payload[k] = vRaw;
             continue;
         }
 
         if (['timeinstant', 'recvtime'].includes(k.toLowerCase())) {
-            schemaFields.push({ field: k, type: 'string', optional: vRaw == null });
+            addSchemaField({
+                field: k,
+                type: 'string',
+                optional: vRaw == null
+            });
             payload[k] = String(vRaw);
             continue;
         }
@@ -317,15 +333,31 @@ function toKafnusConnectSchema(entity, schemaOverrides = {}, attributeTypes = {}
         const isOptional = v == null;
 
         if (typeof fieldType === 'object') {
-            schemaFields.push({ field: k, ...fieldType, optional: isOptional });
+            addSchemaField({
+                field: k,
+                ...fieldType,
+                optional: isOptional
+            });
         } else {
-            schemaFields.push({ field: k, type: fieldType, optional: isOptional });
+            addSchemaField({
+                field: k,
+                type: fieldType,
+                optional: isOptional
+            });
         }
+
         payload[k] = v;
     }
 
-    schemaFields.push({ field: 'recvtime', type: 'string', optional: false });
-    payload.recvtime = formatDatetimeIso('UTC');
+    if (!seenFields.has('recvtime')) {
+        addSchemaField({
+            field: 'recvtime',
+            type: 'string',
+            optional: false
+        });
+
+        payload.recvtime = formatDatetimeIso('UTC');
+    }
 
     return {
         schema: {

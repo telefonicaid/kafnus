@@ -92,6 +92,14 @@ describe('ngsiUtils.js', () => {
             expect(result.schema.fields.some((f) => f.field === 'temperature')).toBe(true);
             expect(result.payload).toHaveProperty('recvtime');
         });
+
+        test('Given an entity with recvtime, When building schema, Then it preserves the provided value once', () => {
+            const entity = { temperature: 21.5, recvtime: '2025-06-26T12:45:00Z' };
+            const result = toKafnusConnectSchema(entity, {}, { temperature: 'Float' });
+
+            expect(result.payload.recvtime).toBe('2025-06-26T12:45:00Z');
+            expect(result.schema.fields.filter((f) => f.field === 'recvtime')).toHaveLength(1);
+        });
     });
 
     describe('buildKafkaKey (BDD)', () => {
