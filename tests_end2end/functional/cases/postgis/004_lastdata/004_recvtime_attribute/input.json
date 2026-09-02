@@ -1,7 +1,7 @@
 {
   "name": "lastdata_with_recvtime_attribute",
   "fiware-service": "test",
-  "fiware-servicepath": "/recvtime_attribute",
+  "fiware-servicepath": "/recvtime",
   "subscriptions": {
     "lastdata": {
       "description": "Issue299:LASTDATA:recvtime_attribute",
