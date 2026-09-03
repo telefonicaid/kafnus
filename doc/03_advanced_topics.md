@@ -49,8 +49,8 @@ Kafnus uses structured topic naming and dynamic routing:
 
 ### 3.2 MongoDB Sink Routing
 
-* Uses the `KAFNUS_NGSI_MONGO_PREFIX` to build database and collection names.
-* Prefix ensures multi-tenant isolation (`<prefix><fiware-service>` for DB, `<prefix><fiware-servicepath>` for collection).
+* Uses the `MongoNamespacePrefix` SMT in Kafnus Connect to build database and collection names from headers.
+* Prefixing is configured per sink connector, not in NGSI.
 * Only one connector per service is recommended; new topics require a connector update for regex-based consumption.
 
 ---
