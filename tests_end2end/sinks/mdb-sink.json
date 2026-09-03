@@ -12,7 +12,8 @@
 
     "transforms": "MongoPrefix",
     "transforms.MongoPrefix.type": "com.telefonica.MongoNamespacePrefix",
-    "transforms.MongoPrefix.prefix": "bigdata_",
+    "transforms.MongoPrefix.dbname.prefix": "bigdata_db_",
+    "transforms.MongoPrefix.collection.prefix": "bigdata_col_",
 
     "namespace.mapper": "com.mongodb.kafka.connect.sink.namespace.mapping.FieldPathNamespaceMapper",
     "namespace.mapper.key.database.field": "database",
