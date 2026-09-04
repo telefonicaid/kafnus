@@ -496,7 +496,7 @@ These are published to topics like `<PREFIX><dbname>_error_log<SUFFIX>`.
 
 #### Background & Evolution
 
-Historically, MongoDB database and collection names used a hardcoded `sth_` prefix directly in the Kafnus NGSI code. This made it impossible to adapt MongoDB namespaces to different environments without code changes.
+Historically, MongoDB database and collection names used a hardcoded `sth_` or `bigdata_` prefix directly in the Kafnus NGSI code. This made it impossible to adapt MongoDB namespaces to different environments without code changes. The current approach delegates prefixing to Kafka Connect through the `MongoNamespacePrefix` SMT.
 
 **Problem:** The MongoDB Kafka Sink connector does **not support dynamic prefix composition** in its configuration (see [MongoDB Kafka Connector Documentation](https://www.mongodb.com/docs/kafka-connector/current/sink-connector/configuration-properties/mongodb-namespace/)). Namespace mapping can only use field values as-is.
 
@@ -533,24 +533,12 @@ The prefix is now configured in the **Kafka Connect sink connector definition**:
   "name": "mongodb-sink",
   "transforms": "MongoPrefix",
   "transforms.MongoPrefix.type": "com.telefonica.MongoNamespacePrefix",
-  "transforms.MongoPrefix.database.prefix": "sth_",
-  "transforms.MongoPrefix.collection.prefix": "sth_"
+  "transforms.MongoPrefix.dbname.prefix": "bigdata_db_",
+  "transforms.MongoPrefix.collection.prefix": "bigdata_col_",
 }
 ```
 
 See [MongoNamespacePrefix SMT documentation](/doc/06_kafnus_connect.md#-mongonamespaceprefix-smt--dynamic-mongodb-namespace-routing) for full configuration details.
-
-#### Historical Note: KAFNUS_NGSI_MONGO_PREFIX (Deprecated)
-
-Prior to this change, the environment variable `KAFNUS_NGSI_MONGO_PREFIX` was used to configure the prefix at the NGSI level. This is now **deprecated** in favor of the Kafka Connect SMT approach.
-
-The requirement identified in **Issue #179** is to support a **MongoDB prefix configurable per FIWARE service**, rather than a single global prefix shared by all services.
-
-**Status:**
-- ✅ Hardcoded MongoDB prefix removed
-- ✅ Prefix made configurable at application level (global)
-- ❌ Prefix not yet configurable per FIWARE service
-- 🔄 Issue #179 remains open to define and implement service-level prefix support
 
 ---
 
@@ -659,7 +647,6 @@ These variables control fetch behavior, session handling, and **manual offset ma
 | `KAFNUS_NGSI_LOG_OB` | string | `ES` | Origin or location tag included in logs. |
 | `KAFNUS_NGSI_LOG_COMP` | string | `Kafnus-ngsi` | Component name used in structured logs. |
 | `KAFNUS_NGSI_ADMIN_PORT` | number | `8000` | Port for admin, metrics, health and log-level endpoints. |
-| `KAFNUS_NGSI_MONGO_PREFIX` | string | `sth_` | Prefix prepended to MongoDB database and collection names (see [MongoDB Namespace Prefix Configuration](#mongodb-namespace-prefix-configuration)). |
 | `KAFNUS_NGSI_GRAPHQL_GRAFO_PREFIX` | string | `` | Graph name prefix used by the GraphQL integration. |
 | `KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX`      | string   | ``      | Add '`<suffix>`' to Graph name used by the GraphQL service.        |
 | `KAFNUS_NGSI_GRAPHQL_FALLBACK_GRAPHNAME_TO_SERVICE`      | boolean   | `false`      | Fallback to use '`<service>`' as graphname when no graphname header is provided.                          |

@@ -281,8 +281,8 @@ The MongoDB Sink connector then uses standard `FieldPathNamespaceMapper` configu
 ```properties
 transforms=MongoPrefix
 transforms.MongoPrefix.type=com.telefonica.MongoNamespacePrefix
-transforms.MongoPrefix.database.prefix=sth_
-transforms.MongoPrefix.collection.prefix=sth_
+transforms.MongoPrefix.dbname.prefix=bigdata_db_
+transforms.MongoPrefix.collection.prefix=bigdata_col_
 
 # Sink configuration (unchanged)
 namespace.mapper=FieldPathNamespaceMapper
@@ -294,8 +294,8 @@ namespace.mapper.key.collection.field=collection
 
 | Parameter | Example | Description |
 |-----------|---------|-------------|
-| `database.prefix` | `sth_` | Prefix to prepend to database names from headers |
-| `collection.prefix` | `sth_` | Prefix to prepend to collection names from headers |
+| `dbname.prefix` | `bigdata_db_` | Prefix to prepend to database names from headers |
+| `collection.prefix` | `bigdata_col_` | Prefix to prepend to collection names from headers |
 
 ### Example
 
@@ -315,12 +315,12 @@ Message reaches MongoDB Sink with:
 
 ```
 Headers:
-  database: sth_myservice
-  collection: sth_sensor_data
+  database: bigdata_myservice
+  collection: bigdata_sensor_data
 
 Message reaches MongoDB Sink with:
-  db: sth_myservice
-  col: sth_sensor_data
+  db: bigdata_myservice
+  col: bigdata_sensor_data
 ```
 
 ### Relationship with HeaderRouter

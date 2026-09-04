@@ -210,7 +210,7 @@ KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=true   # to use an external PostGIS instance
 
 ### 🧬 Example Scenario Files
 
-> ⚠️ **Important:** The `MongoValidator` is hardcoded to connect **only** to the database `sth_test`.  
+> ⚠️ **Important:** The `MongoValidator` is hardcoded to connect **only** to the database `bigdata_test`.  
 > Therefore, in Mongo-related end-to-end test scenarios, the `fiware-service` **must be set to `"test"`** to ensure documents are correctly published to the database that the validator inspects.
 
 Example `input.json` for a Mongo test case:
@@ -228,7 +228,7 @@ Example `input.json` for a Mongo test case:
 }
 ```
 
-- All documents sent to the dynamic Kafka topic `test_mongo` are stored in `sth_test.<collection>`.  
+- All documents sent to the dynamic Kafka topic `test_mongo` are stored in `bigdata_test.<collection>`.  
 - The collection name is derived from `fiware-servicepath` and encoded using `encodeMongo()`.  
 - The validator ignores `recvTime` field during checks.
 

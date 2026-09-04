@@ -326,48 +326,52 @@ For complete reference, see the [Kafnus Connect documentation](/doc/06_kafnus_co
 
 ### 4.7 Configuring MongoDB Namespace Prefix
 
-The **MongoDB namespace prefix** (environment variable `KAFNUS_NGSI_MONGO_PREFIX`) determines how database and collection names are built from FIWARE service and service path.
+The **MongoDB namespace prefix** is configured in **Kafnus Connect** through the `MongoNamespacePrefix` SMT.
 
-#### Setting the Prefix
+#### Setting the Prefix in Kafka Connect
 
-In the `docker-compose.ngsi.yml` file (or equivalent environment configuration):
+In the sink connector definition:
 
-```yaml
-environment:
-  KAFNUS_NGSI_MONGO_PREFIX: "sth_"
+```json
+{
+  "transforms": "MongoPrefix",
+  "transforms.MongoPrefix.type": "com.telefonica.MongoNamespacePrefix",
+  "transforms.MongoPrefix.dbname.prefix": "bigdata_db_",
+  "transforms.MongoPrefix.collection.prefix": "bigdata_col_"
+}
 ```
 
-- **Default value:** `sth_` (standard Cygnus convention)
+- **Default value:** ``
 - **Type:** string
 
 #### How It's Used
 
-When a Mongo message is processed:
+When a Mongo message is processed, the SMT prepends the configured prefix to the namespace headers:
 
 ```
-Database  = <KAFNUS_NGSI_MONGO_PREFIX><fiware-service>
-Collection = <KAFNUS_NGSI_MONGO_PREFIX><fiware-servicepath>
+Database  = <dbname.prefix><database>
+Collection = <collection.prefix><collection>
 ```
 
 **Examples:**
 
-With `KAFNUS_NGSI_MONGO_PREFIX=sth_`:
+With `dbname.prefix=bigdata_db_` and `collection.prefix=bigdata_col_`:
 ```
-fiware-service=myservice, fiware-servicepath=/sensors
-→ Database: sth_myservice
-→ Collection: sth_sensors
+database=myservice, collection=sensors
+→ Database: bigdata_myservice
+→ Collection: bigdata_sensors
 ```
 
-With `KAFNUS_NGSI_MONGO_PREFIX=custom_`:
+With `dbname.prefix=custom_` and `collection.prefix=custom_`:
 ```
-fiware-service=myservice, fiware-servicepath=/sensors
+database=myservice, collection=sensors
 → Database: custom_myservice
 → Collection: custom_sensors
 ```
 
 #### Current Limitations & Future Plans
 
-- ✅ Global prefix: configurable per deployment
+- ✅ Prefixes configurable per sink connector
 - ❌ Per-service prefix: not yet supported
 - 🔄 See [Issue #179](https://github.com/telefonicaid/kafnus/issues/179) for service-level prefix support
 
