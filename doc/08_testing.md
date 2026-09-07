@@ -206,6 +206,13 @@ KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=true   # to use an external PostGIS instance
 > POSTGIS_IMAGE=telefonicaiot/iotp-postgis:12.14-3.3.2-2  # Internal Telefónica image
 > ```
 
+### ⏱️ Per-attribute TimeInstant splitting
+
+`kafnus-ngsi` ships with per-attribute `TimeInstant` splitting disabled by default (see `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT`
+in [`05_kafnus_ngsi.md`](/doc/05_kafnus_ngsi.md)). The scenarios under `functional/cases/postgis/011_per_attr_timeinstant/`
+require `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT=true` in your `.env` (see `.env.example`) — without it the flag defaults to `false`
+and those scenarios will fail. CI sets it directly in the `end2end_tests.yml` workflow, without changing the flag's default for real deployments.
+
 ---
 
 ### 🧬 Example Scenario Files

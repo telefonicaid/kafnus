@@ -47,11 +47,19 @@ jest.mock('../lib/utils/ngsiUtils', () => ({
             .replace(/^\/+|\/+$/g, '')
             .toLowerCase()
     ),
-    getFiwareContext: jest.fn()
+    getFiwareContext: jest.fn(),
+    formatDatetimeIso: jest.fn()
 }));
 
 const ngsiUtils = require('../lib/utils/ngsiUtils');
-const { safeProduce, handleEntityCb, splitEntityByTimeInstant } = require('../lib/utils/handleEntityCb');
+const {
+    safeProduce,
+    handleEntityCb,
+    splitEntityByTimeInstant,
+    ensureTimeInstant
+} = require('../lib/utils/handleEntityCb');
+
+const RECVTIME = '2024-06-01T12:00:00.000Z';
 
 describe('handleEntityCb.js', () => {
     let logger;
@@ -94,6 +102,7 @@ describe('handleEntityCb.js', () => {
         });
 
         ngsiUtils.buildKafkaKey.mockReturnValue(Buffer.from('key-buffer', 'utf-8'));
+        ngsiUtils.formatDatetimeIso.mockReturnValue(RECVTIME);
     });
 
     describe('safeProduce', () => {
@@ -228,14 +237,107 @@ describe('handleEntityCb.js', () => {
             expect(splitEntityByTimeInstant(entity)).toEqual([entity]);
         });
 
-        test('returns the original entity when there is no TimeInstant at all', () => {
+        test('falls back to recvtime, writing it into TimeInstant, when neither the attribute nor the entity has one', () => {
             const entity = {
                 id: 'Sensor1',
                 type: 'Sensor',
                 temperature: { value: 23.5, type: 'Float' }
             };
 
-            expect(splitEntityByTimeInstant(entity)).toEqual([entity]);
+            const result = splitEntityByTimeInstant(entity, RECVTIME);
+
+            // TimeInstant is always written, so the historic row always has a usable
+            // `timeinstant` — Kafnus Connect never has to fall back to `recvtime` itself.
+            expect(result).toEqual([
+                {
+                    id: 'Sensor1',
+                    type: 'Sensor',
+                    temperature: entity.temperature,
+                    TimeInstant: { type: 'DateTime', value: RECVTIME }
+                }
+            ]);
+        });
+
+        test('resolves per-attribute metadata over recvtime fallback when the entity itself has no TimeInstant', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                temperature: {
+                    value: 23.5,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                },
+                humidity: { value: 65.0, type: 'Float' }
+            };
+
+            const result = splitEntityByTimeInstant(entity, RECVTIME);
+
+            expect(result).toHaveLength(2);
+
+            const temperatureGroup = result.find((e) => e.temperature);
+            expect(temperatureGroup.TimeInstant).toEqual({ type: 'DateTime', value: '2024-06-01T10:00:00Z' });
+
+            // humidity has neither its own metadata nor an entity-level TimeInstant to fall
+            // back to, so it gets the recvtime fallback instead of being left without one.
+            const humidityGroup = result.find((e) => e.humidity);
+            expect(humidityGroup.TimeInstant).toEqual({ type: 'DateTime', value: RECVTIME });
+        });
+
+        test('groups attributes that resolve to the same timestamp together, separately from a differently-timestamped attribute', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:10Z' },
+                temperature: {
+                    value: 23.5,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                },
+                pressure: {
+                    value: 1013.0,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                },
+                humidity: {
+                    value: 65.0,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' } }
+                }
+            };
+
+            const result = splitEntityByTimeInstant(entity);
+
+            expect(result).toHaveLength(2);
+
+            const sharedGroup = result.find((e) => e.temperature);
+            expect(sharedGroup.pressure).toEqual(entity.pressure);
+            expect(sharedGroup.humidity).toBeUndefined();
+            expect(sharedGroup.TimeInstant).toEqual({ type: 'DateTime', value: '2024-06-01T10:00:00Z' });
+
+            const humidityGroup = result.find((e) => e.humidity);
+            expect(humidityGroup.temperature).toBeUndefined();
+            expect(humidityGroup.TimeInstant).toEqual({ type: 'DateTime', value: '2024-06-01T10:00:05Z' });
+        });
+    });
+
+    describe('ensureTimeInstant', () => {
+        test('returns the entity unchanged when it already has a TimeInstant', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' }
+            };
+
+            expect(ensureTimeInstant(entity, RECVTIME)).toBe(entity);
+        });
+
+        test('fills in TimeInstant with recvtime when the entity has none', () => {
+            const entity = { id: 'Sensor1', type: 'Sensor', temperature: { value: 23.5, type: 'Float' } };
+
+            expect(ensureTimeInstant(entity, RECVTIME)).toEqual({
+                ...entity,
+                TimeInstant: { type: 'DateTime', value: RECVTIME }
+            });
         });
     });
 
@@ -366,6 +468,88 @@ describe('handleEntityCb.js', () => {
             expect(producer.produce).toHaveBeenCalledTimes(2);
         });
 
+        test('resolves all three TimeInstant priorities (per-attribute metadata, entity-level, recvtime) across a notification', async () => {
+            const producer = { produce: jest.fn() };
+
+            const rawValue = JSON.stringify({
+                data: [
+                    // Entity-level TimeInstant present: attributes resolve via metadata (level 1) or
+                    // fall back to it (level 2).
+                    {
+                        id: 'Sensor1',
+                        type: 'Sensor',
+                        TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
+                        temperature: {
+                            value: 23.5,
+                            type: 'Float',
+                            metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                        },
+                        humidity: { value: 65.0, type: 'Float' }
+                    },
+                    // No entity-level TimeInstant: attributes resolve via metadata (level 1) or fall
+                    // back to recvtime (level 3).
+                    {
+                        id: 'Sensor2',
+                        type: 'Sensor',
+                        temperature: {
+                            value: 21.0,
+                            type: 'Float',
+                            metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T11:00:00Z' } }
+                        },
+                        humidity: { value: 60.0, type: 'Float' }
+                    }
+                ]
+            });
+
+            await handleEntityCb(
+                logger,
+                rawValue,
+                { headers: [], suffix: '_historic', flowSuffix: '_historic', splitByTimeInstant: true },
+                producer
+            );
+
+            // Each entity resolves to 2 distinct groups (one per attribute) -> 4 Kafka messages.
+            expect(producer.produce).toHaveBeenCalledTimes(4);
+        });
+
+        test('fills in TimeInstant with recvtime on the non-split path when includeTimeinstant is true and the entity has none', async () => {
+            const producer = { produce: jest.fn() };
+
+            const rawValue = JSON.stringify({
+                data: [{ id: 'Sensor1', type: 'Sensor', temperature: { value: 23.5, type: 'Float' } }]
+            });
+
+            // Mirrors the mutable flow's config: includeTimeinstant true, splitting off.
+            await handleEntityCb(
+                logger,
+                rawValue,
+                { headers: [], suffix: '_mutable', flowSuffix: '_mutable', includeTimeinstant: true },
+                producer
+            );
+
+            const [fullEntityArg] = ngsiUtils.toKafnusConnectSchema.mock.calls[0];
+            expect(fullEntityArg.timeinstant).toBe(RECVTIME);
+        });
+
+        test('does not add TimeInstant on the non-split path when includeTimeinstant is false', async () => {
+            const producer = { produce: jest.fn() };
+
+            const rawValue = JSON.stringify({
+                data: [{ id: 'Sensor1', type: 'Sensor', temperature: { value: 23.5, type: 'Float' } }]
+            });
+
+            // Mirrors the lastdata flow's config: no primary-key dependency on timeinstant.
+            await handleEntityCb(
+                logger,
+                rawValue,
+                { headers: [], suffix: '_lastdata', flowSuffix: '_lastdata', includeTimeinstant: false },
+                producer
+            );
+
+            const [fullEntityArg] = ngsiUtils.toKafnusConnectSchema.mock.calls[0];
+            expect(fullEntityArg).not.toHaveProperty('timeinstant');
+        });
+
         test('does not split when splitByTimeInstant is not set (backward compatible)', async () => {
             const producer = { produce: jest.fn() };
 
@@ -386,6 +570,37 @@ describe('handleEntityCb.js', () => {
             });
 
             await handleEntityCb(logger, rawValue, { headers: [] }, producer);
+
+            expect(producer.produce).toHaveBeenCalledTimes(1);
+        });
+
+        test('does not split when includeTimeinstant is false, even if splitByTimeInstant is set', async () => {
+            const producer = { produce: jest.fn() };
+
+            const rawValue = JSON.stringify({
+                data: [
+                    {
+                        id: 'Sensor1',
+                        type: 'Sensor',
+                        TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
+                        temperature: {
+                            value: 23.5,
+                            type: 'Float',
+                            metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                        },
+                        humidity: { value: 65.0, type: 'Float' }
+                    }
+                ]
+            });
+
+            // Grouping by observation time is pointless for a flow that doesn't key on
+            // timeinstant in the first place, so includeTimeinstant takes precedence.
+            await handleEntityCb(
+                logger,
+                rawValue,
+                { headers: [], includeTimeinstant: false, splitByTimeInstant: true },
+                producer
+            );
 
             expect(producer.produce).toHaveBeenCalledTimes(1);
         });

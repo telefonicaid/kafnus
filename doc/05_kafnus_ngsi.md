@@ -427,6 +427,38 @@ Useful for upsert operations in JDBC sinks (`lastdata`, `mutable`).
 - All notifications are sent downstream regardless of timestamp.
 - Output topic: `<PREFIX><service>_historic<SUFFIX>`
 
+##### ⏱️ Per-attribute TimeInstant splitting
+
+By default, all attributes of a notification are written as a single historic row, using one resolved timestamp for the
+whole entity. When an IoT-Agent batches measurements taken at different times into one notification, this can make
+attributes appear to have been observed at the wrong time.
+
+Setting `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT=true` (default: `false`) changes this **only for the historic flow**: each
+entity is split into one sub-entity per distinct resolved timestamp, so each observation time is written as its own row.
+The `lastdata` and `mutable` flows are unaffected and keep writing a single row per entity.
+
+The timestamp for each attribute is resolved with the following priority:
+
+1. The attribute's own `metadata.TimeInstant.value`.
+2. The entity-level `TimeInstant` attribute, if the per-attribute metadata above is absent.
+3. The current system time `now()`, if neither of the above is present.
+
+Attributes that resolve to the same timestamp stay together in one row; attributes resolving to different timestamps
+produce separate rows. Enabling this flag can therefore increase the number of Kafka messages and historic rows written
+per notification — up to one per distinct attribute timestamp — so it should be enabled deliberately, weighing that
+impact against the need for exact per-attribute observation time.
+
+##### 🔒 `timeinstant` is always populated
+
+`entityid` + `timeinstant` is the JDBC sink's primary key for both the `historic` and `mutable` sinks (`pk.fields:
+entityid,timeinstant`), so `timeinstant` must never be missing — Kafnus Connect has no logic of its own to fall back to
+`recvtime` instead, and a missing/null value would violate that primary key.
+
+To guarantee this, `kafnus-ngsi` fills in `TimeInstant` with the same system time `now()` fallback described above
+whenever an entity carries none, for **any entity flowing through the historic or mutable flow** — not just when
+`KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT` is enabled. `lastdata` is unaffected: its primary key is `entityid` alone, so it does
+not depend on `timeinstant` being present.
+
 #### `<PREFIX>raw_lastdata`
 
 - Maintains a Faust Table `last_seen_timestamps` to filter old records.
@@ -438,6 +470,7 @@ Useful for upsert operations in JDBC sinks (`lastdata`, `mutable`).
 - Allows overwriting/updating mutable data.
 - Update rows with same `entityid` and `timeinstant`.
 - Output topic: `<PREFIX><service>_mutable<SUFFIX>`
+- Same `timeinstant` guarantee as in `historic` flow — see above.
 
 ---
 

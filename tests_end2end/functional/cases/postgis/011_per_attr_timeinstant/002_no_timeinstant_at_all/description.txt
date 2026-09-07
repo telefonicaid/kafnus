@@ -1,0 +1,16 @@
+Entity update with no TimeInstant at all: no entity-level TimeInstant attribute
+and no per-attribute metadata. The historic and mutable sinks key their JDBC
+upsert on (entityid, timeinstant), a NOT NULL primary key, so kafnus-ngsi must
+still fill in a `timeinstant` value (falling back to a recvtime-style
+timestamp) or the insert would violate that primary key and the row
+would never appear.
+
+In this shared test environment KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT is enabled,
+so the historic row exercises the recvtime fallback inside
+splitEntityByTimeInstant's grouping (a single attribute with no resolvable
+timestamp forms one group, filled with recvtime). The mutable flow never uses
+that split path regardless of the flag, so its row instead exercises the
+plain ensureTimeInstant() guarantee applied to the non-split path.
+
+This test only checks that the rows exist in both sinks — proof the inserts
+succeeded — not the exact timestamp written.

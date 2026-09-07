@@ -1,4 +1,16 @@
-Documents current behavior when a HISTORIC notification is generated without TimeInstant.
-Expected current behavior:
-- The record is not persisted in historical PostGIS table.
-- Kafka Connect emits an error that is routed to test_error_log.
+Documents behavior when a HISTORIC notification is generated without TimeInstant.
+
+Issue #260 originally left this as an open question ("not sure if is desirable
+or not to fail when no timestamp is provided"), and this test locked in the
+then-current answer: Kafka Connect's JSON converter rejected the null
+`timeinstant` field and the row was routed to the error log instead of being
+persisted.
+
+Issue #294 resolves that question: kafnus-ngsi now guarantees every
+historic/mutable row has a usable `timeinstant`, falling back to a
+recvtime-style timestamp when neither per-attribute metadata nor an
+entity-level TimeInstant is present (see ensureTimeInstant() /
+splitEntityByTimeInstant() in handleEntityCb.js). Expected behavior is now:
+- The record IS persisted in the historical PostGIS table, with `timeinstant`
+  filled in via the recvtime fallback.
+- No error is routed to test_error_log for this notification.

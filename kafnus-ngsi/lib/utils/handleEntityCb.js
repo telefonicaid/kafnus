@@ -23,7 +23,8 @@ const {
     toKafnusConnectSchema,
     buildKafkaKey,
     sanitizeString,
-    getFiwareContext
+    getFiwareContext,
+    formatDatetimeIso
 } = require('./ngsiUtils');
 const { config } = require('../../kafnusConfig');
 
@@ -90,9 +91,11 @@ function buildBaseEntity(entity, context) {
 
 // ================= TIMEINSTANT SPLIT =================
 
-// Case-insensitive lookup of a `TimeInstant.value` inside an object. Reused for
-// both the entity-level attribute and per-attribute metadata, since IoT-Agent
-// casing may vary ('TimeInstant', 'timeinstant', ...).
+/**
+ * Case-insensitive lookup of a `TimeInstant.value` inside an object. Reused for
+ * both the entity-level attribute and per-attribute metadata, since IoT-Agent
+ * casing may vary ('TimeInstant', 'timeinstant', ...).
+ */
 function findTimeInstantValue(source) {
     if (!source || typeof source !== 'object') {
         return undefined;
@@ -103,11 +106,22 @@ function findTimeInstantValue(source) {
             return val?.value;
         }
     }
-
     return undefined;
 }
 
-/*
+/**
+ * Returns `entity` unchanged if it already resolves a TimeInstant, otherwise a
+ * shallow copy with `TimeInstant` set to `recvtime`. Used to guarantee that
+ * a usable `timeinstant` is always there.
+ */
+function ensureTimeInstant(entity, recvtime) {
+    if (findTimeInstantValue(entity) != null) {
+        return entity;
+    }
+    return { ...entity, TimeInstant: { type: 'DateTime', value: recvtime } };
+}
+
+/**
  * Splits a single NGSI entity into one sub-entity per distinct resolved
  * TimeInstant, so the historic flow can write one row per observation time.
  * Data attributes are grouped by their resolved timestamp and each group
@@ -117,13 +131,17 @@ function findTimeInstantValue(source) {
  * through the regular processing path (and existing timeinstant-based key)
  * unchanged.
  *
- * The original entity is returned only when it has no data attributes (so
- * there is nothing to group, but the row must still be emitted just like the
- * non-split path does). In every other case the entity is rebuilt so each row
- * carries its resolved observation time — including when a single shared
- * metadata timestamp differs from the entity-level TimeInstant.
+ * Every returned sub-entity is passed through `ensureTimeInstant`, so each one
+ * carries a TimeInstant: attributes that resolve neither their own metadata
+ * nor an entity-level TimeInstant fall back to `recvtime`, the same guarantee
+ * applied on the non-split path.
+ *
+ * An attribute-less entity has nothing to group, but must still emit its row
+ * like the non-split path does. In every other case the entity is rebuilt so
+ * each row carries its resolved observation time — including when a single
+ * shared metadata timestamp differs from the entity-level TimeInstant.
  */
-function splitEntityByTimeInstant(entity) {
+function splitEntityByTimeInstant(entity, recvtime) {
     const entityTimeInstant = findTimeInstantValue(entity);
     const groups = new Map();
 
@@ -148,7 +166,7 @@ function splitEntityByTimeInstant(entity) {
     // An attribute-less entity has nothing to group, but must still emit its
     // row like the non-split path — mapping an empty list would drop it.
     if (groupList.length === 0) {
-        return [entity];
+        return [ensureTimeInstant(entity, recvtime)];
     }
 
     return groupList.map(({ ts, attrs }) => {
@@ -156,8 +174,27 @@ function splitEntityByTimeInstant(entity) {
         if (ts != null) {
             subEntity.TimeInstant = { type: 'DateTime', value: ts };
         }
-        return subEntity;
+        return ensureTimeInstant(subEntity, recvtime);
     });
+}
+
+/**
+ * Picks the sub-entities a given entity should be split into for this
+ * processing run. `includeTimeinstant` gates both: it is what makes
+ * `timeinstant` meaningful for this flow's Kafka key/primary key in the first
+ * place, and splitting by observation time only makes sense when that is
+ * true — grouping by TimeInstant for a flow that never reads it back would be
+ * pointless. When it's false (e.g. lastdata), the entity passes through
+ * unchanged, regardless of `splitByTimeInstant`.
+ */
+function resolveSubEntities(entity, { splitByTimeInstant, includeTimeinstant, recvtime }) {
+    if (!includeTimeinstant) {
+        return [entity];
+    }
+    if (splitByTimeInstant) {
+        return splitEntityByTimeInstant(entity, recvtime);
+    }
+    return [ensureTimeInstant(entity, recvtime)];
 }
 
 // ================= GEO =================
@@ -337,9 +374,10 @@ async function handleEntityCb(
 
         const context = buildContext(headers, message);
         const topicName = buildTopicName(context.service, suffix);
+        const recvtime = formatDatetimeIso('UTC');
 
         for (const entity of entities) {
-            const subEntities = splitByTimeInstant ? splitEntityByTimeInstant(entity) : [entity];
+            const subEntities = resolveSubEntities(entity, { splitByTimeInstant, includeTimeinstant, recvtime });
 
             for (const subEntity of subEntities) {
                 await processEntity({
@@ -362,3 +400,4 @@ async function handleEntityCb(
 module.exports.handleEntityCb = handleEntityCb;
 module.exports.safeProduce = safeProduce;
 module.exports.splitEntityByTimeInstant = splitEntityByTimeInstant;
+module.exports.ensureTimeInstant = ensureTimeInstant;

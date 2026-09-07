@@ -17,14 +17,14 @@
 * along with kafnus. If not, see http://www.gnu.org/licenses/.
 */
 
-DROP TABLE IF EXISTS test.notimeinstant_historic;
+DROP TABLE IF EXISTS test.notimeinstant_azul;
 
-CREATE TABLE IF NOT EXISTS test.notimeinstant_historic (
+CREATE TABLE IF NOT EXISTS test.notimeinstant_azul (
     recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
     fiwareservicepath TEXT,
     entityid TEXT,
     entitytype TEXT,
     timeinstant TIMESTAMPTZ,
     temperature DOUBLE PRECISION,
-    CONSTRAINT notimeinstant_historic_pkey PRIMARY KEY (timeinstant, entityid)
+    CONSTRAINT notimeinstant_azul_pkey PRIMARY KEY (timeinstant, entityid)
 );
