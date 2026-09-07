@@ -24,14 +24,15 @@ const {
     buildKafkaKey,
     sanitizeString,
     getFiwareContext,
-    formatDatetimeIso
+    formatDatetimeIso,
+    isIgnoredAttr,
+    ensureTimeInstant,
+    splitEntityByTimeInstant
 } = require('./ngsiUtils');
 const { config } = require('../../kafnusConfig');
 
 const { once } = require('events');
 const Kafka = require('@confluentinc/kafka-javascript');
-
-const TIMEINSTANT_KEY = 'timeinstant';
 
 async function safeProduce(producer, args, { maxWaitMs = 30000 } = {}) {
     const deadline = Date.now() + maxWaitMs;
@@ -92,93 +93,6 @@ function buildBaseEntity(entity, context) {
 // ================= TIMEINSTANT SPLIT =================
 
 /**
- * Case-insensitive lookup of a `TimeInstant.value` inside an object. Reused for
- * both the entity-level attribute and per-attribute metadata, since IoT-Agent
- * casing may vary ('TimeInstant', 'timeinstant', ...).
- */
-function findTimeInstantValue(source) {
-    if (!source || typeof source !== 'object') {
-        return undefined;
-    }
-
-    for (const [key, val] of Object.entries(source)) {
-        if (key.toLowerCase() === TIMEINSTANT_KEY) {
-            return val?.value;
-        }
-    }
-    return undefined;
-}
-
-/**
- * Returns `entity` unchanged if it already resolves a TimeInstant, otherwise a
- * shallow copy with `TimeInstant` set to `recvtime`. Used to guarantee that
- * a usable `timeinstant` is always there.
- */
-function ensureTimeInstant(entity, recvtime) {
-    if (findTimeInstantValue(entity) != null) {
-        return entity;
-    }
-    return { ...entity, TimeInstant: { type: 'DateTime', value: recvtime } };
-}
-
-/**
- * Splits a single NGSI entity into one sub-entity per distinct resolved
- * TimeInstant, so the historic flow can write one row per observation time.
- * Data attributes are grouped by their resolved timestamp and each group
- * becomes a standalone NGSI-shaped entity (same id/type) whose TimeInstant is
- * overridden with that group's resolved value, so the historic row carries the
- * actual observation time of the data it contains. Each sub-entity then flows
- * through the regular processing path (and existing timeinstant-based key)
- * unchanged.
- *
- * Every returned sub-entity is passed through `ensureTimeInstant`, so each one
- * carries a TimeInstant: attributes that resolve neither their own metadata
- * nor an entity-level TimeInstant fall back to `recvtime`, the same guarantee
- * applied on the non-split path.
- *
- * An attribute-less entity has nothing to group, but must still emit its row
- * like the non-split path does. In every other case the entity is rebuilt so
- * each row carries its resolved observation time — including when a single
- * shared metadata timestamp differs from the entity-level TimeInstant.
- */
-function splitEntityByTimeInstant(entity, recvtime) {
-    const entityTimeInstant = findTimeInstantValue(entity);
-    const groups = new Map();
-
-    for (const [rawName, attrData] of Object.entries(entity)) {
-        const attrName = rawName.toLowerCase();
-
-        if (isIgnoredAttr(attrName) || attrName === TIMEINSTANT_KEY) {
-            continue;
-        }
-
-        const ts = findTimeInstantValue(attrData?.metadata) ?? entityTimeInstant;
-        const groupKey = ts ?? '';
-
-        if (!groups.has(groupKey)) {
-            groups.set(groupKey, { ts, attrs: {} });
-        }
-        groups.get(groupKey).attrs[rawName] = attrData;
-    }
-
-    const groupList = Array.from(groups.values());
-
-    // An attribute-less entity has nothing to group, but must still emit its
-    // row like the non-split path — mapping an empty list would drop it.
-    if (groupList.length === 0) {
-        return [ensureTimeInstant(entity, recvtime)];
-    }
-
-    return groupList.map(({ ts, attrs }) => {
-        const subEntity = { id: entity.id, type: entity.type, ...attrs };
-        if (ts != null) {
-            subEntity.TimeInstant = { type: 'DateTime', value: ts };
-        }
-        return ensureTimeInstant(subEntity, recvtime);
-    });
-}
-
-/**
  * Picks the sub-entities a given entity should be split into for this
  * processing run. `includeTimeinstant` gates both: it is what makes
  * `timeinstant` meaningful for this flow's Kafka key/primary key in the first
@@ -222,10 +136,6 @@ function handleGeo(name, value, attrType, attributes, schemaOverrides, attribute
 }
 
 // ================= ATTRIBUTES =================
-
-function isIgnoredAttr(name) {
-    return ['id', 'type', 'alterationtype'].includes(name);
-}
 
 function processAttribute(name, attrData, attributes, schemaOverrides, attributesTypes) {
     let value = attrData?.value;
@@ -399,5 +309,3 @@ async function handleEntityCb(
 
 module.exports.handleEntityCb = handleEntityCb;
 module.exports.safeProduce = safeProduce;
-module.exports.splitEntityByTimeInstant = splitEntityByTimeInstant;
-module.exports.ensureTimeInstant = ensureTimeInstant;

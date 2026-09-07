@@ -37,27 +37,31 @@ jest.mock('../kafnusConfig', () => ({
     }
 }));
 
-jest.mock('../lib/utils/ngsiUtils', () => ({
-    toWktGeometry: jest.fn(),
-    toWkbStructFromWkt: jest.fn(),
-    toKafnusConnectSchema: jest.fn(),
-    buildKafkaKey: jest.fn(),
-    sanitizeString: jest.fn((value) =>
-        String(value || '')
-            .replace(/^\/+|\/+$/g, '')
-            .toLowerCase()
-    ),
-    getFiwareContext: jest.fn(),
-    formatDatetimeIso: jest.fn()
-}));
+jest.mock('../lib/utils/ngsiUtils', () => {
+    const actual = jest.requireActual('../lib/utils/ngsiUtils');
+    return {
+        toWktGeometry: jest.fn(),
+        toWkbStructFromWkt: jest.fn(),
+        toKafnusConnectSchema: jest.fn(),
+        buildKafkaKey: jest.fn(),
+        sanitizeString: jest.fn((value) =>
+            String(value || '')
+                .replace(/^\/+|\/+$/g, '')
+                .toLowerCase()
+        ),
+        getFiwareContext: jest.fn(),
+        formatDatetimeIso: jest.fn(),
+        // Real implementations: handleEntityCb's split/fallback behavior is exercised
+        // end-to-end here, while the functions themselves are unit-tested in
+        // ngsiUtils.tdd.test.js.
+        isIgnoredAttr: actual.isIgnoredAttr,
+        ensureTimeInstant: actual.ensureTimeInstant,
+        splitEntityByTimeInstant: actual.splitEntityByTimeInstant
+    };
+});
 
 const ngsiUtils = require('../lib/utils/ngsiUtils');
-const {
-    safeProduce,
-    handleEntityCb,
-    splitEntityByTimeInstant,
-    ensureTimeInstant
-} = require('../lib/utils/handleEntityCb');
+const { safeProduce, handleEntityCb } = require('../lib/utils/handleEntityCb');
 
 const RECVTIME = '2024-06-01T12:00:00.000Z';
 
@@ -135,209 +139,6 @@ describe('handleEntityCb.js', () => {
             });
 
             await expect(safeProduce(producer, ['topic-a'], { maxWaitMs: 25 })).rejects.toThrow('queue full');
-        });
-    });
-
-    describe('splitEntityByTimeInstant', () => {
-        test('groups attributes by resolved TimeInstant, preferring per-attribute metadata', () => {
-            const entity = {
-                id: 'Sensor1',
-                type: 'Sensor',
-                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
-                temperature: {
-                    value: 23.5,
-                    type: 'Float',
-                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
-                },
-                humidity: {
-                    value: 65.0,
-                    type: 'Float',
-                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' } }
-                }
-            };
-
-            const result = splitEntityByTimeInstant(entity);
-
-            expect(result).toEqual([
-                {
-                    id: 'Sensor1',
-                    type: 'Sensor',
-                    temperature: entity.temperature,
-                    TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' }
-                },
-                {
-                    id: 'Sensor1',
-                    type: 'Sensor',
-                    humidity: entity.humidity,
-                    TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' }
-                }
-            ]);
-        });
-
-        test('falls back to the entity-level TimeInstant for attributes without metadata', () => {
-            const entity = {
-                id: 'Sensor1',
-                type: 'Sensor',
-                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
-                temperature: {
-                    value: 23.5,
-                    type: 'Float',
-                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
-                },
-                humidity: { value: 65.0, type: 'Float' }
-            };
-
-            const result = splitEntityByTimeInstant(entity);
-
-            expect(result).toHaveLength(2);
-            const humidityGroup = result.find((e) => e.humidity);
-            expect(humidityGroup.TimeInstant.value).toBe('2024-06-01T10:00:05Z');
-        });
-
-        test('overrides TimeInstant when all attributes share one metadata timestamp differing from the entity-level one', () => {
-            const entity = {
-                id: 'Sensor1',
-                type: 'Sensor',
-                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
-                temperature: {
-                    value: 23.5,
-                    type: 'Float',
-                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
-                },
-                humidity: {
-                    value: 65.0,
-                    type: 'Float',
-                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
-                }
-            };
-
-            const result = splitEntityByTimeInstant(entity);
-
-            // Single row (both attributes agree) but at the observation time, not the entity time.
-            expect(result).toEqual([
-                {
-                    id: 'Sensor1',
-                    type: 'Sensor',
-                    temperature: entity.temperature,
-                    humidity: entity.humidity,
-                    TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' }
-                }
-            ]);
-        });
-
-        test('returns the original entity when every attribute shares one timestamp', () => {
-            const entity = {
-                id: 'Sensor1',
-                type: 'Sensor',
-                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
-                temperature: { value: 23.5, type: 'Float' },
-                humidity: { value: 65.0, type: 'Float' }
-            };
-
-            expect(splitEntityByTimeInstant(entity)).toEqual([entity]);
-        });
-
-        test('falls back to recvtime, writing it into TimeInstant, when neither the attribute nor the entity has one', () => {
-            const entity = {
-                id: 'Sensor1',
-                type: 'Sensor',
-                temperature: { value: 23.5, type: 'Float' }
-            };
-
-            const result = splitEntityByTimeInstant(entity, RECVTIME);
-
-            // TimeInstant is always written, so the historic row always has a usable
-            // `timeinstant` — Kafnus Connect never has to fall back to `recvtime` itself.
-            expect(result).toEqual([
-                {
-                    id: 'Sensor1',
-                    type: 'Sensor',
-                    temperature: entity.temperature,
-                    TimeInstant: { type: 'DateTime', value: RECVTIME }
-                }
-            ]);
-        });
-
-        test('resolves per-attribute metadata over recvtime fallback when the entity itself has no TimeInstant', () => {
-            const entity = {
-                id: 'Sensor1',
-                type: 'Sensor',
-                temperature: {
-                    value: 23.5,
-                    type: 'Float',
-                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
-                },
-                humidity: { value: 65.0, type: 'Float' }
-            };
-
-            const result = splitEntityByTimeInstant(entity, RECVTIME);
-
-            expect(result).toHaveLength(2);
-
-            const temperatureGroup = result.find((e) => e.temperature);
-            expect(temperatureGroup.TimeInstant).toEqual({ type: 'DateTime', value: '2024-06-01T10:00:00Z' });
-
-            // humidity has neither its own metadata nor an entity-level TimeInstant to fall
-            // back to, so it gets the recvtime fallback instead of being left without one.
-            const humidityGroup = result.find((e) => e.humidity);
-            expect(humidityGroup.TimeInstant).toEqual({ type: 'DateTime', value: RECVTIME });
-        });
-
-        test('groups attributes that resolve to the same timestamp together, separately from a differently-timestamped attribute', () => {
-            const entity = {
-                id: 'Sensor1',
-                type: 'Sensor',
-                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:10Z' },
-                temperature: {
-                    value: 23.5,
-                    type: 'Float',
-                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
-                },
-                pressure: {
-                    value: 1013.0,
-                    type: 'Float',
-                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
-                },
-                humidity: {
-                    value: 65.0,
-                    type: 'Float',
-                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' } }
-                }
-            };
-
-            const result = splitEntityByTimeInstant(entity);
-
-            expect(result).toHaveLength(2);
-
-            const sharedGroup = result.find((e) => e.temperature);
-            expect(sharedGroup.pressure).toEqual(entity.pressure);
-            expect(sharedGroup.humidity).toBeUndefined();
-            expect(sharedGroup.TimeInstant).toEqual({ type: 'DateTime', value: '2024-06-01T10:00:00Z' });
-
-            const humidityGroup = result.find((e) => e.humidity);
-            expect(humidityGroup.temperature).toBeUndefined();
-            expect(humidityGroup.TimeInstant).toEqual({ type: 'DateTime', value: '2024-06-01T10:00:05Z' });
-        });
-    });
-
-    describe('ensureTimeInstant', () => {
-        test('returns the entity unchanged when it already has a TimeInstant', () => {
-            const entity = {
-                id: 'Sensor1',
-                type: 'Sensor',
-                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' }
-            };
-
-            expect(ensureTimeInstant(entity, RECVTIME)).toBe(entity);
-        });
-
-        test('fills in TimeInstant with recvtime when the entity has none', () => {
-            const entity = { id: 'Sensor1', type: 'Sensor', temperature: { value: 23.5, type: 'Float' } };
-
-            expect(ensureTimeInstant(entity, RECVTIME)).toEqual({
-                ...entity,
-                TimeInstant: { type: 'DateTime', value: RECVTIME }
-            });
         });
     });
 
