@@ -9,8 +9,7 @@
     "connection.password": "${env:KAFNUS_TESTS_PG_PASSWORD}",
 
     "insert.mode": "insert",
-    "pk.mode": "record_value",
-    "pk.fields": "entityid,timeinstant",
+    "pk.mode": "none",
     "table.name.format": "${topic}",
 
     "delete.enabled": false,
