@@ -23,10 +23,9 @@ notification reproduces the original #260 answer instead: the row is
 rejected and routed to test_error_log. `expected_pg.json` in this directory
 documents the enabled-flag outcome above.
 
-This shared e2e stack runs kafnus-ngsi with its real defaults (the flag off),
-so this scenario is currently skipped here (see requires_env.json in this
-directory) rather than asserting the wrong outcome — the enabled-flag path is
-covered by kafnus-ngsi's Jest unit tests instead. It resumes running
-automatically once the environment satisfies requires_env.json, e.g. once
-per-scenario env override support lands, or when running this suite locally
-with the flag set.
+This shared e2e stack normally runs kafnus-ngsi with every KAFNUS_NGSI_* flag
+at its real default (off). This scenario's requires_env.json (in this
+directory) names the flag it needs; before this test runs, the harness
+recreates the kafnus-ngsi container with exactly that env (see the
+`ngsi_env` fixture in functional/conftest.py), so the enabled-flag outcome
+above is what actually gets asserted here.

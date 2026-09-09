@@ -19,9 +19,9 @@ group with no `timeinstant` at all. With both flags enabled:
 This test only checks that the rows exist in both sinks — proof the inserts
 succeeded — not the exact timestamp written.
 
-This shared e2e stack runs kafnus-ngsi with its real defaults (both flags
-off), so this scenario is currently skipped here (see requires_env.json in
-this directory) — the enabled-flag path above is covered by kafnus-ngsi's
-Jest unit tests instead. It resumes running automatically once the
-environment satisfies requires_env.json, e.g. once per-scenario env override
-support lands, or when running this suite locally with both flags set.
+This shared e2e stack normally runs kafnus-ngsi with every KAFNUS_NGSI_* flag
+at its real default (both off). This scenario's requires_env.json (in this
+directory) names the combination it needs; before this test runs, the
+harness recreates the kafnus-ngsi container with exactly that env (see the
+`ngsi_env` fixture in functional/conftest.py), so the outcome above is what
+actually gets asserted here.

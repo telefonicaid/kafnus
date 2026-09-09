@@ -210,17 +210,30 @@ KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=true   # to use an external PostGIS instance
 
 `kafnus-ngsi` ships with per-attribute `TimeInstant` splitting (`KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT`) and the `timeinstant`
 presence guarantee (`KAFNUS_NGSI_ENSURE_TIMEINSTANT`) both disabled by default — see [`05_kafnus_ngsi.md`](/doc/05_kafnus_ngsi.md)
-for what each flag does and how they compose. CI runs this shared, single-container e2e environment with both flags left at
-their real defaults (`false`), and there is currently no way to enable either flag for only a subset of scenarios.
+for what each flag does and how they compose. The e2e stack itself always starts with every `KAFNUS_NGSI_*` flag at its real
+default, matching real deployments.
 
 The scenarios under `functional/cases/postgis/011_per_attr_timeinstant/` and
 `functional/cases/postgis/003_errors/003_historic_without_timeinstant/` need one or both flags set to `true` to exercise the
 behavior they describe. Each such scenario carries a `requires_env.json` (read by `scenario_loader.discover_scenarios()`)
-naming the env vars and values it needs; when the running environment doesn't satisfy it, the scenario is skipped with a
-reason naming the mismatch instead of failing. That coverage is exercised by kafnus-ngsi's Jest unit tests instead. Because
-the check re-reads the actual environment on every run, a scenario resumes automatically as soon as its `requires_env.json`
-is satisfied — e.g. once per-scenario env override support is added to this harness, or when running the suite locally with
-the relevant flags set — with nothing to remove by hand.
+naming the env vars and values it needs; that's resolved into the *full* set of flags `docker-compose.ngsi.yml` forwards to
+the container (unlisted flags default to `false`, so a scenario without a `requires_env.json` is equivalent to one that
+lists every flag as `false`). Before each scenario runs, the `ngsi_env` fixture
+(`functional/conftest.py`) recreates the `kafnus-ngsi` container with exactly that resolved env, but only when it differs
+from what's already running (`DockerCompose.ensure_service_env`, `common/common_test.py`) — most scenarios need nothing
+here since they resolve to the same all-`false` defaults the container already starts with. Scenarios are collected sorted
+by their resolved env first and name second, which clusters every "nothing special" scenario into one contiguous block, so
+a full suite run pays for exactly one container recreate per *distinct* flag combination actually in use, not per scenario.
+
+Since kafnus-ngsi reads its env once at process startup with no hot-reload, changing it requires a full
+`docker compose up --force-recreate`, followed by re-running the same Kafka smoke-test readiness check
+(`wait_for_kafnus_ngsi`) `multiservice_stack` already runs once at stack startup — a real but bounded cost (one recreate +
+readiness wait per distinct combo, not per scenario).
+
+A scenario whose `requires_env.json` names a var `docker-compose.ngsi.yml` doesn't forward to the container at all is still
+skipped with a reason — there's nothing a container recreation can do about that; adding a new `KAFNUS_NGSI_*` flag to
+`docker-compose.ngsi.yml`'s `environment:` block (see the existing entries there for the pattern) is what makes it usable
+here.
 
 ---
 
