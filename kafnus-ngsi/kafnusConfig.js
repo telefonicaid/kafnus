@@ -213,6 +213,10 @@ const envVarsSchema = {
         KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT: {
             type: 'boolean',
             default: false
+        },
+        KAFNUS_NGSI_ENSURE_TIMEINSTANT: {
+            type: 'boolean',
+            default: false
         }
     }
 };
@@ -300,7 +304,8 @@ const config = {
     ngsi: {
         prefix: envVars.KAFNUS_NGSI_PREFIX_TOPIC,
         suffix: envVars.KAFNUS_NGSI_SUFFIX_TOPIC,
-        splitByTimeInstant: envVars.KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT
+        splitByTimeInstant: envVars.KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT,
+        ensureTimeInstant: envVars.KAFNUS_NGSI_ENSURE_TIMEINSTANT
     }
 };
 

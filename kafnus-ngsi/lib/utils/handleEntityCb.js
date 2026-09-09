@@ -26,7 +26,7 @@ const {
     getFiwareContext,
     formatDatetimeIso,
     isIgnoredAttr,
-    ensureTimeInstant,
+    ensureEntityTimeInstant,
     splitEntityByTimeInstant
 } = require('./ngsiUtils');
 const { config } = require('../../kafnusConfig');
@@ -94,21 +94,28 @@ function buildBaseEntity(entity, context) {
 
 /**
  * Picks the sub-entities a given entity should be split into for this
- * processing run. `includeTimeinstant` gates both: it is what makes
+ * processing run, and optionally guarantees each one has a usable
+ * TimeInstant. `includeTimeinstant` gates both: it is what makes
  * `timeinstant` meaningful for this flow's Kafka key/primary key in the first
- * place, and splitting by observation time only makes sense when that is
- * true — grouping by TimeInstant for a flow that never reads it back would be
- * pointless. When it's false (e.g. lastdata), the entity passes through
- * unchanged, regardless of `splitByTimeInstant`.
+ * place, and neither splitting nor ensuring make sense for a flow that never
+ * reads it back. When it's false (e.g. lastdata), the entity passes through
+ * unchanged.
+ *
+ * `splitByTimeInstant` and `ensureTimeInstant` are independent and compose:
+ * splitting is purely mechanical grouping by resolved TimeInstant (it never
+ * invents one), while ensuring guarantees presence — falling back to
+ * `recvtime` — on whatever list splitting (or its absence) produced.
  */
-function resolveSubEntities(entity, { splitByTimeInstant, includeTimeinstant, recvtime }) {
+function resolveSubEntities(entity, { splitByTimeInstant, includeTimeinstant, recvtime, ensureTimeInstant }) {
     if (!includeTimeinstant) {
         return [entity];
     }
-    if (splitByTimeInstant) {
-        return splitEntityByTimeInstant(entity, recvtime);
-    }
-    return [ensureTimeInstant(entity, recvtime)];
+
+    const subEntities = splitByTimeInstant ? splitEntityByTimeInstant(entity) : [entity];
+
+    return ensureTimeInstant
+        ? subEntities.map((subEntity) => ensureEntityTimeInstant(subEntity, recvtime))
+        : subEntities;
 }
 
 // ================= GEO =================
@@ -235,6 +242,7 @@ async function processEntity({
     flowSuffix,
     includeTimeinstant,
     keyFields,
+    recvtime,
     producer,
     logger
 }) {
@@ -243,7 +251,7 @@ async function processEntity({
 
     const fullEntity = { ...base, ...attributes };
 
-    const kafkaMessage = toKafnusConnectSchema(fullEntity, schemaOverrides, attributesTypes);
+    const kafkaMessage = toKafnusConnectSchema(fullEntity, schemaOverrides, attributesTypes, recvtime);
 
     const kafkaKey = buildKafkaKey(fullEntity, keyFields, includeTimeinstant);
 
@@ -269,7 +277,8 @@ async function handleEntityCb(
         flowSuffix = '_historic',
         includeTimeinstant = true,
         keyFields = ['entityid'],
-        splitByTimeInstant = false
+        splitByTimeInstant = false,
+        ensureTimeInstant = false
     } = {},
     producer
 ) {
@@ -287,7 +296,12 @@ async function handleEntityCb(
         const recvtime = formatDatetimeIso('UTC');
 
         for (const entity of entities) {
-            const subEntities = resolveSubEntities(entity, { splitByTimeInstant, includeTimeinstant, recvtime });
+            const subEntities = resolveSubEntities(entity, {
+                splitByTimeInstant,
+                includeTimeinstant,
+                recvtime,
+                ensureTimeInstant
+            });
 
             for (const subEntity of subEntities) {
                 await processEntity({
@@ -297,6 +311,7 @@ async function handleEntityCb(
                     flowSuffix,
                     includeTimeinstant,
                     keyFields,
+                    recvtime,
                     producer,
                     logger
                 });

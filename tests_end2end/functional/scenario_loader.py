@@ -21,6 +21,8 @@ from typing import Optional
 from pathlib import Path
 import os
 
+import pytest
+
 from common.common_test import OrionRequestData
 from common.config import logger
 
@@ -31,11 +33,21 @@ def discover_scenarios():
     """
     Recursively discovers all test scenarios by scanning the SCENARIOS_DIR.
 
-    Returns a list of tuples:
+    Returns a list of pytest.param entries wrapping tuples of:
     - scenario name (relative path from SCENARIOS_DIR)
     - list of (expected_type, expected_path)
     - path to input.json
     - optional path to setup.sql
+
+    A scenario directory may contain a `requires_env.json` file: a mapping of
+    env var name -> the string value it must have for this scenario's
+    expectations to hold (e.g. a feature flag this shared, single-container
+    e2e stack doesn't support overriding per scenario). If the current
+    environment doesn't satisfy it, the scenario is discovered but marked
+    `pytest.mark.skip` with a reason naming the mismatch. Unlike a plain
+    on/off marker, this re-checks the actual environment every run, so a
+    scenario starts running again on its own once its requirement is met —
+    nothing to remember to remove by hand.
     """
     logger.debug(f"🔍 Recursively scanning for test scenarios in: {SCENARIOS_DIR}")
     cases = []
@@ -60,18 +72,47 @@ def discover_scenarios():
         relative_name = str(dir_path.relative_to(SCENARIOS_DIR))
         logger.debug(f"✅ Found scenario: {relative_name} ({[e[0] for e in expected_files]})")
 
+        skip_reason = _unmet_env_requirement(dir_path)
+        if skip_reason:
+            logger.debug(f"⏭️ Scenario {relative_name} skipped: {skip_reason}")
+
         cases.append(
             (
                 relative_name,
                 expected_files,
                 input_json,
-                setup_sql if setup_sql.exists() else None
+                setup_sql if setup_sql.exists() else None,
+                skip_reason
             )
         )
 
     cases.sort(key=lambda c: c[0])  # Sort by scenario name (relative path)
     logger.debug(f"🔢 Total scenarios discovered: {len(cases)}")
-    return cases
+
+    return [
+        pytest.param(name, expected_files, input_json, setup, marks=pytest.mark.skip(reason=skip_reason) if skip_reason else ())
+        for name, expected_files, input_json, setup, skip_reason in cases
+    ]
+
+def _unmet_env_requirement(dir_path: Path) -> Optional[str]:
+    """
+    Reads `requires_env.json` from a scenario directory, if present, and
+    compares each entry against the current environment (case-insensitively,
+    matching kafnus-ngsi's own boolean env var parsing). Returns a skip
+    reason describing the first unmet var, or None if the requirement file is
+    absent or fully satisfied.
+    """
+    requires_path = dir_path / "requires_env.json"
+    if not requires_path.exists():
+        return None
+
+    required = json.loads(requires_path.read_text(encoding="utf-8"))
+    for var, expected in required.items():
+        actual = os.environ.get(var)
+        if (actual or "").lower() != str(expected).lower():
+            return f"Requires {var}={expected!r} (currently {actual!r}); see requires_env.json in this scenario's directory."
+
+    return None
 
 def load_scenario(json_path, as_expected=False):
     """

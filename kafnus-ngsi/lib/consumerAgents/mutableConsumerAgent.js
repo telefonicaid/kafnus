@@ -60,7 +60,8 @@ async function startMutableConsumerAgent(log, producer) {
                         suffix,
                         flowSuffix: '_mutable',
                         includeTimeinstant: true,
-                        keyFields: ['entityid']
+                        keyFields: ['entityid'],
+                        ensureTimeInstant: config.ngsi.ensureTimeInstant
                     },
                     producer
                 );

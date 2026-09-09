@@ -206,12 +206,21 @@ KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=true   # to use an external PostGIS instance
 > POSTGIS_IMAGE=telefonicaiot/iotp-postgis:12.14-3.3.2-2  # Internal Telefónica image
 > ```
 
-### ⏱️ Per-attribute TimeInstant splitting
+### ⏱️ Per-attribute TimeInstant splitting and ensuring
 
-`kafnus-ngsi` ships with per-attribute `TimeInstant` splitting disabled by default (see `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT`
-in [`05_kafnus_ngsi.md`](/doc/05_kafnus_ngsi.md)). The scenarios under `functional/cases/postgis/011_per_attr_timeinstant/`
-require `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT=true` in your `.env` (see `.env.example`) — without it the flag defaults to `false`
-and those scenarios will fail. CI sets it directly in the `end2end_tests.yml` workflow, without changing the flag's default for real deployments.
+`kafnus-ngsi` ships with per-attribute `TimeInstant` splitting (`KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT`) and the `timeinstant`
+presence guarantee (`KAFNUS_NGSI_ENSURE_TIMEINSTANT`) both disabled by default — see [`05_kafnus_ngsi.md`](/doc/05_kafnus_ngsi.md)
+for what each flag does and how they compose. CI runs this shared, single-container e2e environment with both flags left at
+their real defaults (`false`), and there is currently no way to enable either flag for only a subset of scenarios.
+
+The scenarios under `functional/cases/postgis/011_per_attr_timeinstant/` and
+`functional/cases/postgis/003_errors/003_historic_without_timeinstant/` need one or both flags set to `true` to exercise the
+behavior they describe. Each such scenario carries a `requires_env.json` (read by `scenario_loader.discover_scenarios()`)
+naming the env vars and values it needs; when the running environment doesn't satisfy it, the scenario is skipped with a
+reason naming the mismatch instead of failing. That coverage is exercised by kafnus-ngsi's Jest unit tests instead. Because
+the check re-reads the actual environment on every run, a scenario resumes automatically as soon as its `requires_env.json`
+is satisfied — e.g. once per-scenario env override support is added to this harness, or when running the suite locally with
+the relevant flags set — with nothing to remove by hand.
 
 ---
 

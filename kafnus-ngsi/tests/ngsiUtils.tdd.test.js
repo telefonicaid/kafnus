@@ -28,19 +28,11 @@ const {
     inferFieldType,
     getFiwareContext,
     truncate,
-    ensureTimeInstant,
+    ensureEntityTimeInstant,
     splitEntityByTimeInstant
 } = require('../lib/utils/ngsiUtils');
 
 const RECVTIME = '2024-06-01T12:00:00.000Z';
-
-jest.mock('../lib/utils/logger', () => ({
-    getBasicLogger: () => ({
-        error: (...args) => console.error(...args),
-        warn: (...args) => console.warn(...args),
-        info: (...args) => console.log(...args)
-    })
-}));
 
 describe('ngsiUtils.js', () => {
     // -------------------
@@ -424,21 +416,94 @@ describe('ngsiUtils.js', () => {
         });
     });
 
-    describe('ensureTimeInstant (TDD)', () => {
-        test('returns the entity unchanged when it already has a TimeInstant', () => {
+    describe('ensureEntityTimeInstant (TDD)', () => {
+        test('returns the entity unchanged (same reference) when its TimeInstant already needs no correction', () => {
             const entity = {
                 id: 'Sensor1',
                 type: 'Sensor',
                 TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' }
             };
 
-            expect(ensureTimeInstant(entity, RECVTIME)).toBe(entity);
+            expect(ensureEntityTimeInstant(entity, RECVTIME)).toBe(entity);
         });
 
-        test('fills in TimeInstant with recvtime when the entity has none', () => {
+        test('keeps the entity-level TimeInstant when no attribute metadata disagrees with it', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
+                temperature: { value: 23.5, type: 'Float' }
+            };
+
+            expect(ensureEntityTimeInstant(entity, RECVTIME)).toBe(entity);
+        });
+
+        test('overrides a stale entity-level TimeInstant when every attribute agrees on a different metadata timestamp', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' },
+                temperature: {
+                    value: 23.5,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                },
+                humidity: {
+                    value: 65.0,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                }
+            };
+
+            expect(ensureEntityTimeInstant(entity, RECVTIME)).toEqual({
+                ...entity,
+                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' }
+            });
+        });
+
+        test('resolves from attribute metadata when there is no entity-level TimeInstant', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                temperature: {
+                    value: 23.5,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                }
+            };
+
+            expect(ensureEntityTimeInstant(entity, RECVTIME)).toEqual({
+                ...entity,
+                TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' }
+            });
+        });
+
+        test('falls back to recvtime when nothing is resolvable anywhere', () => {
             const entity = { id: 'Sensor1', type: 'Sensor', temperature: { value: 23.5, type: 'Float' } };
 
-            expect(ensureTimeInstant(entity, RECVTIME)).toEqual({
+            expect(ensureEntityTimeInstant(entity, RECVTIME)).toEqual({
+                ...entity,
+                TimeInstant: { type: 'DateTime', value: RECVTIME }
+            });
+        });
+
+        test('falls back to recvtime when attributes disagree with no entity-level TimeInstant to break the tie', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                temperature: {
+                    value: 23.5,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                },
+                humidity: {
+                    value: 65.0,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' } }
+                }
+            };
+
+            expect(ensureEntityTimeInstant(entity, RECVTIME)).toEqual({
                 ...entity,
                 TimeInstant: { type: 'DateTime', value: RECVTIME }
             });
@@ -544,28 +609,27 @@ describe('ngsiUtils.js', () => {
             expect(splitEntityByTimeInstant(entity)).toEqual([entity]);
         });
 
-        test('falls back to recvtime, writing it into TimeInstant, when neither the attribute nor the entity has one', () => {
+        test('leaves a group without TimeInstant when neither the attribute nor the entity resolves one (no recvtime invention)', () => {
             const entity = {
                 id: 'Sensor1',
                 type: 'Sensor',
                 temperature: { value: 23.5, type: 'Float' }
             };
 
-            const result = splitEntityByTimeInstant(entity, RECVTIME);
+            const result = splitEntityByTimeInstant(entity);
 
-            // TimeInstant is always written, so the historic row always has a usable
-            // `timeinstant` — Kafnus Connect never has to fall back to `recvtime` itself.
+            // Splitting is purely mechanical: it never invents a timestamp. Pair with
+            // ensureEntityTimeInstant (KAFNUS_NGSI_ENSURE_TIMEINSTANT) for a guaranteed fallback.
             expect(result).toEqual([
                 {
                     id: 'Sensor1',
                     type: 'Sensor',
-                    temperature: entity.temperature,
-                    TimeInstant: { type: 'DateTime', value: RECVTIME }
+                    temperature: entity.temperature
                 }
             ]);
         });
 
-        test('resolves per-attribute metadata over recvtime fallback when the entity itself has no TimeInstant', () => {
+        test('groups still resolve independently when only some attributes have metadata', () => {
             const entity = {
                 id: 'Sensor1',
                 type: 'Sensor',
@@ -577,17 +641,90 @@ describe('ngsiUtils.js', () => {
                 humidity: { value: 65.0, type: 'Float' }
             };
 
-            const result = splitEntityByTimeInstant(entity, RECVTIME);
+            const result = splitEntityByTimeInstant(entity);
 
             expect(result).toHaveLength(2);
 
             const temperatureGroup = result.find((e) => e.temperature);
             expect(temperatureGroup.TimeInstant).toEqual({ type: 'DateTime', value: '2024-06-01T10:00:00Z' });
 
-            // humidity has neither its own metadata nor an entity-level TimeInstant to fall
-            // back to, so it gets the recvtime fallback instead of being left without one.
+            // humidity has neither its own metadata nor an entity-level TimeInstant to
+            // resolve from, so its group simply carries no TimeInstant at all.
             const humidityGroup = result.find((e) => e.humidity);
-            expect(humidityGroup.TimeInstant).toEqual({ type: 'DateTime', value: RECVTIME });
+            expect(humidityGroup.TimeInstant).toBeUndefined();
+        });
+
+        test('groups differently-formatted representations of the same instant together', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                temperature: {
+                    value: 23.5,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                },
+                humidity: {
+                    value: 65.0,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00.000+00:00' } }
+                }
+            };
+
+            const result = splitEntityByTimeInstant(entity);
+
+            expect(result).toHaveLength(1);
+            expect(result[0].temperature).toEqual(entity.temperature);
+            expect(result[0].humidity).toEqual(entity.humidity);
+        });
+
+        test('replicates a provided recvtime attribute verbatim onto every produced sub-entity', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                recvtime: '2024-06-01T09:00:00.000Z',
+                temperature: {
+                    value: 23.5,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                },
+                humidity: {
+                    value: 65.0,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' } }
+                }
+            };
+
+            const result = splitEntityByTimeInstant(entity);
+
+            expect(result).toHaveLength(2);
+            result.forEach((subEntity) => {
+                expect(subEntity.recvtime).toBe('2024-06-01T09:00:00.000Z');
+            });
+        });
+
+        test('preserves an ignored attribute (alterationType) onto every produced sub-entity', () => {
+            const entity = {
+                id: 'Sensor1',
+                type: 'Sensor',
+                alterationType: { type: 'Text', value: 'entityUpdate' },
+                temperature: {
+                    value: 23.5,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:00Z' } }
+                },
+                humidity: {
+                    value: 65.0,
+                    type: 'Float',
+                    metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T10:00:05Z' } }
+                }
+            };
+
+            const result = splitEntityByTimeInstant(entity);
+
+            expect(result).toHaveLength(2);
+            result.forEach((subEntity) => {
+                expect(subEntity.alterationType).toEqual(entity.alterationType);
+            });
         });
 
         test('groups attributes that resolve to the same timestamp together, separately from a differently-timestamped attribute', () => {

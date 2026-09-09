@@ -37,6 +37,7 @@ services:
       - KAFNUS_NGSI_PREFIX_TOPIC=smc_
       - KAFNUS_NGSI_SUFFIX_TOPIC=_processed
       - KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT=${KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT:-false}
+      - KAFNUS_NGSI_ENSURE_TIMEINSTANT=${KAFNUS_NGSI_ENSURE_TIMEINSTANT:-false}
     networks:
       - kafka-postgis-net
     ports:

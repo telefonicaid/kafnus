@@ -5,12 +5,23 @@ still fill in a `timeinstant` value (falling back to a recvtime-style
 timestamp) or the insert would violate that primary key and the row
 would never appear.
 
-In this shared test environment KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT is enabled,
-so the historic row exercises the recvtime fallback inside
-splitEntityByTimeInstant's grouping (a single attribute with no resolvable
-timestamp forms one group, filled with recvtime). The mutable flow never uses
-that split path regardless of the flag, so its row instead exercises the
-plain ensureTimeInstant() guarantee applied to the non-split path.
+Splitting (KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT) and ensuring
+(KAFNUS_NGSI_ENSURE_TIMEINSTANT) are independent, composable flags. Splitting
+is purely mechanical grouping by resolved TimeInstant — it never invents one,
+so on its own it would leave this entity's single (attribute-less-of-metadata)
+group with no `timeinstant` at all. With both flags enabled:
+- The historic row goes through splitEntityByTimeInstant() first (one group,
+  no resolvable TimeInstant), then ensureEntityTimeInstant() fills that group's
+  `timeinstant` with the recvtime fallback.
+- The mutable flow never splits, so its row goes through ensureEntityTimeInstant()
+  directly on the whole entity, with the same recvtime fallback.
 
 This test only checks that the rows exist in both sinks — proof the inserts
 succeeded — not the exact timestamp written.
+
+This shared e2e stack runs kafnus-ngsi with its real defaults (both flags
+off), so this scenario is currently skipped here (see requires_env.json in
+this directory) — the enabled-flag path above is covered by kafnus-ngsi's
+Jest unit tests instead. It resumes running automatically once the
+environment satisfies requires_env.json, e.g. once per-scenario env override
+support lands, or when running this suite locally with both flags set.

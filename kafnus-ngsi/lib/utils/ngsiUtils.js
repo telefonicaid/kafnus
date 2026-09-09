@@ -182,6 +182,7 @@ function formatDatetimeIso(tz = 'UTC') {
 // NGSI entity / TimeInstant helpers
 // -----------------
 const TIMEINSTANT_KEY = 'timeinstant';
+const RECVTIME_KEY = 'recvtime';
 
 function isIgnoredAttr(name) {
     return ['id', 'type', 'alterationtype'].includes(name);
@@ -206,14 +207,78 @@ function findTimeInstantValue(source) {
 }
 
 /**
- * Returns `entity` unchanged if it already resolves a TimeInstant, otherwise a
- * shallow copy with `TimeInstant` set to `recvtime`. Used to guarantee that
- * a usable `timeinstant` is always there.
+ * Resolves the single TimeInstant an entity as a whole should carry, using the
+ * same priority as splitting: per-attribute metadata first, then the
+ * entity-level TimeInstant. Unlike splitting, this never produces more than
+ * one row, so attributes are only trusted when they agree on one value.
+ *
+ * - Exactly one distinct per-attribute metadata value -> that value wins, even
+ *   over a differing entity-level TimeInstant.
+ * - Otherwise, an existing entity-level TimeInstant wins.
+ * - Otherwise, nothing usable: `value` is `undefined`, and `ambiguous` tells
+ *   the caller whether that's because 2+ attributes disagreed with nothing to
+ *   break the tie (worth a warning) or because nothing was provided at all
+ *   (expected in some deployments, worth only a debug note).
  */
-function ensureTimeInstant(entity, recvtime) {
-    if (findTimeInstantValue(entity) != null) {
-        return entity;
+function resolveEntityTimestamp(entity) {
+    const attrValues = new Set();
+
+    for (const [rawName, attrData] of Object.entries(entity)) {
+        const attrName = rawName.toLowerCase();
+
+        if (isIgnoredAttr(attrName) || attrName === TIMEINSTANT_KEY || attrName === RECVTIME_KEY) {
+            continue;
+        }
+
+        const ts = findTimeInstantValue(attrData?.metadata);
+        if (ts != null) {
+            attrValues.add(ts);
+        }
     }
+
+    if (attrValues.size === 1) {
+        return { value: [...attrValues][0], ambiguous: false };
+    }
+
+    const entityTimeInstant = findTimeInstantValue(entity);
+    if (entityTimeInstant != null) {
+        return { value: entityTimeInstant, ambiguous: false };
+    }
+
+    return { value: undefined, ambiguous: attrValues.size > 1 };
+}
+
+/**
+ * Guarantees `entity` carries a usable TimeInstant, resolving it via
+ * `resolveEntityTimestamp` and overriding a stale/absent one as needed.
+ * Returns `entity` unchanged (same reference) when the resolved value already
+ * matches what's there, so callers that don't need a correction pay nothing.
+ *
+ * When nothing is resolvable, falls back to `recvtime`: at `warn` level when
+ * attributes disagreed with each other and there was no entity-level
+ * TimeInstant to break the tie (a likely misconfiguration worth surfacing),
+ * at `debug` level otherwise (nothing was ever provided, which is expected in
+ * some deployments).
+ */
+function ensureEntityTimeInstant(entity, recvtime) {
+    const resolved = resolveEntityTimestamp(entity);
+
+    if (resolved.value != null) {
+        if (resolved.value === findTimeInstantValue(entity)) {
+            return entity;
+        }
+        return { ...entity, TimeInstant: { type: 'DateTime', value: resolved.value } };
+    }
+
+    if (resolved.ambiguous) {
+        logger.warn(
+            `Entity '${entity.id}' has attributes with disagreeing TimeInstant metadata and no ` +
+                `entity-level TimeInstant to fall back to; using recvtime '${recvtime}' instead`
+        );
+    } else {
+        logger.debug(`No TimeInstant found for entity '${entity.id}'; falling back to recvtime '${recvtime}'`);
+    }
+
     return { ...entity, TimeInstant: { type: 'DateTime', value: recvtime } };
 }
 
@@ -221,25 +286,30 @@ function ensureTimeInstant(entity, recvtime) {
  * Splits a single NGSI entity into one sub-entity per distinct resolved
  * TimeInstant, so the historic flow can write one row per observation time.
  * Data attributes are grouped by their resolved timestamp and each group
- * becomes a standalone NGSI-shaped entity (same id/type) whose TimeInstant is
- * overridden with that group's resolved value, so the historic row carries the
- * actual observation time of the data it contains. Each sub-entity then flows
- * through the regular processing path (and existing timeinstant-based key)
- * unchanged.
+ * becomes a standalone NGSI-shaped entity (same ignored attrs: id/type/
+ * alterationtype, carried through verbatim) whose TimeInstant is overridden
+ * with that group's resolved value, so the historic row carries the actual
+ * observation time of the data it contains.
  *
- * Every returned sub-entity is passed through `ensureTimeInstant`, so each one
- * carries a TimeInstant: attributes that resolve neither their own metadata
- * nor an entity-level TimeInstant fall back to `recvtime`, the same guarantee
- * applied on the non-split path.
+ * This is purely mechanical grouping: it never invents a timestamp. A group
+ * whose attributes resolve no TimeInstant at all (neither their own metadata
+ * nor an entity-level one) simply has no TimeInstant — pair with
+ * `ensureEntityTimeInstant` (via `KAFNUS_NGSI_ENSURE_TIMEINSTANT`) if a guaranteed
+ * fallback to `recvtime` is also wanted.
+ *
+ * A `recvtime` data attribute (a provided measurement, see #299) is excluded
+ * from grouping and replicated verbatim onto every produced sub-entity, since
+ * all of them originate from the same notification.
  *
  * An attribute-less entity has nothing to group, but must still emit its row
  * like the non-split path does. In every other case the entity is rebuilt so
  * each row carries its resolved observation time — including when a single
  * shared metadata timestamp differs from the entity-level TimeInstant.
  */
-function splitEntityByTimeInstant(entity, recvtime) {
+function splitEntityByTimeInstant(entity) {
     const entityTimeInstant = findTimeInstantValue(entity);
     const groups = new Map();
+    let recvtimeEntry = null;
 
     for (const [rawName, attrData] of Object.entries(entity)) {
         const attrName = rawName.toLowerCase();
@@ -248,8 +318,13 @@ function splitEntityByTimeInstant(entity, recvtime) {
             continue;
         }
 
+        if (attrName === RECVTIME_KEY) {
+            recvtimeEntry = [rawName, attrData];
+            continue;
+        }
+
         const ts = findTimeInstantValue(attrData?.metadata) ?? entityTimeInstant;
-        const groupKey = ts ?? '';
+        const groupKey = toGroupKey(ts);
 
         if (!groups.has(groupKey)) {
             groups.set(groupKey, { ts, attrs: {} });
@@ -262,16 +337,36 @@ function splitEntityByTimeInstant(entity, recvtime) {
     // An attribute-less entity has nothing to group, but must still emit its
     // row like the non-split path — mapping an empty list would drop it.
     if (groupList.length === 0) {
-        return [ensureTimeInstant(entity, recvtime)];
+        return [entity];
     }
 
+    const ignoredEntries = Object.entries(entity).filter(([a]) => isIgnoredAttr(a.toLowerCase()));
+
     return groupList.map(({ ts, attrs }) => {
-        const subEntity = { id: entity.id, type: entity.type, ...attrs };
+        const subEntity = {
+            ...Object.fromEntries(ignoredEntries),
+            ...(recvtimeEntry ? { [recvtimeEntry[0]]: recvtimeEntry[1] } : {}),
+            ...attrs
+        };
         if (ts != null) {
             subEntity.TimeInstant = { type: 'DateTime', value: ts };
         }
-        return ensureTimeInstant(subEntity, recvtime);
+        return subEntity;
     });
+}
+
+/**
+ * Builds the Map key used to group attributes by resolved TimeInstant.
+ * Different ISO representations of the same instant (e.g. a trailing 'Z' vs.
+ * an explicit '+00:00' offset) must land in the same group, so the key is the
+ * epoch-millis value rather than the raw string, wherever that's parseable.
+ */
+function toGroupKey(ts) {
+    if (ts == null) {
+        return '';
+    }
+    const millis = toEpochMillis(ts);
+    return Number.isNaN(millis) ? ts : millis;
 }
 
 // -----------------
@@ -391,7 +486,7 @@ function inferFieldType(name, value, attrType = null) {
 // -----------------
 // Kafka Schema Builder
 // -----------------
-function toKafnusConnectSchema(entity, schemaOverrides = {}, attributeTypes = {}) {
+function toKafnusConnectSchema(entity, schemaOverrides = {}, attributeTypes = {}, recvtime = formatDatetimeIso('UTC')) {
     const schemaFields = [];
     const payload = {};
     const seenFields = new Set();
@@ -452,7 +547,7 @@ function toKafnusConnectSchema(entity, schemaOverrides = {}, attributeTypes = {}
             optional: false
         });
 
-        payload.recvtime = formatDatetimeIso('UTC');
+        payload.recvtime = recvtime;
     }
 
     return {
@@ -569,7 +664,7 @@ function truncate(s, max = 4000) {
 
 exports.truncate = truncate;
 exports.isIgnoredAttr = isIgnoredAttr;
-exports.ensureTimeInstant = ensureTimeInstant;
+exports.ensureEntityTimeInstant = ensureEntityTimeInstant;
 exports.splitEntityByTimeInstant = splitEntityByTimeInstant;
 exports.toWktGeometry = toWktGeometry;
 exports.toWkbStructFromWkt = toWkbStructFromWkt;

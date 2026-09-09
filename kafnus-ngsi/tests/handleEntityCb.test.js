@@ -55,7 +55,7 @@ jest.mock('../lib/utils/ngsiUtils', () => {
         // end-to-end here, while the functions themselves are unit-tested in
         // ngsiUtils.tdd.test.js.
         isIgnoredAttr: actual.isIgnoredAttr,
-        ensureTimeInstant: actual.ensureTimeInstant,
+        ensureEntityTimeInstant: actual.ensureEntityTimeInstant,
         splitEntityByTimeInstant: actual.splitEntityByTimeInstant
     };
 });
@@ -269,7 +269,7 @@ describe('handleEntityCb.js', () => {
             expect(producer.produce).toHaveBeenCalledTimes(2);
         });
 
-        test('resolves all three TimeInstant priorities (per-attribute metadata, entity-level, recvtime) across a notification', async () => {
+        test('resolves all three TimeInstant priorities (per-attribute metadata, entity-level, recvtime) across a notification when split and ensure are both enabled', async () => {
             const producer = { produce: jest.fn() };
 
             const rawValue = JSON.stringify({
@@ -288,7 +288,54 @@ describe('handleEntityCb.js', () => {
                         humidity: { value: 65.0, type: 'Float' }
                     },
                     // No entity-level TimeInstant: attributes resolve via metadata (level 1) or fall
-                    // back to recvtime (level 3).
+                    // back to recvtime (level 3, only reached with ensureTimeInstant enabled).
+                    {
+                        id: 'Sensor2',
+                        type: 'Sensor',
+                        temperature: {
+                            value: 21.0,
+                            type: 'Float',
+                            metadata: { TimeInstant: { type: 'DateTime', value: '2024-06-01T11:00:00Z' } }
+                        },
+                        humidity: { value: 60.0, type: 'Float' }
+                    }
+                ]
+            });
+
+            await handleEntityCb(
+                logger,
+                rawValue,
+                {
+                    headers: [],
+                    suffix: '_historic',
+                    flowSuffix: '_historic',
+                    splitByTimeInstant: true,
+                    ensureTimeInstant: true
+                },
+                producer
+            );
+
+            // Each entity resolves to 2 distinct groups (one per attribute) -> 4 Kafka messages.
+            expect(producer.produce).toHaveBeenCalledTimes(4);
+
+            const timeinstants = ngsiUtils.toKafnusConnectSchema.mock.calls.map(
+                ([fullEntityArg]) => fullEntityArg.timeinstant
+            );
+            expect(timeinstants).toEqual(
+                expect.arrayContaining([
+                    '2024-06-01T10:00:00Z',
+                    '2024-06-01T10:00:05Z',
+                    '2024-06-01T11:00:00Z',
+                    RECVTIME
+                ])
+            );
+        });
+
+        test('does not resolve TimeInstant at all when split is enabled but ensureTimeInstant is not', async () => {
+            const producer = { produce: jest.fn() };
+
+            const rawValue = JSON.stringify({
+                data: [
                     {
                         id: 'Sensor2',
                         type: 'Sensor',
@@ -309,11 +356,15 @@ describe('handleEntityCb.js', () => {
                 producer
             );
 
-            // Each entity resolves to 2 distinct groups (one per attribute) -> 4 Kafka messages.
-            expect(producer.produce).toHaveBeenCalledTimes(4);
+            const timeinstants = ngsiUtils.toKafnusConnectSchema.mock.calls.map(
+                ([fullEntityArg]) => fullEntityArg.timeinstant
+            );
+            // temperature resolves via its own metadata; humidity has nothing to resolve from
+            // and split never invents a value, so its group has no timeinstant at all.
+            expect(timeinstants).toEqual(expect.arrayContaining(['2024-06-01T11:00:00Z', undefined]));
         });
 
-        test('fills in TimeInstant with recvtime on the non-split path when includeTimeinstant is true and the entity has none', async () => {
+        test('fills in TimeInstant with recvtime on the non-split path when ensureTimeInstant is enabled and the entity has none', async () => {
             const producer = { produce: jest.fn() };
 
             const rawValue = JSON.stringify({
@@ -324,12 +375,49 @@ describe('handleEntityCb.js', () => {
             await handleEntityCb(
                 logger,
                 rawValue,
-                { headers: [], suffix: '_mutable', flowSuffix: '_mutable', includeTimeinstant: true },
+                {
+                    headers: [],
+                    suffix: '_mutable',
+                    flowSuffix: '_mutable',
+                    includeTimeinstant: true,
+                    ensureTimeInstant: true
+                },
                 producer
             );
 
             const [fullEntityArg] = ngsiUtils.toKafnusConnectSchema.mock.calls[0];
             expect(fullEntityArg.timeinstant).toBe(RECVTIME);
+        });
+
+        test('does not add TimeInstant on the non-split path when ensureTimeInstant is not set (backward compatible default)', async () => {
+            const producer = { produce: jest.fn() };
+
+            const rawValue = JSON.stringify({
+                data: [{ id: 'Sensor1', type: 'Sensor', temperature: { value: 23.5, type: 'Float' } }]
+            });
+
+            await handleEntityCb(
+                logger,
+                rawValue,
+                { headers: [], suffix: '_mutable', flowSuffix: '_mutable', includeTimeinstant: true },
+                producer
+            );
+
+            const [fullEntityArg] = ngsiUtils.toKafnusConnectSchema.mock.calls[0];
+            expect(fullEntityArg).not.toHaveProperty('timeinstant');
+        });
+
+        test('passes the shared per-notification recvtime through to toKafnusConnectSchema', async () => {
+            const producer = { produce: jest.fn() };
+
+            const rawValue = JSON.stringify({
+                data: [{ id: 'Room:001', type: 'Room', temperature: { value: 23.4, type: 'Number' } }]
+            });
+
+            await handleEntityCb(logger, rawValue, { headers: [] }, producer);
+
+            const [, , , recvtimeArg] = ngsiUtils.toKafnusConnectSchema.mock.calls[0];
+            expect(recvtimeArg).toBe(RECVTIME);
         });
 
         test('does not add TimeInstant on the non-split path when includeTimeinstant is false', async () => {

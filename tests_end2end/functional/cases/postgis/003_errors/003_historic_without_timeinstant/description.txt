@@ -6,11 +6,27 @@ then-current answer: Kafka Connect's JSON converter rejected the null
 `timeinstant` field and the row was routed to the error log instead of being
 persisted.
 
-Issue #294 resolves that question: kafnus-ngsi now guarantees every
-historic/mutable row has a usable `timeinstant`, falling back to a
-recvtime-style timestamp when neither per-attribute metadata nor an
-entity-level TimeInstant is present (see ensureTimeInstant() /
-splitEntityByTimeInstant() in handleEntityCb.js). Expected behavior is now:
+Issue #294 resolves that question, but the guarantee is opt-in via
+KAFNUS_NGSI_ENSURE_TIMEINSTANT (default false, so the default deployment
+behavior is unchanged from the answer above). When enabled, kafnus-ngsi
+guarantees every historic/mutable row has a usable `timeinstant`, falling
+back to a recvtime-style timestamp when neither per-attribute metadata nor an
+entity-level TimeInstant is present (see ensureEntityTimeInstant() and
+splitEntityByTimeInstant() in ngsiUtils.js). With the flag enabled, expected
+behavior here is:
 - The record IS persisted in the historical PostGIS table, with `timeinstant`
   filled in via the recvtime fallback.
 - No error is routed to test_error_log for this notification.
+
+With KAFNUS_NGSI_ENSURE_TIMEINSTANT left at its default (false), this
+notification reproduces the original #260 answer instead: the row is
+rejected and routed to test_error_log. `expected_pg.json` in this directory
+documents the enabled-flag outcome above.
+
+This shared e2e stack runs kafnus-ngsi with its real defaults (the flag off),
+so this scenario is currently skipped here (see requires_env.json in this
+directory) rather than asserting the wrong outcome — the enabled-flag path is
+covered by kafnus-ngsi's Jest unit tests instead. It resumes running
+automatically once the environment satisfies requires_env.json, e.g. once
+per-scenario env override support lands, or when running this suite locally
+with the flag set.

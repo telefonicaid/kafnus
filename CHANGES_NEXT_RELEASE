@@ -1,4 +1,4 @@
 - Upgrade dep @confluentinc/kafka-javascript from 1.9.1 to 1.10.0
 - Do not insert (or overwrite) in NGSI sinks `recvtime` when is providead a measure (#299)
 - Add: split historic entities by per-attribute metadata TimeInstant so each observation time is written as its own row, gated by the global KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT flag (default off) (#294)
-- Fix: historic and mutable sinks now always write a `timeinstant` value, falling back to `recvtime` when an entity has none, since `timeinstant` is part of their JDBC primary key (#294)
+- Add: KAFNUS_NGSI_ENSURE_TIMEINSTANT flag (default off) to guarantee historic and mutable rows always have a usable `timeinstant`, resolving it from attribute metadata / entity-level TimeInstant / `recvtime` and overriding a stale value if needed; independent of and composable with KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT (#294)

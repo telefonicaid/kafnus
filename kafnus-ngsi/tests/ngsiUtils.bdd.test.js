@@ -100,6 +100,13 @@ describe('ngsiUtils.js', () => {
             expect(result.payload.recvtime).toBe('2025-06-26T12:45:00Z');
             expect(result.schema.fields.filter((f) => f.field === 'recvtime')).toHaveLength(1);
         });
+
+        test('Given an explicit recvtime argument and an entity without one, When building schema, Then it reuses that value verbatim', () => {
+            const entity = { temperature: 21.5 };
+            const result = toKafnusConnectSchema(entity, {}, { temperature: 'Float' }, '2025-06-26T12:45:00.123Z');
+
+            expect(result.payload.recvtime).toBe('2025-06-26T12:45:00.123Z');
+        });
     });
 
     describe('buildKafkaKey (BDD)', () => {
