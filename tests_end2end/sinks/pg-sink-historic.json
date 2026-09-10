@@ -10,8 +10,7 @@
     "db.timezone": "UTC",
 
     "insert.mode": "insert",
-    "pk.mode": "record_value",
-    "pk.fields": "entityid,timeinstant",
+    "pk.mode": "none",
     "table.name.format": "${topic}",
 
     "delete.enabled": false,

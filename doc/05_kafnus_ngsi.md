@@ -426,6 +426,10 @@ Useful for upsert operations in JDBC sinks (`lastdata`, `mutable`).
 
 - All notifications are sent downstream regardless of timestamp.
 - Output topic: `<PREFIX><service>_historic<SUFFIX>`
+- The JDBC historic sink uses `"insert.mode": "insert"` with `"pk.mode": "none"`: it performs a
+  plain `INSERT` and does not need a primary key extracted from the record. `TimeInstant` is
+  therefore **not required** — a notification without it is still inserted, with `timeinstant` left
+  `NULL` in the destination table (uniqueness, if desired, is left to the table's own constraints).
 
 #### `<PREFIX>raw_lastdata`
 

@@ -1,0 +1,7 @@
+Validates issue #304: a HISTORIC notification without TimeInstant is no longer rejected.
+
+Expected behavior:
+- The JDBC historic sink uses "insert.mode": "insert" with "pk.mode": "none", so it does not
+  require a primary key extracted from the record to perform the INSERT.
+- The record is persisted in the historic PostGIS table with "timeinstant" left NULL.
+- No error is produced: the notification is not routed to the error log.
