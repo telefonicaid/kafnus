@@ -573,8 +573,11 @@ function buildKafkaKey(entity, keyFields, includeTimeinstant = false) {
     });
 
     if (includeTimeinstant) {
-        fields.push({ field: 'timeinstant', type: 'string', optional: false });
-        payload.timeinstant = entity.timeinstant;
+        const hasTimeinstant = entity.timeinstant != null;
+        fields.push({ field: 'timeinstant', type: 'string', optional: !hasTimeinstant });
+        if (hasTimeinstant) {
+            payload.timeinstant = entity.timeinstant;
+        }
     }
 
     return Buffer.from(

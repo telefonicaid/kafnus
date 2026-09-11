@@ -426,6 +426,10 @@ Useful for upsert operations in JDBC sinks (`lastdata`, `mutable`).
 
 - All notifications are sent downstream regardless of timestamp.
 - Output topic: `<PREFIX><service>_historic<SUFFIX>`
+- The JDBC historic sink uses `"insert.mode": "insert"` with `"pk.mode": "none"`: it performs a
+  plain `INSERT` and does not need a primary key extracted from the record. `TimeInstant` is
+  therefore **not required** — a notification without it is still inserted, with `timeinstant` left
+  `NULL` in the destination table (uniqueness, if desired, is left to the table's own constraints).
 
 ##### ⏱️ Per-attribute TimeInstant: splitting and ensuring
 
@@ -458,17 +462,18 @@ different timestamps produce separate rows. Enabling splitting can therefore inc
 historic rows written per notification — up to one per distinct attribute timestamp — so it should be enabled
 deliberately, weighing that impact against the need for exact per-attribute observation time.
 
-Since the historic sink uses `insert` (not upsert) on `(entityid, timeinstant)`, re-notifying attributes that didn't
-actually change (and so still carry a stale metadata timestamp) risks a primary-key violation when
-`KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT` is enabled. Configuring the subscription with `onlyChangedAttrs: true` is recommended
-alongside this flag to avoid that.
+The historic sink itself performs a plain `insert` with `"pk.mode": "none"` (see above), so it does not enforce any key on
+`(entityid, timeinstant)`. If the destination table declares its own `PRIMARY KEY`/`UNIQUE` constraint on those columns
+(as historic tables typically do), re-notifying attributes that didn't actually change (and so still carry a stale
+metadata timestamp) risks violating it when `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT` is enabled. Configuring the subscription
+with `onlyChangedAttrs: true` is recommended alongside this flag to avoid that.
 
 **Worked example** — a notification with no entity-level `TimeInstant`, and two attributes whose per-attribute metadata
 disagrees (e.g. batched IoT-Agent measurements, or any source that never sets a reliable entity-level `TimeInstant`):
 
 | Configuration | Result |
 | --- | --- |
-| Both off (default) | One row, `timeinstant` unset — rejected by the JDBC sink, routed to the error log. |
+| Both off (default) | One row, `timeinstant` unset (`NULL`). The historic sink itself accepts this (`pk.mode: none`, plain insert) — whether the row is actually persisted or routed to the error log instead depends on whether the destination table has its own constraint requiring `timeinstant`. |
 | `ENSURE` only | One row; since the two attributes disagree and there's no entity-level value to break the tie, `timeinstant` falls back to `recvtime` (logged at `warn`, since enabling splitting is usually the better fix). |
 | `SPLIT` only | Two rows, one per attribute, each `timeinstant` correctly set to that attribute's own metadata value. |
 | Both on | Same two rows as `SPLIT` only — `ENSURE` has nothing left to correct, since each row already resolved a value from its own group. |

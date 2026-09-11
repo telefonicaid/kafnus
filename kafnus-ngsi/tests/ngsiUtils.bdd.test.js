@@ -118,6 +118,20 @@ describe('ngsiUtils.js', () => {
             expect(parsed.payload.id).toBe('abc');
             expect(parsed.payload.type).toBe('Device');
             expect(parsed.payload).toHaveProperty('timeinstant');
+
+            const timeinstantField = parsed.schema.fields.find((f) => f.field === 'timeinstant');
+            expect(timeinstantField.optional).toBe(false);
+        });
+
+        test('Given entity without timeinstant, When building key, Then timeinstant field is optional and omitted from payload', () => {
+            const entity = { id: 'abc', type: 'Device' };
+            const buf = buildKafkaKey(entity, ['id', 'type'], true);
+            const parsed = JSON.parse(buf.toString('utf-8'));
+
+            expect(parsed.payload).not.toHaveProperty('timeinstant');
+
+            const timeinstantField = parsed.schema.fields.find((f) => f.field === 'timeinstant');
+            expect(timeinstantField.optional).toBe(true);
         });
     });
 });

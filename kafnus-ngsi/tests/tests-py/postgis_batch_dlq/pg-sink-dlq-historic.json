@@ -6,6 +6,7 @@
     "connection.url": "jdbc:postgresql://iot-postgis:5432/tests",
     "connection.user": "postgres",
     "connection.password": "postgres",
+    "db.timezone": "UTC",
 
     "insert.mode": "insert",
     "pk.mode": "record_value",

@@ -213,8 +213,7 @@ presence guarantee (`KAFNUS_NGSI_ENSURE_TIMEINSTANT`) both disabled by default â
 for what each flag does and how they compose. The e2e stack itself always starts with every `KAFNUS_NGSI_*` flag at its real
 default, matching real deployments.
 
-The scenarios under `functional/cases/postgis/011_per_attr_timeinstant/` and
-`functional/cases/postgis/003_errors/003_historic_without_timeinstant/` need one or both flags set to `true` to exercise the
+The scenarios under `functional/cases/postgis/012_per_attr_timeinstant/` need one or both flags set to `true` to exercise the
 behavior they describe. Each such scenario carries a `requires_env.json` (read by `scenario_loader.discover_scenarios()`)
 naming the env vars and values it needs; that's resolved into the *full* set of flags `docker-compose.ngsi.yml` forwards to
 the container (unlisted flags default to `false`, so a scenario without a `requires_env.json` is equivalent to one that
