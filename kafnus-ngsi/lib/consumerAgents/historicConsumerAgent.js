@@ -59,7 +59,9 @@ async function startHistoricConsumerAgent(log, producer) {
                         suffix,
                         flowSuffix: '_historic',
                         includeTimeinstant: true,
-                        keyFields: ['entityid']
+                        keyFields: ['entityid'],
+                        splitByTimeInstant: config.ngsi.splitByTimeInstant,
+                        ensureTimeInstant: config.ngsi.ensureTimeInstant
                     },
                     producer
                 );

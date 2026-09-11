@@ -1,0 +1,5 @@
+Per-attribute TimeInstant handling. A single Sensor update carries different
+per-attribute TimeInstant metadata (temperature observed at 10:00:00, humidity
+at 10:00:05). The historic flow must split the entity into one row per distinct
+observation time (temperature@10:00:00, humidity@10:00:05), while the lastdata
+flow must keep a single row with the full entity at the latest TimeInstant.

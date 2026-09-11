@@ -220,6 +220,40 @@ class DockerCompose(OriginalDockerCompose):
         else:
             logger.debug(f"⚠️ Service '{service_name}' not present in this compose stack, skipping start")
 
+    def ensure_service_env(self, service_name: str, env: dict, ready_check=None) -> None:
+        """
+        Ensures `service_name` is running with exactly `env` as its env var
+        overrides, recreating the container only when that differs from the
+        env last applied here. Services like kafnus-ngsi read env once at
+        startup with no hot-reload, so changing it needs a full
+        `docker compose up --force-recreate`, not `restart` -- unlike
+        safe_stop/safe_start, which reuse the existing container's baked-in
+        env. `ready_check`, if given, is called after a recreate to
+        re-verify the service before tests resume.
+        """
+        if getattr(self, "_service_env", {}).get(service_name) == env:
+            return
+
+        logger.info(f"♻️ Recreating service '{service_name}' with env {env}")
+        cmd = self._build_compose_command("up")
+        cmd.extend(["-d", "--force-recreate", service_name])
+        subprocess.run(
+            cmd,
+            cwd=self.filepath,
+            env={**os.environ, **env},
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+
+        if not hasattr(self, "_service_env"):
+            self._service_env = {}
+        self._service_env[service_name] = env
+
+        if ready_check:
+            ready_check()
+
 @pytest.fixture(scope="session")
 def multiservice_stack():
     """

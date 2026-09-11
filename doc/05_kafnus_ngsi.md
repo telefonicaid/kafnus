@@ -431,6 +431,62 @@ Useful for upsert operations in JDBC sinks (`lastdata`, `mutable`).
   therefore **not required** — a notification without it is still inserted, with `timeinstant` left
   `NULL` in the destination table (uniqueness, if desired, is left to the table's own constraints).
 
+##### ⏱️ Per-attribute TimeInstant: splitting and ensuring
+
+By default, all attributes of a notification are written as a single historic row, using the entity-level `TimeInstant`
+(or nothing, if that's absent too). When an IoT-Agent batches measurements taken at different times into one
+notification — or a notification simply has no reliable entity-level `TimeInstant` at all — this can make attributes
+appear to have been observed at the wrong time, or leave `timeinstant` unset.
+
+Two independent, composable flags address this, both `false` by default:
+
+- **`KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT`** — splits the historic flow's entity into one sub-entity per distinct resolved
+  timestamp from the metadata `TimeInstant`, so each observation time is written as its own row. Purely mechanical:
+  it never invents a timestamp, so a group of attributes that resolves none stays without a `TimeInstant`.
+- **`KAFNUS_NGSI_ENSURE_TIMEINSTANT`** — resolves a single timestamp for the whole entity (or, when splitting is also
+  enabled, for each sub-entity split produced) and guarantees it ends up in `TimeInstant`, falling back to `recvtime`
+  when nothing else is resolvable. Applies to both the `historic` and `mutable` flows; `lastdata` is unaffected since
+  its primary key (`entityid` alone) doesn't depend on `timeinstant`.
+
+Both use the same resolution priority:
+
+1. The attribute's own `metadata.TimeInstant.value` — when every attribute that has one agrees on a single value.
+2. The entity-level `TimeInstant` attribute, if the above is absent or (for ensuring, without splitting) attributes
+   disagree with each other. In that disagreement case a `warn`-level log is emitted, since it usually means splitting
+   should be enabled too.
+3. `recvtime` (**ensuring only** — splitting never reaches this tier on its own), if nothing above is present. A
+   `debug`-level log is emitted when this triggers.
+
+Attributes that resolve to the same timestamp stay together in one row when splitting; attributes resolving to
+different timestamps produce separate rows. Enabling splitting can therefore increase the number of Kafka messages and
+historic rows written per notification — up to one per distinct attribute timestamp — so it should be enabled
+deliberately, weighing that impact against the need for exact per-attribute observation time.
+
+The historic sink itself performs a plain `insert` with `"pk.mode": "none"` (see above), so it does not enforce any key on
+`(entityid, timeinstant)`. If the destination table declares its own `PRIMARY KEY`/`UNIQUE` constraint on those columns
+(as historic tables typically do), re-notifying attributes that didn't actually change (and so still carry a stale
+metadata timestamp) risks violating it when `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT` is enabled. Configuring the subscription
+with `onlyChangedAttrs: true` is recommended alongside this flag to avoid that.
+
+**Worked example** — a notification with no entity-level `TimeInstant`, and two attributes whose per-attribute metadata
+disagrees (e.g. batched IoT-Agent measurements, or any source that never sets a reliable entity-level `TimeInstant`):
+
+| Configuration | Result |
+| --- | --- |
+| Both off (default) | One row, `timeinstant` unset (`NULL`). The historic sink itself accepts this (`pk.mode: none`, plain insert) — whether the row is actually persisted or routed to the error log instead depends on whether the destination table has its own constraint requiring `timeinstant`. |
+| `ENSURE` only | One row; since the two attributes disagree and there's no entity-level value to break the tie, `timeinstant` falls back to `recvtime` (logged at `warn`, since enabling splitting is usually the better fix). |
+| `SPLIT` only | Two rows, one per attribute, each `timeinstant` correctly set to that attribute's own metadata value. |
+| Both on | Same two rows as `SPLIT` only — `ENSURE` has nothing left to correct, since each row already resolved a value from its own group. |
+
+##### 🔗 A single `recvtime` per notification
+
+`recvtime` — when the notification reached the broker — is computed once per notification and reused everywhere: as the
+last-resort fallback for `TimeInstant` (see above) and as the persisted `recvtime` field on every row it produces. This
+avoids a millisecond-level mismatch between the two that would otherwise occur from computing "now" twice. `TimeInstant`
+(measurement time) and `recvtime` (broker arrival time) remain conceptually distinct — a data attribute named `recvtime`
+provided by the source itself is never overwritten (see below) and is replicated verbatim onto every sub-entity a split
+produces, since they all originate from the same notification.
+
 #### `<PREFIX>raw_lastdata`
 
 - Maintains a Faust Table `last_seen_timestamps` to filter old records.
@@ -442,6 +498,8 @@ Useful for upsert operations in JDBC sinks (`lastdata`, `mutable`).
 - Allows overwriting/updating mutable data.
 - Update rows with same `entityid` and `timeinstant`.
 - Output topic: `<PREFIX><service>_mutable<SUFFIX>`
+- Same `KAFNUS_NGSI_ENSURE_TIMEINSTANT` guarantee as in the `historic` flow — see above. Never splits, regardless of
+  `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT`.
 
 ---
 
@@ -588,6 +646,8 @@ The following environment variables configure Kafka connectivity, producer/consu
 | `KAFNUS_NGSI_GROUP_ID` | string | `ngsi-processor` | Base Kafka consumer group ID used by NGSI processor agents. |
 | `KAFNUS_NGSI_PREFIX_TOPIC` | string | `` | Prefix used in all kafka topics (by default no prefix is used). |
 | `KAFNUS_NGSI_SUFFIX_TOPIC` | string | `` | Suffix used in all kafka topics (by default no suffix is used). |
+| `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT` | boolean | `false` | When enabled, the historic flow splits each entity by per-attribute metadata `TimeInstant`, writing one row per distinct observation time (attribute metadata → entity-level `TimeInstant`; never invents a value). Only the historic flow is affected; lastdata/mutable stay single-row-per-entity. |
+| `KAFNUS_NGSI_ENSURE_TIMEINSTANT` | boolean | `false` | When enabled, guarantees the historic and mutable flows always have a usable `timeinstant`, resolving it (attribute metadata → entity-level `TimeInstant` → `recvtime`) and overriding a stale value if needed. Independent of `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT`; see "Per-attribute TimeInstant: splitting and ensuring" above for how they compose. |
 
 ---
 

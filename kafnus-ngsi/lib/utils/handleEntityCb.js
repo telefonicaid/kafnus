@@ -23,7 +23,11 @@ const {
     toKafnusConnectSchema,
     buildKafkaKey,
     sanitizeString,
-    getFiwareContext
+    getFiwareContext,
+    formatDatetimeIso,
+    isIgnoredAttr,
+    ensureEntityTimeInstant,
+    splitEntityByTimeInstant
 } = require('./ngsiUtils');
 const { config } = require('../../kafnusConfig');
 
@@ -86,6 +90,34 @@ function buildBaseEntity(entity, context) {
     };
 }
 
+// ================= TIMEINSTANT SPLIT =================
+
+/**
+ * Picks the sub-entities a given entity should be split into for this
+ * processing run, and optionally guarantees each one has a usable
+ * TimeInstant. `includeTimeinstant` gates both: it is what makes
+ * `timeinstant` meaningful for this flow's Kafka key/primary key in the first
+ * place, and neither splitting nor ensuring make sense for a flow that never
+ * reads it back. When it's false (e.g. lastdata), the entity passes through
+ * unchanged.
+ *
+ * `splitByTimeInstant` and `ensureTimeInstant` are independent and compose:
+ * splitting is purely mechanical grouping by resolved TimeInstant (it never
+ * invents one), while ensuring guarantees presence — falling back to
+ * `recvtime` — on whatever list splitting (or its absence) produced.
+ */
+function resolveSubEntities(entity, { splitByTimeInstant, includeTimeinstant, recvtime, ensureTimeInstant }) {
+    if (!includeTimeinstant) {
+        return [entity];
+    }
+
+    const subEntities = splitByTimeInstant ? splitEntityByTimeInstant(entity) : [entity];
+
+    return ensureTimeInstant
+        ? subEntities.map((subEntity) => ensureEntityTimeInstant(subEntity, recvtime))
+        : subEntities;
+}
+
 // ================= GEO =================
 
 function handleGeo(name, value, attrType, attributes, schemaOverrides, attributesTypes) {
@@ -111,10 +143,6 @@ function handleGeo(name, value, attrType, attributes, schemaOverrides, attribute
 }
 
 // ================= ATTRIBUTES =================
-
-function isIgnoredAttr(name) {
-    return ['id', 'type', 'alterationtype'].includes(name);
-}
 
 function processAttribute(name, attrData, attributes, schemaOverrides, attributesTypes) {
     let value = attrData?.value;
@@ -214,6 +242,7 @@ async function processEntity({
     flowSuffix,
     includeTimeinstant,
     keyFields,
+    recvtime,
     producer,
     logger
 }) {
@@ -222,7 +251,7 @@ async function processEntity({
 
     const fullEntity = { ...base, ...attributes };
 
-    const kafkaMessage = toKafnusConnectSchema(fullEntity, schemaOverrides, attributesTypes);
+    const kafkaMessage = toKafnusConnectSchema(fullEntity, schemaOverrides, attributesTypes, recvtime);
 
     const kafkaKey = buildKafkaKey(fullEntity, keyFields, includeTimeinstant);
 
@@ -242,7 +271,15 @@ async function processEntity({
 async function handleEntityCb(
     logger,
     rawValue,
-    { headers = [], suffix = '', flowSuffix = '_historic', includeTimeinstant = true, keyFields = ['entityid'] } = {},
+    {
+        headers = [],
+        suffix = '',
+        flowSuffix = '_historic',
+        includeTimeinstant = true,
+        keyFields = ['entityid'],
+        splitByTimeInstant = false,
+        ensureTimeInstant = false
+    } = {},
     producer
 ) {
     try {
@@ -256,18 +293,29 @@ async function handleEntityCb(
 
         const context = buildContext(headers, message);
         const topicName = buildTopicName(context.service, suffix);
+        const recvtime = formatDatetimeIso('UTC');
 
         for (const entity of entities) {
-            await processEntity({
-                entity,
-                context,
-                topicName,
-                flowSuffix,
+            const subEntities = resolveSubEntities(entity, {
+                splitByTimeInstant,
                 includeTimeinstant,
-                keyFields,
-                producer,
-                logger
+                recvtime,
+                ensureTimeInstant
             });
+
+            for (const subEntity of subEntities) {
+                await processEntity({
+                    entity: subEntity,
+                    context,
+                    topicName,
+                    flowSuffix,
+                    includeTimeinstant,
+                    keyFields,
+                    recvtime,
+                    producer,
+                    logger
+                });
+            }
         }
     } catch (err) {
         handleError(err, logger);

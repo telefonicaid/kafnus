@@ -2,3 +2,15 @@ Documents current behavior when a HISTORIC notification is generated without Tim
 Expected current behavior:
 - The record is not persisted in historical PostGIS table.
 - Kafka Connect emits an error that is routed to test_error_log.
+
+Since #304, the JDBC historic sink itself (`pk.mode: none`) no longer requires
+`timeinstant` to perform the INSERT, and kafnus-ngsi's Kafka message key omits
+it when absent (see buildKafkaKey() in ngsiUtils.js) instead of failing at the
+key-schema/converter level. The rejection asserted here now comes purely from
+this table's own PRIMARY KEY (timeinstant, entityid) constraint, not from the
+connector or the message key.
+
+If KAFNUS_NGSI_ENSURE_TIMEINSTANT (#294) were enabled, kafnus-ngsi would fill
+in a recvtime-fallback `timeinstant` before this point and the insert would
+succeed instead — see 012_per_attr_timeinstant/002_no_timeinstant_at_all for
+that case.

@@ -1,0 +1,33 @@
+Entity update with no TimeInstant at all: no entity-level TimeInstant attribute
+and no per-attribute metadata. This scenario's tables (see setup.sql) declare a
+NOT NULL `PRIMARY KEY (timeinstant, entityid)`, so kafnus-ngsi must still fill
+in a `timeinstant` value (falling back to a recvtime-style timestamp) or the
+insert would violate that constraint and the row would never appear. This is a
+property of these tables, not of the sinks themselves: the historic sink is a
+plain `insert` with `"pk.mode": "none"` since #304 and would happily write a
+NULL `timeinstant` to a table that allows it (see
+003_errors/003_historic_without_required_timeinstant, which uses a table with
+the same constraint, and 011_historic/001_no_timeinstant, which doesn't). The
+mutable sink is unaffected by #304 and still upserts on (entityid, timeinstant)
+via `"pk.mode": "record_value"`.
+
+Splitting (KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT) and ensuring
+(KAFNUS_NGSI_ENSURE_TIMEINSTANT) are independent, composable flags. Splitting
+is purely mechanical grouping by resolved TimeInstant — it never invents one,
+so on its own it would leave this entity's single (attribute-less-of-metadata)
+group with no `timeinstant` at all. With both flags enabled:
+- The historic row goes through splitEntityByTimeInstant() first (one group,
+  no resolvable TimeInstant), then ensureEntityTimeInstant() fills that group's
+  `timeinstant` with the recvtime fallback.
+- The mutable flow never splits, so its row goes through ensureEntityTimeInstant()
+  directly on the whole entity, with the same recvtime fallback.
+
+This test only checks that the rows exist in both sinks — proof the inserts
+succeeded — not the exact timestamp written.
+
+This shared e2e stack normally runs kafnus-ngsi with every KAFNUS_NGSI_* flag
+at its real default (both off). This scenario's requires_env.json (in this
+directory) names the combination it needs; before this test runs, the
+harness recreates the kafnus-ngsi container with exactly that env (see the
+`ngsi_env` fixture in functional/conftest.py), so the outcome above is what
+actually gets asserted here.
