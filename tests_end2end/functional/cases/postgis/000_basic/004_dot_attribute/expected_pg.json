@@ -1,0 +1,22 @@
+[
+{
+  "table": "test.dot_sensor",
+  "rows": [
+    {"entityid": "Sensor1", "entitytype": "Sensor", "temperature.test": 25.0, "fiwareservicepath": "/dot"},
+    {"entityid": "Sensor1", "entitytype": "Sensor", "temperature.test": 26.0, "fiwareservicepath": "/dot"}
+  ]
+},
+{
+  "table": "test.dot_sensor_mutable",
+  "rows": [
+    {"entityid": "Sensor1", "entitytype": "Sensor", "timeinstant": "2025-06-26T11:00:00Z", "temperature.test": 25.0, "fiwareservicepath": "/dot"},
+    {"entityid": "Sensor1", "entitytype": "Sensor", "timeinstant": "2025-06-26T12:00:00Z", "temperature.test": 26.0, "fiwareservicepath": "/dot"}
+  ]
+},
+{
+  "table": "test.dot_sensor_lastdata",
+  "rows": [
+    {"entityid": "Sensor1", "entitytype": "Sensor", "timeinstant": "2025-06-26T12:00:00Z", "temperature.test": 26.0, "fiwareservicepath": "/dot"}
+  ]
+}
+]
