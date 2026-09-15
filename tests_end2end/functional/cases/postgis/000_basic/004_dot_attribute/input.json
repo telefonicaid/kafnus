@@ -1,0 +1,108 @@
+{
+  "name": "dot_test_case",
+  "fiware-service": "test",
+  "fiware-servicepath": "/dot",
+  "subscriptions": {
+    "historic": {
+      "description": "Sensor:HISTORIC:dot:historic",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_historic"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature.test"
+        ]
+      }
+    },
+    "lastdata": {
+      "description": "Sensor:LASTDATA:dot:lastdata",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_lastdata"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature.test"
+        ]
+      }
+    },
+    "mutable": {
+      "description": "Sensor:mutable:dot:mutable",
+      "status": "active",
+      "subject": {
+        "entities": [
+          {
+            "idPattern": ".*",
+            "type": "Sensor"
+          }
+        ],
+        "condition": {
+          "attrs": [
+            "TimeInstant"
+          ]
+        }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_mutable"
+        },
+        "attrs": [
+          "TimeInstant",
+          "temperature.test"
+        ]
+      }
+    }
+    },
+  "updateEntities": [
+    {
+      "id": "Sensor1",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T11:00:00Z"
+      },
+      "temperature.test": {"value": 25.0, "type": "Float"}
+    },
+    {
+      "id": "Sensor1",
+      "type": "Sensor",
+      "TimeInstant": {
+        "type": "DateTime",
+        "value": "2025-06-26T12:00:00Z"
+      },
+      "temperature.test": {"value": 26.0, "type": "Float"}
+    }
+  ]
+}
