@@ -120,13 +120,12 @@ describe('admin.js runtime config endpoint', () => {
     const originalEnv = { ...process.env };
 
     let startAdminServer;
-    let recordFlowProcessing;
     let logger;
     let server;
     let port;
 
     beforeAll(() => {
-        ({ startAdminServer, recordFlowProcessing } = require('../lib/utils/admin'));
+        ({ startAdminServer } = require('../lib/utils/admin'));
     });
 
     beforeEach(async () => {
