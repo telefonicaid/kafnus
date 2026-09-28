@@ -12,10 +12,11 @@
     "lint:src": "eslint lib/ --cache",
     "lint:test": "eslint tests/ --cache",
     "lint:fix": "eslint  lib/ --cache --fix",
-    "prettier": "prettier --config .prettierrc.json --write '**/**/**/**/*.js' '**/**/**/*.js' '**/**/*.js' '**/*.js' '*.js'",      
+    "prettier": "prettier --config .prettierrc.json --write '**/**/**/**/*.js' '**/**/**/*.js' '**/**/*.js' '**/*.js' '*.js'",
     "start": "node index.js",
     "test": "jest --runInBand",
-    "test:coverage": "jest --runInBand --coverage --coverageReporters=text-summary --coverageReporters=lcov --coverageReporters=html"
+    "test:coverage": "jest --runInBand --coverage --coverageReporters=text-summary --coverageReporters=lcov --coverageReporters=html",
+    "coverage:e2e": "node scripts/e2eCoverageReport.js"
   },
   "engines": {
     "node": ">=24"
