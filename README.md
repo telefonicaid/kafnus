@@ -2,7 +2,7 @@
 
 # 🛰️ Kafnus
 
-[![CI](https://github.com/telefonicaid/kafnus/actions/workflows/kafnus_ngsi_coverage.yml/badge.svg?branch=main)](https://github.com/telefonicaid/kafnus/actions/workflows/kafnus_ngsi_coverage.yml)
+[![CI](https://github.com/telefonicaid/kafnus/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/telefonicaid/kafnus/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/telefonicaid/kafnus/badge.svg?branch=main)](https://coveralls.io/github/telefonicaid/kafnus?branch=main)
 [![Docker badge](https://img.shields.io/badge/docker-telefonicaiot%2Fkafnus-blue?logo=docker)](https://hub.docker.com/r/telefonicaiot/kafnus)
 
