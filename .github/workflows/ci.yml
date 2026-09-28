@@ -1,0 +1,240 @@
+# Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
+#
+# This file is part of kafnus
+#
+# kafnus is free software: you can redistribute it and/or
+# modify it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# kafnus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+# General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with kafnus. If not, see http://www.gnu.org/licenses/.
+
+name: Kafnus CI
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint-dockerfile:
+    name: Lint Dockerfile
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Hadolint Dockerfile Linter
+        uses: burdzwastaken/hadolint-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HADOLINT_ACTION_DOCKERFILE_FOLDER: kafnus-ngsi
+
+  lint-code:
+    name: Lint JavaScript
+    runs-on: ubuntu-24.04
+
+    defaults:
+      run:
+        working-directory: kafnus-ngsi
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint
+
+  coverage:
+    name: Test coverage
+    runs-on: ubuntu-24.04
+
+    defaults:
+      run:
+        working-directory: kafnus-ngsi
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kafnus-ngsi-coverage
+          path: kafnus-ngsi/coverage
+          if-no-files-found: error
+
+  e2e-tests:
+    runs-on: ubuntu-24.04
+
+    env:
+      KAFNUS_TESTS_USE_EXTERNAL_POSTGIS: "false"
+      KAFNUS_TESTS_E2E_MANUAL_INSPECTION: "false"
+      KAFNUS_TESTS_LOG_LEVEL: DEBUG
+      KAFNUS_TESTS_NGSI_COVERAGE: "true"
+      KAFNUS_DBPATH_POSTGIS: /data/postgis
+      KAFNUS_POSTGIS_IMAGE: postgis/postgis:15-3.3
+      KAFNUS_NGSI_PREFIX_TOPIC: "smc_"
+      KAFNUS_NGSI_SUFFIX_TOPIC: "_processed"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('tests_end2end/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        working-directory: tests_end2end/
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ensure kafka-postgis-net exists
+        run: |
+          if ! docker network ls | grep -q kafka-postgis-net; then
+            docker network create kafka-postgis-net
+          fi
+
+      - name: Setup PostGIS data directory
+        run: |
+          sudo mkdir -p /data/postgis
+          sudo chown -R 999:999 /data/postgis
+
+      - name: Pre-pull required docker images
+        run: |
+          docker pull postgis/postgis:15-3.3
+          docker pull apache/kafka:4.3.1
+          docker pull telefonicaiot/fiware-orion:latest
+          docker pull telefonicaiot/kafnus-connect:testUpdate
+          docker pull mongo:8.0
+
+      - name: Build kafnus-ngsi image
+        working-directory: kafnus-ngsi
+        run: |
+          docker build --no-cache -t kafnus-ngsi .
+
+      - name: Run end-to-end tests with pytest
+        working-directory: tests_end2end/
+        run: |
+          source .venv/bin/activate
+          pytest -s functional/test_pipeline.py
+
+      # Node deps are installed only after building the image, so dev
+      # dependencies never end up copied into it
+      - name: Set up Node.js
+        if: ${{ !cancelled() }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Generate kafnus-ngsi e2e coverage report
+        if: ${{ !cancelled() }}
+        working-directory: kafnus-ngsi
+        run: |
+          # V8 writes coverage files as 0600 owned by the container's node user (uid 1000)
+          sudo chmod -R a+rX coverage-e2e/raw
+          npm install
+          npm run coverage:e2e
+
+      - name: Upload e2e coverage artifact
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: kafnus-ngsi-e2e-coverage
+          path: kafnus-ngsi/coverage-e2e/lcov.info
+          if-no-files-found: error
+
+  sonar:
+    name: Build and analyze
+    needs: [coverage, e2e-tests]
+    # Still report unit test coverage when the e2e tests fail
+    if: ${{ !cancelled() && needs.coverage.result == 'success' }}
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Download coverage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kafnus-ngsi-coverage
+          path: kafnus-ngsi/coverage
+
+      - name: Download e2e coverage artifact
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: kafnus-ngsi-e2e-coverage
+          path: kafnus-ngsi/coverage-e2e
+
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          files: kafnus-ngsi/coverage/lcov.info kafnus-ngsi/coverage-e2e/lcov.info
+          flag-name: kafnus-ngsi
+          fail-on-error: false
+
+      - uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      # If you wish to fail your job when the Quality Gate is red, uncomment the
+      # following lines. This would typically be used to fail a deployment.
+      # We do not recommend to use this in a pull request. Prefer using pull request
+      # decoration instead.
+      # - uses: SonarSource/sonarqube-quality-gate-action@v1
+      #   timeout-minutes: 5
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
