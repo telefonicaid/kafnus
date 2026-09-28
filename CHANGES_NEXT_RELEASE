@@ -1,0 +1,1 @@
+- Add: kafnus-ngsi code coverage from the functional end-to-end tests (KAFNUS_TESTS_NGSI_COVERAGE), reported to SonarQube and Coveralls together with unit test coverage. CI workflows merged into a single ci.yml (#314)

@@ -74,22 +74,17 @@ These tests currently cover areas such as:
 
 ### Why unit tests were added
 
-Coverage reporting is generated from the Jest suite because the main integration suite is implemented in **Python/Pytest** and exercises the system through containers and external services.
-
-This means the Python end-to-end tests are excellent for **functional validation**, but they do not contribute directly to the JavaScript line coverage reported by tools such as **Coveralls** in the same way as in FIWARE Data Access.
-
-To obtain actionable coverage metrics for `kafnus-ngsi`, a dedicated unit test suite was added around the Node.js codebase.
-
-If full combined coverage for the processing code were required from integration tests as well, those tests would need to be migrated or instrumented in a very different way, which would add significant complexity for limited practical benefit.
+The main integration suite is implemented in **Python/Pytest** and exercises the system through containers and external services, which is great for **functional validation** but slow for checking transformation logic in detail. The Jest suite covers that logic directly around the Node.js codebase.
 
 ### Coverage workflow
 
-The repository includes a GitHub Actions workflow for `kafnus-ngsi` that runs:
+The repository's GitHub Actions workflow (`.github/workflows/ci.yml`) runs:
 
 * Dockerfile linting
 * JavaScript linting
 * Jest unit tests with LCOV coverage export
-* Coveralls upload
+* The functional end-to-end tests (`test_pipeline.py`), collecting `kafnus-ngsi` coverage from its container (see [End-to-end coverage](#end-to-end-coverage-of-kafnus-ngsi))
+* Coveralls upload and SonarQube analysis with both LCOV reports
 
 ### Running unit tests locally
 
@@ -541,6 +536,22 @@ pytest -s test_pipeline.py -k "000A or 000B"
 ```
 
 > ⚠️ Remember that a warning could be displayed if the images have not been built.
+
+### End-to-end coverage of kafnus-ngsi
+
+Setting `KAFNUS_TESTS_NGSI_COVERAGE=true` adds `docker/docker-compose.ngsi.coverage.yml` to the stack. The `kafnus-ngsi` container then runs with `NODE_V8_COVERAGE` and writes raw V8 coverage to `kafnus-ngsi/coverage-e2e/raw` every time its process exits cleanly, including container recreations between scenarios. The folder is emptied at the start of each run.
+
+```bash
+cd kafnus-ngsi && docker build -t kafnus-ngsi .   # the image must match the checked-out code
+cd ../tests_end2end
+KAFNUS_TESTS_NGSI_COVERAGE=true pytest -s functional/test_pipeline.py
+cd ../kafnus-ngsi
+npm run coverage:e2e                               # writes coverage-e2e/lcov.info
+```
+
+`npm run coverage:e2e` maps the container paths (`/opt/kafnus/kafnus-ngsi/...`) to the local checkout and generates the LCOV report with `c8`. SonarQube reads it together with the Jest report (`sonar.javascript.lcov.reportPaths`).
+
+> ⚠️ V8 writes the raw files as `0600`, owned by the container's `node` user (uid 1000). If your host uid is different, run `sudo chmod -R a+rX kafnus-ngsi/coverage-e2e/raw` before `npm run coverage:e2e`.
 
 ### ▶️ Optional Manual Inspection Pause
 

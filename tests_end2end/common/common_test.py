@@ -26,6 +26,7 @@ import requests
 from testcontainers.compose import DockerCompose as OriginalDockerCompose
 import subprocess
 import os
+import shutil
 import time
 
 from common.config import logger
@@ -279,6 +280,19 @@ def multiservice_stack():
 
     if not use_external_pg:
         compose_files.append("docker-compose.postgis.yml")
+
+    # If the KAFNUS_TESTS_NGSI_COVERAGE env var is set to "true", kafnus-ngsi
+    # writes V8 coverage to kafnus-ngsi/coverage-e2e/raw (see
+    # `npm run coverage:e2e` in kafnus-ngsi to turn it into an lcov report).
+    if os.getenv("KAFNUS_TESTS_NGSI_COVERAGE", "false").lower() == "true":
+        coverage_dir = docker_dir.parent / "kafnus-ngsi" / "coverage-e2e" / "raw"
+        shutil.rmtree(coverage_dir, ignore_errors=True)
+        coverage_dir.mkdir(parents=True)
+        # The container runs as the `node` user, whose uid may not match the host one
+        coverage_dir.chmod(0o777)
+        os.environ["KAFNUS_NGSI_COVERAGE_DIR"] = str(coverage_dir)
+        compose_files.append("docker-compose.ngsi.coverage.yml")
+        logger.info(f"📊 kafnus-ngsi coverage enabled, writing to {coverage_dir}")
 
     with DockerCompose(str(docker_dir), compose_file_name=compose_files) as compose:
         orion_host = compose.get_service_host("orion", 1026)
