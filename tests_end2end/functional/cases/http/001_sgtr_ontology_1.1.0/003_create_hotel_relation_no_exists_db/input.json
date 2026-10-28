@@ -110,7 +110,7 @@
     },
     "updateEntities": [
         {
-            "id": "Hotel:Nuevo",
+            "id": "hotel-nuevo",
             "type": "Hotel",
             "TimeInstant": {
                 "type": "DateTime",
