@@ -143,7 +143,7 @@
             },
             "hasLocation": {
                 "type": "Relation",
-                "value": "Location:001",
+                "value": "location-001",
                 "metadata": {}
             },
             "hasMultimedia": {

@@ -114,7 +114,7 @@
     },
     "updateEntities": [
         {
-            "id": "Hotel:Minimo",
+            "id": "hotel-minimo",
             "type": "Hotel",
             "TimeInstant": {
                 "type": "DateTime",
