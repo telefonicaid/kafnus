@@ -7,6 +7,7 @@
     "connection.url": "jdbc:postgresql://${env:KAFNUS_TESTS_PG_HOST}:${env:KAFNUS_TESTS_PG_PORT}/${env:KAFNUS_TESTS_PG_DBNAME}",
     "connection.user": "${env:KAFNUS_TESTS_PG_USER}",
     "connection.password": "${env:KAFNUS_TESTS_PG_PASSWORD}",
+    "db.timezone": "UTC",
 
     "insert.mode": "insert",
     "table.name.format": "test.${topic}",

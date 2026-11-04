@@ -1,6 +1,6 @@
 [
   {
-    "table": "test.notimeinstant_historic",
+    "table": "test.notimeinstant_azul",
     "absent": [
       {
         "entityid": "FLOW0"
@@ -15,7 +15,7 @@
     "rows": [
       {
         "error": {
-          "contains": "Invalid null value for required STRING field"
+          "contains": "ERROR: null value in column \"timeinstant\" of relation \"notimeinstant_azul\" violates not-null constraint"
         }
       }
     ]

@@ -1,0 +1,14 @@
+[
+  {
+    "table": "test.no_ti_sensor",
+    "rows": [
+      { "entityid": "Sensor2", "temperature": 99.9 }
+    ]
+  },
+  {
+    "table": "test.no_ti_sensor_mutable",
+    "rows": [
+      { "entityid": "Sensor2", "temperature": 99.9 }
+    ]
+  }
+]

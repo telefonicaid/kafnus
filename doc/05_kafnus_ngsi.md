@@ -426,6 +426,66 @@ Useful for upsert operations in JDBC sinks (`lastdata`, `mutable`).
 
 - All notifications are sent downstream regardless of timestamp.
 - Output topic: `<PREFIX><service>_historic<SUFFIX>`
+- The JDBC historic sink uses `"insert.mode": "insert"` with `"pk.mode": "none"`: it performs a
+  plain `INSERT` and does not need a primary key extracted from the record. `TimeInstant` is
+  therefore **not required** — a notification without it is still inserted, with `timeinstant` left
+  `NULL` in the destination table (uniqueness, if desired, is left to the table's own constraints).
+
+##### ⏱️ Per-attribute TimeInstant: splitting and ensuring
+
+By default, all attributes of a notification are written as a single historic row, using the entity-level `TimeInstant`
+(or nothing, if that's absent too). When an IoT-Agent batches measurements taken at different times into one
+notification — or a notification simply has no reliable entity-level `TimeInstant` at all — this can make attributes
+appear to have been observed at the wrong time, or leave `timeinstant` unset.
+
+Two independent, composable flags address this, both `false` by default:
+
+- **`KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT`** — splits the historic flow's entity into one sub-entity per distinct resolved
+  timestamp from the metadata `TimeInstant`, so each observation time is written as its own row. Purely mechanical:
+  it never invents a timestamp, so a group of attributes that resolves none stays without a `TimeInstant`.
+- **`KAFNUS_NGSI_ENSURE_TIMEINSTANT`** — resolves a single timestamp for the whole entity (or, when splitting is also
+  enabled, for each sub-entity split produced) and guarantees it ends up in `TimeInstant`, falling back to `recvtime`
+  when nothing else is resolvable. Applies to both the `historic` and `mutable` flows; `lastdata` is unaffected since
+  its primary key (`entityid` alone) doesn't depend on `timeinstant`.
+
+Both use the same resolution priority:
+
+1. The attribute's own `metadata.TimeInstant.value` — when every attribute that has one agrees on a single value.
+2. The entity-level `TimeInstant` attribute, if the above is absent or (for ensuring, without splitting) attributes
+   disagree with each other. In that disagreement case a `warn`-level log is emitted, since it usually means splitting
+   should be enabled too.
+3. `recvtime` (**ensuring only** — splitting never reaches this tier on its own), if nothing above is present. A
+   `debug`-level log is emitted when this triggers.
+
+Attributes that resolve to the same timestamp stay together in one row when splitting; attributes resolving to
+different timestamps produce separate rows. Enabling splitting can therefore increase the number of Kafka messages and
+historic rows written per notification — up to one per distinct attribute timestamp — so it should be enabled
+deliberately, weighing that impact against the need for exact per-attribute observation time.
+
+The historic sink itself performs a plain `insert` with `"pk.mode": "none"` (see above), so it does not enforce any key on
+`(entityid, timeinstant)`. If the destination table declares its own `PRIMARY KEY`/`UNIQUE` constraint on those columns
+(as historic tables typically do), re-notifying attributes that didn't actually change (and so still carry a stale
+metadata timestamp) risks violating it when `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT` is enabled. Configuring the subscription
+with `onlyChangedAttrs: true` is recommended alongside this flag to avoid that.
+
+**Worked example** — a notification with no entity-level `TimeInstant`, and two attributes whose per-attribute metadata
+disagrees (e.g. batched IoT-Agent measurements, or any source that never sets a reliable entity-level `TimeInstant`):
+
+| Configuration | Result |
+| --- | --- |
+| Both off (default) | One row, `timeinstant` unset (`NULL`). The historic sink itself accepts this (`pk.mode: none`, plain insert) — whether the row is actually persisted or routed to the error log instead depends on whether the destination table has its own constraint requiring `timeinstant`. |
+| `ENSURE` only | One row; since the two attributes disagree and there's no entity-level value to break the tie, `timeinstant` falls back to `recvtime` (logged at `warn`, since enabling splitting is usually the better fix). |
+| `SPLIT` only | Two rows, one per attribute, each `timeinstant` correctly set to that attribute's own metadata value. |
+| Both on | Same two rows as `SPLIT` only — `ENSURE` has nothing left to correct, since each row already resolved a value from its own group. |
+
+##### 🔗 A single `recvtime` per notification
+
+`recvtime` — when the notification reached the broker — is computed once per notification and reused everywhere: as the
+last-resort fallback for `TimeInstant` (see above) and as the persisted `recvtime` field on every row it produces. This
+avoids a millisecond-level mismatch between the two that would otherwise occur from computing "now" twice. `TimeInstant`
+(measurement time) and `recvtime` (broker arrival time) remain conceptually distinct — a data attribute named `recvtime`
+provided by the source itself is never overwritten (see below) and is replicated verbatim onto every sub-entity a split
+produces, since they all originate from the same notification.
 
 #### `<PREFIX>raw_lastdata`
 
@@ -438,6 +498,8 @@ Useful for upsert operations in JDBC sinks (`lastdata`, `mutable`).
 - Allows overwriting/updating mutable data.
 - Update rows with same `entityid` and `timeinstant`.
 - Output topic: `<PREFIX><service>_mutable<SUFFIX>`
+- Same `KAFNUS_NGSI_ENSURE_TIMEINSTANT` guarantee as in the `historic` flow — see above. Never splits, regardless of
+  `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT`.
 
 ---
 
@@ -496,7 +558,7 @@ These are published to topics like `<PREFIX><dbname>_error_log<SUFFIX>`.
 
 #### Background & Evolution
 
-Historically, MongoDB database and collection names used a hardcoded `sth_` prefix directly in the Kafnus NGSI code. This made it impossible to adapt MongoDB namespaces to different environments without code changes.
+Historically, MongoDB database and collection names used a hardcoded `sth_` or `bigdata_` prefix directly in the Kafnus NGSI code. This made it impossible to adapt MongoDB namespaces to different environments without code changes. The current approach delegates prefixing to Kafka Connect through the `MongoNamespacePrefix` SMT.
 
 **Problem:** The MongoDB Kafka Sink connector does **not support dynamic prefix composition** in its configuration (see [MongoDB Kafka Connector Documentation](https://www.mongodb.com/docs/kafka-connector/current/sink-connector/configuration-properties/mongodb-namespace/)). Namespace mapping can only use field values as-is.
 
@@ -533,24 +595,12 @@ The prefix is now configured in the **Kafka Connect sink connector definition**:
   "name": "mongodb-sink",
   "transforms": "MongoPrefix",
   "transforms.MongoPrefix.type": "com.telefonica.MongoNamespacePrefix",
-  "transforms.MongoPrefix.database.prefix": "sth_",
-  "transforms.MongoPrefix.collection.prefix": "sth_"
+  "transforms.MongoPrefix.dbname.prefix": "bigdata_db_",
+  "transforms.MongoPrefix.collection.prefix": "bigdata_col_",
 }
 ```
 
 See [MongoNamespacePrefix SMT documentation](/doc/06_kafnus_connect.md#-mongonamespaceprefix-smt--dynamic-mongodb-namespace-routing) for full configuration details.
-
-#### Historical Note: KAFNUS_NGSI_MONGO_PREFIX (Deprecated)
-
-Prior to this change, the environment variable `KAFNUS_NGSI_MONGO_PREFIX` was used to configure the prefix at the NGSI level. This is now **deprecated** in favor of the Kafka Connect SMT approach.
-
-The requirement identified in **Issue #179** is to support a **MongoDB prefix configurable per FIWARE service**, rather than a single global prefix shared by all services.
-
-**Status:**
-- ✅ Hardcoded MongoDB prefix removed
-- ✅ Prefix made configurable at application level (global)
-- ❌ Prefix not yet configurable per FIWARE service
-- 🔄 Issue #179 remains open to define and implement service-level prefix support
 
 ---
 
@@ -596,6 +646,8 @@ The following environment variables configure Kafka connectivity, producer/consu
 | `KAFNUS_NGSI_GROUP_ID` | string | `ngsi-processor` | Base Kafka consumer group ID used by NGSI processor agents. |
 | `KAFNUS_NGSI_PREFIX_TOPIC` | string | `` | Prefix used in all kafka topics (by default no prefix is used). |
 | `KAFNUS_NGSI_SUFFIX_TOPIC` | string | `` | Suffix used in all kafka topics (by default no suffix is used). |
+| `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT` | boolean | `false` | When enabled, the historic flow splits each entity by per-attribute metadata `TimeInstant`, writing one row per distinct observation time (attribute metadata → entity-level `TimeInstant`; never invents a value). Only the historic flow is affected; lastdata/mutable stay single-row-per-entity. |
+| `KAFNUS_NGSI_ENSURE_TIMEINSTANT` | boolean | `false` | When enabled, guarantees the historic and mutable flows always have a usable `timeinstant`, resolving it (attribute metadata → entity-level `TimeInstant` → `recvtime`) and overriding a stale value if needed. Independent of `KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT`; see "Per-attribute TimeInstant: splitting and ensuring" above for how they compose. |
 
 ---
 
@@ -659,7 +711,6 @@ These variables control fetch behavior, session handling, and **manual offset ma
 | `KAFNUS_NGSI_LOG_OB` | string | `ES` | Origin or location tag included in logs. |
 | `KAFNUS_NGSI_LOG_COMP` | string | `Kafnus-ngsi` | Component name used in structured logs. |
 | `KAFNUS_NGSI_ADMIN_PORT` | number | `8000` | Port for admin, metrics, health and log-level endpoints. |
-| `KAFNUS_NGSI_MONGO_PREFIX` | string | `sth_` | Prefix prepended to MongoDB database and collection names (see [MongoDB Namespace Prefix Configuration](#mongodb-namespace-prefix-configuration)). |
 | `KAFNUS_NGSI_GRAPHQL_GRAFO_PREFIX` | string | `` | Graph name prefix used by the GraphQL integration. |
 | `KAFNUS_NGSI_GRAPHQL_GRAFO_SUFFIX`      | string   | ``      | Add '`<suffix>`' to Graph name used by the GraphQL service.        |
 | `KAFNUS_NGSI_GRAPHQL_FALLBACK_GRAPHNAME_TO_SERVICE`      | boolean   | `false`      | Fallback to use '`<service>`' as graphname when no graphname header is provided.                          |

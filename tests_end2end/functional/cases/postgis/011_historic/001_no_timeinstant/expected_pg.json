@@ -1,0 +1,22 @@
+[
+  {
+    "table": "test.notimeinstant_flow",
+    "rows": [
+      {
+        "entityid": "FLOW0",
+        "entitytype": "Flow",
+        "fiwareservicepath": "/notimeinstant",
+        "timeinstant": null,
+        "temperature": 25.0
+      }
+    ]
+  },
+  {
+    "table": "test.test_error_log",
+    "absent": [
+      {
+        "query": { "contains": "notimeinstant_flow" }
+      }
+    ]
+  }
+]

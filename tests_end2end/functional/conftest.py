@@ -16,10 +16,35 @@
 # along with kafnus. If not, see http://www.gnu.org/licenses/.
 
 
+import os
+
+import pytest
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
 from common.common_test import multiservice_stack
+from common.utils.wait_services import wait_for_kafnus_ngsi
+
+@pytest.fixture
+def ngsi_env(multiservice_stack, requires_env):
+    """
+    Ensures kafnus-ngsi is running with the env a scenario's requires_env.json
+    resolves to (see scenario_loader.discover_scenarios), recreating the
+    container only when that differs from what's already running. Most
+    scenarios need nothing here -- the container already starts at every
+    KAFNUS_NGSI_* flag's real default.
+    """
+    prefix_topic = os.getenv("KAFNUS_NGSI_PREFIX_TOPIC", "smc_")
+    suffix_topic = os.getenv("KAFNUS_NGSI_SUFFIX_TOPIC", "_processed")
+
+    def ready_check():
+        wait_for_kafnus_ngsi(
+            f"{multiservice_stack.kafkaHost}:{multiservice_stack.kafkaPort}",
+            prefix_topic=prefix_topic,
+            suffix_topic=suffix_topic
+        )
+
+    multiservice_stack.compose.ensure_service_env("kafnus-ngsi", requires_env, ready_check=ready_check)
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     """

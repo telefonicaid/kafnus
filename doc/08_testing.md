@@ -74,22 +74,17 @@ These tests currently cover areas such as:
 
 ### Why unit tests were added
 
-Coverage reporting is generated from the Jest suite because the main integration suite is implemented in **Python/Pytest** and exercises the system through containers and external services.
-
-This means the Python end-to-end tests are excellent for **functional validation**, but they do not contribute directly to the JavaScript line coverage reported by tools such as **Coveralls** in the same way as in FIWARE Data Access.
-
-To obtain actionable coverage metrics for `kafnus-ngsi`, a dedicated unit test suite was added around the Node.js codebase.
-
-If full combined coverage for the processing code were required from integration tests as well, those tests would need to be migrated or instrumented in a very different way, which would add significant complexity for limited practical benefit.
+The main integration suite is implemented in **Python/Pytest** and exercises the system through containers and external services, which is great for **functional validation** but slow for checking transformation logic in detail. The Jest suite covers that logic directly around the Node.js codebase.
 
 ### Coverage workflow
 
-The repository includes a GitHub Actions workflow for `kafnus-ngsi` that runs:
+The repository's GitHub Actions workflow (`.github/workflows/ci.yml`) runs:
 
 * Dockerfile linting
 * JavaScript linting
 * Jest unit tests with LCOV coverage export
-* Coveralls upload
+* The functional end-to-end tests (`test_pipeline.py`), collecting `kafnus-ngsi` coverage from its container (see [End-to-end coverage](#end-to-end-coverage-of-kafnus-ngsi))
+* Coveralls upload and SonarQube analysis with both LCOV reports
 
 ### Running unit tests locally
 
@@ -206,11 +201,39 @@ KAFNUS_TESTS_USE_EXTERNAL_POSTGIS=true   # to use an external PostGIS instance
 > POSTGIS_IMAGE=telefonicaiot/iotp-postgis:12.14-3.3.2-2  # Internal Telefónica image
 > ```
 
+### ⏱️ Per-attribute TimeInstant splitting and ensuring
+
+`kafnus-ngsi` ships with per-attribute `TimeInstant` splitting (`KAFNUS_NGSI_SPLIT_BY_TIMEINSTANT`) and the `timeinstant`
+presence guarantee (`KAFNUS_NGSI_ENSURE_TIMEINSTANT`) both disabled by default — see [`05_kafnus_ngsi.md`](/doc/05_kafnus_ngsi.md)
+for what each flag does and how they compose. The e2e stack itself always starts with every `KAFNUS_NGSI_*` flag at its real
+default, matching real deployments.
+
+The scenarios under `functional/cases/postgis/012_per_attr_timeinstant/` need one or both flags set to `true` to exercise the
+behavior they describe. Each such scenario carries a `requires_env.json` (read by `scenario_loader.discover_scenarios()`)
+naming the env vars and values it needs; that's resolved into the *full* set of flags `docker-compose.ngsi.yml` forwards to
+the container (unlisted flags default to `false`, so a scenario without a `requires_env.json` is equivalent to one that
+lists every flag as `false`). Before each scenario runs, the `ngsi_env` fixture
+(`functional/conftest.py`) recreates the `kafnus-ngsi` container with exactly that resolved env, but only when it differs
+from what's already running (`DockerCompose.ensure_service_env`, `common/common_test.py`) — most scenarios need nothing
+here since they resolve to the same all-`false` defaults the container already starts with. Scenarios are collected sorted
+by their resolved env first and name second, which clusters every "nothing special" scenario into one contiguous block, so
+a full suite run pays for exactly one container recreate per *distinct* flag combination actually in use, not per scenario.
+
+Since kafnus-ngsi reads its env once at process startup with no hot-reload, changing it requires a full
+`docker compose up --force-recreate`, followed by re-running the same Kafka smoke-test readiness check
+(`wait_for_kafnus_ngsi`) `multiservice_stack` already runs once at stack startup — a real but bounded cost (one recreate +
+readiness wait per distinct combo, not per scenario).
+
+A scenario whose `requires_env.json` names a var `docker-compose.ngsi.yml` doesn't forward to the container at all is still
+skipped with a reason — there's nothing a container recreation can do about that; adding a new `KAFNUS_NGSI_*` flag to
+`docker-compose.ngsi.yml`'s `environment:` block (see the existing entries there for the pattern) is what makes it usable
+here.
+
 ---
 
 ### 🧬 Example Scenario Files
 
-> ⚠️ **Important:** The `MongoValidator` is hardcoded to connect **only** to the database `sth_test`.  
+> ⚠️ **Important:** The `MongoValidator` is hardcoded to connect **only** to the database `bigdata_test`.  
 > Therefore, in Mongo-related end-to-end test scenarios, the `fiware-service` **must be set to `"test"`** to ensure documents are correctly published to the database that the validator inspects.
 
 Example `input.json` for a Mongo test case:
@@ -228,7 +251,7 @@ Example `input.json` for a Mongo test case:
 }
 ```
 
-- All documents sent to the dynamic Kafka topic `test_mongo` are stored in `sth_test.<collection>`.  
+- All documents sent to the dynamic Kafka topic `test_mongo` are stored in `bigdata_test.<collection>`.  
 - The collection name is derived from `fiware-servicepath` and encoded using `encodeMongo()`.  
 - The validator ignores `recvTime` field during checks.
 
@@ -513,6 +536,22 @@ pytest -s test_pipeline.py -k "000A or 000B"
 ```
 
 > ⚠️ Remember that a warning could be displayed if the images have not been built.
+
+### End-to-end coverage of kafnus-ngsi
+
+Setting `KAFNUS_TESTS_NGSI_COVERAGE=true` adds `docker/docker-compose.ngsi.coverage.yml` to the stack. The `kafnus-ngsi` container then runs with `NODE_V8_COVERAGE` and writes raw V8 coverage to `kafnus-ngsi/coverage-e2e/raw` every time its process exits cleanly, including container recreations between scenarios. The folder is emptied at the start of each run.
+
+```bash
+cd kafnus-ngsi && docker build -t kafnus-ngsi .   # the image must match the checked-out code
+cd ../tests_end2end
+KAFNUS_TESTS_NGSI_COVERAGE=true pytest -s functional/test_pipeline.py
+cd ../kafnus-ngsi
+npm run coverage:e2e                               # writes coverage-e2e/lcov.info
+```
+
+`npm run coverage:e2e` maps the container paths (`/opt/kafnus/kafnus-ngsi/...`) to the local checkout and generates the LCOV report with `c8`. SonarQube reads it together with the Jest report (`sonar.javascript.lcov.reportPaths`).
+
+> ⚠️ V8 writes the raw files as `0600`, owned by the container's `node` user (uid 1000). If your host uid is different, run `sudo chmod -R a+rX kafnus-ngsi/coverage-e2e/raw` before `npm run coverage:e2e`.
 
 ### ▶️ Optional Manual Inspection Pause
 

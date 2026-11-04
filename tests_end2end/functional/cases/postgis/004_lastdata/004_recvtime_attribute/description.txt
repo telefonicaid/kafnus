@@ -1,0 +1,1 @@
+Test LASTDATA with an incoming recvtime attribute

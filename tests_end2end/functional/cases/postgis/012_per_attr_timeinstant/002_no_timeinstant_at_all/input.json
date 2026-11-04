@@ -1,0 +1,44 @@
+{
+  "name": "no_timeinstant_at_all",
+  "fiware-service": "test",
+  "fiware-servicepath": "/no_ti",
+  "subscriptions": {
+    "historic": {
+      "description": "Sensor:HISTORIC:no_ti:no_timeinstant",
+      "status": "active",
+      "subject": {
+        "entities": [{ "idPattern": ".*", "type": "Sensor" }],
+        "condition": { "attrs": ["temperature"] }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_historic"
+        },
+        "attrs": ["temperature"]
+      }
+    },
+    "mutable": {
+      "description": "Sensor:mutable:no_ti:no_timeinstant",
+      "status": "active",
+      "subject": {
+        "entities": [{ "idPattern": ".*", "type": "Sensor" }],
+        "condition": { "attrs": ["temperature"] }
+      },
+      "notification": {
+        "kafkaCustom": {
+          "url": "kafka://kafka:29092",
+          "topic": "smc_raw_mutable"
+        },
+        "attrs": ["temperature"]
+      }
+    }
+  },
+  "updateEntities": [
+    {
+      "id": "Sensor2",
+      "type": "Sensor",
+      "temperature": { "value": 99.9, "type": "Float" }
+    }
+  ]
+}

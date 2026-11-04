@@ -27,8 +27,8 @@ from common.utils.sql_runner import execute_sql_file
 from common.config import logger, DEFAULT_DB_CONFIG
 from common.common_test import ServiceOperations
 
-@pytest.mark.parametrize("scenario_name, expected_list, input_json, setup", discover_scenarios())
-def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, multiservice_stack):
+@pytest.mark.parametrize("scenario_name, expected_list, input_json, setup, requires_env", discover_scenarios())
+def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, requires_env, ngsi_env, multiservice_stack):
     """
     End-to-end test for a given scenario:
     1. Executes optional setup SQL file to prepare database state.
@@ -40,6 +40,8 @@ def test_e2e_pipeline(scenario_name, expected_list, input_json, setup, multiserv
     - input_json: Path to the input scenario JSON file.
     - expected_list: List with path to the expected database state JSON files.
     - setup_sql: Optional SQL file for DB setup.
+    - requires_env: Resolved KAFNUS_NGSI_* env this scenario needs (see scenario_loader.discover_scenarios).
+    - ngsi_env: Pytest fixture that applies `requires_env` to the kafnus-ngsi container before this runs.
     - multiservice_stack: Pytest fixture providing connection info to deployed services.
     """
     logger.info(f"🧪 Running scenario: {scenario_name}")

@@ -92,6 +92,21 @@ describe('ngsiUtils.js', () => {
             expect(result.schema.fields.some((f) => f.field === 'temperature')).toBe(true);
             expect(result.payload).toHaveProperty('recvtime');
         });
+
+        test('Given an entity with recvtime, When building schema, Then it preserves the provided value once', () => {
+            const entity = { temperature: 21.5, recvtime: '2025-06-26T12:45:00Z' };
+            const result = toKafnusConnectSchema(entity, {}, { temperature: 'Float' });
+
+            expect(result.payload.recvtime).toBe('2025-06-26T12:45:00Z');
+            expect(result.schema.fields.filter((f) => f.field === 'recvtime')).toHaveLength(1);
+        });
+
+        test('Given an explicit recvtime argument and an entity without one, When building schema, Then it reuses that value verbatim', () => {
+            const entity = { temperature: 21.5 };
+            const result = toKafnusConnectSchema(entity, {}, { temperature: 'Float' }, '2025-06-26T12:45:00.123Z');
+
+            expect(result.payload.recvtime).toBe('2025-06-26T12:45:00.123Z');
+        });
     });
 
     describe('buildKafkaKey (BDD)', () => {
@@ -103,6 +118,20 @@ describe('ngsiUtils.js', () => {
             expect(parsed.payload.id).toBe('abc');
             expect(parsed.payload.type).toBe('Device');
             expect(parsed.payload).toHaveProperty('timeinstant');
+
+            const timeinstantField = parsed.schema.fields.find((f) => f.field === 'timeinstant');
+            expect(timeinstantField.optional).toBe(false);
+        });
+
+        test('Given entity without timeinstant, When building key, Then timeinstant field is optional and omitted from payload', () => {
+            const entity = { id: 'abc', type: 'Device' };
+            const buf = buildKafkaKey(entity, ['id', 'type'], true);
+            const parsed = JSON.parse(buf.toString('utf-8'));
+
+            expect(parsed.payload).not.toHaveProperty('timeinstant');
+
+            const timeinstantField = parsed.schema.fields.find((f) => f.field === 'timeinstant');
+            expect(timeinstantField.optional).toBe(true);
         });
     });
 });

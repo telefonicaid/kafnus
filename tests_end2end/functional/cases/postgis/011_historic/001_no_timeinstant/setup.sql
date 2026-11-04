@@ -1,5 +1,5 @@
 /*
-* Copyright 2026 Telefonica Soluciones de Informatica y Comunicaciones de Espana, S.A.U.
+* Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
 *
 * This file is part of kafnus
 *
@@ -17,14 +17,17 @@
 * along with kafnus. If not, see http://www.gnu.org/licenses/.
 */
 
-DROP TABLE IF EXISTS test.notimeinstant_historic;
+-- Drop table
+DROP TABLE IF EXISTS test.notimeinstant_flow;
 
-CREATE TABLE IF NOT EXISTS test.notimeinstant_historic (
+-- Create table
+-- No primary key on (timeinstant, entityid): with "pk.mode": "none" the historic
+-- sink is a plain INSERT and does not require timeinstant to be present.
+CREATE TABLE IF NOT EXISTS test.notimeinstant_flow (
     recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
     fiwareservicepath TEXT,
     entityid TEXT,
     entitytype TEXT,
     timeinstant TIMESTAMPTZ,
-    temperature DOUBLE PRECISION,
-    CONSTRAINT notimeinstant_historic_pkey PRIMARY KEY (timeinstant, entityid)
+    temperature DOUBLE PRECISION
 );

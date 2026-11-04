@@ -26,6 +26,7 @@ import requests
 from testcontainers.compose import DockerCompose as OriginalDockerCompose
 import subprocess
 import os
+import shutil
 import time
 
 from common.config import logger
@@ -220,6 +221,40 @@ class DockerCompose(OriginalDockerCompose):
         else:
             logger.debug(f"⚠️ Service '{service_name}' not present in this compose stack, skipping start")
 
+    def ensure_service_env(self, service_name: str, env: dict, ready_check=None) -> None:
+        """
+        Ensures `service_name` is running with exactly `env` as its env var
+        overrides, recreating the container only when that differs from the
+        env last applied here. Services like kafnus-ngsi read env once at
+        startup with no hot-reload, so changing it needs a full
+        `docker compose up --force-recreate`, not `restart` -- unlike
+        safe_stop/safe_start, which reuse the existing container's baked-in
+        env. `ready_check`, if given, is called after a recreate to
+        re-verify the service before tests resume.
+        """
+        if getattr(self, "_service_env", {}).get(service_name) == env:
+            return
+
+        logger.info(f"♻️ Recreating service '{service_name}' with env {env}")
+        cmd = self._build_compose_command("up")
+        cmd.extend(["-d", "--force-recreate", service_name])
+        subprocess.run(
+            cmd,
+            cwd=self.filepath,
+            env={**os.environ, **env},
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+
+        if not hasattr(self, "_service_env"):
+            self._service_env = {}
+        self._service_env[service_name] = env
+
+        if ready_check:
+            ready_check()
+
 @pytest.fixture(scope="session")
 def multiservice_stack():
     """
@@ -245,6 +280,19 @@ def multiservice_stack():
 
     if not use_external_pg:
         compose_files.append("docker-compose.postgis.yml")
+
+    # If the KAFNUS_TESTS_NGSI_COVERAGE env var is set to "true", kafnus-ngsi
+    # writes V8 coverage to kafnus-ngsi/coverage-e2e/raw (see
+    # `npm run coverage:e2e` in kafnus-ngsi to turn it into an lcov report).
+    if os.getenv("KAFNUS_TESTS_NGSI_COVERAGE", "false").lower() == "true":
+        coverage_dir = docker_dir.parent / "kafnus-ngsi" / "coverage-e2e" / "raw"
+        shutil.rmtree(coverage_dir, ignore_errors=True)
+        coverage_dir.mkdir(parents=True)
+        # The container runs as the `node` user, whose uid may not match the host one
+        coverage_dir.chmod(0o777)
+        os.environ["KAFNUS_NGSI_COVERAGE_DIR"] = str(coverage_dir)
+        compose_files.append("docker-compose.ngsi.coverage.yml")
+        logger.info(f"📊 kafnus-ngsi coverage enabled, writing to {coverage_dir}")
 
     with DockerCompose(str(docker_dir), compose_file_name=compose_files) as compose:
         orion_host = compose.get_service_host("orion", 1026)

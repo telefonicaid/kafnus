@@ -114,7 +114,7 @@
     },
     "updateEntities": [
         {
-            "id": "Hotel:Creado",
+            "id": "hotel-creado",
             "type": "Hotel",
             "TimeInstant": {
                 "type": "DateTime",

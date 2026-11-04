@@ -52,7 +52,7 @@
     },
     "updateEntities": [
         {
-            "id": "Location:001",
+            "id": "location-001",
             "type": "Location",
             "TimeInstant": {
                 "type": "DateTime",
