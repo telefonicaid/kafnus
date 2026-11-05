@@ -169,15 +169,21 @@ def wait_for_orion(host, port, timeout=60):
     """
     url = f"http://{host}:{port}/version"
     start = time.time()
+    last_error = "No request was attempted"
     while time.time() - start < timeout:
         try:
             r = requests.get(url, timeout=2)
             if r.status_code == 200:
                 return True
-        except Exception:
-            pass
+            last_error = f"HTTP {r.status_code} {r.reason}"
+        except requests.exceptions.RequestException as error:
+            last_error = f"{type(error).__name__}: {error}"
+        logger.debug("Waiting for Orion at %s: %s", url, last_error)
         time.sleep(2)
-    raise RuntimeError("Orion did not become ready in time")
+    raise RuntimeError(
+        f"Orion did not become ready in time at {url} after {timeout} seconds. "
+        f"Last error: {last_error}"
+    )
 
 def wait_for_kafnus_ngsi(kafka_bootstrap="kafka:9092", timeout=300, prefix_topic="smc_", suffix_topic="_processed"):
     """
