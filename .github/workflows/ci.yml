@@ -31,7 +31,7 @@ on:
 jobs:
   lint-dockerfile:
     name: Lint Dockerfile
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout code
@@ -45,7 +45,7 @@ jobs:
 
   lint-code:
     name: Lint JavaScript
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     defaults:
       run:
@@ -68,7 +68,7 @@ jobs:
 
   coverage:
     name: Test coverage
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     defaults:
       run:
@@ -97,7 +97,7 @@ jobs:
           if-no-files-found: error
 
   e2e-tests:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     env:
       KAFNUS_TESTS_USE_EXTERNAL_POSTGIS: "false"
@@ -194,7 +194,7 @@ jobs:
     needs: [coverage, e2e-tests]
     # Still report unit test coverage when the e2e tests fail
     if: ${{ !cancelled() && needs.coverage.result == 'success' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     permissions:
       contents: read
