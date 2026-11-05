@@ -312,7 +312,12 @@ export function computePlan({ groups, existing, openSonarKeys, cfg }) {
 }
 
 function escapeMd(text) {
-    return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\|/g, '\\|');
+    return String(text)
+        .replace(/\\/g, '\\\\')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\|/g, '\\|');
 }
 
 function titleCase(value) {
