@@ -1,0 +1,9 @@
+{
+  "ignoredRules": [],
+  "ignoredPaths": [],
+  "minSeverity": "LOW",
+  "excludeQualities": ["SECURITY"],
+  "maxFindingsPerIssue": 25,
+  "maxOpenSubIssues": 5,
+  "maxRuleDescriptionChars": 20000
+}
