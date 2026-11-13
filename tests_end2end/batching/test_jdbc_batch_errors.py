@@ -210,7 +210,7 @@ def test_jdbc_batch_backlog(multiservice_stack):
     ops = ServiceOperations(multiservice_stack, [orion_request])
     ops.orion_set_up()
 
-    # Include an attribute that has no matching column in batch_test.
+    # Include a required field that has no matching column in the destination table.
     orion_request = OrionRequestData(
         name="missing_column",
         service="test",
@@ -355,7 +355,7 @@ def test_jdbc_batch_backlog(multiservice_stack):
     ), "❌ Duplicate key insertion error was not logged"
     assert validator.wait_until_row_present(
         "test.test_error_log",
-        {"error": {"contains": 'column "missing_column" of relation "missing_column_test" does not exist'}},
+        {"error": {"contains": 'Cannot ALTER TABLE "tests"."test"."missing_column_test" to add missing field'}},
         timeout=180
     ), "❌ Missing column insertion error was not logged"
 
