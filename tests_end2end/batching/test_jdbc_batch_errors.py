@@ -135,9 +135,9 @@ def test_jdbc_batch_backlog(multiservice_stack):
     ops = ServiceOperations(multiservice_stack, [orion_request])
     ops.orion_set_up()
 
-    # ERROR INJECTION: Duplicate IDs and wrong subservice
+    # Keep one invalid subservice case to verify routing errors.
     orion_request = OrionRequestData(
-        name="error_backlog",
+        name="wrong_subservice",
         service="test",
         subservice="/errorFAIL",
         subscriptions={
@@ -156,8 +156,7 @@ def test_jdbc_batch_backlog(multiservice_stack):
                 "attrs": ["TimeInstant", "temperature"]
             }
         }},
-        updateEntities=[
-            {
+        updateEntities=[{
             "id": "error_entity",
             "type": "Test",
             "TimeInstant": {
@@ -168,20 +167,87 @@ def test_jdbc_batch_backlog(multiservice_stack):
                 "type": "Float",
                 "value": -1.0
             }
-            },
-            {
-            "id": f"E0",
+        }]
+    )
+    ops = ServiceOperations(multiservice_stack, [orion_request])
+    ops.orion_set_up()
+
+    # Reuse an existing key on a dedicated route to trigger the primary key.
+    orion_request = OrionRequestData(
+        name="duplicate_key",
+        service="test",
+        subservice="/duplicate_key",
+        subscriptions={
+            "historic": {
+                "description": "Test:HISTORIC:duplicate_key_test",
+                "status": "active",
+                "subject": {
+                    "entities": [{"idPattern": ".*", "type": "Test"}],
+                    "condition": {"attrs": ["TimeInstant"]}
+                },
+                "notification": {
+                    "kafkaCustom": {
+                        "url": "kafka://kafka:29092",
+                        "topic": "smc_raw_historic"
+                    },
+                    "attrs": ["TimeInstant", "temperature"]
+                }
+            }
+        },
+        updateEntities=[{
+            "id": "duplicate_error",
             "type": "Test",
             "TimeInstant": {
                 "type": "DateTime",
-                "value": start_ts.isoformat() + "Z"
+                "value": "2030-01-01T00:00:00Z"
             },
             "temperature": {
                 "type": "Float",
-                "value": "0.0"
+                "value": 9999.0
             }
+        }]
+    )
+    ops = ServiceOperations(multiservice_stack, [orion_request])
+    ops.orion_set_up()
+
+    # Include an attribute that has no matching column in batch_test.
+    orion_request = OrionRequestData(
+        name="missing_column",
+        service="test",
+        subservice="/missing_column",
+        subscriptions={
+            "historic": {
+                "description": "Test:HISTORIC:missing_column_test",
+                "status": "active",
+                "subject": {
+                    "entities": [{"idPattern": "missing_column_entity", "type": "Test"}],
+                    "condition": {"attrs": ["TimeInstant"]}
+                },
+                "notification": {
+                    "kafkaCustom": {
+                        "url": "kafka://kafka:29092",
+                        "topic": "smc_raw_historic"
+                    },
+                    "attrs": ["TimeInstant", "temperature", "missing_column"]
+                }
             }
-        ]
+        },
+        updateEntities=[{
+            "id": "missing_column_entity",
+            "type": "Test",
+            "TimeInstant": {
+                "type": "DateTime",
+                "value": (start_ts + timedelta(days=1)).isoformat() + "Z"
+            },
+            "temperature": {
+                "type": "Float",
+                "value": -2.0
+            },
+            "missing_column": {
+                "type": "Text",
+                "value": "not present in batch_test"
+            }
+        }]
     )
     ops = ServiceOperations(multiservice_stack, [orion_request])
     ops.orion_set_up()
@@ -281,6 +347,17 @@ def test_jdbc_batch_backlog(multiservice_stack):
     assert rows == expected_rows, (
         f"❌ Expected {expected_rows} rows, found {rows}"
     )
+
+    assert validator.wait_until_row_present(
+        "test.test_error_log",
+        {"error": {"contains": 'duplicate key value violates unique constraint "duplicate_key_test_pkey"'}},
+        timeout=180
+    ), "❌ Duplicate key insertion error was not logged"
+    assert validator.wait_until_row_present(
+        "test.test_error_log",
+        {"error": {"contains": 'column "missing_column" of relation "missing_column_test" does not exist'}},
+        timeout=180
+    ), "❌ Missing column insertion error was not logged"
 
     expected_ids_batch = {
         f"E{(BATCH_SIZE//4)-1}",
