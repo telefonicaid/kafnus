@@ -101,6 +101,31 @@ CREATE TABLE IF NOT EXISTS test.batch2_test_mutable (
     CONSTRAINT batch2_test_mutable_pkey PRIMARY KEY (timeinstant, entityid)
 );
 
+DROP TABLE IF EXISTS test.duplicate_key_test;
+CREATE TABLE test.duplicate_key_test (
+    recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
+    fiwareservicepath TEXT,
+    entityid TEXT,
+    entitytype TEXT,
+    timeinstant TIMESTAMPTZ,
+    temperature DOUBLE PRECISION,
+    CONSTRAINT duplicate_key_test_pkey PRIMARY KEY (timeinstant, entityid)
+);
+
+INSERT INTO test.duplicate_key_test (fiwareservicepath, entityid, entitytype, timeinstant, temperature)
+VALUES ('/duplicate_key', 'duplicate_error', 'Test', '2030-01-01T00:00:00Z', 1.0);
+
+DROP TABLE IF EXISTS test.missing_column_test;
+CREATE TABLE test.missing_column_test (
+    recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
+    fiwareservicepath TEXT,
+    entityid TEXT,
+    entitytype TEXT,
+    timeinstant TIMESTAMPTZ,
+    temperature DOUBLE PRECISION,
+    CONSTRAINT missing_column_test_pkey PRIMARY KEY (timeinstant, entityid)
+);
+
 -- Drop table
 DROP TABLE IF EXISTS test.sentinel_test;
 
