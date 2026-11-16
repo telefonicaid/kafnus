@@ -529,6 +529,13 @@ Output schema:
 
 These are published to topics like `<PREFIX><dbname>_error_log<SUFFIX>`.
 
+For JDBC sinks, this is a record-error path, not a retry queue. With
+`errors.tolerance=all` and a DLQ topic configured, a failed record is forwarded
+to `<PREFIX>raw_errors`; the NGSI errors agent turns it into a structured error
+log on the database-specific error topic. The JDBC historical sink currently
+uses `max.retries=0`, so it does not retry a record after an insert failure.
+Connection-attempt settings are separate from retries of failed records.
+
 ---
 
 ## Mongo Agent

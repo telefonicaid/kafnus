@@ -434,40 +434,55 @@ This test category validates **JDBC sink batch processing** and error handling u
 1. Stop `kafnus-ngsi` and `kafnus-connect` services.
 2. Send a large batch of entities (~12,000 messages) to Orion Context Broker across multiple requests.
 3. Create subscriptions for `historic`, `lastdata`, and `mutable` sinks.
-4. Send a **sentinel entity** (ID: `__END__`) to mark the end of the batch.
-5. Start `kafnus-ngsi` to process the accumulated Kafka messages.
-6. Start `kafnus-connect` to write the backlog to PostGIS.
-7. Verify that all entities (including the sentinel) are correctly written to the database tables.
+4. Replay `E0` on `/batch` with a `TimeInstant` three days later and temperature `99999.0`.
+5. Send a **sentinel entity** (ID: `__END__`) to mark the end of the batch.
+6. Start `kafnus-ngsi` to process the accumulated Kafka messages.
+7. Start `kafnus-connect` to write the backlog to PostGIS.
+8. Verify the sentinel, expected row counts in the historic and `lastdata` tables for `/batch` and `/batch2`, representative entity IDs, and the latest `E0` values in `batch_test_lastdata`.
 
 This ensures:
-- JDBC batch mechanics work correctly under high volume
-- No messages are lost during backlog processing
-- Sentinel entities can be used to detect when processing is complete
+- Historic and `lastdata` sinks persist the expected backlog volume for both routes
+- Boundary entity IDs are present in each historic and `lastdata` table
+- The historic table retains both `E0` measurements, while `lastdata` keeps one row for `E0` with the replay's newer timestamp and temperature (`99999.0`)
+- The sentinel confirms processing reached the end of the backlog
 
 ### **Phase 2 — Error Handling in Batches (`test_jdbc_batch_errors.py`)**
 
-This test accumulates a valid historic backlog while `kafnus-ngsi` and `kafnus-connect` are stopped, and injects five JDBC error records across the following scenarios:
+The file contains two end-to-end tests:
 
-- **Unknown subservice**: `/errorFAIL` has no destination table.
-- **Duplicate primary key**: a seeded row in `duplicate_key_test` is inserted a second time with the same `(timeinstant, entityid)` key.
-- **Missing required destination column**: a required `missing_column` field is sent to `missing_column_test`, whose table does not define that column. JDBC Connect rejects the record while trying to evolve the table.
-- **Invalid data type**: `temperature` is sent as NGSI `Text` with value `not-a-number`, but `invalid_type_test.temperature` is `DOUBLE PRECISION`.
-- **Duplicate inside one JDBC batch**: with `batch.size=3`, a duplicate key is placed between two valid inserts targeting `same_batch_test`.
+- `test_jdbc_batch_backlog` accumulates a valid historic backlog while `kafnus-ngsi` and `kafnus-connect` are stopped, then injects four records that should fail at JDBC:
 
-After the sentinel is observed and the JDBC sink resumes, the test verifies that:
+  - **Unknown subservice**: `/errorFAIL` has no destination table.
+  - **Duplicate primary key**: a seeded row in `duplicate_key_test` is inserted a second time with the same `(timeinstant, entityid)` key.
+  - **Missing required destination column**: a required `missing_column` field is sent to `missing_column_test`, whose table does not define that column. JDBC Connect rejects the record while trying to evolve the table.
+  - **Invalid data type**: `temperature` is sent as NGSI `Text` with value `not-a-number`, but `invalid_type_test.temperature` is `DOUBLE PRECISION`.
+- `test_jdbc_batch_failure_shares_execute_batch` sets `batch.size=3` and sends a duplicate key between two valid inserts targeting `same_batch_test`.
 
-- The expected valid backlog rows are present in `batch_test` and `batch2_test`.
-- Each injected failure appears in `test.test_error_log` with its corresponding routing, primary-key, missing-field, or type-mismatch error.
+The backlog test verifies that:
+
+- The expected valid backlog rows are present in the historic and `lastdata` tables for `/batch` and `/batch2`.
+- Each of its four injected failures appears in `test.test_error_log` with the expected error:
+  - Unknown subservice: destination table `errorfail_test` is missing and auto-creation is disabled.
+  - Duplicate key: unique constraint `duplicate_key_test_pkey` is violated.
+  - Missing column: JDBC Connect cannot evolve `missing_column_test` to add the required field.
+  - Invalid type: PostgreSQL rejects a character-varying `temperature` expression for the `DOUBLE PRECISION` column.
 - The sentinel is persisted, confirming processing continued past the invalid records.
-- For the three-record JDBC batch, the duplicate is rejected while both valid surrounding rows persist; the table contains the seeded row plus those two valid rows.
+
+The shared-batch test verifies that the duplicate violates `same_batch_test_pkey`, both valid surrounding rows persist, and `same_batch_test` contains the seeded row plus those two valid rows.
+
+These results describe the configured JDBC connector and test database: they do
+not imply that every driver or every type of batch failure has identical
+transaction behavior. The historic sink uses `errors.tolerance=all`, DLQ
+routing, and `max.retries=0`; transient database connection setup is configured
+separately through `connection.attempts` and `connection.backoff.ms`.
 
 ### **Test Configuration**
 
 Both tests use:
 
 - **Batch Size**: 12,000 messages (configurable via `BATCH_SIZE` constant)
-- **Subscriptions**: Historic, lastdata, and mutable routes are configured; these tests assert the historic backlog tables and error log.
-- **Database Tables**: `batch_test` and `batch2_test` hold the historic backlog; dedicated tables seed or trigger the error cases.
+- **Subscriptions**: Historic, lastdata, and mutable routes are configured; the tests assert historic and lastdata backlog tables plus the error log.
+- **Database Tables**: `batch_test` / `batch_test_lastdata` and `batch2_test` / `batch2_test_lastdata` hold the two historic and lastdata backlogs; dedicated tables seed or trigger the error cases.
 
 ---
 

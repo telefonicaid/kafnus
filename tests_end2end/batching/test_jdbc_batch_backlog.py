@@ -146,6 +146,23 @@ def test_jdbc_batch_backlog(multiservice_stack):
     ops = ServiceOperations(multiservice_stack, [orion_request])
     ops.orion_set_up()
 
+    latest_timeinstant = start_ts + timedelta(days=3)
+    latest_timeinstant_iso = latest_timeinstant.isoformat() + "Z"
+    orion_request = OrionRequestData(
+        name="batch_lastdata_update",
+        service="test",
+        subservice="/batch",
+        subscriptions={},
+        updateEntities=[{
+            "id": "E0",
+            "type": "Test",
+            "TimeInstant": {"type": "DateTime", "value": latest_timeinstant_iso},
+            "temperature": {"type": "Float", "value": 99999.0}
+        }]
+    )
+    ops = ServiceOperations(multiservice_stack, [orion_request])
+    ops.orion_set_up()
+
     orion_request = OrionRequestData(
         name="batch_backlog",
         service="test",
@@ -220,16 +237,32 @@ def test_jdbc_batch_backlog(multiservice_stack):
     logger.info(f"⏱ JDBC persistence time: {t_connect:.2f}s")
 
     # 5. Validate that entities have been correctly stored in PostGIS
-    expected_rows = BATCH_SIZE//2
+    expected_rows_batch = BATCH_SIZE//2 + 1
+    expected_rows_batch2 = BATCH_SIZE//2
     rows = validator.count_rows("test.batch_test")
-    assert rows == expected_rows, (
-        f"❌ Expected {expected_rows} rows, found {rows}"
+    assert rows == expected_rows_batch, (
+        f"❌ Expected {expected_rows_batch} rows, found {rows}"
     )
 
     rows = validator.count_rows("test.batch2_test")
-    assert rows == expected_rows, (
-        f"❌ Expected {expected_rows} rows, found {rows}"
+    assert rows == expected_rows_batch2, (
+        f"❌ Expected {expected_rows_batch2} rows, found {rows}"
     )
+
+    lastdata_rows = validator.count_rows("test.batch_test_lastdata")
+    assert lastdata_rows == expected_rows_batch2, (
+        f"❌ Expected {expected_rows_batch2} lastdata rows for /batch, found {lastdata_rows}"
+    )
+
+    lastdata_rows = validator.count_rows("test.batch2_test_lastdata")
+    assert lastdata_rows == expected_rows_batch2, (
+        f"❌ Expected {expected_rows_batch2} lastdata rows for /batch2, found {lastdata_rows}"
+    )
+
+    assert validator.validate(
+        "test.batch_test_lastdata",
+        [{"entityid": "E0", "timeinstant": latest_timeinstant_iso, "temperature": 99999.0}]
+    ), "❌ Lastdata did not retain the most recent E0 values"
 
     expected_ids_batch = {
         f"E{(BATCH_SIZE//4)-1}",
@@ -246,12 +279,20 @@ def test_jdbc_batch_backlog(multiservice_stack):
             "test.batch_test",
             [{"entityid": eid}]
         ), f"❌ Missing entity {eid}"
+        assert validator.validate(
+            "test.batch_test_lastdata",
+            [{"entityid": eid}]
+        ), f"❌ Missing lastdata entity {eid} for /batch"
     
     for eid in expected_ids_batch2:
         assert validator.validate(
             "test.batch2_test",
             [{"entityid": eid}]
         ), f"❌ Missing entity {eid}"
+        assert validator.validate(
+            "test.batch2_test_lastdata",
+            [{"entityid": eid}]
+        ), f"❌ Missing lastdata entity {eid} for /batch2"
 
     logger.info("✅ JDBC batch backlog test PASSED")
 
