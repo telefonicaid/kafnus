@@ -249,19 +249,20 @@ def test_jdbc_batch_backlog(multiservice_stack):
         f"❌ Expected {expected_rows_batch2} rows, found {rows}"
     )
 
-    lastdata_rows = validator.count_rows("test.batch_test_lastdata")
+    lastdata_rows = validator.wait_for_row_count("test.batch_test_lastdata", expected_rows_batch2, timeout=180)
     assert lastdata_rows == expected_rows_batch2, (
         f"❌ Expected {expected_rows_batch2} lastdata rows for /batch, found {lastdata_rows}"
     )
 
-    lastdata_rows = validator.count_rows("test.batch2_test_lastdata")
+    lastdata_rows = validator.wait_for_row_count("test.batch2_test_lastdata", expected_rows_batch2, timeout=180)
     assert lastdata_rows == expected_rows_batch2, (
         f"❌ Expected {expected_rows_batch2} lastdata rows for /batch2, found {lastdata_rows}"
     )
 
     assert validator.validate(
         "test.batch_test_lastdata",
-        [{"entityid": "E0", "timeinstant": latest_timeinstant_iso, "temperature": 99999.0}]
+        [{"entityid": "E0", "timeinstant": latest_timeinstant_iso, "temperature": 99999.0}],
+        timeout=180
     ), "❌ Lastdata did not retain the most recent E0 values"
 
     expected_ids_batch = {

@@ -28,6 +28,7 @@ from common.utils.kafnus_connect_loader import deploy_all_sinks
 from common.config import logger, DEFAULT_DB_CONFIG
 from common.utils.sql_runner import execute_sql_file
 from common.utils.postgis_validator import PostgisValidator
+from common.utils.utils import find_subscription_id_by_description
 from common.utils.wait_services import wait_for_kafnus_connect, wait_for_connector
 
 from datetime import datetime, timedelta
@@ -322,22 +323,7 @@ def test_jdbc_batch_backlog(multiservice_stack):
         name="batch_backlog",
         service="test",
         subservice="/sentinel",
-        subscriptions={
-            "historic": {
-            "description": "Test:HISTORIC:sentinel_test",
-            "status": "active",
-            "subject": {
-                "entities": [{"idPattern": ".*", "type": "Test"}],
-                "condition": {"attrs": ["TimeInstant"]}
-            },
-            "notification": {
-                "kafkaCustom": {
-                    "url": "kafka://kafka:29092",
-                    "topic": "smc_raw_historic"
-                },
-                "attrs": ["TimeInstant", "temperature"]
-            }
-        }},
+        subscriptions=sentinel_subscriptions(multiservice_stack),
         updateEntities=[{
             "id": SENTINEL_ID,
             "type": "Test",
@@ -404,19 +390,20 @@ def test_jdbc_batch_backlog(multiservice_stack):
         f"❌ Expected {expected_rows_batch2} rows, found {rows}"
     )
 
-    lastdata_rows = validator.count_rows("test.batch_test_lastdata")
+    lastdata_rows = validator.wait_for_row_count("test.batch_test_lastdata", expected_rows_batch2, timeout=180)
     assert lastdata_rows == expected_rows_batch2, (
         f"❌ Expected {expected_rows_batch2} lastdata rows for /batch, found {lastdata_rows}"
     )
 
-    lastdata_rows = validator.count_rows("test.batch2_test_lastdata")
+    lastdata_rows = validator.wait_for_row_count("test.batch2_test_lastdata", expected_rows_batch2, timeout=180)
     assert lastdata_rows == expected_rows_batch2, (
         f"❌ Expected {expected_rows_batch2} lastdata rows for /batch2, found {lastdata_rows}"
     )
 
     assert validator.validate(
         "test.batch_test_lastdata",
-        [{"entityid": "E0", "timeinstant": latest_timeinstant_iso, "temperature": 99999.0}]
+        [{"entityid": "E0", "timeinstant": latest_timeinstant_iso, "temperature": 99999.0}],
+        timeout=180
     ), "❌ Lastdata did not retain the most recent E0 values"
 
     assert validator.wait_until_row_present(
@@ -548,23 +535,7 @@ def test_jdbc_batch_failure_shares_execute_batch(multiservice_stack):
             name="same_batch_sentinel",
             service="test",
             subservice="/sentinel",
-            subscriptions={
-                "historic": {
-                    "description": "Test:HISTORIC:same_batch_sentinel",
-                    "status": "active",
-                    "subject": {
-                        "entities": [{"idPattern": ".*", "type": "Test"}],
-                        "condition": {"attrs": ["TimeInstant"]}
-                    },
-                    "notification": {
-                        "kafkaCustom": {
-                            "url": "kafka://kafka:29092",
-                            "topic": "smc_raw_historic"
-                        },
-                        "attrs": ["TimeInstant", "temperature"]
-                    }
-                }
-            },
+            subscriptions=sentinel_subscriptions(multiservice_stack),
             updateEntities=[{
                 "id": sentinel_id,
                 "type": "Test",
@@ -612,11 +583,39 @@ def test_jdbc_batch_failure_shares_execute_batch(multiservice_stack):
             "insert itself must not persist"
         )
     finally:
+        compose.safe_start("kafnus-ngsi")
         compose.safe_start("kafnus-connect")
         wait_for_kafnus_connect()
         restore_response = requests.put(config_url, json=original_config, timeout=10)
         restore_response.raise_for_status()
         wait_for_connector(name="jdbc-historical-sink", url=connect_url)
+
+def sentinel_subscriptions(multiservice_stack):
+    orion_url = f"http://{multiservice_stack.orionHost}:{multiservice_stack.orionPort}/v2"
+    description = "Test:HISTORIC:sentinel_test"
+    if find_subscription_id_by_description(
+        orion_url,
+        description,
+        {"Fiware-Service": "test", "Fiware-ServicePath": "/sentinel"}
+    ):
+        return {}
+    return {
+        "historic": {
+            "description": description,
+            "status": "active",
+            "subject": {
+                "entities": [{"idPattern": ".*", "type": "Test"}],
+                "condition": {"attrs": ["TimeInstant"]}
+            },
+            "notification": {
+                "kafkaCustom": {
+                    "url": "kafka://kafka:29092",
+                    "topic": "smc_raw_historic"
+                },
+                "attrs": ["TimeInstant", "temperature"]
+            }
+        }
+    }
 
 def generate_entities(count, start_ts=None, start_index=0):
     if start_ts is None:
