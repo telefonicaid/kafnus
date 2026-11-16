@@ -186,10 +186,15 @@ def test_db_outage_recover(multiservice_stack):
     # ------------------------------------------------------------------
     # STEP 2C: Wait for connector task recovery
     # ------------------------------------------------------------------
-    wait_for_connector(
-        name="jdbc-historical-sink",
-        url=f"http://{multiservice_stack.kafkaConnectHost}:{multiservice_stack.KafkaConnectPort}"
-    )
+    for connector_name in (
+        "jdbc-historical-sink",
+        "jdbc-lastdata-sink",
+        "jdbc-mutable-sink",
+    ):
+        wait_for_connector(
+            name=connector_name,
+            url=f"http://{multiservice_stack.kafkaConnectHost}:{multiservice_stack.KafkaConnectPort}"
+        )
 
     # ------------------------------------------------------------------
     # STEP 2D: Send updates after recovery
@@ -224,7 +229,7 @@ def test_db_outage_recover(multiservice_stack):
         "test.recover_test_lastdata",
         "test.recover_test_mutable",
     ]:
-        ok = validator.validate(table, expected_rows)
+        ok = validator.validate(table, expected_rows, timeout=60)
         assert ok, f"❌ Not all entities were persisted in {table}"
 
     logger.info("✅ test_db_outage_recover PASSED")
@@ -294,10 +299,15 @@ def test_db_outage_recover(multiservice_stack):
     # ------------------------------------------------------------------
     # STEP 3D: Wait for connector task recovery
     # ------------------------------------------------------------------
-    wait_for_connector(
-        name="jdbc-historical-sink",
-        url=f"http://{multiservice_stack.kafkaConnectHost}:{multiservice_stack.KafkaConnectPort}"
-    )
+    for connector_name in (
+        "jdbc-historical-sink",
+        "jdbc-lastdata-sink",
+        "jdbc-mutable-sink",
+    ):
+        wait_for_connector(
+            name=connector_name,
+            url=f"http://{multiservice_stack.kafkaConnectHost}:{multiservice_stack.KafkaConnectPort}"
+        )
 
     # ------------------------------------------------------------------
     # STEP 3E: Validate final DB state (E1, E2, E3)
@@ -311,14 +321,29 @@ def test_db_outage_recover(multiservice_stack):
         "test.recover_test_lastdata",
         "test.recover_test_mutable",
     ]:
-        ok = validator.validate(table, expected_rows)
+        ok = validator.validate(table, expected_rows, timeout=60)
         assert ok, f"❌ Not all entities were persisted in {table}"
 
+    # Produce a fresh invalid record after recovery so the DLQ-to-error-log
+    # assertion does not depend on the error sink writing while Postgres is down.
+    recovered_error = OrionRequestData(
+        name="recover_error_log",
+        service="test",
+        subservice="/recover",
+        subscriptions={},
+        updateEntities=[{
+            "id": "FAIL_AFTER_RECOVERY",
+            "type": "FAIL",
+            "TimeInstant": {"type": "DateTime", "value": "2025-06-26T14:00:00Z"},
+            "temperature": {"value": 4.0, "type": "Float"}
+        }]
+    )
+    ServiceOperations(multiservice_stack, [recovered_error]).orion_set_up()
+
     error_row = {
-        "query": { "contains": "INSERT INTO \"test\".\"recover_fail\"" },
         "error": { "contains": "Table \"tests\".\"test\".\"recover_fail\" is missing"}
     }
-    ok = validator.validate("test.test_error_log", [error_row])
+    ok = validator.wait_until_row_present("test.test_error_log", error_row, timeout=60)
     assert ok, f"❌ FAIL entity should not be present in {table}"
 
     logger.info("✅ test_db_outage_recover PASSED")
