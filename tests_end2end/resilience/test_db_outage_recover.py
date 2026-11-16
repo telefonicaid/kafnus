@@ -340,10 +340,30 @@ def test_db_outage_recover(multiservice_stack):
     )
     ServiceOperations(multiservice_stack, [recovered_error]).orion_set_up()
 
+    recovered_type_error = OrionRequestData(
+        name="recover_invalid_type",
+        service="test",
+        subservice="/recover",
+        subscriptions={},
+        updateEntities=[{
+            "id": "INVALID_TYPE_AFTER_RECOVERY",
+            "type": "Test",
+            "TimeInstant": {"type": "DateTime", "value": "2025-06-26T14:05:00Z"},
+            "temperature": {"value": "not-a-number", "type": "Text"}
+        }]
+    )
+    ServiceOperations(multiservice_stack, [recovered_type_error]).orion_set_up()
+
     error_row = {
         "error": { "contains": "Table \"tests\".\"test\".\"recover_fail\" is missing"}
     }
     ok = validator.wait_until_row_present("test.test_error_log", error_row, timeout=60)
     assert ok, f"❌ FAIL entity should not be present in {table}"
+
+    type_error_row = {
+        "error": {"contains": 'column "temperature" is of type double precision but expression is of type character varying'}
+    }
+    ok = validator.wait_until_row_present("test.test_error_log", type_error_row, timeout=60)
+    assert ok, "❌ Invalid temperature type after recovery was not logged"
 
     logger.info("✅ test_db_outage_recover PASSED")
