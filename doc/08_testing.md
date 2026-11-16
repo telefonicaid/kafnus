@@ -427,7 +427,7 @@ This test category validates **JDBC sink batch processing** and error handling u
 ### **Test Purpose**
 
 - **Backlog Processing**: Validates that the JDBC sink correctly processes large backlogs of messages using batch mechanics when Kafnus services are momentarily stopped.
-- **Error Handling During Batches**: Ensures the system gracefully handles errors (duplicate IDs, schema mismatches) mixed within a large batch without losing data or stalling processing.
+- **Error Handling During Batches**: Validates that JDBC failures are routed to the PostGIS error log while valid backlog records continue to persist.
 
 ### **Phase 1 — Backlog Accumulation (`test_jdbc_batch_backlog`)**
 
@@ -444,32 +444,30 @@ This ensures:
 - No messages are lost during backlog processing
 - Sentinel entities can be used to detect when processing is complete
 
-### **Phase 2 — Error Handling in Batches (`test_jdbc_batch_errors`)**
+### **Phase 2 — Error Handling in Batches (`test_jdbc_batch_errors.py`)**
 
-Similar to the backlog test, but with **error injection**:
+This test accumulates a valid historic backlog while `kafnus-ngsi` and `kafnus-connect` are stopped, and injects five JDBC error records across the following scenarios:
 
-1. Stop Kafnus services.
-2. Send batches of valid entities.
-3. **Inject error scenarios** (duplicate IDs, invalid data types, schema mismatches) within the batch.
-4. Resume Kafnus services.
-5. Verify that:
-   - Valid messages are correctly persisted
-   - Invalid messages are logged or routed to error handlers
-   - Processing continues without stalling
-   - No data loss occurs
+- **Unknown subservice**: `/errorFAIL` has no destination table.
+- **Duplicate primary key**: a seeded row in `duplicate_key_test` is inserted a second time with the same `(timeinstant, entityid)` key.
+- **Missing required destination column**: a required `missing_column` field is sent to `missing_column_test`, whose table does not define that column. JDBC Connect rejects the record while trying to evolve the table.
+- **Invalid data type**: `temperature` is sent as NGSI `Text` with value `not-a-number`, but `invalid_type_test.temperature` is `DOUBLE PRECISION`.
+- **Duplicate inside one JDBC batch**: with `batch.size=3`, a duplicate key is placed between two valid inserts targeting `same_batch_test`.
 
-This validates resilience and error tolerance under realistic conditions.
+After the sentinel is observed and the JDBC sink resumes, the test verifies that:
+
+- The expected valid backlog rows are present in `batch_test` and `batch2_test`.
+- Each injected failure appears in `test.test_error_log` with its corresponding routing, primary-key, missing-field, or type-mismatch error.
+- The sentinel is persisted, confirming processing continued past the invalid records.
+- For the three-record JDBC batch, the duplicate is rejected while both valid surrounding rows persist; the table contains the seeded row plus those two valid rows.
 
 ### **Test Configuration**
 
 Both tests use:
 
 - **Batch Size**: 12,000 messages (configurable via `BATCH_SIZE` constant)
-- **Subscriptions**: Multiple services and subservices to test routing across different Kafka topics
-- **Database Tables**: 
-  - `batch_test` (historic data)
-  - `batch_test_lastdata` (last known values)
-  - `batch_test_mutable` (mutable data)
+- **Subscriptions**: Historic, lastdata, and mutable routes are configured; these tests assert the historic backlog tables and error log.
+- **Database Tables**: `batch_test` and `batch2_test` hold the historic backlog; dedicated tables seed or trigger the error cases.
 
 ---
 

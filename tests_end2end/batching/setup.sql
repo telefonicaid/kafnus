@@ -115,6 +115,20 @@ CREATE TABLE test.duplicate_key_test (
 INSERT INTO test.duplicate_key_test (fiwareservicepath, entityid, entitytype, timeinstant, temperature)
 VALUES ('/duplicate_key', 'duplicate_error', 'Test', '2030-01-01T00:00:00Z', 1.0);
 
+DROP TABLE IF EXISTS test.same_batch_test;
+CREATE TABLE test.same_batch_test (
+    recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
+    fiwareservicepath TEXT,
+    entityid TEXT,
+    entitytype TEXT,
+    timeinstant TIMESTAMPTZ,
+    temperature DOUBLE PRECISION,
+    CONSTRAINT same_batch_test_pkey PRIMARY KEY (timeinstant, entityid)
+);
+
+INSERT INTO test.same_batch_test (fiwareservicepath, entityid, entitytype, timeinstant, temperature)
+VALUES ('/same_batch', 'same_batch_duplicate', 'Test', '2031-01-01T00:00:00Z', 0.0);
+
 DROP TABLE IF EXISTS test.missing_column_test;
 CREATE TABLE test.missing_column_test (
     recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -124,6 +138,17 @@ CREATE TABLE test.missing_column_test (
     timeinstant TIMESTAMPTZ,
     temperature DOUBLE PRECISION,
     CONSTRAINT missing_column_test_pkey PRIMARY KEY (timeinstant, entityid)
+);
+
+DROP TABLE IF EXISTS test.invalid_type_test;
+CREATE TABLE test.invalid_type_test (
+    recvtime TIMESTAMPTZ NOT NULL DEFAULT now(),
+    fiwareservicepath TEXT,
+    entityid TEXT,
+    entitytype TEXT,
+    timeinstant TIMESTAMPTZ,
+    temperature DOUBLE PRECISION,
+    CONSTRAINT invalid_type_test_pkey PRIMARY KEY (timeinstant, entityid)
 );
 
 -- Drop table

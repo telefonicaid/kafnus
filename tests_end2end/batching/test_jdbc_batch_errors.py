@@ -19,6 +19,7 @@
 import time
 import pytest
 import json
+import requests
 from pathlib import Path
 from confluent_kafka import Consumer
 
@@ -252,6 +253,43 @@ def test_jdbc_batch_backlog(multiservice_stack):
     ops = ServiceOperations(multiservice_stack, [orion_request])
     ops.orion_set_up()
 
+    orion_request = OrionRequestData(
+        name="invalid_type",
+        service="test",
+        subservice="/invalid_type",
+        subscriptions={
+            "historic": {
+                "description": "Test:HISTORIC:invalid_type_test",
+                "status": "active",
+                "subject": {
+                    "entities": [{"idPattern": "invalid_type_entity", "type": "Test"}],
+                    "condition": {"attrs": ["TimeInstant"]}
+                },
+                "notification": {
+                    "kafkaCustom": {
+                        "url": "kafka://kafka:29092",
+                        "topic": "smc_raw_historic"
+                    },
+                    "attrs": ["TimeInstant", "temperature"]
+                }
+            }
+        },
+        updateEntities=[{
+            "id": "invalid_type_entity",
+            "type": "Test",
+            "TimeInstant": {
+                "type": "DateTime",
+                "value": (start_ts + timedelta(days=2)).isoformat() + "Z"
+            },
+            "temperature": {
+                "type": "Text",
+                "value": "not-a-number"
+            }
+        }]
+    )
+    ops = ServiceOperations(multiservice_stack, [orion_request])
+    ops.orion_set_up()
+
     # Fourth quarter: 1 entity (index 3)
     orion_request = OrionRequestData(
         name="batch4_backlog",
@@ -350,6 +388,11 @@ def test_jdbc_batch_backlog(multiservice_stack):
 
     assert validator.wait_until_row_present(
         "test.test_error_log",
+        {"error": {"contains": 'Table "tests"."test"."errorfail_test" is missing and auto-creation is disabled'}},
+        timeout=180
+    ), "❌ Invalid subservice routing error was not logged"
+    assert validator.wait_until_row_present(
+        "test.test_error_log",
         {"error": {"contains": 'duplicate key value violates unique constraint "duplicate_key_test_pkey"'}},
         timeout=180
     ), "❌ Duplicate key insertion error was not logged"
@@ -358,6 +401,11 @@ def test_jdbc_batch_backlog(multiservice_stack):
         {"error": {"contains": 'Cannot ALTER TABLE "tests"."test"."missing_column_test" to add missing field'}},
         timeout=180
     ), "❌ Missing column insertion error was not logged"
+    assert validator.wait_until_row_present(
+        "test.test_error_log",
+        {"error": {"contains": 'column "temperature" is of type double precision but expression is of type character varying'}},
+        timeout=180
+    ), "❌ Invalid temperature type error was not logged"
 
     expected_ids_batch = {
         f"E{(BATCH_SIZE//4)-1}",
@@ -382,6 +430,152 @@ def test_jdbc_batch_backlog(multiservice_stack):
         ), f"❌ Missing entity {eid}"
 
     logger.info("✅ JDBC batch backlog test PASSED")
+
+def test_jdbc_batch_failure_shares_execute_batch(multiservice_stack):
+    """Verify what happens to valid rows sharing a JDBC batch with a bad row."""
+    setup_file = Path(__file__).resolve().parent / "setup.sql"
+    execute_sql_file(setup_file, db_config=DEFAULT_DB_CONFIG)
+
+    compose = multiservice_stack.compose
+    connect_url = (
+        f"http://{multiservice_stack.kafkaConnectHost}:"
+        f"{multiservice_stack.KafkaConnectPort}"
+    )
+    config_url = f"{connect_url}/connectors/jdbc-historical-sink/config"
+    config_response = requests.get(config_url, timeout=10)
+    config_response.raise_for_status()
+    original_config = config_response.json()
+
+    batch_config = {**original_config, "batch.size": "3"}
+    update_response = requests.put(config_url, json=batch_config, timeout=10)
+    update_response.raise_for_status()
+
+    try:
+        wait_for_connector(
+            name="jdbc-historical-sink",
+            url=connect_url
+        )
+        compose.safe_stop("kafnus-ngsi")
+        compose.safe_stop("kafnus-connect")
+
+        same_table_update = OrionRequestData(
+            name="same_batch_records",
+            service="test",
+            subservice="/same_batch",
+            subscriptions={
+                "historic": {
+                    "description": "Test:HISTORIC:same_batch_atomicity",
+                    "status": "active",
+                    "subject": {
+                        "entities": [{"idPattern": ".*", "type": "Test"}],
+                        "condition": {"attrs": ["TimeInstant"]}
+                    },
+                    "notification": {
+                        "kafkaCustom": {
+                            "url": "kafka://kafka:29092",
+                            "topic": "smc_raw_historic"
+                        },
+                        "attrs": ["TimeInstant", "temperature"]
+                    }
+                }
+            },
+            updateEntities=[
+                {
+                    "id": "same_batch_before",
+                    "type": "Test",
+                    "TimeInstant": {"type": "DateTime", "value": "2031-01-01T00:00:01Z"},
+                    "temperature": {"type": "Float", "value": 10.0}
+                },
+                {
+                    "id": "same_batch_duplicate",
+                    "type": "Test",
+                    "TimeInstant": {"type": "DateTime", "value": "2031-01-01T00:00:00Z"},
+                    "temperature": {"type": "Float", "value": 20.0}
+                },
+                {
+                    "id": "same_batch_after",
+                    "type": "Test",
+                    "TimeInstant": {"type": "DateTime", "value": "2031-01-01T00:00:02Z"},
+                    "temperature": {"type": "Float", "value": 30.0}
+                }
+            ]
+        )
+        ServiceOperations(multiservice_stack, [same_table_update]).orion_set_up()
+
+        sentinel_id = "__SAME_BATCH_END__"
+        sentinel_update = OrionRequestData(
+            name="same_batch_sentinel",
+            service="test",
+            subservice="/sentinel",
+            subscriptions={
+                "historic": {
+                    "description": "Test:HISTORIC:same_batch_sentinel",
+                    "status": "active",
+                    "subject": {
+                        "entities": [{"idPattern": ".*", "type": "Test"}],
+                        "condition": {"attrs": ["TimeInstant"]}
+                    },
+                    "notification": {
+                        "kafkaCustom": {
+                            "url": "kafka://kafka:29092",
+                            "topic": "smc_raw_historic"
+                        },
+                        "attrs": ["TimeInstant", "temperature"]
+                    }
+                }
+            },
+            updateEntities=[{
+                "id": sentinel_id,
+                "type": "Test",
+                "TimeInstant": {"type": "DateTime", "value": "2031-01-01T00:00:03Z"},
+                "temperature": {"type": "Float", "value": 40.0}
+            }]
+        )
+        ServiceOperations(multiservice_stack, [sentinel_update]).orion_set_up()
+
+        compose.safe_start("kafnus-ngsi")
+        assert wait_for_ngsi_sentinel(
+            kafka_bootstrap=f"{multiservice_stack.kafkaHost}:{multiservice_stack.kafkaPort}",
+            sentinel_id=sentinel_id,
+            topic="smc_test_historic_processed",
+            timeout=90
+        ), "❌ Kafnus NGSI did not process the same-batch records and sentinel"
+
+        compose.safe_start("kafnus-connect")
+        wait_for_connector(name="jdbc-historical-sink", url=connect_url)
+        validator = PostgisValidator(DEFAULT_DB_CONFIG)
+        assert validator.wait_until_row_present(
+            "test.sentinel_test",
+            {"entityid": sentinel_id},
+            timeout=180
+        ), "❌ JDBC sink did not process the sentinel after the failing batch"
+
+        assert validator.wait_until_row_present(
+            "test.test_error_log",
+            {"error": {"contains": 'duplicate key value violates unique constraint "same_batch_test_pkey"'}},
+            timeout=180
+        ), "❌ Same-batch duplicate key error was not logged"
+
+        persisted_ids = {
+            entity_id
+            for entity_id in ("same_batch_before", "same_batch_after")
+            if validator.validate("test.same_batch_test", [{"entityid": entity_id}], timeout=1)
+        }
+        logger.info("Rows persisted from the batch containing a duplicate key: %s", persisted_ids)
+        assert persisted_ids == {"same_batch_before", "same_batch_after"}, (
+            "Expected valid rows surrounding the duplicate to persist; "
+            f"found {persisted_ids}"
+        )
+        assert validator.count_rows("test.same_batch_test") == 3, (
+            "Expected the seeded duplicate row and two valid rows; the duplicate "
+            "insert itself must not persist"
+        )
+    finally:
+        compose.safe_start("kafnus-connect")
+        wait_for_kafnus_connect()
+        restore_response = requests.put(config_url, json=original_config, timeout=10)
+        restore_response.raise_for_status()
+        wait_for_connector(name="jdbc-historical-sink", url=connect_url)
 
 def generate_entities(count, start_ts=None, start_index=0):
     if start_ts is None:
