@@ -1,0 +1,74 @@
+# Copyright 2026 Telefónica Soluciones de Informática y Comunicaciones de España, S.A.U.
+#
+# This file is part of kafnus
+#
+# kafnus is free software: you can redistribute it and/or
+# modify it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# kafnus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+# General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with kafnus. If not, see http://www.gnu.org/licenses/.
+
+# Publishes the open SonarQube issues as GitHub issues: one parent issue with
+# the backlog summary and one sub-issue per Sonar rule. Sonar is only read, with
+# a token whose user has just the Browse permission on the project
+# (SONAR_READ_TOKEN). GitHub is written with this run's GITHUB_TOKEN.
+# Configuration: .github/sonar-issues-sync.json
+
+name: SonarQube issues sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Only show what would be done, without creating or editing GitHub issues'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonar-issues-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync SonarQube issues to GitHub issues
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Sync SonarQube issues
+        run: node .github/scripts/sonar-issues-sync.mjs
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_READ_TOKEN: ${{ secrets.SONAR_READ_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          SYNC_PREVIEW_DIR: ${{ runner.temp }}/sonar-issues-preview
+
+      - name: Upload generated issue bodies
+        if: ${{ !cancelled() && inputs.dry_run }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonar-issues-preview
+          path: ${{ runner.temp }}/sonar-issues-preview
+          if-no-files-found: ignore
