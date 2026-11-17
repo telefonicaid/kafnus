@@ -1,1 +1,2 @@
 - Add: kafnus-ngsi code coverage from the functional end-to-end tests (KAFNUS_TESTS_NGSI_COVERAGE), reported to SonarQube and Coveralls together with unit test coverage. CI workflows merged into a single ci.yml (#314)
+- Upgrade dep pymongo from 4.15.1 to 4.18.3 due to CWE-177
