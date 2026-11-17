@@ -162,7 +162,7 @@ jobs:
         working-directory: tests_end2end/
         run: |
           source .venv/bin/activate
-          pytest -s functional/test_pipeline.py
+          pytest -s -v
 
       # Node deps are installed only after building the image, so dev
       # dependencies never end up copied into it
