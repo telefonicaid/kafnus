@@ -235,6 +235,22 @@ This directly addresses **Issue #177 – Study support for variable schema in JD
 - The SMT does **not implement retries** (delegated to Kafka Connect)
 - Failed record routing → sent to connector DLQ for later inspection
 
+#### JDBC Sink Record Errors and Batches
+
+For the historic PostGIS sink, `errors.tolerance=all` and the configured
+`errors.deadletterqueue.topic.name` route tolerated record failures to the
+Connect DLQ (`smc_raw_errors` in the E2E configuration). Kafnus NGSI consumes
+that topic and writes a structured row to the corresponding `<db>_error_log`
+topic. `max.retries=0` means the JDBC sink does not retry a failed record;
+`connection.attempts` and `connection.backoff.ms` control connection setup, not
+record retries.
+
+`batch.size` groups records for JDBC writes, but DLQ handling alone does not
+guarantee that every JDBC driver or failure rolls back an entire batch. In the
+tested three-record case (`batch.size=3`), the duplicate-key record is logged
+while the valid rows before and after it persist. See
+`tests_end2end/batching/test_jdbc_batch_errors.py` for that specific behavior.
+
 ---
 
 ## HTTP Sink: Retry and DLQ Semantics
