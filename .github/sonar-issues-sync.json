@@ -5,5 +5,9 @@
   "excludeQualities": ["SECURITY"],
   "maxFindingsPerIssue": 25,
   "maxOpenSubIssues": 5,
-  "maxRuleDescriptionChars": 20000
+  "maxRuleDescriptionChars": 20000,
+  "changelog": {
+    "file": "CHANGES_NEXT_RELEASE",
+    "entry": "Hardening: sonar issues fixed"
+  }
 }
