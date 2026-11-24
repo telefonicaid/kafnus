@@ -24,8 +24,9 @@
  *     so it can be assigned to Copilot coding agent or to a person.
  *
  * Sonar is only read (a token with Browse permission is enough). GitHub is
- * written with the workflow's GITHUB_TOKEN. Security findings and hotspots are
- * never published, only counted.
+ * written with the workflow's GITHUB_TOKEN. Security findings are never
+ * published, not even their number (the repository and its Actions logs are
+ * public), and security hotspots are not read at all.
  *
  * Environment:
  *   SONAR_HOST_URL     Sonar base URL (defaults to sonar.host.url in sonar-project.properties)
@@ -152,7 +153,6 @@ export function filterFindings(issues, cfg, projectKey) {
 
     for (const issue of issues) {
         const { quality, severity, qualities } = classify(issue);
-        if (qualities.includes('SECURITY')) security++;
         const path = componentPath(issue.component, projectKey);
         if (
             qualities.some((q) => excludedQualities.has(q)) ||
@@ -160,7 +160,9 @@ export function filterFindings(issues, cfg, projectKey) {
             ignoredPaths.some((re) => re.test(path)) ||
             SEVERITY_RANK[severity] < minRank
         ) {
-            if (!qualities.includes('SECURITY')) ignored++;
+            // Left-out security findings are counted apart and never shown
+            if (qualities.includes('SECURITY')) security++;
+            else ignored++;
             continue;
         }
         published.push({
@@ -311,6 +313,11 @@ export function computePlan({ groups, existing, openSonarKeys, cfg }) {
     return perRule;
 }
 
+/** True when, after applying the plan, no sub-issue stays open and no finding is waiting. */
+export function isBacklogDone(plan) {
+    return plan.every((r) => r.kept.length + r.updates.length + r.creates.length + r.pending.length === 0);
+}
+
 function escapeMd(text) {
     return String(text)
         .replace(/\\/g, '\\\\')
@@ -428,11 +435,9 @@ export function renderParentBody({ plan, stats, rules, ctx, refs }) {
         '',
         '| | Findings |',
         '|---|---:|',
-        `| Open in SonarQube | ${stats.total} |`,
+        `| Open in SonarQube (excluding security) | ${stats.total} |`,
         `| Published in sub-issues | ${published - pendingFindings} |`,
         `| Waiting for a free slot (max ${ctx.maxOpenSubIssues} open sub-issues) | ${pendingFindings} |`,
-        `| Security (not published here) | ${stats.security} |`,
-        `| Security hotspots to review (not published here) | ${stats.hotspots ?? 'n/a'} |`,
         `| Left out by \`.github/sonar-issues-sync.json\` | ${stats.ignored} |`,
         ''
     ];
@@ -567,12 +572,6 @@ async function main() {
         return null;
     });
     const analysis = analyses?.analyses?.[0];
-    const hotspots = await sonar('api/hotspots/search', { project: projectKey, status: 'TO_REVIEW', ps: 1 }).catch(
-        (e) => {
-            console.warn(`::warning::Could not read security hotspots: ${e.message}`);
-            return null;
-        }
-    );
 
     const { published, security, ignored } = filterFindings(sonarIssues, cfg, projectKey);
     const groups = groupByRule(published);
@@ -594,15 +593,11 @@ async function main() {
         maxOpenSubIssues: cfg.maxOpenSubIssues,
         maxRuleDescriptionChars: cfg.maxRuleDescriptionChars
     };
-    const stats = {
-        total: sonarIssues.length,
-        security,
-        ignored,
-        hotspots: hotspots ? hotspots.paging?.total ?? null : null
-    };
+    // Security findings are left out of every number, so they cannot be inferred
+    const stats = { total: sonarIssues.length - security, ignored };
     console.log(
-        `Sonar: ${stats.total} open issues, ${published.length} publishable in ${groups.size} rules, ` +
-            `${security} security, ${ignored} ignored by config, analysis ${ctx.revision}`
+        `Sonar: ${stats.total} open issues (excluding security), ${published.length} publishable in ` +
+            `${groups.size} rules, ${ignored} ignored by config, analysis ${ctx.revision}`
     );
 
     const ghIssues = ghToken ? await fetchOpenSyncIssues(gh) : [];
@@ -613,6 +608,7 @@ async function main() {
 
     const openSonarKeys = new Set(sonarIssues.map((i) => i.key));
     const plan = computePlan({ groups, existing, openSonarKeys, cfg });
+    const backlogDone = isBacklogDone(plan);
 
     // Labels
     const qualities = new Set(plan.flatMap((r) => r.creates.map(() => r.summary.quality)));
@@ -635,8 +631,9 @@ async function main() {
         }
     }
 
-    // Parent first, so new sub-issues can be linked to it
-    if (!parent) {
+    // Parent first, so new sub-issues can be linked to it. A closed parent is
+    // never reopened: when new findings appear, a new parent is created.
+    if (!parent && !backlogDone) {
         act(`Create parent issue "${PARENT_TITLE}"`);
         if (!dryRun) {
             const created = await gh('POST', '/issues', {
@@ -733,6 +730,17 @@ async function main() {
     if (parent && parent.body?.replace(/\r\n/g, '\n') !== parentBody) {
         act(`Update parent issue #${parent.number}`);
         if (!dryRun) await gh('PATCH', `/issues/${parent.number}`, { body: parentBody });
+    }
+    if (parent && backlogDone) {
+        act(`Close parent issue #${parent.number}: no sub-issue open and no finding waiting`);
+        if (!dryRun) {
+            await gh('POST', `/issues/${parent.number}/comments`, {
+                body:
+                    'All the SonarQube findings tracked here are fixed or left out by the configuration, closing it. ' +
+                    'If new findings appear, the next sync opens a new parent issue.'
+            });
+            await gh('PATCH', `/issues/${parent.number}`, { state: 'closed', state_reason: 'completed' });
+        }
     }
 
     if (process.env.GITHUB_STEP_SUMMARY) {
