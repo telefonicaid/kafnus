@@ -67,12 +67,61 @@ const DEFAULT_CONFIG = {
     excludeQualities: ['SECURITY'],
     maxFindingsPerIssue: 25,
     maxOpenSubIssues: 5,
-    maxRuleDescriptionChars: 20000
+    maxRuleDescriptionChars: 20000,
+    // Line every fix adds to (or increments in) the changelog; null to leave the changelog out
+    changelog: { file: 'CHANGES_NEXT_RELEASE', entry: 'Hardening: sonar issues fixed' }
 };
 
 // ---------------------------------------------------------------------------
 // Pure helpers
 // ---------------------------------------------------------------------------
+
+/** Number of findings per severity, e.g. { HIGH: 1, MEDIUM: 5 }. */
+export function countBySeverity(findings) {
+    const counts = {};
+    for (const f of findings) counts[f.severity] = (counts[f.severity] || 0) + 1;
+    return counts;
+}
+
+/** "1 high, 5 medium": most severe first, only non-zero counts. */
+export function formatSeverityCounts(counts) {
+    return Object.keys(SEVERITY_RANK)
+        .reverse()
+        .filter((s) => counts[s] > 0)
+        .map((s) => `${counts[s]} ${s.toLowerCase()}`)
+        .join(', ');
+}
+
+function addSeverityCounts(a, b) {
+    const out = { ...a };
+    for (const [s, n] of Object.entries(b)) out[s] = (out[s] || 0) + n;
+    return out;
+}
+
+export function renderChangelogSection(findings, changelog) {
+    if (!changelog) return [];
+    const counts = countBySeverity(findings);
+    const line = (c) => `- ${changelog.entry} (${formatSeverityCounts(c)})`;
+    const example = { MEDIUM: 2, LOW: 1 };
+    return [
+        '### Changelog',
+        '',
+        `Record the fix in \`${changelog.file}\` using one single line shared by all the SonarQube fixes, ` +
+            'with the number of fixed findings per severity:',
+        '',
+        '```',
+        `- ${changelog.entry} (<N> blocker, <N> high, <N> medium, <N> low, <N> info)`,
+        '```',
+        '',
+        `- The findings of this issue are: **${formatSeverityCounts(counts)}**. Count only the ones you actually fix.`,
+        `- If the line does not exist, add it at the end of \`${changelog.file}\`: \`${line(counts)}\``,
+        '- If it already exists, edit it in place and add your numbers to the existing ones. Keep the order ' +
+            'blocker, high, medium, low, info and list only the non-zero counts. For example, ' +
+            `\`${line(example)}\` becomes \`${line(addSeverityCounts(example, counts))}\`.`,
+        '- Do not add any other changelog line for these fixes.',
+        ''
+    ];
+}
 
 export function loadConfig(text) {
     const cfg = { ...DEFAULT_CONFIG, ...JSON.parse(text) };
@@ -85,6 +134,10 @@ export function loadConfig(text) {
         if (!Number.isInteger(cfg[key]) || cfg[key] < 1) {
             throw new Error(`${key} must be a positive integer`);
         }
+    }
+    const { changelog } = cfg;
+    if (changelog !== null && !(typeof changelog?.file === 'string' && typeof changelog?.entry === 'string')) {
+        throw new Error('changelog must be null or an object with "file" and "entry" strings');
     }
     return cfg;
 }
@@ -397,7 +450,9 @@ export function renderSubIssueBody({ ruleKey, rule, findings, ctx }) {
         '- Every finding listed above is fixed, without changing the behaviour of the code.',
         '- The change is limited to these findings (no unrelated refactors).',
         '- `cd kafnus-ngsi && npm install && npm run lint && npm test` passes.',
-        ''
+        ...(ctx.changelog ? [`- \`${ctx.changelog.file}\` is updated as explained below.`] : []),
+        '',
+        ...renderChangelogSection(findings, ctx.changelog)
     ];
     const description = renderRuleDescription(rule, ctx.maxRuleDescriptionChars);
     if (description) {
@@ -591,7 +646,8 @@ async function main() {
         revision: analysis?.revision || process.env.GITHUB_SHA || 'main',
         analysisDate: analysis?.date?.slice(0, 10),
         maxOpenSubIssues: cfg.maxOpenSubIssues,
-        maxRuleDescriptionChars: cfg.maxRuleDescriptionChars
+        maxRuleDescriptionChars: cfg.maxRuleDescriptionChars,
+        changelog: cfg.changelog
     };
     // Security findings are left out of every number, so they cannot be inferred
     const stats = { total: sonarIssues.length - security, ignored };
