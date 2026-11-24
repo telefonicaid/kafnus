@@ -54,11 +54,11 @@ function getBasicLogger() {
 function createChildLogger(config) {
     const loggerCtx = logger.getContext();
     return logger.child({
-        op: (config && config.op) || loggerCtx.op,
-        corr: (config && config.corr) || 'n/a',
-        trans: (config && config.trans) || uuidv4(),
-        srv: (config && config.service) || 'n/a',
-        subsrv: (config && config.subservice) || 'n/a'
+        op: config?.op || loggerCtx.op,
+        corr: config?.corr || 'n/a',
+        trans: config?.trans || uuidv4(),
+        srv: config?.service || 'n/a',
+        subsrv: config?.subservice || 'n/a'
     });
 }
 

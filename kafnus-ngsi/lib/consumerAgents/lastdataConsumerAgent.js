@@ -48,7 +48,7 @@ async function startLastdataConsumerAgent(log, producer) {
             try {
                 const message = JSON.parse(rawValue);
                 const dataList = message.data ? message.data : [];
-                if (dataList && dataList.length === 0) {
+                if (dataList?.length === 0) {
                     log.warn('[lastdata] No data found in payload');
                     consumer.commitMessage(msg);
                     return;
