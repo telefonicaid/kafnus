@@ -288,10 +288,12 @@ export function parseSyncIssue(ghIssue) {
  * Decides what to do for every rule.
  *  - Assigned sub-issues are never edited; their findings are not re-published.
  *    They are closed only when Sonar no longer reports any of their findings.
+ *  - Findings in `awaiting` (Sonar key -> number of a sub-issue already closed
+ *    as fixed, whose fix is not analysed yet) are not re-published either.
  *  - The remaining findings are split in batches, reusing unassigned sub-issues
  *    first, then creating new ones while under maxOpenSubIssues.
  */
-export function computePlan({ groups, existing, openSonarKeys, cfg }) {
+export function computePlan({ groups, existing, openSonarKeys, cfg, awaiting = new Map() }) {
     const byRule = new Map();
     for (const issue of existing) {
         if (!byRule.has(issue.rule)) byRule.set(issue.rule, []);
@@ -320,7 +322,8 @@ export function computePlan({ groups, existing, openSonarKeys, cfg }) {
             }
         }
 
-        const remaining = findings.filter((f) => !takenKeys.has(f.key));
+        const awaitingFindings = findings.filter((f) => !takenKeys.has(f.key) && awaiting.has(f.key));
+        const remaining = findings.filter((f) => !takenKeys.has(f.key) && !awaiting.has(f.key));
         const batches = chunk(remaining, cfg.maxFindingsPerIssue);
         const updates = [];
         const creates = [];
@@ -339,7 +342,9 @@ export function computePlan({ groups, existing, openSonarKeys, cfg }) {
             updates,
             creates,
             closes,
-            pending: []
+            pending: [],
+            awaiting: awaitingFindings,
+            awaitingIssues: [...new Set(awaitingFindings.map((f) => awaiting.get(f.key)))].sort((a, b) => a - b)
         });
     }
 
@@ -368,7 +373,9 @@ export function computePlan({ groups, existing, openSonarKeys, cfg }) {
 
 /** True when, after applying the plan, no sub-issue stays open and no finding is waiting. */
 export function isBacklogDone(plan) {
-    return plan.every((r) => r.kept.length + r.updates.length + r.creates.length + r.pending.length === 0);
+    return plan.every(
+        (r) => r.kept.length + r.updates.length + r.creates.length + r.pending.length + r.awaiting.length === 0
+    );
 }
 
 function escapeMd(text) {
@@ -475,6 +482,7 @@ export function renderParentBody({ plan, stats, rules, ctx, refs }) {
     const now = new Date().toISOString().replace('T', ' ').slice(0, 16);
     const published = plan.reduce((n, r) => n + r.findings.length, 0);
     const pendingFindings = plan.reduce((n, r) => n + r.pending.reduce((m, p) => m + p.findings.length, 0), 0);
+    const awaitingFindings = plan.reduce((n, r) => n + r.awaiting.length, 0);
     const lines = [
         PARENT_MARKER,
         '## SonarQube issues backlog',
@@ -491,8 +499,9 @@ export function renderParentBody({ plan, stats, rules, ctx, refs }) {
         '| | Findings |',
         '|---|---:|',
         `| Open in SonarQube (excluding security) | ${stats.total} |`,
-        `| Published in sub-issues | ${published - pendingFindings} |`,
+        `| Published in sub-issues | ${published - pendingFindings - awaitingFindings} |`,
         `| Waiting for a free slot (max ${ctx.maxOpenSubIssues} open sub-issues) | ${pendingFindings} |`,
+        `| Fixed, waiting for the next SonarQube analysis | ${awaitingFindings} |`,
         `| Left out by \`.github/sonar-issues-sync.json\` | ${stats.ignored} |`,
         ''
     ];
@@ -501,9 +510,11 @@ export function renderParentBody({ plan, stats, rules, ctx, refs }) {
         lines.push('### By rule', '', '| Rule | Quality | Severity | Findings | Issues |', '|---|---|---|---:|---|');
         for (const r of withFindings) {
             const name = rules.get(r.rule)?.name ? ` ${escapeMd(rules.get(r.rule).name)}` : '';
-            const issueRefs =
-                (refs.get(r.rule) || []).join(', ') +
-                (r.pending.length ? `${refs.get(r.rule)?.length ? ', ' : ''}waiting` : '');
+            const issueRefs = [
+                ...(refs.get(r.rule) || []),
+                ...r.awaitingIssues.map((n) => `#${n} (fixed, awaiting analysis)`),
+                ...(r.pending.length ? ['waiting'] : [])
+            ].join(', ');
             lines.push(
                 `| \`${r.rule}\`${name} | ${titleCase(r.summary.quality)} | ${titleCase(r.summary.severity)} | ${
                     r.summary.count
@@ -552,16 +563,27 @@ function githubClient(repo, token) {
         'User-Agent': 'kafnus-sonar-issues-sync'
     };
     if (token) headers.Authorization = `Bearer ${token}`;
-    return (method, path, body) =>
+    const post = (url, body, what) =>
         request(
-            `https://api.github.com/repos/${repo}${path}`,
-            {
-                method,
-                headers: body ? { ...headers, 'Content-Type': 'application/json' } : headers,
-                body: body ? JSON.stringify(body) : undefined
-            },
-            `GitHub ${method} ${path}`
+            url,
+            { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+            what
         );
+    const gh = (method, path, body) =>
+        body
+            ? request(
+                  `https://api.github.com/repos/${repo}${path}`,
+                  { method, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+                  `GitHub ${method} ${path}`
+              )
+            : request(`https://api.github.com/repos/${repo}${path}`, { method, headers }, `GitHub ${method} ${path}`);
+    gh.repo = repo;
+    gh.graphql = async (query, variables) => {
+        const res = await post('https://api.github.com/graphql', { query, variables }, 'GitHub GraphQL');
+        if (res.errors?.length) throw new Error(res.errors.map((e) => e.message).join('; '));
+        return res;
+    };
+    return gh;
 }
 
 async function fetchSonarIssues(sonar, projectKey) {
@@ -590,6 +612,76 @@ async function fetchOpenSyncIssues(gh) {
         const list = await gh('GET', `/issues?state=open&labels=${BASE_LABEL}&per_page=100&page=${page}`);
         out.push(...list.filter((i) => !i.pull_request));
         if (list.length < 100) return out;
+    }
+}
+
+const AWAITING_LOOKBACK_DAYS = 30;
+
+const CLOSER_QUERY = `query($owner: String!, $name: String!, $number: Int!) {
+  repository(owner: $owner, name: $name) {
+    issue(number: $number) {
+      timelineItems(itemTypes: [CLOSED_EVENT], last: 1) {
+        nodes { ... on ClosedEvent { closer { ... on PullRequest { mergeCommit { oid } } ... on Commit { oid } } } }
+      }
+    }
+  }
+}`;
+
+/** Commit that closed the issue: the merge commit of the closing PR, or the closing commit. */
+async function closingCommit(gh, number) {
+    const [owner, name] = gh.repo.split('/');
+    const res = await gh.graphql(CLOSER_QUERY, { owner, name, number });
+    const closer = res?.data?.repository?.issue?.timelineItems?.nodes?.[0]?.closer;
+    return closer?.mergeCommit?.oid || closer?.oid || null;
+}
+
+/** Whether the last Sonar analysis was made before the fix that closed this issue. */
+async function isFixPendingAnalysis(gh, ghIssue, analysis) {
+    const commit = await closingCommit(gh, ghIssue.number).catch((e) => {
+        console.warn(`::warning::Could not read what closed #${ghIssue.number}: ${e.message}`);
+        return null;
+    });
+    if (commit && analysis.revision) {
+        try {
+            const cmp = await gh('GET', `/compare/${commit}...${analysis.revision}?per_page=1`);
+            // The analysed revision contains the fix when it is the closing commit or comes after it
+            return !(cmp.status === 'identical' || cmp.status === 'ahead');
+        } catch (e) {
+            if (e.status !== 404) throw e;
+        }
+    }
+    // Closed by hand, or the commit is unknown: compare dates
+    return Date.parse(ghIssue.closed_at) > Date.parse(analysis.date);
+}
+
+/**
+ * Findings that Sonar still reports as open although their sub-issue was closed
+ * as completed, because the fix is not analysed yet (sync run between the merge
+ * and the next analysis of main). Returns Map<sonarKey, issueNumber>.
+ */
+async function findAwaitingAnalysis(gh, { openSonarKeys, analysis }) {
+    const awaiting = new Map();
+    if (!analysis?.date) {
+        console.warn('::warning::Last analysis unknown: findings of closed sub-issues may be published again');
+        return awaiting;
+    }
+    const since = new Date(Date.now() - AWAITING_LOOKBACK_DAYS * 24 * 3600 * 1000).toISOString();
+    for (let page = 1; ; page++) {
+        const list = await gh(
+            'GET',
+            `/issues?state=closed&labels=${BASE_LABEL}&since=${since}&per_page=100&page=${page}`
+        );
+        for (const ghIssue of list) {
+            if (ghIssue.pull_request || ghIssue.state_reason !== 'completed') continue;
+            const parsed = parseSyncIssue(ghIssue);
+            if (parsed?.kind !== 'rule') continue;
+            const stillOpen = [...parsed.keys].filter((k) => openSonarKeys.has(k) && !awaiting.has(k));
+            if (stillOpen.length === 0) continue;
+            if (await isFixPendingAnalysis(gh, ghIssue, analysis)) {
+                stillOpen.forEach((k) => awaiting.set(k, ghIssue.number));
+            }
+        }
+        if (list.length < 100) return awaiting;
     }
 }
 
@@ -663,7 +755,8 @@ async function main() {
     const existing = parsed.filter((i) => i.kind === 'rule');
 
     const openSonarKeys = new Set(sonarIssues.map((i) => i.key));
-    const plan = computePlan({ groups, existing, openSonarKeys, cfg });
+    const awaiting = ghToken ? await findAwaitingAnalysis(gh, { openSonarKeys, analysis }) : new Map();
+    const plan = computePlan({ groups, existing, openSonarKeys, cfg, awaiting });
     const backlogDone = isBacklogDone(plan);
 
     // Labels
@@ -752,13 +845,28 @@ async function main() {
         }
         for (const p of r.pending)
             act(`Waiting: ${r.rule} (${p.findings.length} findings), open sub-issue limit reached`);
+        if (r.awaiting.length > 0) {
+            const nums = r.awaitingIssues.map((n) => `#${n}`).join(', ');
+            act(`Not publishing ${r.awaiting.length} findings of ${r.rule}: fixed in ${nums}, awaiting analysis`);
+        }
         for (const issue of r.closes) {
-            act(`Close #${issue.number} (${r.rule}): SonarQube no longer reports its findings`);
+            // Findings already fixed in another (closed) sub-issue: this one is a duplicate
+            const fixedIn = [...new Set([...issue.keys].map((k) => awaiting.get(k)).filter(Boolean))];
+            const duplicate = fixedIn.length > 0;
+            const reason = duplicate
+                ? `its findings were already fixed in ${fixedIn.map((n) => `#${n}`).join(', ')}`
+                : 'SonarQube no longer reports its findings';
+            act(`Close #${issue.number} (${r.rule}): ${reason}`);
             if (dryRun) continue;
             await gh('POST', `/issues/${issue.number}/comments`, {
-                body: 'SonarQube no longer reports any open finding assigned to this issue, closing it.'
+                body: duplicate
+                    ? `Duplicate: ${reason}, which SonarQube has not analysed yet. Closing it.`
+                    : 'SonarQube no longer reports any open finding assigned to this issue, closing it.'
             });
-            await gh('PATCH', `/issues/${issue.number}`, { state: 'closed', state_reason: 'completed' });
+            await gh('PATCH', `/issues/${issue.number}`, {
+                state: 'closed',
+                state_reason: duplicate ? 'not_planned' : 'completed'
+            });
         }
     }
 
