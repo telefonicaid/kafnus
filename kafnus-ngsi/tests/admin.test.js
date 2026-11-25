@@ -156,6 +156,16 @@ describe('admin.js runtime config endpoint', () => {
         expect(response.body).not.toHaveProperty('writeEnabled');
     });
 
+    test('GET /config sorts variable names using locale-aware comparison', async () => {
+        process.env.KAFNUS_NGSI_a = 'lowercase';
+        process.env.KAFNUS_NGSI_A = 'uppercase';
+
+        const response = await requestJson(port, 'GET', '/config');
+        const variableNames = Object.keys(response.body.variables);
+
+        expect(variableNames).toEqual([...variableNames].sort((a, b) => a.localeCompare(b)));
+    });
+
     test('PATCH /config returns 405 Method Not Allowed', async () => {
         const response = await requestJson(port, 'PATCH', '/config', {
             updates: { KAFNUS_NGSI_LOG_LEVEL: 'DEBUG' }
