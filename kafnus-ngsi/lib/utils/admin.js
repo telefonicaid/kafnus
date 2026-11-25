@@ -288,7 +288,7 @@ function isSensitiveEnvKey(key) {
 function buildEnvSnapshot() {
     const keys = Object.keys(process.env)
         .filter((key) => key.startsWith('KAFNUS_NGSI_') || ADDITIONAL_EXPOSED_ENV_KEYS.includes(key))
-        .sort();
+        .sort((a, b) => a.localeCompare(b));
 
     return keys.reduce((acc, key) => {
         if (isSensitiveEnvKey(key)) {
