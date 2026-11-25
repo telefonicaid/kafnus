@@ -27,8 +27,12 @@ const GRAFO_SUFFIX = config.graphql.grafoSuffix;
 function trimChar(text, ch) {
     let start = 0;
     let end = text.length;
-    while (start < end && text[start] === ch) start++;
-    while (end > start && text[end - 1] === ch) end--;
+    while (start < end && text[start] === ch) {
+        start++;
+    }
+    while (end > start && text[end - 1] === ch) {
+        end--;
+    }
     return text.slice(start, end);
 }
 
