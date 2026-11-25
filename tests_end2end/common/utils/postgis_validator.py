@@ -289,6 +289,14 @@ class PostgisValidator:
             with conn.cursor() as cur:
                 cur.execute(query)
                 return cur.fetchone()[0]
+
+    def wait_for_row_count(self, table, expected, timeout=180, poll=1):
+        deadline = time.monotonic() + timeout
+        count = self.count_rows(table)
+        while count < expected and time.monotonic() < deadline:
+            time.sleep(min(poll, max(0, deadline - time.monotonic())))
+            count = self.count_rows(table)
+        return count
     
     def wait_until_row_present(self, table, row, timeout=60, poll=1):
         """
