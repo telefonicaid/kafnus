@@ -36,7 +36,7 @@ function slugify(text) {
     text = text.replace(/[^a-z0-9]+/g, '-');
 
     // Remove leading and trailing hyphens
-    text = text.replace(/(^-+|-+$)/g, '');
+    text = text.replaceAll(/(^-+|-+$)/g, '');
 
     return text;
 }
@@ -143,7 +143,7 @@ function buildMutationUpdate(graphName, entityType, id, entityObject) {
 
 function buildMutationDelete(graphName, id) {
     const GRAFO_NAME = getGrafoName(graphName);
-    const GRAFO_NAME_CLEAN = GRAFO_NAME.replace(/(^"+|"+$)/g, '');
+    const GRAFO_NAME_CLEAN = GRAFO_NAME.replaceAll(/(^"+|"+$)/g, '');
     const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO_NAME_CLEAN}/resource/`;
     const uri = addPrefix(PREFIX_RESOURCE, id);
     const GRAFO_STR = getGrafo(graphName);
