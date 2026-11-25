@@ -22,6 +22,16 @@ const { config } = require('../../kafnusConfig');
 const GRAFO_PREFIX = config.graphql.grafoPrefix;
 const GRAFO_SUFFIX = config.graphql.grafoSuffix;
 
+// Removes leading and trailing occurrences of a single character in linear time
+// (avoids regex backtracking, e.g. /(^-+|-+$)/ is quadratic on long inputs)
+function trimChar(text, ch) {
+    let start = 0;
+    let end = text.length;
+    while (start < end && text[start] === ch) start++;
+    while (end > start && text[end - 1] === ch) end--;
+    return text.slice(start, end);
+}
+
 function slugify(text) {
     // Normalize Unicode using NFKD (e.g., "é" → "é")
     text = text
@@ -36,7 +46,7 @@ function slugify(text) {
     text = text.replace(/[^a-z0-9]+/g, '-');
 
     // Remove leading and trailing hyphens
-    text = text.replaceAll(/(^-+|-+$)/g, '');
+    text = trimChar(text, '-');
 
     return text;
 }
@@ -143,7 +153,7 @@ function buildMutationUpdate(graphName, entityType, id, entityObject) {
 
 function buildMutationDelete(graphName, id) {
     const GRAFO_NAME = getGrafoName(graphName);
-    const GRAFO_NAME_CLEAN = GRAFO_NAME.replaceAll(/(^"+|"+$)/g, '');
+    const GRAFO_NAME_CLEAN = trimChar(GRAFO_NAME, '"');
     const PREFIX_RESOURCE = `http://datos.segittur.es/${GRAFO_NAME_CLEAN}/resource/`;
     const uri = addPrefix(PREFIX_RESOURCE, id);
     const GRAFO_STR = getGrafo(graphName);
