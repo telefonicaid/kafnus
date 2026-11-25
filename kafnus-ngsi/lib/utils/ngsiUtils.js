@@ -162,7 +162,7 @@ function sanitizeString(name) {
     }
     return name
         .trim()
-        .replace(/^\/|\/$/g, '')
+        .replaceAll(/(^\/|\/$)/g, '')
         .toLowerCase()
         .replace(/[^a-zA-Z0-9_]/g, '_');
 }
