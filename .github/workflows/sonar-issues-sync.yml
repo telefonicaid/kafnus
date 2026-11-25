@@ -19,6 +19,8 @@
 # the backlog summary and one sub-issue per Sonar rule. Sonar is only read, with
 # a token whose user has just the Browse permission on the project
 # (SONAR_READ_TOKEN). GitHub is written with this run's GITHUB_TOKEN.
+# It only runs when SonarQube has analysed the current main: run it after the
+# CI run on main has finished.
 # Configuration: .github/sonar-issues-sync.json
 
 name: SonarQube issues sync
@@ -30,6 +32,10 @@ on:
         description: 'Only show what would be done, without creating or editing GitHub issues'
         type: boolean
         default: true
+      skip_analysis_check:
+        description: 'Sync even if SonarQube has not analysed the current main yet (fixes not analysed may be published again)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -63,6 +69,7 @@ jobs:
           SONAR_READ_TOKEN: ${{ secrets.SONAR_READ_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: ${{ inputs.dry_run }}
+          SKIP_ANALYSIS_CHECK: ${{ inputs.skip_analysis_check }}
           SYNC_PREVIEW_DIR: ${{ runner.temp }}/sonar-issues-preview
 
       - name: Upload generated issue bodies

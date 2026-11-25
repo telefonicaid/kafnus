@@ -28,12 +28,16 @@
  * published, not even their number (the repository and its Actions logs are
  * public), and security hotspots are not read at all.
  *
+ * It only syncs when SonarQube's last analysis is of the current head of the
+ * default branch, so a fix merged but not analysed yet is never published again.
+ *
  * Environment:
  *   SONAR_HOST_URL     Sonar base URL (defaults to sonar.host.url in sonar-project.properties)
  *   SONAR_READ_TOKEN   Sonar token with Browse permission on the project (not the analysis token)
  *   GITHUB_TOKEN       Token with issues:write (only read in dry-run mode, optional there)
  *   GITHUB_REPOSITORY  owner/repo
  *   DRY_RUN            Anything but "false" means dry-run (nothing is written to GitHub)
+ *   SKIP_ANALYSIS_CHECK  "true" to sync even if the default branch head is not analysed yet
  *   SYNC_PREVIEW_DIR   Optional, directory where the generated issue bodies are written
  *   GITHUB_STEP_SUMMARY  Optional, set by Actions
  *
@@ -584,6 +588,21 @@ async function fetchSonarIssues(sonar, projectKey) {
     }
 }
 
+/**
+ * Problem preventing the sync when SonarQube's last analysis is not of the
+ * current head of the default branch, or null when it is. Fixes merged after
+ * the analysis still show as open in Sonar and would be published again.
+ */
+export function analysisProblem({ analysisRevision, headSha, branch }) {
+    if (!analysisRevision) return 'The last SonarQube analysis could not be read.';
+    if (analysisRevision.toLowerCase() === headSha.toLowerCase()) return null;
+    return (
+        `SonarQube has not analysed the current \`${branch}\` yet (last analysis: ` +
+        `\`${analysisRevision.slice(0, 7)}\`, ${branch}: \`${headSha.slice(0, 7)}\`). ` +
+        `Wait for the CI run on \`${branch}\` to finish and run the sync again.`
+    );
+}
+
 async function fetchOpenSyncIssues(gh) {
     const out = [];
     for (let page = 1; ; page++) {
@@ -627,6 +646,19 @@ async function main() {
         return null;
     });
     const analysis = analyses?.analyses?.[0];
+
+    if (process.env.SKIP_ANALYSIS_CHECK === 'true') {
+        console.warn('::warning::Analysis check skipped: fixes not analysed yet may be published again');
+    } else {
+        const { default_branch: branch } = await gh('GET', '');
+        const head = await gh('GET', `/branches/${encodeURIComponent(branch)}`);
+        const problem = analysisProblem({ analysisRevision: analysis?.revision, headSha: head.commit.sha, branch });
+        if (problem && !dryRun) {
+            throw new Error(`${problem} Nothing was changed. To sync anyway, run it with skip_analysis_check.`);
+        }
+        if (problem) console.warn(`::warning::${problem} This preview may list findings that are already fixed.`);
+        else console.log(`SonarQube has analysed the current ${branch} (${head.commit.sha.slice(0, 7)})`);
+    }
 
     const { published, security, ignored } = filterFindings(sonarIssues, cfg, projectKey);
     const groups = groupByRule(published);
