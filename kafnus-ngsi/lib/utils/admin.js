@@ -24,7 +24,7 @@ const packageInfo = require('../../package.json');
 const SERVICE_VERSION = process.env.npm_package_version || packageInfo.version || 'unknown';
 const PROCESS_START_TIME_SECONDS = Math.floor(Date.now() / 1000);
 const MASKED_ENV_VALUE = '***redacted***';
-const ADDITIONAL_EXPOSED_ENV_KEYS = ['NODE_ENV', 'npm_package_version'];
+const ADDITIONAL_EXPOSED_ENV_KEYS = new Set(['NODE_ENV', 'npm_package_version']);
 
 const pipelineState = {
     totalEvents: 0,
@@ -199,8 +199,8 @@ function buildPipelineSnapshot() {
     };
 }
 
-function getMetricsContentType(acceptHeader) {
-    const accept = acceptHeader || '';
+function getMetricsContentType(acceptHeader = '') {
+    const accept = acceptHeader;
     const defaultContentType = client.register.contentType;
 
     if (!accept || accept.includes('*/*') || accept.includes('text/plain') || accept.includes(defaultContentType)) {
@@ -287,7 +287,7 @@ function isSensitiveEnvKey(key) {
 
 function buildEnvSnapshot() {
     const keys = Object.keys(process.env)
-        .filter((key) => key.startsWith('KAFNUS_NGSI_') || ADDITIONAL_EXPOSED_ENV_KEYS.includes(key))
+        .filter((key) => key.startsWith('KAFNUS_NGSI_') || ADDITIONAL_EXPOSED_ENV_KEYS.has(key))
         .sort((a, b) => a.localeCompare(b));
 
     return keys.reduce((acc, key) => {
