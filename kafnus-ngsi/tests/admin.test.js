@@ -405,3 +405,107 @@ describe('admin.js recordFlowProcessing pipeline snapshot', () => {
         expect(flowSnapshot.lastDurationSeconds).toBe(0);
     });
 });
+
+describe('admin.js helpers and edge cases', () => {
+    let startAdminServer;
+    let getMetricsContentType;
+    let buildHealthPayload;
+    let recordFlowProcessing;
+    let logger;
+    let server;
+    let port;
+
+    beforeAll(() => {
+        ({
+            startAdminServer,
+            getMetricsContentType,
+            buildHealthPayload,
+            recordFlowProcessing
+        } = require('../lib/utils/admin'));
+    });
+
+    beforeEach(async () => {
+        logger = createLoggerMock();
+        server = startAdminServer(logger, 0);
+        await new Promise((resolve) => server.once('listening', resolve));
+        port = server.address().port;
+    });
+
+    afterEach(async () => {
+        if (server) {
+            await new Promise((resolve) => server.close(resolve));
+        }
+    });
+
+    test('POST /logLevel with empty body returns 400 missing level', async () => {
+        const response = await requestJson(port, 'POST', '/logLevel');
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toEqual({ error: 'Missing "level" field' });
+    });
+
+    test('request with unparsable URL falls back to "/" and returns 404', async () => {
+        const response = await requestRaw(port, 'GET', '//');
+
+        expect(response.statusCode).toBe(404);
+    });
+
+    test('unsupported method on /metrics returns 404', async () => {
+        const response = await requestRaw(port, 'POST', '/metrics', '');
+
+        expect(response.statusCode).toBe(404);
+    });
+
+    test('POST /health returns 404', async () => {
+        const response = await requestRaw(port, 'POST', '/health', '');
+
+        expect(response.statusCode).toBe(404);
+    });
+
+    test('GET /metrics accepts explicit Prometheus content type and */*', async () => {
+        const explicit = await requestRaw(port, 'GET', '/metrics', null, { Accept: client.register.contentType });
+        const wildcard = await requestRaw(port, 'GET', '/metrics', null, { Accept: '*/*' });
+
+        expect(explicit.statusCode).toBe(200);
+        expect(wildcard.statusCode).toBe(200);
+    });
+
+    test('4xx/5xx requests are exposed in admin error metrics', async () => {
+        await requestJson(port, 'GET', '/does-not-exist');
+
+        const metrics = await requestRaw(port, 'GET', '/metrics');
+
+        expect(metrics.body).toContain('admin_http_server_errors_total');
+        expect(metrics.body).toContain('route="__other__"');
+    });
+
+    test('getMetricsContentType handles missing, text/plain, and unsupported Accept', () => {
+        expect(getMetricsContentType(undefined)).toEqual({ ok: true, contentType: client.register.contentType });
+        expect(getMetricsContentType('text/plain')).toEqual({ ok: true, contentType: client.register.contentType });
+        expect(getMetricsContentType('application/xml')).toEqual({ ok: false });
+    });
+
+    test('buildHealthPayload returns service, admin and pipeline info', () => {
+        const payload = buildHealthPayload(logger, 1234);
+
+        expect(payload.status).toBe('UP');
+        expect(payload.admin.port).toBe(1234);
+        expect(payload.admin.logLevel).toBe('INFO');
+        expect(payload.service.name).toBe('kafnus-ngsi');
+        expect(payload.pipeline).toHaveProperty('byFlow');
+    });
+
+    test('recordFlowProcessing defaults result to success and clamps negative duration', async () => {
+        const flow = `test-flow-default-${Date.now()}`;
+
+        recordFlowProcessing(flow, 'tenant-c', -5);
+
+        const response = await requestJson(port, 'GET', '/health');
+        const flowSnapshot = response.body.pipeline.byFlow.find((entry) => entry.flow === flow);
+
+        expect(flowSnapshot.successEvents).toBe(1);
+        expect(flowSnapshot.errorEvents).toBe(0);
+        expect(flowSnapshot.lastDurationSeconds).toBe(0);
+        expect(flowSnapshot.avgDurationSeconds).toBe(0);
+    });
+});
