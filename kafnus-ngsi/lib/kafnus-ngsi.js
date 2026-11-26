@@ -39,6 +39,10 @@ async function shutdownKafkaProducer(producer, log) {
     await shutdownProducer(producer, log);
 }
 
+function getConsumerName(c) {
+    return c.topic || c.groupId || c.clientId || 'unknown';
+}
+
 async function main() {
     const log = logger.createChildLogger();
 
@@ -82,10 +86,6 @@ async function main() {
             return;
         }
         await new Promise((r) => adminServer.close(r));
-    }
-
-    function getConsumerName(c) {
-        return c.topic || c.groupId || c.clientId || 'unknown';
     }
 
     async function shutdownConsumers(consumers, log) {
@@ -132,7 +132,13 @@ async function main() {
     process.once('SIGTERM', () => shutdown('SIGTERM'));
 }
 
-main().catch((err) => {
-    logger.getBasicLogger().error('Error starting consumers', err);
-    process.exit(1);
-});
+async function start() {
+    try {
+        await main();
+    } catch (err) {
+        logger.getBasicLogger().error('Error starting consumers', err);
+        process.exit(1);
+    }
+}
+
+module.exports = { start };
