@@ -27,6 +27,7 @@ const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const { execFileSync } = require('child_process');
+const { filterLcov } = require('./lcovStatementLines');
 
 const CONTAINER_ROOT = 'file:///opt/kafnus/kafnus-ngsi/';
 const projectRoot = path.resolve(__dirname, '..');
@@ -71,3 +72,9 @@ execFileSync(
     { cwd: projectRoot, stdio: 'inherit' }
 );
 fs.rmSync(tmpDir, { recursive: true, force: true });
+
+// c8 reports every line of the functions the e2e tests never call as uncovered,
+// which SonarQube would add on top of the unit tests report. Keep only the
+// lines where a statement starts, as the unit tests (Istanbul) report does.
+const lcovPath = path.join(reportsDir, 'lcov.info');
+fs.writeFileSync(lcovPath, filterLcov(fs.readFileSync(lcovPath, 'utf8'), projectRoot));
