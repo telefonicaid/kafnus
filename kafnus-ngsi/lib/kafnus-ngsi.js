@@ -132,7 +132,13 @@ async function main() {
     process.once('SIGTERM', () => shutdown('SIGTERM'));
 }
 
-main().catch((err) => {
-    logger.getBasicLogger().error('Error starting consumers', err);
-    process.exit(1);
-});
+async function start() {
+    try {
+        await main();
+    } catch (err) {
+        logger.getBasicLogger().error('Error starting consumers', err);
+        process.exit(1);
+    }
+}
+
+module.exports = { start };
