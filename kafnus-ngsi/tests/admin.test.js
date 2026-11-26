@@ -156,6 +156,16 @@ describe('admin.js runtime config endpoint', () => {
         expect(response.body).not.toHaveProperty('writeEnabled');
     });
 
+    test('GET /config exposes additional runtime variables', async () => {
+        process.env.NODE_ENV = 'test-environment';
+        process.env.npm_package_version = '1.2.3';
+
+        const response = await requestJson(port, 'GET', '/config');
+
+        expect(response.body.variables.NODE_ENV).toBe('test-environment');
+        expect(response.body.variables.npm_package_version).toBe('1.2.3');
+    });
+
     test('GET /config sorts variable names using locale-aware comparison', async () => {
         process.env.KAFNUS_NGSI_a = 'lowercase';
         process.env.KAFNUS_NGSI_A = 'uppercase';
