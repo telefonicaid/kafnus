@@ -199,8 +199,8 @@ function buildPipelineSnapshot() {
     };
 }
 
-function getMetricsContentType(acceptHeader) {
-    const accept = acceptHeader || '';
+function getMetricsContentType(acceptHeader = '') {
+    const accept = acceptHeader;
     const defaultContentType = client.register.contentType;
 
     if (!accept || accept.includes('*/*') || accept.includes('text/plain') || accept.includes(defaultContentType)) {
