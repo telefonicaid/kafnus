@@ -31,7 +31,7 @@ const {
 } = require('./ngsiUtils');
 const { config } = require('../../kafnusConfig');
 
-const { once } = require('events');
+const { once } = require('node:events');
 const Kafka = require('@confluentinc/kafka-javascript');
 
 async function safeProduce(producer, args, { maxWaitMs = 30000 } = {}) {

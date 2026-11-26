@@ -1,3 +1,4 @@
 - Add: kafnus-ngsi code coverage from the functional end-to-end tests (KAFNUS_TESTS_NGSI_COVERAGE), reported to SonarQube and Coveralls together with unit test coverage. CI workflows merged into a single ci.yml (#314)
 - Upgrade dep pymongo from 4.15.1 to 4.18.3 due to CWE-177
-- Hardening: sonar issues fixed (1 high, 6 medium)
+- Hardening: sonar issues fixed (2 high, 10 medium)
+- Fix: e2e lcov report only keeps statement lines so SonarQube does not add uncovered structural lines on top of the unit tests coverage

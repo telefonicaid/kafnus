@@ -372,6 +372,104 @@ function buildHealthPayload(logger, port) {
 }
 
 // Start admin server
+async function handleMetricsRequest(req, res) {
+    const contentNegotiation = getMetricsContentType(req.headers.accept);
+
+    if (!contentNegotiation.ok) {
+        res.statusCode = 406;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(
+            JSON.stringify({
+                error: 'NotAcceptable',
+                description: 'Accept header must allow Prometheus text format (text/plain or */*)'
+            })
+        );
+        return;
+    }
+
+    res.setHeader('Content-Type', contentNegotiation.contentType);
+    res.end(await client.register.metrics());
+}
+
+async function handleLogLevelRequest(req, res, logger) {
+    if (req.method === 'GET') {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ level: logger.getLevel() }));
+        return;
+    }
+
+    if (req.method === 'POST') {
+        try {
+            const { level } = await parseJsonBody(req);
+
+            if (!level) {
+                res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: 'Missing "level" field' }));
+                return;
+            }
+
+            const normalized = level.toUpperCase();
+            logger.setLevel(normalized);
+            logger.info(`Log level changed to: ${normalized}`);
+
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ ok: true, level: normalized }));
+        } catch (err) {
+            res.statusCode = 400;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+        return;
+    }
+
+    res.statusCode = 405;
+    res.setHeader('Allow', 'GET, POST');
+    res.end();
+}
+
+function handleConfigRequest(req, res) {
+    if (req.method === 'GET') {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ variables: buildEnvSnapshot() }));
+        return;
+    }
+
+    res.statusCode = 405;
+    res.setHeader('Allow', 'GET');
+    res.end();
+}
+
+async function handleAdminRequest(req, res, logger, port, route) {
+    try {
+        if (route === '/metrics' && req.method === 'GET') {
+            await handleMetricsRequest(req, res);
+            return;
+        }
+        if (route === '/logLevel') {
+            await handleLogLevelRequest(req, res, logger);
+            return;
+        }
+        if (route === '/config') {
+            handleConfigRequest(req, res);
+            return;
+        }
+        if (route === '/health' && req.method === 'GET') {
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(buildHealthPayload(logger, port)));
+            return;
+        }
+
+        res.statusCode = 404;
+        res.end();
+    } catch (error) {
+        logger.error('Unhandled error in admin server request', error);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ error: 'InternalServerError' }));
+    }
+}
+
 function startAdminServer(logger, port = 8000) {
     const server = http.createServer(async (req, res) => {
         const route = normalizeRoute(getPathname(req));
@@ -387,89 +485,7 @@ function startAdminServer(logger, port = 8000) {
             return originalEnd(...args);
         };
 
-        try {
-            if (route === '/metrics' && req.method === 'GET') {
-                const contentNegotiation = getMetricsContentType(req.headers.accept);
-
-                if (!contentNegotiation.ok) {
-                    res.statusCode = 406;
-                    res.setHeader('Content-Type', 'application/json');
-                    res.end(
-                        JSON.stringify({
-                            error: 'NotAcceptable',
-                            description: 'Accept header must allow Prometheus text format (text/plain or */*)'
-                        })
-                    );
-                    return;
-                }
-
-                res.setHeader('Content-Type', contentNegotiation.contentType);
-                res.end(await client.register.metrics());
-                return;
-            }
-            if (route === '/logLevel') {
-                if (req.method === 'GET') {
-                    res.setHeader('Content-Type', 'application/json');
-                    res.end(JSON.stringify({ level: logger.getLevel() }));
-                    return;
-                }
-
-                if (req.method === 'POST') {
-                    try {
-                        const { level } = await parseJsonBody(req);
-
-                        if (!level) {
-                            res.statusCode = 400;
-                            res.setHeader('Content-Type', 'application/json');
-                            res.end(JSON.stringify({ error: 'Missing "level" field' }));
-                            return;
-                        }
-
-                        const normalized = level.toUpperCase();
-                        logger.setLevel(normalized);
-                        logger.info(`Log level changed to: ${normalized}`);
-
-                        res.setHeader('Content-Type', 'application/json');
-                        res.end(JSON.stringify({ ok: true, level: normalized }));
-                    } catch (err) {
-                        res.statusCode = 400;
-                        res.setHeader('Content-Type', 'application/json');
-                        res.end(JSON.stringify({ error: 'Invalid JSON' }));
-                    }
-                    return;
-                }
-
-                res.statusCode = 405;
-                res.setHeader('Allow', 'GET, POST');
-                res.end();
-                return;
-            }
-            if (route === '/config') {
-                if (req.method === 'GET') {
-                    res.setHeader('Content-Type', 'application/json');
-                    res.end(JSON.stringify({ variables: buildEnvSnapshot() }));
-                    return;
-                }
-
-                res.statusCode = 405;
-                res.setHeader('Allow', 'GET');
-                res.end();
-                return;
-            }
-            if (route === '/health' && req.method === 'GET') {
-                res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify(buildHealthPayload(logger, port)));
-                return;
-            }
-
-            res.statusCode = 404;
-            res.end();
-        } catch (error) {
-            logger.error('Unhandled error in admin server request', error);
-            res.statusCode = 500;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ error: 'InternalServerError' }));
-        }
+        await handleAdminRequest(req, res, logger, port, route);
     });
 
     server.listen(port, () => {
