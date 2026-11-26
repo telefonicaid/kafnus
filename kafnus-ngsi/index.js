@@ -24,4 +24,6 @@
  * criminal actions it may exercise to protect its rights.
  */
 
-module.exports = require('./lib/kafnus-ngsi.js');
+const { start } = require('./lib/kafnus-ngsi.js');
+
+start();
