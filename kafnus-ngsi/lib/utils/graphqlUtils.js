@@ -41,13 +41,13 @@ function slugify(text) {
     text = text
         .normalize('NFKD')
         // Remove diacritic marks
-        .replace(/[\u0300-\u036f]/g, '');
+        .replaceAll(/[\u0300-\u036f]/g, '');
 
     // Convert to lowercase
     text = text.toLowerCase();
 
     // Replace any non-alphanumeric characters with hyphens
-    text = text.replace(/[^a-z0-9]+/g, '-');
+    text = text.replaceAll(/[^a-z0-9]+/g, '-');
 
     // Remove leading and trailing hyphens
     text = trimChar(text, '-');
@@ -73,9 +73,9 @@ function toGraphQLValue(value) {
     if (typeof value === 'string') {
         return `"${
             value
-                .replace(/\\/g, '\\\\') // backslashes
-                .replace(/"/g, '\\"') // double quotes
-                .replace(/\n/g, '\\n') // new lines
+                .replaceAll('\\', String.raw`\\`) // backslashes
+                .replaceAll('"', String.raw`\"`) // double quotes
+                .replaceAll('\n', String.raw`\n`) // new lines
         }"`;
     } else if (Array.isArray(value)) {
         return `[${value.map(toGraphQLValue).join(', ')}]`;
@@ -111,7 +111,7 @@ function capitalEntityType(entityType) {
 
 function getGrafoName(graphName) {
     const grafo =
-        graphName != null ? `"${GRAFO_PREFIX}${graphName}${GRAFO_SUFFIX}"` : `"${GRAFO_PREFIX}${GRAFO_SUFFIX}"`;
+        graphName == null ? `"${GRAFO_PREFIX}${GRAFO_SUFFIX}"` : `"${GRAFO_PREFIX}${graphName}${GRAFO_SUFFIX}"`;
 
     return grafo;
 }

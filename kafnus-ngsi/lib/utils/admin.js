@@ -232,6 +232,7 @@ function getPathname(req) {
     try {
         return new URL(req.url, 'http://localhost').pathname;
     } catch (error) {
+        console.warn(`Could not parse admin request URL: ${error.message || error}`);
         return '/';
     }
 }
@@ -274,7 +275,7 @@ function parseJsonBody(req) {
             try {
                 resolve(JSON.parse(body));
             } catch (error) {
-                reject(new Error('Invalid JSON'));
+                reject(new Error('Invalid JSON', { cause: error }));
             }
         });
         req.on('error', reject);
@@ -416,6 +417,7 @@ async function handleLogLevelRequest(req, res, logger) {
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ ok: true, level: normalized }));
         } catch (err) {
+            logger.error(`Invalid JSON in log level request: ${err.message || err}`);
             res.statusCode = 400;
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ error: 'Invalid JSON' }));
