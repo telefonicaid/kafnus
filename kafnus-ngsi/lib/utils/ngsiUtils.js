@@ -652,11 +652,11 @@ function encodeMongo(value) {
     }
     return value
         .replaceAll(/x[0-9a-f]{4}/gi, (m) => 'xx' + m.slice(1)) // strings composed of a x character and a Unicode
-        .replaceAll(/\//g, 'x002f')
-        .replaceAll(/\./g, 'x002e')
-        .replaceAll(/\$/g, 'x0024')
-        .replaceAll(/"/g, 'x0022')
-        .replaceAll(/=/g, 'xffff');
+        .replaceAll('/', 'x002f')
+        .replaceAll('.', 'x002e')
+        .replaceAll('$', 'x0024')
+        .replaceAll('"', 'x0022')
+        .replaceAll('=', 'xffff');
 }
 
 function truncate(s, max = 4000) {

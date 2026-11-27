@@ -73,9 +73,9 @@ function toGraphQLValue(value) {
     if (typeof value === 'string') {
         return `"${
             value
-                .replaceAll(/\\/g, String.raw`\\`) // backslashes
-                .replaceAll(/"/g, String.raw`\"`) // double quotes
-                .replaceAll(/\n/g, String.raw`\n`) // new lines
+                .replaceAll('\\', String.raw`\\`) // backslashes
+                .replaceAll('"', String.raw`\"`) // double quotes
+                .replaceAll('\n', String.raw`\n`) // new lines
         }"`;
     } else if (Array.isArray(value)) {
         return `[${value.map(toGraphQLValue).join(', ')}]`;
