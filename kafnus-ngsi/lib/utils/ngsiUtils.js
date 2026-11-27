@@ -116,6 +116,7 @@ function parseGeoJsonValue(value) {
             const parsed = JSON.parse(value);
             return isGeoJsonGeometry(parsed) ? parsed : null;
         } catch (err) {
+            logger.warn(`Invalid GeoJSON string: ${err.message || err}`);
             return null;
         }
     }
@@ -164,7 +165,7 @@ function sanitizeString(name) {
         .trim()
         .replaceAll(/(^\/|\/$)/g, '')
         .toLowerCase()
-        .replace(/[^a-zA-Z0-9_]/g, '_');
+        .replaceAll(/\W/g, '_');
 }
 
 // -----------------
@@ -650,12 +651,12 @@ function encodeMongo(value) {
         return 'x002f';
     }
     return value
-        .replace(/x[0-9a-f]{4}/gi, (m) => 'xx' + m.slice(1)) // strings composed of a x character and a Unicode
-        .replace(/\//g, 'x002f')
-        .replace(/\./g, 'x002e')
-        .replace(/\$/g, 'x0024')
-        .replace(/"/g, 'x0022')
-        .replace(/=/g, 'xffff');
+        .replaceAll(/x[0-9a-f]{4}/gi, (m) => 'xx' + m.slice(1)) // strings composed of a x character and a Unicode
+        .replaceAll(/\//g, 'x002f')
+        .replaceAll(/\./g, 'x002e')
+        .replaceAll(/\$/g, 'x0024')
+        .replaceAll(/"/g, 'x0022')
+        .replaceAll(/=/g, 'xffff');
 }
 
 function truncate(s, max = 4000) {

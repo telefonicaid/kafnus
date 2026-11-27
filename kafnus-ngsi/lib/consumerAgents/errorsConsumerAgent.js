@@ -166,7 +166,7 @@ function buildFallbackQuery(valueJson, headers, dbName) {
 
 function formatSqlValue(v) {
     if (typeof v === 'string') {
-        return `'${v.replace(/'/g, "''")}'`;
+        return `'${v.replaceAll(/'/g, "''")}'`;
     }
     if (v == null) {
         return 'NULL';
